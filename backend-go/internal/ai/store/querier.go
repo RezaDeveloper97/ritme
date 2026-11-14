@@ -13,6 +13,10 @@ type Querier interface {
 	// B-N6-05b (L5): rows older than the retention window lose their user (the cost history stays for the caps and
 	// the admin aggregates). Bounded batch so one run never locks the table for long.
 	AnonymizeUsageBefore(ctx context.Context, before sql.NullTime) (int64, error)
+	// Admin report (goose 00125): credits users spent per Tehran day in [from, to) — refunded uses excluded — next to
+	// the provider cost above.
+	CreditSpendByDay(ctx context.Context, arg CreditSpendByDayParams) ([]CreditSpendByDayRow, error)
+	CreditSpendByFeature(ctx context.Context, arg CreditSpendByFeatureParams) ([]CreditSpendByFeatureRow, error)
 	// AI usage + cost log (B-N6-05, goose 00032): one row per provider call. No content, no PII.
 	InsertUsage(ctx context.Context, arg InsertUsageParams) error
 	// The global daily cap: the estimated cost of every call since `since` (start of the Tehran day).
@@ -22,6 +26,8 @@ type Querier interface {
 	// Admin aggregates: per Tehran day in [from, to).
 	UsageByDay(ctx context.Context, arg UsageByDayParams) ([]UsageByDayRow, error)
 	UsageByFeature(ctx context.Context, arg UsageByFeatureParams) ([]UsageByFeatureRow, error)
+	// plus_settings.ai_cost_usd_irr_rate (IRR per USD; admin «اشتراک‌ها» settings): the report converts the cost.
+	UsageFXRate(ctx context.Context) (string, error)
 }
 
 var _ Querier = (*Queries)(nil)

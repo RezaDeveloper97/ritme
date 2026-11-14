@@ -51,9 +51,24 @@ func (s *Service) TrialOffer(ctx context.Context, userID uint64, now time.Time) 
 	return s.offer(ctx, pct, trial.EndsAt, now)
 }
 
+// salePlans is Plans without the minute-long developer test plans (never offered on the trial sheet).
+func (s *Service) salePlans(ctx context.Context) ([]Plan, error) {
+	all, err := s.Plans(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]Plan, 0, len(all))
+	for _, p := range all {
+		if !p.DurationMinutes.Valid {
+			out = append(out, p)
+		}
+	}
+	return out, nil
+}
+
 // offer prices the active plans at pct (nil when there is no active plan).
 func (s *Service) offer(ctx context.Context, pct int, endsAt, now time.Time) (*Offer, error) {
-	plans, err := s.Plans(ctx)
+	plans, err := s.salePlans(ctx)
 	if err != nil || len(plans) == 0 {
 		return nil, err
 	}
@@ -92,7 +107,7 @@ func (s *Service) TrialSheet(ctx context.Context, userID uint64, now time.Time) 
 	sheet := TrialSheet{State: st, Offer: st.Offer, UsageSince: st.Usage.PeriodStart}
 	if st.Offer != nil {
 		sheet.Plans = st.Offer.Plans
-	} else if sheet.Plans, err = s.Plans(ctx); err != nil {
+	} else if sheet.Plans, err = s.salePlans(ctx); err != nil {
 		return TrialSheet{}, err
 	}
 	if st.Trial != nil {

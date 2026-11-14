@@ -26,7 +26,9 @@ func init() {
 		if gw := payments.New(paymentDeps(d)); gw != nil { // a nil *Gateway must stay a nil interface
 			gateway = gw
 		}
-		h := plus.NewHandlers(plus.NewService(d.DB, d.Config.Plus, gateway, d.Logger), clock.Real{}).
+		svc := plus.NewService(d.DB, d.Config.Plus, gateway, d.Logger).
+			WithStores(payments.NewStoreVerifiers(d.Config.Payment, d.Logger)) // Café Bazaar / Myket in-app billing
+		h := plus.NewHandlers(svc, clock.Real{}).
 			WithCommercial(teen.NewPolicy(d.DB)) // CB-TEEN-01: no offer, trial or checkout for a teen-mode account
 		writes := writeThrottle(d)
 
@@ -37,8 +39,14 @@ func init() {
 		r.Get("/api/v1/plus/trial", locale, guard, h.TrialSheet) // trial sheet + offer (B-N2-06)
 		r.Post("/api/v1/plus/trial/start", locale, guard, writes, h.StartTrial)
 		r.Post("/api/v1/plus/checkout", locale, guard, writes, h.Checkout)
+		// Extra AI credits (goose 00125): the packs and their checkout; POST /plus/verify settles a pack invoice too.
+		r.Get("/api/v1/plus/credit-packs", locale, h.Packs)
+		r.Post("/api/v1/plus/credit-packs/checkout", locale, guard, writes, h.CheckoutPack)
 		r.Post("/api/v1/plus/verify", locale, guard, writes, h.Verify)
 		r.Post("/api/v1/plus/cancel", locale, guard, writes, h.Cancel)
 		r.Post("/api/v1/plus/restore", locale, guard, writes, h.Restore)
+		r.Post("/api/v1/plus/store/intent", locale, guard, writes, h.StoreIntent) // Android store builds (store_billing.go)
+		r.Post("/api/v1/plus/store/verify", locale, guard, writes, h.StoreVerify)
+		r.Post("/api/v1/plus/store/sync", locale, guard, writes, h.StoreSync)
 	})
 }

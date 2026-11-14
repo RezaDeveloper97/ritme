@@ -1,0 +1,28 @@
+{
+  "later": "Not now",
+  "subscription": {
+    "title": "A subscription is needed",
+    "body": "The assistant and the smart tools need an active subscription.",
+    "kept": "Your {count} extra credits are kept and work again with a subscription.",
+    "cta": "See subscriptions"
+  },
+  "credits": {
+    "title": "You're out of credits",
+    "need": "This needs {required} credits and you have {balance}.",
+    "renews": "Your current subscription runs until {date}; your next one comes with fresh credits.",
+    "cta": "Buy credits",
+    "plans": "See subscriptions"
+  },
+  "disabled": {
+    "title": "Not available right now",
+    "body": "This isn't available at the moment. Please try again a bit later.",
+    "close": "OK"
+  },
+  "locked": {
+    "subscription": "This needs a subscription.",
+    "credits": "You don't have enough credits for this.",
+    "disabled": "This isn't available right now.",
+    "cost": "({cost} credits)",
+    "button": "Why?"
+  }
+}

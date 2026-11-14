@@ -1,18 +1,38 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 
 import { isConditionServiceTile, PROGRAMS_HUB_PATH } from '@/entities/condition';
 import { PELVIC_PATH, PELVIC_SERVICE_TILE } from '@/entities/pelvic';
 import { bookingWhen, type ServiceSection, type ServiceTile, type UpcomingBooking } from '@/entities/service-hub';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber, monthName, toParts } from '@/shared/lib/date';
-import { Icon, IconCircle, ListGroup, ListRow, SectionTitle, StatusPill } from '@/shared/ui';
+import { Art3d, type Art3dName, Icon, IconCircle, ListGroup, ListRow, SectionTitle, StatusPill } from '@/shared/ui';
 
 /*
  * The «خدمات» hub sections (B-N7-01, v17_Main). Copy comes from the API (admin catalog) with the bundled strings as
  * fallback. A destination with status `soon` is plain text plus a «به‌زودی» pill — never a link, never a button.
  */
+
+/**
+ * 3D illustration per catalog code (care tiles, program cards, shop categories). The catalog is admin data, so a code
+ * without a picture here simply keeps its line icon.
+ */
+const ART_BY_CODE: Partial<Record<string, Art3dName>> = {
+  assistant: 'assistant',
+  doctors: 'doctors',
+  record: 'record',
+  labs: 'labs',
+  vitals: 'vitals',
+  insurance: 'insurance',
+  pain_endometriosis: 'pain',
+  pmdd: 'mood',
+  heavy_bleeding: 'heavy-bleeding',
+  pelvic_floor: 'pelvic-floor',
+  contraception: 'contraception',
+  layette: 'layette',
+  beauty: 'beauty',
+};
 
 function SoonPill() {
   const t = useTranslations('services');
@@ -80,10 +100,11 @@ function Tile({ tile, className }: { tile: ServiceTile; className: string }) {
   const title = tile.title ?? tile.code;
   const sub = tile.count !== null && tile.count > 0 ? t('care.docCount', { count: tile.count }) : tile.subtitle;
   const live = tile.status === 'live' && tile.href;
+  const art = ART_BY_CODE[tile.code];
   return (
     <li className={live ? `${className} is-live` : className}>
       <div className="svc-tile-top">
-        <IconCircle icon={tile.icon} tone={tile.tone} />
+        {art ? <Art3d name={art} size={48} /> : <IconCircle icon={tile.icon} tone={tile.tone} />}
         {live ? null : <SoonPill />}
       </div>
       <p className="svc-tile-title">
@@ -121,12 +142,12 @@ export function CheckupsLink({ section }: { section: ServiceSection }) {
     <div className="svc-sec">
       {section.href ? (
         <Link href={section.href} className="svc-inline-link">
-          <Icon name="clock" size={18} />
+          <Art3d name="checkups" size={30} />
           <span>{label}</span>
         </Link>
       ) : (
         <p className="svc-inline-link is-soon">
-          <Icon name="clock" size={18} />
+          <Art3d name="checkups" size={30} />
           <span>{label}</span>
           <SoonPill />
         </p>
@@ -165,7 +186,7 @@ export function MotherChildCard({ section }: { section: ServiceSection }) {
   const caption = section.caption ?? t('motherChild.caption');
   const pill = (
     <>
-      <Icon name="mapPin" size={16} />
+      <Art3d name="mother-child" size={28} />
       <span>{caption}</span>
       {section.href ? null : <SoonPill />}
     </>
@@ -211,6 +232,7 @@ export function LearningCard({ section }: { section: ServiceSection }) {
         <ListRow
           icon="gradCap"
           iconTone="period"
+          art="learning"
           title={section.subtitle ?? t('learning.card')}
           description={section.caption ?? t('learning.caption')}
           onClick={href ? () => router.push(href) : undefined}
@@ -227,6 +249,7 @@ export function ShopCard({ section }: { section: ServiceSection }) {
     <section className="svc-sec" aria-labelledby="svc-shop">
       <div className="svc-shop">
         <div className="svc-shop-head">
+          <Art3d name="shop" size={36} />
           <h2 id="svc-shop" className="svc-shop-title">
             {section.title ?? t('shop.title')}
           </h2>
@@ -246,7 +269,11 @@ export function ShopCard({ section }: { section: ServiceSection }) {
             {section.categories.map((c, i) => (
               <li key={c.code} className={i % 2 ? 'svc-shop-cat is-alt' : 'svc-shop-cat'}>
                 <span className="svc-shop-art" aria-hidden>
-                  <Icon name={c.icon} size={44} strokeWidth={1.4} />
+                  {ART_BY_CODE[c.code] ? (
+                    <Art3d name={ART_BY_CODE[c.code] as Art3dName} size={76} />
+                  ) : (
+                    <Icon name={c.icon} size={44} strokeWidth={1.4} />
+                  )}
                 </span>
                 <span className="svc-shop-cat-title">{c.title ?? c.code}</span>
               </li>
@@ -262,18 +289,13 @@ export function ShopCard({ section }: { section: ServiceSection }) {
 /** Always rendered (also while loading / on error): `section` null = bundled copy and 115. */
 export function SosCard({ section }: { section: ServiceSection | null }) {
   const t = useTranslations('services');
-  const locale = useLocale() as Locale;
-  const phone = section?.phone ?? '115';
   return (
     <div className="svc-sos">
-      <IconCircle icon="warning" tone="danger" size="md" />
+      <IconCircle icon="info" tone="neutral" size="md" />
       <div className="svc-sos-text">
         <p className="svc-sos-title">{section?.title ?? t('sos.title')}</p>
         <p className="svc-sos-body">{section?.subtitle ?? t('sos.body')}</p>
       </div>
-      <a className="svc-sos-call" href={`tel:${phone}`} aria-label={t('sos.call', { phone: formatNumber(phone, locale) })}>
-        <bdi>{formatNumber(phone, locale)}</bdi>
-      </a>
     </div>
   );
 }

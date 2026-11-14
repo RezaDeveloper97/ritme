@@ -3,8 +3,8 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useState, type ReactNode } from 'react';
 
-import { LAB_PLUS_FEATURE, labHref, type LabListItem, useLabConsent, useLabs } from '@/entities/lab';
-import { usePlusLocked } from '@/entities/plus';
+import { labHref, type LabListItem, useLabConsent, useLabs } from '@/entities/lab';
+import { useAiGate } from '@/features/ai-gate';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
@@ -24,7 +24,6 @@ import {
   StatusPill,
   type Tone,
 } from '@/shared/ui';
-import { PlusBadge } from '@/shared/ui/plus-gate';
 
 const HERO_TAGS: readonly { key: 'blood' | 'hormone' | 'thyroid' | 'urine'; tone: Tone }[] = [
   { key: 'blood', tone: 'brand' },
@@ -69,7 +68,7 @@ function Shell({ header, children, footer }: { header: ReactNode; children: Reac
 /**
  * `/labs` (nbl_Lab_Intro): what the lab analysis does, the previous analyses
  * (status per lab, tap → processing / verify / result) and «بارگذاری آزمایش
- * جدید» — through the Plus gate (`plus.lab_ai`) and the consent sheet when the
+ * جدید» — through the AI gate (`useAiGate('lab_analysis')`) and the consent sheet when the
  * versioned consent is missing or outdated.
  */
 export function LabIntroPage() {
@@ -79,12 +78,12 @@ export function LabIntroPage() {
   const mounted = useMounted();
   const labs = useLabs();
   const consent = useLabConsent();
-  const locked = usePlusLocked(LAB_PLUS_FEATURE);
+  const gate = useAiGate('lab_analysis');
   const [all, setAll] = useState(false);
 
   const startUpload = () => {
-    if (locked) router.push('/plus');
-    else if (consent.data && !consent.data.needsConsent) router.push('/labs/new');
+    if (!gate.guard()) return;
+    if (consent.data && !consent.data.needsConsent) router.push('/labs/new');
     else openSheet('lab-consent', 'upload');
   };
 
@@ -100,7 +99,6 @@ export function LabIntroPage() {
     <div className="lab-footer">
       <PrimaryButton icon="export" onClick={startUpload}>
         {t('intro.upload')}
-        {locked ? <PlusBadge label={t('intro.plus')} className="lab-cta-plus" /> : null}
       </PrimaryButton>
     </div>
   );

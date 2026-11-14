@@ -65,42 +65,53 @@ it('renders services as a CollectionPage linking into the directory and the shop
         ->toContain('برنامه‌های مراقبتی')
         ->toContain('href="'.route('directory.index').'"')
         ->toContain('href="'.route('shop.index').'"')
-        ->toContain('href="tel:115"')
+        ->not->toContain('href="tel:115"')
         ->toContain('همه خدمات در اپ ریتمی');
 });
 
-it('shows the plans with «قیمت در اپ» while prices are switched off and no placeholders', function (): void {
+it('shows the four design plans with their prices and links «انتخاب» to the download band', function (): void {
     $html = $this->get('/plus')->getContent();
 
     expect(servicesPlusNode($html, '#webpage')['@type'] ?? null)->toBe('WebPage')
-        ->and($html)->toContain('اول می‌گوییم چه چیزی همیشه رایگان است')
-        ->toContain('همیشه رایگان')
-        ->toContain('۰ تومان')
-        ->toContain('ریتمی پلاس')
-        ->toContain('بسته‌های دوره')
-        ->and(substr_count($html, 'قیمت در اپ'))->toBe(2)
-        ->and($html)->not->toContain('[قیمت')
-        ->not->toContain('[امکانات دیگر پلاس]')
-        ->not->toContain('[بسته‌های دیگر]')
-        ->not->toContain('تخفیف');
+        ->and($html)->toContain('ریتمی رایگان است.')
+        ->toContain('پلاس، عمق بیشتر.')
+        ->toContain('۱۲۹٬۰۰۰')
+        ->toContain('۱۱۶٬۰۰۰')
+        ->toContain('۹۹٬۰۰۰')
+        ->toContain('۸۲٬۵۰۰')
+        ->toContain('۳۴۸٬۰۰۰ تومان، ۱۰٪ کمتر')
+        ->toContain('۵۹۴٬۰۰۰ تومان، ۲۳٪ کمتر')
+        ->toContain('۹۹۰٬۰۰۰ تومان، ۳۶٪ کمتر')
+        ->toContain('پیشنهاد ما')
+        ->toContain('<table')
+        ->toContain('دارد')
+        ->not->toContain('قیمت در اپ')
+        ->and(substr_count($html, 'href="#download"'))->toBeGreaterThanOrEqual(5);
 });
 
-it('shows published prices only when the pricing switch is on and an amount is set', function (): void {
-    __('plus.pricing'); // load the group first, so addLines only overrides these keys
-    app('translator')->addLines([
-        'plus.pricing.show' => true,
-        'plus.pricing.plus_yearly' => 490000,
-        'plus.pricing.plus_monthly' => 59000,
-    ], 'fa');
+it('replaces the amounts with «قیمت در اپ» when the pricing switch is off', function (): void {
+    __('plus.pricing'); // load the group first, so addLines only overrides this key
+    app('translator')->addLines(['plus.pricing.show' => false], 'fa');
 
     $plans = PlusController::plans();
 
-    expect($plans[1]['price'])->toBe('۴۹۰ هزار تومان در سال')
-        ->and($plans[1]['note'])->toContain('ماهانه ۵۹ هزار تومان')
-        ->and($plans[2]['price'])->toBe('قیمت در اپ');
+    expect($plans)->toHaveCount(4)
+        ->and(array_column($plans, 'price'))->each->toBe('قیمت در اپ')
+        ->and(array_column($plans, 'unit'))->each->toBe('')
+        ->and($plans[1]['note'])->toBe('');
 
-    app('translator')->addLines(['plus.pricing.show' => false], 'fa');
-    expect(PlusController::plans()[1]['price'])->toBe('قیمت در اپ');
+    $html = $this->get('/plus')->getContent();
+    expect(substr_count($html, 'قیمت در اپ'))->toBe(4)
+        ->and($html)->not->toContain('۱۲۹٬۰۰۰');
+});
+
+it('formats the plans from the lang amounts when the switch is on', function (): void {
+    $plans = PlusController::plans();
+
+    expect($plans[0]['price'])->toBe('۱۲۹٬۰۰۰')
+        ->and($plans[0]['note'])->toBe('۱۲۹٬۰۰۰ تومان، هر وقت خواستی لغو کن')
+        ->and($plans[2]['featured'])->toBeTrue()
+        ->and($plans[3]['note'])->toBe('۹۹۰٬۰۰۰ تومان، ۳۶٪ کمتر');
 });
 
 it('renders the plus FAQ group as a visible grid with matching FAQPage JSON-LD', function (): void {
@@ -108,14 +119,13 @@ it('renders the plus FAQ group as a visible grid with matching FAQPage JSON-LD',
 
     $html = $this->get('/plus')->getContent();
 
-    expect($html)->toContain('قبل از خرید')
-        ->toContain('جواب سؤال‌هایی که حق داری بپرسی')
-        ->toContain('اگر لغو کنم، داده‌ام چه می‌شود؟')
-        ->toContain('چطور لغو کنم؟');
+    expect($html)->toContain('سؤالات متداول')
+        ->toContain('اگر پلاس را لغو کنم، داده‌ام چه می‌شود؟')
+        ->toContain('هشدارهای سلامت پولی است؟');
 
     $faq = servicesPlusNode($html, '#faq');
     expect($faq['@type'] ?? null)->toBe('FAQPage')
-        ->and(array_column($faq['mainEntity'] ?? [], 'name'))->toContain('اگر لغو کنم، داده‌ام چه می‌شود؟', 'چطور لغو کنم؟');
+        ->and(array_column($faq['mainEntity'] ?? [], 'name'))->toContain('اگر پلاس را لغو کنم، داده‌ام چه می‌شود؟', 'پرداخت و لغو چطور است؟');
     foreach ($faq['mainEntity'] as $question) {
         expect($html)->toContain(e($question['name']));
     }
@@ -124,6 +134,6 @@ it('renders the plus FAQ group as a visible grid with matching FAQPage JSON-LD',
 it('renders no FAQ block and no FAQPage node when the plus group is empty', function (): void {
     $html = $this->get('/plus')->getContent();
 
-    expect($html)->not->toContain('جواب سؤال‌هایی که حق داری بپرسی')
+    expect($html)->not->toContain('plus-faq-title')
         ->and(servicesPlusNode($html, '#faq'))->toBe([]);
 });

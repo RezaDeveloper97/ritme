@@ -6,7 +6,7 @@ import { useFormatter, useTranslations } from 'next-intl';
 import { useTodayChallenge, type TodayChallenge } from '@/entities/challenge';
 import type { FeedChallenge } from '@/entities/message';
 import { useToggleChallenge } from '@/features/complete-challenge';
-import { Card, Icon, IconCircle, type IconName } from '@/shared/ui';
+import { Card, CheckTick, Icon, IconCircle, type IconName } from '@/shared/ui';
 
 /** Category → icon. Unknown/absent categories fall back to a neutral sparkle. */
 const CATEGORY_ICON: Record<string, IconName> = {
@@ -105,7 +105,7 @@ export function TodayChallengeCard({ pick }: { pick?: FeedChallenge | null } = {
         className={clsx('tc-nb-row', done && 'is-done')}
       >
         <span className="tc-nb-check" aria-hidden>
-          {done && <Icon name="check" size={14} strokeWidth={3} />}
+          <CheckTick on={done} />
         </span>
         <span className="tc-nb-body">
           <span className="tc-nb-name">{challenge.title}</span>
@@ -120,8 +120,6 @@ export function TodayChallengeCard({ pick }: { pick?: FeedChallenge | null } = {
           </span>
         ) : null}
       </button>
-
-      <p className="tc-nb-foot">{t('footer')}</p>
     </Card>
   );
 }

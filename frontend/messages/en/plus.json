@@ -25,16 +25,18 @@
     "features": {
       "analysis": "Deep cycle and symptom-pattern analysis",
       "prediction": "Sharper predictions with BBT and LH",
-      "assistant": "Unlimited health assistant",
       "pdf": "PDF report for your doctor",
       "tracking": "Period tracking and reminders",
-      "todo": "To-do list"
+      "todo": "To-do list",
+      "sms": "SMS reminders for medications and doctor visits",
+      "credits": "Monthly credits for the assistant and smart analysis"
     },
     "cta": "Choose a plan",
     "manage": "Manage subscription",
     "active": "Ritme Plus is active for you",
     "trial": "{days} days free on your first subscription",
-    "trialFailed": "Couldn't start the free trial. Try again."
+    "trialFailed": "Couldn't start the free trial. Try again.",
+    "creditsLabel": "Credits per plan"
   },
   "plans": {
     "title": "Choose your plan",
@@ -50,7 +52,13 @@
       "devices": "Your subscription works on all your devices"
     },
     "cta": "Continue · {plan}",
-    "empty": "No plans are available right now. Check back a little later."
+    "empty": "No plans are available right now. Check back a little later.",
+    "minutes": "{minutes, plural, one {# minute} other {# minutes}}",
+    "months": "{months, plural, one {# month} other {# months}}",
+    "minutesPrice": "{price} toman · {minutes, plural, one {# minute} other {# minutes}}",
+    "storeUnavailableTitle": "Payment isn't available in this version",
+    "storeUnavailableBody": "You can't subscribe from inside this version right now. Check back a little later.",
+    "credits": "{count} credits"
   },
   "checkout": {
     "title": "Review and pay",
@@ -74,7 +82,15 @@
     "secure": "Secure payment · auto-renew can be turned off",
     "pay": "Pay and activate",
     "payFailed": "Couldn't reach the payment gateway. Try again.",
-    "unavailable": "Payments aren't available right now. Try again a little later."
+    "unavailable": "Payments aren't available right now. Try again a little later.",
+    "duration": "Duration",
+    "storeSub": "Paid through your store account",
+    "storeSecure": "Secure payment · through the store",
+    "storeFailed": "The purchase didn't go through. Try again.",
+    "store": {
+      "bazaar": "Cafe Bazaar",
+      "myket": "Myket"
+    }
   },
   "return": {
     "verifying": "Confirming your payment…",
@@ -137,7 +153,10 @@
     "cancelFailed": "Couldn't cancel. Try again.",
     "noneTitle": "You have no active subscription",
     "noneBody": "Get full analysis, a health assistant and doctor reports with Ritme Plus.",
-    "noneCta": "See plans"
+    "noneCta": "See plans",
+    "credits": "Smart credits",
+    "creditsSub": "Credit usage and details",
+    "creditsValue": "{count} credits"
   },
   "trialBanner": {
     "title": "Ritme Plus is open for you",
@@ -163,17 +182,6 @@
         "sub": "Symptom patterns, correlations, mood by phase",
         "used": "Viewed {count}×"
       },
-      "labAi": {
-        "title": "AI lab-result analysis",
-        "sub": "Up to {limit} analyses a month",
-        "subUnlimited": "AI analysis of your lab results",
-        "used": "{count} used"
-      },
-      "assistant": {
-        "title": "Unlimited health assistant",
-        "sub": "Ask without limits",
-        "used": "{count} messages"
-      },
       "pdfShare": {
         "title": "PDF report for your doctor",
         "sub": "With a 7-day share link",
@@ -182,6 +190,11 @@
       "visitDiscount": {
         "title": "Online visit discount",
         "sub": "On every doctor visit"
+      },
+      "credits": {
+        "title": "Smart credits",
+        "sub": "For the assistant, lab analysis and document reading",
+        "value": "{remaining} of {total} left"
       }
     },
     "notYet": "Not yet",
@@ -228,16 +241,21 @@
       "basis": "{n, plural, one {The last cycle} other {Your last # cycles}} shaped this estimate",
       "noBasis": "Not enough finished cycles yet",
       "reasons": "{n, plural, one {# thing shaped how sure we are} other {# things shaped how sure we are}}"
-    },
-    "lab": {
-      "available": "{remaining} of {limit} free analyses left this month. Renews on {date}.",
-      "spent": "You have used this month's free analysis ({limit}). It renews on {date}, or go unlimited with Plus.",
-      "plusAvailable": "{remaining} of {limit} analyses left this month.",
-      "spentCta": "See Ritme Plus"
-    },
-    "assistant": {
-      "fairUse": "You have reached this month's fair-use limit for the assistant. It opens up again on {date}. If something feels urgent, please talk to a doctor or call 115.",
-      "fairUseReply": "You have reached this month's fair-use limit for the assistant. It opens up again when the next month starts. If something feels urgent, please talk to a doctor or call 115."
     }
+  },
+  "requiredSheet": {
+    "companion": {
+      "title": "Ritme Companion is part of Ritme Plus",
+      "lead": "Inviting a companion isn't included in the free plan; it opens with a Ritme Plus subscription."
+    },
+    "trialTitle": "{days} days of Ritme Plus, free",
+    "trialPill": "Free",
+    "trialBody": "Try every Plus feature for {days} days without paying; you can create your invite code right away.",
+    "trialCta": "Start {days} free days",
+    "savings": "Save {percent}%",
+    "perMonth": "About {amount} thousand toman a month",
+    "buy": "Get the {plan} plan",
+    "allPlans": "See all plans",
+    "see": "See Ritme Plus"
   }
 }

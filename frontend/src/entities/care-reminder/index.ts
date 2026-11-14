@@ -3,6 +3,11 @@
 // ── Model: types & enums ───────────────────────────────────────
 export {
   ALL_WEEKDAYS,
+  DAY_EVERY_MAX,
+  DOSE_UNITS,
+  FREQUENCY_UNITS,
+  HOUR_EVERY_OPTIONS,
+  MEALS,
   APPOINTMENT_KINDS,
   APPOINTMENT_STATUSES,
   APPOINTMENT_TOPICS,
@@ -18,6 +23,11 @@ export {
   type CareEnums,
   type CareOption,
   type CareToday,
+  type DoseUnit,
+  type FrequencyUnit,
+  type Meal,
+  type MedicationDose,
+  type MedicationFrequency,
   type Medication,
   type MedicationDuration,
   type MedicationForm,
@@ -29,7 +39,16 @@ export {
   type Weekday,
 } from './model/types';
 export { applyIntake, type IntakeChange } from './model/intake';
-export { medicationSchedule, type MedicationSchedule } from './model/schedule';
+export {
+  doseDetail,
+  frequencySummary,
+  medicationSchedule,
+  nextDoseAt,
+  relativeDose,
+  type FrequencySummary,
+  type MedicationSchedule,
+  type RelativeDose,
+} from './model/schedule';
 
 // ── API: keys, parsers, reads ──────────────────────────────────
 export { careKeys, type MedicationFilters } from './api/keys';

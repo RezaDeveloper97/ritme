@@ -8,7 +8,7 @@ import { BodySkeleton, LoadError, TriagePill, useAssistantError, useConversation
 import { DoctorAvatar, ModeTag, useBookings, useDoctorTitle, whenLabel } from '@/entities/doctor';
 import { getApiErrorCode } from '@/shared/api';
 import { Link, useRouter, type Locale } from '@/shared/i18n';
-import { Card, EmptyState, Icon, InfoNote, PrimaryButton, ScreenHeader, SecondaryButton, SkyLayer } from '@/shared/ui';
+import { Card, CheckTick, EmptyState, Icon, InfoNote, PrimaryButton, ScreenHeader, SecondaryButton, SkyLayer } from '@/shared/ui';
 
 /**
  * `/assistant/chat/[id]/handoff` — «ارسال به پزشک» (nbl_/nbd_v18_Handoff): pick one of HER OWN upcoming bookings; the
@@ -98,7 +98,8 @@ export function AssistantHandoffPage({ id }: { id: number }) {
         {usable.length > 0 ? (
           <>
             <label className="as-check">
-              <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
+              <input type="checkbox" className="nb-check-native" checked={agree} onChange={(e) => setAgree(e.target.checked)} />
+              <span className="nb-check-box" aria-hidden><CheckTick on={agree} /></span>
               <span>{t('handoff.consent')}</span>
             </label>
             <p className="as-fine">{t('handoff.revoke')}</p>

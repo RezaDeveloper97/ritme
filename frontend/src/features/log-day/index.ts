@@ -7,4 +7,4 @@ export { useSaveLogDay, type SaveLogDayInput } from './api/save';
 export { useLogDayController, type LogDayController } from './model/use-log-day';
 export { useLogDayHeading, type LogDayHeading } from './model/use-heading';
 export { categoryLook, tileLook } from './model/presentation';
-export { VOICE_FEATURE, type VoiceLogSlot, type VoiceLogSlotProps } from './ui/VoiceTab';
+export { type VoiceLogSlot, type VoiceLogSlotProps } from './ui/VoiceTab';

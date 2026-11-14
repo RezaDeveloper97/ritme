@@ -75,7 +75,7 @@ export function CycleSymptomsPage() {
         <ScreenHeader
           title={t('symptoms.title')}
           subtitle={data?.ready ? t('symptoms.subtitle', { n: data.cyclesCounted }) : undefined}
-          onBack={() => router.push('/cycle')}
+          onBack={() => router.push('/analysis?tab=history')}
           backLabel={t('back')}
         />
 

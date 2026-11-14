@@ -7,7 +7,8 @@
  *                                                  from a running local site (default http://127.0.0.1:8000)
  *   node tools/pwa-icons.mjs --screenshots --base http://127.0.0.1:8001
  *
- * - Brand mark = the header logo: a `primary` disc with the white `drop` icon (resources/svg/icons/drop.svg).
+ * - Brand mark = the Ritme app logo (resources/images/brand/ritme-logo-512.png, copied from the Android store icon)
+ *   on white: favicons/app icons are a white rounded tile, maskable + apple-touch are full-bleed white.
  *   Colours are read from the `@theme` tokens in resources/css/app.css (no hex is hard-coded here).
  * - Rasterised by headless Chrome (`--screenshot`, transparent background). No npm deps, no network: the SVGs are
  *   local files and screenshots may only target a local origin. Chrome: CHROME_PATH or /Applications/Google Chrome.app.
@@ -32,7 +33,7 @@ const withScreenshots = args.includes('--screenshots');
 const baseIndex = args.indexOf('--base');
 const base = baseIndex >= 0 ? args[baseIndex + 1] : 'http://127.0.0.1:8000';
 
-/* ---------------------------------------------------------------- tokens + drop path */
+/* ---------------------------------------------------------------- tokens + logo */
 
 const css = readFileSync(join(ROOT, 'resources/css/app.css'), 'utf8');
 const token = (name) => {
@@ -40,29 +41,42 @@ const token = (name) => {
     if (!m) throw new Error(`token --color-${name} not found in app.css`);
     return m[1].toUpperCase();
 };
-const PRIMARY = token('primary');
 const WHITE = token('white');
 const BLACK = token('black');
 
 const dropSvg = readFileSync(join(ROOT, 'resources/svg/icons/drop.svg'), 'utf8');
 const DROP = dropSvg.match(/<path d="([^"]+)"/)[1];
 
-/** The drop (24-unit icon, stroke 2) scaled to `box` px and centred on (cx, cy). */
-const drop = (box, cx, cy, color) => {
+/** The drop (24-unit icon, stroke 2) scaled to `box` px and centred on (cx, cy) — only for the Safari mask icon. */
+const drop = (box, cx, cy, color, stroke = 2) => {
     const k = box / 24;
     return `<path d="${DROP}" transform="translate(${cx - 12 * k} ${cy - 11.5 * k}) scale(${k})" fill="none" `
-        + `stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+        + `stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round"/>`;
 };
 const svg = (size, body) => `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${body}</svg>`;
 
-// Same proportions as the header logo: drop = half of the disc.
-const disc = (s) => svg(s, `<circle cx="${s / 2}" cy="${s / 2}" r="${s / 2}" fill="${PRIMARY}"/>${drop(s / 2, s / 2, s / 2, WHITE)}`);
-// Maskable: full-bleed, the mark inside the 80 % safe circle (drop at 40 % of the canvas).
-const maskable = (s) => svg(s, `<rect width="${s}" height="${s}" fill="${PRIMARY}"/>${drop(s * 0.4, s / 2, s / 2, WHITE)}`);
-// Apple touch icon: opaque square (iOS rounds the corners itself and paints transparency black).
-const apple = (s) => svg(s, `<rect width="${s}" height="${s}" fill="${PRIMARY}"/>${drop(s * 0.5, s / 2, s / 2, WHITE)}`);
-// Monochrome: only the alpha channel counts; the drop alone, inside the safe zone.
-const monochrome = (s) => svg(s, drop(s * 0.6, s / 2, s / 2, WHITE));
+/** The Ritme app logo (the «R» ring, transparent PNG — same file as the Android store icon), as a data URI. */
+const LOGO = `data:image/png;base64,${readFileSync(join(ROOT, 'resources/images/brand/ritme-logo-512.png')).toString('base64')}`;
+
+/** The logo at `scale` of an `s` canvas, centred; `white` turns it into a white silhouette (alpha kept). */
+const logo = (s, scale, white = false) => {
+    const box = s * scale;
+    const at = (s - box) / 2;
+    const filter = white ? ' filter="url(#white)"' : '';
+    const defs = white ? '<defs><filter id="white"><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0"/></filter></defs>' : '';
+    return `${defs}<image href="${LOGO}" x="${at}" y="${at}" width="${box}" height="${box}"${filter}/>`;
+};
+
+// Favicon: white rounded tile (readable on dark and light tabs), logo nearly edge to edge.
+const tile = (s) => svg(s, `<rect width="${s}" height="${s}" rx="${s * 0.22}" fill="${WHITE}"/>${logo(s, 0.96)}`);
+// App icon (`any`): the same white tile.
+const disc = (s) => svg(s, `<rect width="${s}" height="${s}" rx="${s * 0.22}" fill="${WHITE}"/>${logo(s, 0.8)}`);
+// Maskable: full-bleed white, the ring inside the 80 % safe circle.
+const maskable = (s) => svg(s, `<rect width="${s}" height="${s}" fill="${WHITE}"/>${logo(s, 0.7)}`);
+// Apple touch icon: opaque white square (iOS rounds the corners itself and paints transparency black).
+const apple = (s) => svg(s, `<rect width="${s}" height="${s}" fill="${WHITE}"/>${logo(s, 0.78)}`);
+// Monochrome: only the alpha channel counts; the logo as a white silhouette inside the safe zone.
+const monochrome = (s) => svg(s, logo(s, 0.7, true));
 
 /* ---------------------------------------------------------------- rasterise with Chrome */
 
@@ -124,15 +138,16 @@ const pngs = {
 };
 for (const [name, buf] of Object.entries(pngs)) writeFileSync(join(OUT, `${name}.png`), buf);
 
-// Vector favicon + Safari pinned-tab mask (single colour, filled shapes only matter).
-writeFileSync(join(OUT, 'favicon.svg'), `${disc(32).replace('width="32" height="32" ', '')}\n`);
+// SVG favicon = a small 64 px raster of the tile (the 512 px logo would make it ~200 KB) + Safari pinned-tab mask.
+const fav64 = (await rasterise('favicon-64', 64, tile(64))).toString('base64');
+writeFileSync(join(OUT, 'favicon.svg'), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><image href="data:image/png;base64,${fav64}" width="64" height="64"/></svg>\n`);
 writeFileSync(join(OUT, 'mask-icon.svg'), `${svg(16, drop(14, 8, 8, BLACK)).replace('width="16" height="16" ', '')}\n`);
 
 /* ---------------------------------------------------------------- favicon.ico (PNG entries) */
 
 const icoSizes = [16, 32, 48];
 const icoImages = [];
-for (const s of icoSizes) icoImages.push(await rasterise(`ico-${s}`, s, disc(s)));
+for (const s of icoSizes) icoImages.push(await rasterise(`ico-${s}`, s, tile(s)));
 const header = Buffer.alloc(6);
 header.writeUInt16LE(0, 0); header.writeUInt16LE(1, 2); header.writeUInt16LE(icoSizes.length, 4);
 let offset = 6 + 16 * icoSizes.length;
@@ -165,4 +180,4 @@ if (withScreenshots) {
 
 rmSync(work, { recursive: true, force: true });
 process.stdout.write(`pwa-icons: wrote ${Object.keys(pngs).length} PNGs, favicon.svg, mask-icon.svg, favicon.ico`
-    + `${withScreenshots ? ', 2 screenshots' : ''} (primary ${PRIMARY})\n`);
+    + `${withScreenshots ? ', 2 screenshots' : ''} (Ritme logo on white)\n`);

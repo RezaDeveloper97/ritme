@@ -32,45 +32,41 @@ function stageGraph(string $html): array
     return $graph;
 }
 
-it('renders /cycle on the stage template with the design sections', function (): void {
+it('renders /cycle on the redesigned stage template', function (): void {
     $html = $this->get('/cycle')->assertOk()->getContent();
 
     expect(substr_count($html, '<h1'))->toBe(1)
-        ->and($html)->toContain('الگوی بدن خودت')
+        ->and($html)->toContain('الگوی بدن خودت را بشناس')
         ->and($html)->toContain('<title>پیگیری چرخه و پریود با پیش‌بینی و سطح اطمینان — ریتمی</title>')
         ->and($html)->toContain('<link rel="canonical" href="https://ritme.test/cycle">')
         ->and($html)->not->toMatch('/\sstyle\s*=/i')
-        // hero «چطور کار می‌کند؟» → first feature split
-        ->and($html)->toContain('href="#how"')
-        ->and(substr_count($html, 'id="how"'))->toBe(1)
+        ->and($html)->toContain('href="#features"')
+        ->and(substr_count($html, 'id="features"'))->toBe(1)
         ->and(substr_count($html, 'id="download"'))->toBe(1)
-        ->and(substr_count($html, '<h2'))->toBeGreaterThanOrEqual(7)
-        // blocks
+        ->and($html)->toContain('در دوران قاعدگی، ریتمی برایت چه دارد؟')
+        ->and($html)->toContain('روزهای باروری و تخمک‌گذاری')
         ->and($html)->toContain('کارهای کوچک، آمادگی بیشتر')
-        ->and($html)->toContain('وقتی کمک بیشتری لازم داری')
-        ->and($html)->toContain('href="tel:115"')
-        ->and($html)->toContain('سؤال‌های رایج درباره پیگیری چرخه')
+        ->and($html)->toContain('روی سایت')
+        ->and($html)->not->toContain('href="tel:115"')
+        ->and($html)->toContain('سؤالات متداول')
         ->and(substr_count($html, '<details'))->toBe(3)
         ->and($html)->toContain('data-faq-group="stage-cycle"')
-        ->and($html)->toContain('href="/tools#fertility"');
+        ->and($html)->toContain('href="/tools#fertility"')
+        // the design has no stage pills, help block or phone mock-ups
+        ->and($html)->not->toContain('مرحله‌های زندگی')
+        ->and($html)->not->toContain('وقتی کمک بیشتری لازم داری')
+        ->and($html)->not->toContain('shadow-phone');
 });
 
-it('renders the six stage pills with the current stage marked', function (): void {
-    $html = $this->get('/cycle')->assertOk()->getContent();
+it('keeps postpartum, menopause and teen on the classic template with the stage pills', function (string $path): void {
+    $html = $this->get($path)->assertOk()->getContent();
 
     expect(preg_match('~<nav aria-label="مرحله‌های زندگی".*?</nav>~s', $html, $nav))->toBe(1);
     expect(substr_count($nav[0], '<a '))->toBe(6)
         ->and(substr_count($nav[0], 'aria-current="page"'))->toBe(1)
-        ->and($nav[0])->toMatch('~href="/cycle" aria-current="page"[^>]*border-stage-cycle~');
-});
-
-it('keeps phone mock-ups and float cards out of the accessibility tree', function (): void {
-    $html = $this->get('/cycle')->assertOk()->getContent();
-
-    // hero phone column + 3 feature mock-up columns, each wrapped in aria-hidden
-    expect(substr_count($html, 'shadow-phone'))->toBe(4)
-        ->and(preg_match_all('~<div aria-hidden="true"[^>]*(?:h-165|bg-\[radial-gradient)~', $html))->toBe(4);
-});
+        ->and($html)->toContain('id="how"')
+        ->and(substr_count($html, 'shadow-phone'))->toBeGreaterThan(0);
+})->with(['/postpartum', '/menopause', '/teen']);
 
 it('describes the page in JSON-LD: breadcrumbs, FAQ and the app', function (): void {
     $graph = stageGraph($this->get('/cycle')->assertOk()->getContent());
@@ -158,9 +154,6 @@ it('renders each stage h1 with the design wording and the lilac phrase in place'
         ->and($m[1])->toContain('<span class="text-lilac">'.$highlight.'</span>')
         ->and($m[1])->not->toContain(':highlight');
 })->with([
-    'cycle' => ['/cycle', 'الگوی بدن خودت را بشناس، نه میانگین دیگران', 'الگوی بدن خودت'],
-    'ttc' => ['/ttc', 'روزهای باروری را بشناس، با آرامش', 'با آرامش'],
-    'pregnancy' => ['/pregnancy', '۴۰ هفته، قدم‌به‌قدم کنارت', 'قدم‌به‌قدم'],
     'postpartum' => ['/postpartum', 'حال خودت هم مهم است، نه فقط کودک', 'حال خودت'],
     'menopause' => ['/menopause', 'یائسگی، فصل تازه؛ نه پایان راه', 'فصل تازه'],
     'teen' => ['/teen', 'اولین پریود، بدون ترس و خجالت', 'بدون ترس'],
@@ -207,7 +200,7 @@ it('shares one companion screen between the home page and the stages', function 
         ->and(view()->exists('pages.stages.mock.screens.postpartum-partner'))->toBeFalse()
         ->and(view()->exists('pages.stages.mock.screens.teen-mother'))->toBeFalse();
 
-    foreach (['/', '/ttc', '/postpartum'] as $path) {
+    foreach (['/postpartum'] as $path) {
         expect($this->get($path)->assertOk()->getContent())->toContain('همدم سارا')->toContain('قرص آهن سارا');
     }
 });

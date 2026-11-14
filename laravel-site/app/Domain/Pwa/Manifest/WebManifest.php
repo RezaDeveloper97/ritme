@@ -44,7 +44,7 @@ final class WebManifest
         'shop.index' => 'فروشگاه',
     ];
 
-    public const REVISION = 1;
+    public const REVISION = 2;
 
     public function __construct(
         private readonly SettingsRepository $settings,

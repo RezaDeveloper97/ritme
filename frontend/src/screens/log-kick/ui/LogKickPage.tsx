@@ -5,7 +5,8 @@ import { useEffect, useState } from 'react';
 
 import { usePregnancyAlertsV2, type PregnancyAlertV2 } from '@/entities/pregnancy';
 import { KickCounter, useKickOverview } from '@/features/pregnancy-tools';
-import { Link, useRouter } from '@/shared/i18n';
+import { useRouter } from '@/shared/i18n';
+import { openSheet } from '@/shared/sheet';
 import {
   Card,
   EmptyState,
@@ -131,9 +132,9 @@ function KickAlertCard({ alert }: { alert: PregnancyAlertV2 }) {
       >
         {ackAction?.label ?? t('alertAck')}
       </button>
-      <Link href="/pregnancy/alerts" className="ptl-link">
+      <button type="button" className="ptl-link" onClick={() => openSheet('notifications')}>
         {t('seeAlerts')}
-      </Link>
+      </button>
     </Card>
   );
 }

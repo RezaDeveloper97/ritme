@@ -22,6 +22,7 @@ export type { Tone } from './tone';
 
 // Canvas-v1 additions (CB-CORE-02) — docs/canvas-build/README.md §3.
 export { Checkbox } from './Checkbox';
+export { CheckTick } from './CheckTick';
 export { CountdownRing } from './CountdownRing';
 export { NumericScale } from './NumericScale';
 export { ProgressBar } from './ProgressBar';

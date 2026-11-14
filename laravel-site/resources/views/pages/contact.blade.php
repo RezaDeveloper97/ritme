@@ -68,7 +68,6 @@
                         </li>
                     @endforeach
                 </ul>
-                <x-ui.alert-emergency class="mt-6" :number="$emergencyNumber">{{ __('contact.emergency', ['number' => fa_digits($emergencyNumber)]) }}</x-ui.alert-emergency>
             </div>
 
             <form id="contact-form" method="post" action="{{ route('contact.store') }}" aria-labelledby="contact-form-title" novalidate

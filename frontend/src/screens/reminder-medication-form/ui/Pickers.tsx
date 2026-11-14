@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
-import type { MedicationDuration } from '@/entities/care-reminder';
+import type { DoseUnit, FrequencyUnit, MedicationDuration, MedicationFrequency } from '@/entities/care-reminder';
 import type { Locale } from '@/shared/i18n';
 import {
   type DateParts,
@@ -17,7 +17,16 @@ import {
 import { AppSheet } from '@/shared/sheet';
 import { CalendarPicker, PrimaryButton, SecondaryButton, WheelPicker } from '@/shared/ui';
 
-import { parseSlot, toSlot } from '../model/form';
+import {
+  AMOUNT_MAX,
+  AMOUNT_MIN,
+  DOSE_UNIT_OPTIONS,
+  everyOptions,
+  FREQUENCY_UNIT_OPTIONS,
+  parseSlot,
+  snapEvery,
+  toSlot,
+} from '../model/form';
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = Array.from({ length: 60 }, (_, i) => i);
@@ -34,6 +43,110 @@ function SheetFooter({ onCancel, onDone, disabled }: { onCancel: () => void; onD
         {t('done')}
       </PrimaryButton>
     </div>
+  );
+}
+
+const AMOUNTS = Array.from({ length: AMOUNT_MAX - AMOUNT_MIN + 1 }, (_, i) => AMOUNT_MIN + i);
+
+/** One-button footer of the wheel sheets («ذخیره»). */
+function SaveFooter({ onSave }: { onSave: () => void }) {
+  const t = useTranslations('care.medicationForm');
+  return <PrimaryButton onClick={onSave}>{t('saveChoice')}</PrimaryButton>;
+}
+
+/** «تکرار»: the fixed word «هر», a number wheel and a day / hour wheel. */
+export function FrequencySheet({
+  open,
+  value,
+  onClose,
+  onPick,
+}: {
+  open: boolean;
+  value: MedicationFrequency;
+  onClose: () => void;
+  onPick: (frequency: MedicationFrequency) => void;
+}) {
+  const t = useTranslations('care.medicationForm');
+  const locale = useLocale() as Locale;
+  const [unit, setUnit] = useState<FrequencyUnit>(value.unit);
+  const [every, setEvery] = useState(value.every);
+  const options = everyOptions(unit);
+
+  return (
+    <AppSheet
+      open={open}
+      onClose={onClose}
+      size="half"
+      title={t('frequency')}
+      footer={<SaveFooter onSave={() => onPick({ every, unit })} />}
+    >
+      <div className="flex items-center justify-center gap-3 py-2">
+        <span className="text-lg font-extrabold text-(--ink)">{t('frequencyEvery')}</span>
+        <WheelPicker
+          id="med-freq-every"
+          items={options.map((n) => formatNumber(n, locale))}
+          selectedIndex={Math.max(0, options.indexOf(every))}
+          onChange={(i) => setEvery(options[i] ?? every)}
+        />
+        <WheelPicker
+          id="med-freq-unit"
+          items={FREQUENCY_UNIT_OPTIONS.map((u) => t(`frequencyUnits.${u}`))}
+          selectedIndex={FREQUENCY_UNIT_OPTIONS.indexOf(unit)}
+          onChange={(i) => {
+            const next = FREQUENCY_UNIT_OPTIONS[i] ?? unit;
+            setUnit(next);
+            setEvery((e) => snapEvery(next, e));
+          }}
+        />
+      </div>
+    </AppSheet>
+  );
+}
+
+/** «مقدار دوز»: an amount wheel (1–99) beside a unit wheel (قرص، قطره، …). */
+export function DosageSheet({
+  open,
+  amount,
+  unit,
+  onClose,
+  onPick,
+}: {
+  open: boolean;
+  amount: number | null;
+  unit: DoseUnit | null;
+  onClose: () => void;
+  onPick: (amount: number, unit: DoseUnit) => void;
+}) {
+  const t = useTranslations('care.medicationForm');
+  const tc = useTranslations('care');
+  const locale = useLocale() as Locale;
+  const [amt, setAmt] = useState(amount ?? AMOUNT_MIN);
+  const [u, setU] = useState<DoseUnit>(unit ?? DOSE_UNIT_OPTIONS[0]!);
+
+  return (
+    <AppSheet
+      open={open}
+      onClose={onClose}
+      size="half"
+      title={t('dose')}
+      footer={<SaveFooter onSave={() => onPick(amt, u)} />}
+    >
+      <div className="flex items-center justify-center gap-3 py-2">
+        <WheelPicker
+          id="med-dose-amount"
+          items={AMOUNTS.map((n) => formatNumber(n, locale))}
+          selectedIndex={Math.max(0, AMOUNTS.indexOf(amt))}
+          onChange={(i) => setAmt(AMOUNTS[i] ?? amt)}
+        />
+        <WheelPicker
+          id="med-dose-unit"
+          width={110}
+          items={DOSE_UNIT_OPTIONS.map((x) => tc(`doseUnits.${x}`))}
+          selectedIndex={DOSE_UNIT_OPTIONS.indexOf(u)}
+          onChange={(i) => setU(DOSE_UNIT_OPTIONS[i] ?? u)}
+        />
+      </div>
+    </AppSheet>
   );
 }
 

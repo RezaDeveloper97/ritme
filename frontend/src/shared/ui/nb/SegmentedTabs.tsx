@@ -11,6 +11,8 @@ export interface SegmentedTab<V extends string> {
   value: V;
   label: ReactNode;
   icon?: IconName;
+  /** Shown but not selectable (e.g. a «به‌زودی» feature); skipped by the arrow keys. */
+  disabled?: boolean;
 }
 
 interface SegmentedTabsProps<V extends string> {
@@ -43,8 +45,10 @@ export function SegmentedTabs<V extends string>({
   const rtl = useDirection() === 'rtl';
   const refs = useRef<Array<HTMLButtonElement | null>>([]);
 
-  const move = (index: number) => {
-    const next = (index + tabs.length) % tabs.length;
+  const move = (index: number, step: 1 | -1) => {
+    let next = (index + tabs.length) % tabs.length;
+    for (let i = 0; i < tabs.length && tabs[next].disabled; i++) next = (next + step + tabs.length) % tabs.length;
+    if (tabs[next].disabled) return;
     onChange(tabs[next].value);
     refs.current[next]?.focus();
   };
@@ -52,10 +56,10 @@ export function SegmentedTabs<V extends string>({
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
     const forward = rtl ? 'ArrowLeft' : 'ArrowRight';
     const backward = rtl ? 'ArrowRight' : 'ArrowLeft';
-    if (event.key === forward) move(index + 1);
-    else if (event.key === backward) move(index - 1);
-    else if (event.key === 'Home') move(0);
-    else if (event.key === 'End') move(tabs.length - 1);
+    if (event.key === forward) move(index + 1, 1);
+    else if (event.key === backward) move(index - 1, -1);
+    else if (event.key === 'Home') move(0, 1);
+    else if (event.key === 'End') move(tabs.length - 1, -1);
     else return;
     event.preventDefault();
   };
@@ -74,9 +78,11 @@ export function SegmentedTabs<V extends string>({
             role="tab"
             aria-selected={selected}
             aria-controls={panelId?.(tab.value)}
+            aria-disabled={tab.disabled || undefined}
+            disabled={tab.disabled}
             tabIndex={selected ? 0 : -1}
             className="nb-seg-tab"
-            onClick={() => onChange(tab.value)}
+            onClick={() => (tab.disabled ? undefined : onChange(tab.value))}
             onKeyDown={(event) => onKeyDown(event, index)}
           >
             {tab.icon ? <Icon name={tab.icon} size={16} /> : null}

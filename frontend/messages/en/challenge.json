@@ -9,6 +9,5 @@
   },
   "listTitle": "Today's challenges",
   "progress": "{done} of {total}",
-  "progressLabel": "Today's challenge progress",
-  "footer": "A few small things each day, matched to your cycle phase."
+  "progressLabel": "Today's challenge progress"
 }

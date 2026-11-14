@@ -16,7 +16,6 @@ import (
 	"github.com/ritme/backend-go/internal/labs"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/queue"
-	"github.com/ritme/backend-go/internal/plus"
 	pregstore "github.com/ritme/backend-go/internal/pregnancy/store"
 )
 
@@ -32,8 +31,7 @@ func init() {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
 		writes := writeThrottle(d)
-		plusSvc := plus.NewService(d.DB, d.Config.Plus, nil, d.Logger)
-		platform := newAIPlatform(d, plus.NewGate(plusSvc, clock.Real{}), plusSvc, nil)
+		platform := newAIPlatform(d, nil)
 
 		// The same vault policy as routes_files.go / routes_healthrecord_documents.go (that file logs key warnings).
 		current, previous, dev, missing := d.Config.Files.Resolve(d.Config.App, d.Config.LabFiles)
@@ -54,7 +52,7 @@ func init() {
 			Files:     fileSvc,
 			AI:        platform.client,
 			Consents:  consent.NewService(d.DB),
-			Plus:      plusSvc,
+			Plus:      platform.credits,
 			Pregnancy: pregstore.New(d.DB),
 			Logger:    d.Logger,
 		})

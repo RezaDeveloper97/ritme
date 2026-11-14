@@ -52,6 +52,10 @@ func main() {
 		os.Exit(engineShadowReport(os.Args[2:], os.Stdout))
 	}
 
+	if len(os.Args) > 1 && os.Args[1] == "vapid-keys" {
+		os.Exit(vapidKeys(os.Stdout))
+	}
+
 	serve := run
 	if len(os.Args) > 1 && os.Args[1] == "worker" {
 		serve = runWorker

@@ -6,10 +6,8 @@ import { useLocale, useTranslations } from 'next-intl';
 import { type AppModule, moduleOfRoute, useAppModules } from '@/entities/app-module';
 import { iaOrderedSections, type ServiceSection, type ServicesHub, useServicesHub } from '@/entities/service-hub';
 import { type Locale } from '@/shared/i18n';
-import { openSheet } from '@/shared/sheet';
 import {
   EmptyState,
-  HeaderButton,
   HubHeader,
   PrimaryButton,
   Skeleton,
@@ -17,6 +15,7 @@ import {
   SkyLayer,
 } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
+import { NotificationBell } from '@/widgets/notification-bell';
 
 import {
   BookingCard,
@@ -47,7 +46,7 @@ export function ServicesPage() {
           date={t('subtitle')}
           greeting={t('title')}
           actions={
-            <HeaderButton label={t('notifications')} icon="bell" variant="soft" onClick={() => openSheet('notifications')} />
+            <NotificationBell className="nb-hbtn is-soft" />
           }
         />
         {hub.isPending ? (

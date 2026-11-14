@@ -244,8 +244,6 @@ function MarkDoneForm({ detail, record }: { detail: CheckupDetail; record: Check
 
   return (
     <div className="flex flex-col gap-3.5 pb-2">
-      <p className="text-start text-[12.5px] text-(--ink-3)">{tm('subtitle')}</p>
-
       <div className="cfm-group">
         <span className="cfm-label" id="ckm-date">
           {tm('date')}

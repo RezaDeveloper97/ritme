@@ -10,6 +10,8 @@ import (
 
 	"github.com/ritme/backend-go/internal/admin/content/form"
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
+	"github.com/ritme/backend-go/internal/admin/store"
+	"github.com/ritme/backend-go/internal/ai/credits"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
@@ -60,6 +62,10 @@ func (h *Handlers) settingsJSON(c fiber.Ctx) (*jsonx.OrderedMap, error) {
 	if err != nil {
 		return nil, err
 	}
+	trialCredits, err := h.credits.TrialCredits(c)
+	if err != nil {
+		return nil, err
+	}
 	cfg := h.svc.Config()
 	source := "env"
 	if override != nil {
@@ -73,11 +79,13 @@ func (h *Handlers) settingsJSON(c fiber.Ctx) (*jsonx.OrderedMap, error) {
 		"vat_source", source,
 		"trial_days", cfg.TrialDays,
 		"ai_cost_usd_irr_rate", fx,
+		"trial_ai_credits", trialCredits,
+		"max_trial_ai_credits", credits.MaxTrialCredits,
 	)), nil
 }
 
-// ShowSettings is GET /plus/settings: the trial-offer percent and the VAT rate checkout applies (the admin override
-// when set, else PLUS_VAT_RATE_BPS — vat_source says which).
+// ShowSettings is GET /plus/settings: the trial-offer percent, the VAT rate checkout applies (the admin override
+// when set, else PLUS_VAT_RATE_BPS — vat_source says which) and the trial's AI credits (trial_ai_credits).
 func (h *Handlers) ShowSettings(c fiber.Ctx) error {
 	body, err := h.settingsJSON(c)
 	if err != nil {
@@ -90,11 +98,14 @@ func (h *Handlers) ShowSettings(c fiber.Ctx) error {
 // (0–10000 basis points; null removes the override so the env value applies again; absent = unchanged). New
 // checkouts use the values at once; ai_cost_usd_irr_rate (IRR per USD, 1–100 000 000; null removes it so the KPI
 // ai_cost.share is null again; absent = unchanged) feeds the KPI snapshot job; existing invoices keep their own VAT snapshot.
+// trial_ai_credits (0–100000; absent or null = unchanged) is what a trial that starts from now on carries — a trial
+// whose credit bucket already exists keeps its amount.
 func (h *Handlers) UpdateSettings(c fiber.Ctx) error {
 	data, err := form.Validate(c, validation.Rules{
 		validation.F("trial_offer_percent", "required|integer|min:0|max:100"),
 		validation.F("vat_rate_bps", "nullable|integer|min:0|max:"+strconv.Itoa(plus.MaxVATRateBps)),
 		validation.F("ai_cost_usd_irr_rate", "nullable|numeric|min:1|max:100000000"),
+		validation.F("trial_ai_credits", "nullable|integer|min:0|max:"+strconv.Itoa(credits.MaxTrialCredits)),
 	})
 	if err != nil {
 		return err
@@ -150,6 +161,20 @@ func (h *Handlers) UpdateSettings(c fiber.Ctx) error {
 				return err
 			}
 			details.Set("ai_cost_usd_irr_rate", jsonx.Obj("from", old, "to", next))
+		}
+	}
+	if form.Has(data, "trial_ai_credits") {
+		old, err := h.credits.TrialCredits(c)
+		if err != nil {
+			return err
+		}
+		next := uint32(u64(data, "trial_ai_credits")) //nolint:gosec // G115: validated ≤ MaxTrialCredits
+		if next != old {
+			if err := h.q.AdminUpsertPlusSetting(c, store.AdminUpsertPlusSettingParams{SettingKey: credits.SettingTrialCredits,
+				SettingValue: strconv.FormatUint(uint64(next), 10), Now: sql.NullTime{Time: at, Valid: true}}); err != nil {
+				return err
+			}
+			details.Set("trial_ai_credits", jsonx.Obj("from", old, "to", next))
 		}
 	}
 	if details.Len() > 0 {

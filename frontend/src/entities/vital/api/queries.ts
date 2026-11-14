@@ -76,13 +76,15 @@ export function useVitalReport(type: VitalType, range: ReportRange, filter: Gluc
   });
 }
 
-export async function fetchReadings(type: VitalType, from: string, to: string): Promise<VitalReading[]> {
-  const { data } = await apiClient.get<ApiEnvelope<unknown>>('/vitals/readings', { params: { type, from, to } });
+export async function fetchReadings(type: VitalType | null, from: string, to: string): Promise<VitalReading[]> {
+  const params: Record<string, string> = { from, to };
+  if (type) params.type = type;
+  const { data } = await apiClient.get<ApiEnvelope<unknown>>('/vitals/readings', { params });
   return readingsSchema.parse(data.data);
 }
 
-/** GET /vitals/readings?type&from&to — every reading of the range (timed + log sheet), newest first. */
-export function useVitalReadings(type: VitalType, from: string | null, to: string | null) {
+/** GET /vitals/readings?type&from&to — every reading of the range (timed + log sheet), newest first; `type` null = all. */
+export function useVitalReadings(type: VitalType | null, from: string | null, to: string | null) {
   return useQuery({
     queryKey: vitalsKeys.readings(type, from ?? '', to ?? ''),
     queryFn: () => fetchReadings(type, from ?? '', to ?? ''),

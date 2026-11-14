@@ -12,7 +12,16 @@ export {
   usePlusStatus,
   usePlusTrial,
 } from './api/queries';
-export { checkoutSchema, restoreSchema, statusSchema, verificationSchema } from './api/schema';
+export {
+  checkoutSchema,
+  restoreSchema,
+  statusSchema,
+  storeIntentSchema,
+  storeSyncSchema,
+  storeVerificationSchema,
+  verificationSchema,
+} from './api/schema';
+export { planDuration, plansForChannel, storeAvailable, type PlanDuration } from './lib/store';
 export { splitSeconds, secondsRemaining, useServerCountdown, type CountdownParts } from './lib/countdown';
 export { formatToman, formatTomanThousands, rialsToToman } from './lib/money';
 export {
@@ -29,16 +38,13 @@ export {
   detailLocked,
   featureLocked,
   findEntitlement,
-  isAssistantFairUse,
   isLongRange,
   isRangeDenial,
-  labQuotaOf,
   PLUS_ANALYSIS_LONG_RANGE,
-  PLUS_ASSISTANT,
+  PLUS_COMPANION,
   PLUS_DEEP_ANALYSIS,
-  PLUS_LAB_AI,
+  PLUS_SMS_REMINDERS,
   rangeLocked,
-  type LabQuota,
 } from './lib/gates';
 export { PlusDetailLock, PlusRangePaywall, usePlusDetailLocked, usePlusRangeLocked } from './ui/PlusLocks';
 export { PlusCrown } from './ui/PlusCrown';
@@ -56,6 +62,9 @@ export type {
   PlusQuote,
   PlusReceipt,
   PlusRestore,
+  PlusStoreIntent,
+  PlusStoreSync,
+  PlusStoreVerification,
   PlusStatus,
   PlusSubscription,
   PlusTier,

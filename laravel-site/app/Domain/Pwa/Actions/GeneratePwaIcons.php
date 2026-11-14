@@ -18,7 +18,7 @@ use InvalidArgumentException;
  * Builds the PWA icon set from an uploaded square logo with the media pipeline's image driver: transparent `any`
  * icons (96/192/512), full-bleed maskable icons (logo inside the 80 % safe zone on the background colour), an opaque
  * 180 px apple-touch-icon, a white-on-transparent monochrome icon (only when the logo has transparency and the
- * driver is GD), favicon-32.png and a favicon.ico. Written to a versioned directory on the media disk (immutable
+ * driver is GD), favicon-32.png and a favicon.ico (both on white). Written to a versioned directory on the media disk (immutable
  * cache safe); older generated sets are removed. Returns the directory.
  */
 final class GeneratePwaIcons
@@ -27,6 +27,11 @@ final class GeneratePwaIcons
     private const MASKABLE_SCALE = 0.6;
 
     private const APPLE_SCALE = 0.84;
+
+    /** Favicons sit on an opaque white tile so the mark reads on dark and light browser tabs alike. */
+    private const FAVICON_BACKGROUND = '#FFFFFF';
+
+    private const FAVICON_SCALE = 0.84;
 
     public function __construct(
         private readonly ImageManager $images,
@@ -63,7 +68,7 @@ final class GeneratePwaIcons
         }
         $files[PwaIconFiles::SHORTCUT_ICON] = (string) $this->compose($master, PwaIconFiles::SHORTCUT_SIZE, 1.0, null)->toPng();
         $files[PwaIconFiles::APPLE_TOUCH_ICON] = (string) $this->compose($master, PwaIconFiles::APPLE_TOUCH_SIZE, self::APPLE_SCALE, $backgroundColor)->toPng();
-        $files[PwaIconFiles::FAVICON_PNG] = (string) $this->compose($master, 32, 1.0, null)->toPng();
+        $files[PwaIconFiles::FAVICON_PNG] = (string) $this->compose($master, 32, self::FAVICON_SCALE, self::FAVICON_BACKGROUND)->toPng();
 
         foreach ($files as $name => $bytes) {
             $disk->put("{$directory}/{$name}.png", $bytes);
@@ -123,7 +128,7 @@ final class GeneratePwaIcons
     {
         $images = [];
         foreach (PwaIconFiles::ICO_SIZES as $size) {
-            $images[$size] = (string) $this->compose($master, $size, 1.0, null)->toPng();
+            $images[$size] = (string) $this->compose($master, $size, self::FAVICON_SCALE, self::FAVICON_BACKGROUND)->toPng();
         }
 
         $header = pack('vvv', 0, 1, count($images));

@@ -54,7 +54,18 @@
     "confirmDelete": "Delete this reminder?",
     "nameWithDose": "{title} {dose}",
     "add": "Add a medication or supplement",
-    "daysPerWeekCount": "{count, plural, one {{days} day} other {{days} days}} a week"
+    "daysPerWeekCount": "{count, plural, one {{days} day} other {{days} days}} a week",
+    "rowMetaSimple": "{schedule} · {time} · {dose}",
+    "nextDose": "Next: {when}",
+    "paused": "Paused",
+    "edit": "Edit",
+    "editLabel": "Edit reminder {title}",
+    "in": {
+      "now": "right now",
+      "minutes": "in {n} min",
+      "hours": "in {n} hrs",
+      "days": "in {n} days"
+    }
   },
   "appointments": {
     "title": "Appointments & consultations",
@@ -88,12 +99,8 @@
   "medicationForm": {
     "title": "Add medication",
     "editTitle": "Edit medication",
-    "subtitle": "Dose reminder",
     "name": "Medication or supplement name",
     "namePlaceholder": "e.g. Folic acid",
-    "dose": "Dose",
-    "unit": "Unit",
-    "form": "Form",
     "forms": {
       "tablet": "Tablet",
       "capsule": "Capsule",
@@ -101,34 +108,9 @@
       "injection": "Injection",
       "drops": "Drops"
     },
-    "units": {
-      "mg": "mg",
-      "mcg": "mcg",
-      "ml": "ml",
-      "iu": "IU",
-      "drop": "drop"
-    },
-    "timesPerDay": "How many times a day?",
-    "timesOption": "{count}×",
-    "slotTimes": "Dose times",
-    "slotLabel": "Dose {n}",
-    "weekdays": "Days of the week",
-    "weekdayShort": {
-      "0": "Sa",
-      "1": "Su",
-      "2": "Mo",
-      "3": "Tu",
-      "4": "We",
-      "5": "Th",
-      "6": "Fr"
-    },
-    "everyDay": "Every day",
-    "amount": "Amount per dose",
-    "decrease": "Less",
-    "increase": "More",
-    "startsOn": "Starting",
+    "startsOn": "Start date",
     "todayWithDate": "Today · {date}",
-    "pickDate": "Pick a date",
+    "pickDate": "Select a date",
     "duration": "Duration",
     "durations": {
       "ongoing": "No end date",
@@ -141,16 +123,12 @@
     "notifyHint": "At each dose time",
     "notes": "Note",
     "notesPlaceholder": "e.g. after meals",
-    "save": "Save reminder",
     "saving": "Saving…",
     "pickTime": "Pick a time",
     "hour": "Hour",
     "minute": "Minute",
     "done": "Done",
     "cancel": "Cancel",
-    "daysPerWeek": "{count, plural, one {# day} other {# days}} a week",
-    "noDays": "No days selected",
-    "amountValue": "{amount} {form}",
     "untilDate": "Until {date}",
     "delete": "Delete",
     "deleteTitle": "Delete this reminder?",
@@ -162,13 +140,39 @@
       "titleRequired": "Enter the medication name.",
       "tooLong": "This text is too long.",
       "timesDuplicate": "Two doses have the same time.",
-      "timesInvalid": "The dose times are not valid.",
-      "weekdaysRequired": "Pick at least one day.",
-      "amountRange": "Amount must be between 1 and 10.",
+      "timesInvalid": "Pick the dose time.",
+      "amountRange": "Pick the dose amount (1 to 99).",
       "dateInvalid": "The date is not valid.",
       "endsOnRequired": "Pick an end date.",
-      "endsOnBeforeStart": "The end date can't be before the start."
-    }
+      "endsOnBeforeStart": "The end date can't be before the start.",
+      "doseRequired": "Add at least one complete dose.",
+      "frequencyInvalid": "The frequency is not valid.",
+      "dosesRange": "You can add up to 6 doses."
+    },
+    "sectionInfo": "Medication",
+    "sectionSchedule": "Schedule",
+    "sectionDose": "Dose",
+    "sectionMore": "More options",
+    "frequency": "Frequency",
+    "frequencyPlaceholder": "Select frequency",
+    "frequencyEvery": "Every",
+    "frequencyUnits": {
+      "day": "day",
+      "hour": "hour"
+    },
+    "dose": "Dose amount",
+    "dosePlaceholder": "Select amount",
+    "time": "Time",
+    "firstDose": "First dose",
+    "timePlaceholder": "Select time",
+    "doseBlock": "Dose {n}",
+    "removeDose": "Remove dose {n}",
+    "addDose": "+ Add another dose",
+    "maxDoses": "Up to 6 doses",
+    "mealGroup": "Relation to meals",
+    "create": "Create reminder",
+    "saveChanges": "Save changes",
+    "saveChoice": "Save"
   },
   "appointmentForm": {
     "title": "Add appointment",
@@ -264,5 +268,24 @@
     "descriptionWith": "With {with}"
   },
   "notificationSettings": "Notification settings",
-  "listSeparator": ", "
+  "listSeparator": ", ",
+  "doseUnits": {
+    "pill": "pill",
+    "capsule": "capsule",
+    "drop": "drop",
+    "ml": "ml",
+    "spoon": "spoon",
+    "puff": "puff",
+    "injection": "injection"
+  },
+  "meals": {
+    "before": "Before meals",
+    "after": "After meals"
+  },
+  "frequencySummary": {
+    "day": "Every day",
+    "days": "Every {n} days",
+    "hours": "Every {n} hours"
+  },
+  "doseLine": "{amount} × {unit}"
 }

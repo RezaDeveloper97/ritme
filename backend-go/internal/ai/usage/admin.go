@@ -2,7 +2,10 @@ package usage
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -121,6 +124,14 @@ func (h *AdminHandlers) Usage(c fiber.Ctx) error {
 			"audio_bytes", f.AudioBytes, "image_bytes", f.ImageBytes, "avg_latency_ms", f.AvgLatencyMs,
 			"cost_micros", f.CostMicros, "cost_usd", usd(f.CostMicros))
 	}
+	credits, err := h.credits(c, fromAt, toAt)
+	if err != nil {
+		return err
+	}
+	fx, err := h.fxRate(c)
+	if err != nil {
+		return err
+	}
 	today := jsonx.Obj("spent_micros", nil, "spent_usd", nil, "cap_micros", nil, "cap_usd", nil, "exhausted", nil)
 	if h.budget != nil {
 		spent, err := h.budget.Spent(ctx)
@@ -138,5 +149,51 @@ func (h *AdminHandlers) Usage(c fiber.Ctx) error {
 			"cost_micros", cost, "cost_usd", usd(cost)),
 		"by_day", byDay,
 		"by_feature", byFeature,
+		"credits", credits,
+		"usd_irr_rate", fx,
 	))
+}
+
+// credits are the credits users spent in the window (goose 00125; refunded uses excluded): what the AI earned on
+// the revenue side, next to the provider cost of the same days.
+func (h *AdminHandlers) credits(c fiber.Ctx, fromAt, toAt sql.NullTime) (*jsonx.OrderedMap, error) {
+	ctx := c.Context()
+	days, err := h.q.CreditSpendByDay(ctx, store.CreditSpendByDayParams{FromAt: fromAt, ToAt: toAt})
+	if err != nil {
+		return nil, fmt.Errorf("ai usage: credits by day: %w", err)
+	}
+	feats, err := h.q.CreditSpendByFeature(ctx, store.CreditSpendByFeatureParams{FromAt: fromAt, ToAt: toAt})
+	if err != nil {
+		return nil, fmt.Errorf("ai usage: credits by feature: %w", err)
+	}
+	var uses, total, planPart, extraPart int64
+	byDay := make([]any, len(days))
+	for i, d := range days {
+		uses, total, planPart, extraPart = uses+d.Uses, total+d.Credits, planPart+d.PlanCredits, extraPart+d.ExtraCredits
+		byDay[i] = jsonx.Obj("day", dayString(d.Day), "uses", d.Uses, "credits", d.Credits,
+			"plan_credits", d.PlanCredits, "extra_credits", d.ExtraCredits)
+	}
+	byFeature := make([]any, len(feats))
+	for i, f := range feats {
+		byFeature[i] = jsonx.Obj("feature", f.Feature, "uses", f.Uses, "users", f.Users, "credits", f.Credits,
+			"plan_credits", f.PlanCredits, "extra_credits", f.ExtraCredits)
+	}
+	return jsonx.Obj("total", total, "uses", uses, "plan_credits", planPart, "extra_credits", extraPart,
+		"by_day", byDay, "by_feature", byFeature), nil
+}
+
+// fxRate is plus_settings.ai_cost_usd_irr_rate (IRR per USD) as a number, nil when unset or unreadable.
+func (h *AdminHandlers) fxRate(c fiber.Ctx) (any, error) {
+	v, err := h.q.UsageFXRate(c.Context())
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("ai usage: fx rate: %w", err)
+	}
+	f, perr := strconv.ParseFloat(strings.TrimSpace(v), 64)
+	if perr != nil || f <= 0 {
+		return nil, nil //nolint:nilerr // an unreadable or non-positive setting means "unset"
+	}
+	return f, nil
 }

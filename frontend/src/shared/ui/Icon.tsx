@@ -1,5 +1,7 @@
 import type { CSSProperties } from 'react';
 
+import { ICON_ART } from './Art3d';
+
 export type IconName =
   | 'bell' | 'sparkle' | 'chevronRight' | 'chevronLeft' | 'chevronDown'
   | 'pencil' | 'check' | 'checkCircle' | 'loader' | 'drop'
@@ -217,6 +219,28 @@ export function Icon({
   style,
   className,
 }: IconProps) {
+  const art = ICON_ART[name];
+  // A caller that asks for the label colour of a saturated fill (`--on-accent`, `--on-brand`) is drawing ON that fill
+  // — a period-red cell, a brand button — where a picture of the same hue would vanish. Those keep the line glyph.
+  const onFill = /--on-(accent|brand)\b/.test(`${fill} ${stroke}`);
+  if (art && !onFill) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- tiny static webp; next/image adds nothing here
+      <img
+        src={`/art3d/${art}.webp`}
+        alt=""
+        aria-hidden="true"
+        width={size}
+        height={size}
+        // lazy: otherwise React preloads every icon of the page from <head>
+        loading="lazy"
+        decoding="async"
+        draggable={false}
+        style={style}
+        className={className ? `ic3d ${className}` : 'ic3d'}
+      />
+    );
+  }
   return (
     <svg
       viewBox="0 0 24 24"

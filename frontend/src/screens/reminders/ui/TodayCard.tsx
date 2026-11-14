@@ -7,9 +7,19 @@ import { useCareToday } from '@/entities/care-reminder';
 import { useLogIntake } from '@/features/log-intake';
 import type { Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
-import { Icon, Skeleton, SkeletonGroup } from '@/shared/ui';
+import { CheckTick, Icon, Skeleton, SkeletonGroup } from '@/shared/ui';
 
-import { doseCardState } from '../model/view';
+import { type DoseCardState, doseCardState } from '../model/view';
+
+type T = ReturnType<typeof useTranslations<'care'>>;
+
+/** «۱ قرص · بعد از غذا» from a dose's detail parts. */
+function doseLine(detail: NonNullable<DoseCardState['detail']>, t: T, locale: Locale): string {
+  const unit = detail.unit ? t(`doseUnits.${detail.unit}`) : (detail.unitLabel ?? '');
+  const base = t('doseLine', { amount: formatNumber(detail.amount, locale), unit });
+  return detail.meal ? `${base} · ${t(`meals.${detail.meal}`)}` : base;
+}
+
 
 /**
  * «امروز» — today's doses as a horizontal strip of cards (time, check, name).
@@ -92,11 +102,12 @@ export function TodayCard() {
                   }
                 >
                   <span className="rmd-check-dot" aria-hidden>
-                    {card.taken && <Icon name="check" size={14} strokeWidth={3} />}
+                    <CheckTick on={card.taken} />
                   </span>
                 </button>
               </div>
               <b className="rmd-dose-name">{card.title}</b>
+              {card.detail && <span className="rmd-dose-detail">{doseLine(card.detail, t, locale)}</span>}
             </li>
           ))}
         </ul>

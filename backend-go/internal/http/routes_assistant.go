@@ -16,7 +16,6 @@ import (
 	"github.com/ritme/backend-go/internal/loss"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/ratelimit"
-	"github.com/ritme/backend-go/internal/plus"
 	"github.com/ritme/backend-go/internal/telemed"
 )
 
@@ -36,8 +35,7 @@ func init() {
 		guard := assistant.SealGate(box, auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser)
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
 		writes := writeThrottle(d)
-		plusSvc := plus.NewService(d.DB, d.Config.Plus, nil, d.Logger)
-		platform := newAIPlatform(d, plus.NewGate(plusSvc, clock.Real{}), plusSvc, nil)
+		platform := newAIPlatform(d, nil)
 		svc := assistant.NewService(assistant.Options{
 			DB:              d.DB,
 			AI:              platform.client,
@@ -49,7 +47,7 @@ func init() {
 			BookingNotFound: telemed.ErrBookingNotFound,
 			Logger:          d.Logger,
 		})
-		h := assistant.NewHandlers(svc, plusSvc, clock.Real{})
+		h := assistant.NewHandlers(svc, assistantQuota(platform), clock.Real{})
 
 		const p = "/api/v1/assistant"
 		// The emergency path answers before the AI gate's throttles: a messages throttle of its own bounds it (B-N7-06b M2).
@@ -65,7 +63,7 @@ func init() {
 		r.Get(p+"/conversations/:id", locale, guard, h.Show)
 		r.Delete(p+"/conversations/:id", locale, guard, writes, h.Destroy)
 		r.Post(p+"/conversations/:id/messages", locale, append(chat, h.StreamMessage)...)
-		// Summaries skip the Plus reservation but not the feature's throttles (B-N7-06b M2).
+		// Summaries spend no credits but not the feature's throttles (B-N7-06b M2).
 		summary := append(append([]any{guard, writes}, platform.guard.Gate(ai.FeatureAssistant)...), h.Summary)
 		r.Post(p+"/conversations/:id/summary", locale, summary...)
 		r.Post(p+"/conversations/:id/handoff", locale, guard, writes, h.Handoff)

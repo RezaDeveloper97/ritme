@@ -7,6 +7,7 @@ import { useState } from 'react';
 import type { PregnancyAlertV2 } from '@/entities/pregnancy';
 import { getApiErrorCode, getApiErrorMessage } from '@/shared/api';
 import { Link } from '@/shared/i18n';
+import { openSheet } from '@/shared/sheet';
 import { Card, Icon, PrimaryButton, SectionTitle, StatusPill } from '@/shared/ui';
 
 import { useAckToolAlert, useFinishContractions, useToggleContraction } from '../api/queries';
@@ -147,9 +148,9 @@ export function ContractionTimer({ overview }: ContractionTimerProps) {
               <Icon name="phone" size={18} />
               {t('call')}
             </a>
-            <Link href="/pregnancy/alerts" className="ptl-link">
+            <button type="button" className="ptl-link" onClick={() => openSheet('notifications')}>
               {t('seeAlerts')}
-            </Link>
+            </button>
           </Card>
         ) : null}
 

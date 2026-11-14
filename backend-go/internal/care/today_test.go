@@ -65,7 +65,7 @@ func TestNextAppointment(t *testing.T) {
 	assert.EqualValues(t, 3, next.Row.ID, "reminder off still counts; cancelled and past skipped")
 	assert.Nil(t, NextAppointment(rows[:2], now))
 
-	j := TodayJSON(civildate.MustParse("2026-09-23"), nil, next, now)
+	j := TodayJSON(civildate.MustParse("2026-09-23"), nil, next, now, "fa")
 	v, _ := j.Get("next_appointment")
 	b, err := v.(interface{ MarshalJSON() ([]byte, error) }).MarshalJSON()
 	require.NoError(t, err)
@@ -73,7 +73,7 @@ func TestNextAppointment(t *testing.T) {
 		"days_until":2,"location":null,"remind_before":"1d","is_active":false}`, string(b))
 
 	// The bell switch travels with the row, so the home card needs no per-appointment fetch.
-	j = TodayJSON(civildate.MustParse("2026-09-23"), nil, NextAppointment(rows[3:], now), now)
+	j = TodayJSON(civildate.MustParse("2026-09-23"), nil, NextAppointment(rows[3:], now), now, "fa")
 	v, _ = j.Get("next_appointment")
 	b, err = v.(interface{ MarshalJSON() ([]byte, error) }).MarshalJSON()
 	require.NoError(t, err)

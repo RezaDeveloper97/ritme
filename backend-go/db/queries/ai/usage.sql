@@ -42,3 +42,27 @@ WHERE user_id = sqlc.arg(user_id) AND created_at >= sqlc.arg(since);
 -- the admin aggregates). Bounded batch so one run never locks the table for long.
 UPDATE `ai_usage_logs` SET user_id = NULL WHERE user_id IS NOT NULL AND created_at < sqlc.arg(before)
 ORDER BY id LIMIT 5000;
+
+-- name: CreditSpendByDay :many
+-- Admin report (goose 00125): credits users spent per Tehran day in [from, to) — refunded uses excluded — next to
+-- the provider cost above.
+SELECT CAST(DATE(created_at) AS CHAR(10)) AS day, COUNT(*) AS uses,
+  CAST(COALESCE(SUM(credits), 0) AS UNSIGNED) AS credits,
+  CAST(COALESCE(SUM(plan_credits), 0) AS UNSIGNED) AS plan_credits,
+  CAST(COALESCE(SUM(extra_credits), 0) AS UNSIGNED) AS extra_credits
+FROM `ai_credit_spends`
+WHERE status = 'spent' AND created_at >= sqlc.arg(from_at) AND created_at < sqlc.arg(to_at)
+GROUP BY DATE(created_at) ORDER BY day;
+
+-- name: CreditSpendByFeature :many
+SELECT feature, COUNT(*) AS uses, COUNT(DISTINCT user_id) AS users,
+  CAST(COALESCE(SUM(credits), 0) AS UNSIGNED) AS credits,
+  CAST(COALESCE(SUM(plan_credits), 0) AS UNSIGNED) AS plan_credits,
+  CAST(COALESCE(SUM(extra_credits), 0) AS UNSIGNED) AS extra_credits
+FROM `ai_credit_spends`
+WHERE status = 'spent' AND created_at >= sqlc.arg(from_at) AND created_at < sqlc.arg(to_at)
+GROUP BY feature ORDER BY credits DESC, feature;
+
+-- name: UsageFXRate :one
+-- plus_settings.ai_cost_usd_irr_rate (IRR per USD; admin «اشتراک‌ها» settings): the report converts the cost.
+SELECT `value` FROM plus_settings WHERE `key` = 'ai_cost_usd_irr_rate';

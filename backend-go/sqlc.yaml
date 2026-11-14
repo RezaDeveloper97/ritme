@@ -224,6 +224,12 @@ sql:
         <<: *go
         out: internal/ai/store
   - <<: *pkg
+    queries: db/queries/credits
+    gen:
+      go:
+        <<: *go
+        out: internal/ai/credits/store
+  - <<: *pkg
     queries: db/queries/babylog
     gen:
       go:

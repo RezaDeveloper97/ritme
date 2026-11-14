@@ -6,6 +6,7 @@ namespace App\Domain\Seo\Sitemap;
 
 use App\Domain\Blog\Support\PostListIndexing;
 use App\Domain\Content\Enums\StaticPage;
+use App\Domain\Content\SiteSections;
 use App\Domain\Directory\Support\PlaceListIndexing;
 use App\Domain\Seo\Contracts\SeoMetaRepository;
 use App\Domain\Seo\Support\Robots;
@@ -15,7 +16,8 @@ use Illuminate\Routing\Router;
 
 /**
  * Sitemap `pages`: the parameterless marketing pages of the StaticPage registry that are indexable, have a registered
- * route and are not excluded by their seo_meta row (`sitemap_include` false or a `noindex` robots value).
+ * route, belong to a site section that is switched on (admin «صفحه‌ها») and are not excluded by their seo_meta row
+ * (`sitemap_include` false or a `noindex` robots value).
  * Listing pages whose controller answers `noindex` because they show nothing real (`/blog` without posts, `/directory`
  * and `/shop` with demo-only or no items) are skipped by the same rule (Post/Place/ProductListIndexing, L7-05b); the
  * `sitemap` namespace is bumped by the Post/Place/Product observers, so they reappear once real content exists.
@@ -33,6 +35,7 @@ final class PagesSitemapProvider implements SitemapProvider
         private readonly PostListIndexing $posts,
         private readonly PlaceListIndexing $places,
         private readonly ProductListIndexing $products,
+        private readonly SiteSections $sections,
     ) {}
 
     public function key(): string
@@ -57,7 +60,7 @@ final class PagesSitemapProvider implements SitemapProvider
     {
         $entries = [];
         foreach (StaticPage::cases() as $page) {
-            if (! $page->indexable() || ! $this->router->has($page->routeName())) {
+            if (! $page->indexable() || ! $this->router->has($page->routeName()) || ! $this->sections->pageEnabled($page)) {
                 continue;
             }
 

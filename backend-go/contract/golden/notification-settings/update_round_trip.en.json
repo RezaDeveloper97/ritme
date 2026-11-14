@@ -94,7 +94,8 @@
             "start": "22:30",
             "end": "08:00"
           },
-          "neutral_copy": true
+          "neutral_copy": true,
+          "sms_reminders": true
         }
       }
     },
@@ -188,7 +189,8 @@
             "start": "22:30",
             "end": "08:00"
           },
-          "neutral_copy": false
+          "neutral_copy": false,
+          "sms_reminders": true
         }
       }
     },
@@ -273,7 +275,8 @@
             "start": "22:30",
             "end": "08:00"
           },
-          "neutral_copy": false
+          "neutral_copy": false,
+          "sms_reminders": true
         }
       }
     }

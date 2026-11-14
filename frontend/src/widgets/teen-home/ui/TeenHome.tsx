@@ -14,7 +14,6 @@ import {
   Checkbox,
   EmptyState,
   Icon,
-  IconCircle,
   InfoNote,
   PrimaryButton,
   SectionTitle,
@@ -34,10 +33,10 @@ import { signsCard } from '../model/signs';
  * sent to `/teen/onboarding`.
  */
 /**
- * `modeChip` (CB-NAV-03): the Today header mode chip, composed in by screens/home (a widget can't import a widget).
+ * `actions`: the Today header buttons (bell + light/dark), composed in by screens/home (a widget can't import a widget).
  * `today` (CB-NAV-04b): «برای امروز» + «دسترسی سریع», composed in the same way, under the signs card.
  */
-export function TeenHome({ modeChip, today }: { modeChip?: ReactNode; today?: ReactNode } = {}) {
+export function TeenHome({ actions, today }: { actions?: ReactNode; today?: ReactNode } = {}) {
   const t = useTranslations('teen.home');
   const router = useRouter();
   const query = useTeenToday();
@@ -74,31 +73,23 @@ export function TeenHome({ modeChip, today }: { modeChip?: ReactNode; today?: Re
 
   return (
     <div className="tnh-page">
-      <TeenHeader modeChip={modeChip} />
+      <TeenHeader actions={actions} />
       {body}
     </div>
   );
 }
 
-function TeenHeader({ modeChip }: { modeChip?: ReactNode }) {
+function TeenHeader({ actions }: { actions?: ReactNode }) {
   const t = useTranslations('teen.home');
-  const tSearch = useTranslations('search');
   const profile = useUserProfile();
   const first = profile.data?.name?.trim().split(/\s+/)[0] ?? '';
   return (
     <header className="tnh-hdr">
       <div className="tnh-hdr-text">
-        {modeChip}
         <span className="tnh-eyebrow">{t('eyebrow')}</span>
         <h1 className="tnh-hello">{first ? t('hello', { name: first }) : t('helloNoName')}</h1>
       </div>
-      <span className="tnh-hdr-actions">
-        {/* CB-NAV-03: the global search of every Today header (CB-NAV-02) — the teen home had none. */}
-        <Link href="/search" className="home-hdr-btn" aria-label={tSearch('open')}>
-          <Icon name="search" size={20} strokeWidth={1.8} />
-        </Link>
-        <IconCircle icon="sprout" tone="data" size="lg" />
-      </span>
+      <span className="tnh-hdr-actions">{actions}</span>
     </header>
   );
 }

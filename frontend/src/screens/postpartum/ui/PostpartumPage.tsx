@@ -35,7 +35,6 @@ import { openSheet, useSheetStore } from '@/shared/sheet';
 import {
   Card,
   EmptyState,
-  HeaderButton,
   Icon,
   type IconName,
   IconCircle,
@@ -52,8 +51,8 @@ import {
   UrgentCard,
 } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
+import { NotificationBell, ThemeToggle } from '@/widgets/notification-bell';
 import { ForToday } from '@/widgets/for-today';
-import { ModeChip } from '@/widgets/mode-chip';
 import { QuickAccess } from '@/widgets/quick-access';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
@@ -84,16 +83,13 @@ function Shell({ children }: { children: React.ReactNode }) {
 }
 
 function TopBar({ t }: { t: T }) {
-  const router = useRouter();
   return (
     <header className="pp-top">
-      <HeaderButton variant="soft" icon="bell" label={t('home.notifications')} onClick={() => openSheet('notifications')} />
+      <NotificationBell className="nb-hbtn is-soft" />
       <div className="pp-brand">
         <span className="pp-brand-name">{t('home.brand')}</span>
-        {/* CB-NAV-03 (nbd_Nav_Today): the static mode label is now the mode chip → /profile/mode. */}
-        <ModeChip />
       </div>
-      <HeaderButton variant="soft" icon="user" label={t('home.profile')} onClick={() => router.push('/profile')} />
+      <ThemeToggle className="nb-hbtn is-soft" />
     </header>
   );
 }

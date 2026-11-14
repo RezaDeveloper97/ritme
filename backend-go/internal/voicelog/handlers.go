@@ -28,7 +28,6 @@ import (
 	"github.com/ritme/backend-go/internal/platform/ratelimit"
 	"github.com/ritme/backend-go/internal/platform/validation"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
-	"github.com/ritme/backend-go/internal/plus"
 )
 
 // Upload limits. 60 s of browser audio (Opus / AAC) is well under 1 MB; 2 MB leaves room for WAV.
@@ -57,16 +56,14 @@ const AcceptedFormats = "webm, ogg, m4a, wav, mp3"
 // Handlers serve POST /api/v1/logs/voice. Nothing is logged: no transcript, no health value, no audio.
 type Handlers struct {
 	svc     *Service
-	plus    *plus.Service
-	gate    *plus.Gate
 	bundles *i18n.TranslationStore
 	langs   *i18n.Registry
 	clock   clock.Clock
 }
 
 // NewHandlers wires the handler; base is the fallback clock.
-func NewHandlers(svc *Service, plusSvc *plus.Service, gate *plus.Gate, bundles *i18n.TranslationStore, langs *i18n.Registry, base clock.Clock) *Handlers {
-	return &Handlers{svc: svc, plus: plusSvc, gate: gate, bundles: bundles, langs: langs, clock: base}
+func NewHandlers(svc *Service, bundles *i18n.TranslationStore, langs *i18n.Registry, base clock.Clock) *Handlers {
+	return &Handlers{svc: svc, bundles: bundles, langs: langs, clock: base}
 }
 
 // Voice is POST /logs/voice (multipart: audio file ≤ 2 MB, optional duration_ms ≤ 60000). Plus-gated by the
@@ -111,11 +108,6 @@ func (h *Handlers) Voice(c fiber.Ctx) error {
 		return access.Error(err, locale) // B-N6-05: a cost cap reached between the gate and the call
 	case err != nil:
 		return err
-	}
-	if access.ReservationFrom(c.Context()) == nil {
-		if e, err := h.plus.Consume(c.Context(), userID, plus.VoiceLog, now); err != nil {
-			return h.gate.GateError(c, err, e)
-		}
 	}
 	list := make([]*jsonx.OrderedMap, 0, len(res.Suggestions))
 	for _, s := range res.Suggestions {

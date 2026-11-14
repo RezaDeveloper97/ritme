@@ -28,7 +28,7 @@ Implemented by **B-N1-04** (`frontend/src/widgets/bottom-nav`). Source artboards
 | postpartum | `/postpartum` | کودک → `/children/[id]` (1 child) or `/children` | `?sheet=log` (Log_Sheet_Post) | `/services` | `/profile` |
 | menopause *(no artboard)* | `/home` (menopause copy) | علائم → `/analysis/symptoms` | `?sheet=log` (cycle sheet, menopause tiles) | `/services` | `/profile` |
 | teen *(no artboard)* | `/home` (simplified) | تقویم → `/calendar` | `?sheet=log` | `/services` (no shop/ads) | `/profile` |
-| male companion | `/companion` | — | — (no FAB) | `/services` | `/profile` |
+| male companion *(companion v2 tabbarM)* | `/companion` | یادگیری → `/companion/learn` | — (no FAB; اقدام‌ها → `/companion/actions` sits in its place) | — | پروفایل → `/profile` |
 
 Menopause/teen/companion rows are defaults (see [gaps.md](gaps.md), `bloom/QUESTIONS.md`); the roadmap queue
 (`roadmap/E02-meno`, `E09-teen`, `CB-NAV-03`) later replaces the minimal versions.

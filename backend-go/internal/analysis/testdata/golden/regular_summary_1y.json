@@ -527,7 +527,8 @@
             "in_range": 23
           },
           "unit": "mg_dl"
-        }
+        },
+        "heart_rate": null
       }
     },
     "labs": {

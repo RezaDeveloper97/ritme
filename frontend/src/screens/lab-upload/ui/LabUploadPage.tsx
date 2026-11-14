@@ -1,18 +1,15 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 
-import { LAB_PLUS_FEATURE, labHref, useLabConsent, useLabs } from '@/entities/lab';
-import { findEntitlement, labQuotaOf, PlusFeatureGate, usePlusLocked, usePlusStatus } from '@/entities/plus';
+import { labHref, useLabConsent, useLabs } from '@/entities/lab';
+import { AiGate, useAiGate } from '@/features/ai-gate';
 import { LabUploadForm, limitsFrom } from '@/features/upload-lab';
-import { useRouter, type Locale } from '@/shared/i18n';
-import { formatDayMonth, formatNumber, fromApiDate } from '@/shared/lib/date';
+import { useRouter } from '@/shared/i18n';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { openSheet } from '@/shared/sheet';
-import { EmptyState, InfoNote, PrimaryButton, ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
-
-import { labPaywalled, labQuotaNote } from '../model/quota';
+import { ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
 /**
  * `/labs/new` (nbl_Lab_Upload): the upload form (features/upload-lab) with the
@@ -22,25 +19,19 @@ import { labPaywalled, labQuotaNote } from '../model/quota';
  */
 export function LabUploadPage() {
   const t = useTranslations('labs');
-  const tp = useTranslations('plus.limits.lab');
-  const loc = useLocale() as Locale;
-  const plus = usePlusStatus();
   const router = useRouter();
   const mounted = useMounted();
   const labs = useLabs();
   const consent = useLabConsent();
-  const locked = usePlusLocked(LAB_PLUS_FEATURE);
+  const gate = useAiGate('lab_analysis');
   const asked = useRef(false);
-  const note = labQuotaNote(labQuotaOf(findEntitlement(plus.data, LAB_PLUS_FEATURE)), plus.data?.isPlus ?? false);
-  const paywalled = labPaywalled(note, plus.data?.isPlus ?? false);
-  const renews = plus.data?.resetsAt ? formatDayMonth(fromApiDate(plus.data.resetsAt.slice(0, 10)), loc) : '';
 
   useEffect(() => {
-    if (!asked.current && !locked && consent.data?.needsConsent) {
+    if (!asked.current && gate.canUse && consent.data?.needsConsent) {
       asked.current = true;
       openSheet('lab-consent');
     }
-  }, [consent.data, locked]);
+  }, [consent.data, gate.canUse]);
 
   const header = (
     <ScreenHeader title={t('upload.title')} onBack={() => router.push('/labs')} backLabel={t('common.back')} />
@@ -58,27 +49,15 @@ export function LabUploadPage() {
               <Skeleton shape="card" />
             </SkeletonGroup>
           </div>
-        ) : paywalled && note ? (
-          <div className="lab-body">
-            <EmptyState
-              icon="crown"
-              title={tp('spent', { limit: formatNumber(note.key === 'spent' ? note.limit : 0, loc), date: renews })}
-              action={<PrimaryButton block={false} onClick={() => router.push('/plus')}>{tp('spentCta')}</PrimaryButton>}
-            />
-          </div>
         ) : (
-          <PlusFeatureGate feature={LAB_PLUS_FEATURE} className="lab-up-gate">
-            {note && note.key !== 'spent' ? (
-              <InfoNote>
-                {tp(note.key, { remaining: formatNumber(note.remaining, loc), limit: formatNumber(note.limit, loc), date: renews })}
-              </InfoNote>
-            ) : null}
+          <AiGate feature="lab_analysis" className="lab-up-gate">
             <LabUploadForm
               limits={limitsFrom(labs.data?.limits)}
               onUploaded={(lab) => router.replace(labHref(lab.id, lab.status))}
               onConsentRequired={() => openSheet('lab-consent')}
+              ai={gate}
             />
-          </PlusFeatureGate>
+          </AiGate>
         )}
       </div>
     </div>

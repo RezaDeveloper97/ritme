@@ -1,0 +1,54 @@
+{
+  "case": "plus/credit_packs_public.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/plus/credit-packs",
+        "persona": "anon",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "currency": "IRR",
+          "vat_rate_bps": 1000,
+          "packs": [
+            {
+              "id": 1,
+              "code": "credits_50",
+              "title": "50 credits",
+              "badge": null,
+              "credits": 50,
+              "price": 490000,
+              "is_highlighted": false
+            },
+            {
+              "id": 2,
+              "code": "credits_150",
+              "title": "150 credits",
+              "badge": "Most popular",
+              "credits": 150,
+              "price": 1290000,
+              "is_highlighted": true
+            },
+            {
+              "id": 3,
+              "code": "credits_400",
+              "title": "400 credits",
+              "badge": null,
+              "credits": 400,
+              "price": 2990000,
+              "is_highlighted": false
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -32,22 +32,6 @@
               "remaining": 0
             },
             {
-              "key": "plus.lab_ai",
-              "allowed": false,
-              "unlimited": false,
-              "limit": 0,
-              "used": 0,
-              "remaining": 0
-            },
-            {
-              "key": "plus.assistant_unlimited",
-              "allowed": true,
-              "unlimited": false,
-              "limit": 5,
-              "used": 0,
-              "remaining": 5
-            },
-            {
               "key": "plus.pdf_share",
               "allowed": false,
               "unlimited": false,
@@ -64,7 +48,7 @@
               "remaining": 0
             },
             {
-              "key": "plus.voice_log",
+              "key": "plus.analysis_long_range",
               "allowed": false,
               "unlimited": false,
               "limit": 0,
@@ -72,7 +56,15 @@
               "remaining": 0
             },
             {
-              "key": "plus.doc_ai",
+              "key": "plus.sms_reminders",
+              "allowed": false,
+              "unlimited": false,
+              "limit": 0,
+              "used": 0,
+              "remaining": 0
+            },
+            {
+              "key": "plus.companion",
               "allowed": false,
               "unlimited": false,
               "limit": 0,

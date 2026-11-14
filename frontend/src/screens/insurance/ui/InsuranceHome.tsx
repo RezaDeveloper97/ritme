@@ -171,7 +171,6 @@ export function InsuranceHome({ state, history, onSelect, onRenewed, onEdit, onS
           <Icon name="warning" size={20} className="ins-attn-ico" />
           <span className="ins-attn-text">
             <span className="ins-attn-t">{t('needsAction', { count: state.needsAction })}</span>
-            <span className="ins-attn-s">{t('needsActionHint')}</span>
           </span>
         </Link>
       ) : null}

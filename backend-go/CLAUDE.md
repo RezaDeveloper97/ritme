@@ -121,6 +121,37 @@ db/migrations/        goose        db/queries/  sqlc queries per domain
   `backend/` until cutover); then the `public` contract goldens and `internal/i18n/testdata/messages_*.json`
   (`TestBundle_MatchesLaravelGoldens`) must be re-recorded, since they pin the bundle content.
 
+### AI gate (mandatory for every AI feature)
+Full design and API contract: **`docs/ai-credits.md`**. Users see «اعتبار» (credits), never tokens.
+
+- **Never call a provider directly.** A handler reaches a model only through `*ai.Client`
+  (`Chat` / `Transcribe` / `ParseLog` / `Extract`) and only on a route mounted behind
+  `platform.guard.Chain(feature)` (`newAIPlatform(d, nil)` in your `routes_<domain>.go`). No `http.Client` to an AI
+  API anywhere else, no second gate, no hand-written credit or subscription check.
+- **Declare the feature slot in code:** `var FeatureFoo = ai.RegisterFeature("foo", ai.CapChat)` (the capabilities a
+  model must have). Its `ai_features` row appears at start-up; the model, the fallback model and the credit cost are
+  **admin data** — never hard-code a model name, a price or a cost.
+- **Add a `Policy`** for the feature in `internal/ai/access` (`policies`): its consent code and throttles. A feature
+  without a policy panics at start-up.
+- `Chain` = throttles → feature on + running subscription + enough credits → consent, cost caps, concurrency →
+  **reserve** the credits → handler → **automatic refund** when the handler returns an error or a status ≥ 400.
+  Use `Gate(feature)` for a call that belongs to an already paid use (it still needs the subscription, spends
+  nothing).
+- Map every AI error with `access.Error(err, locale)`. The gate's own refusals are `402 ai_subscription_required`,
+  `402 ai_credits_exhausted`, `403 ai_feature_disabled` — clients handle exactly these; never invent another code
+  for "no credits" and never return 401.
+- A stream that already returned refunds itself when it failed before its first delta:
+  `access.ReservationFrom(ctx).Refund(ctx)`. Work that runs after the request (a queued job) stores
+  `access.ReservationFrom(ctx).At()` on its own row and refunds a failed job with `credits.Service.RefundAt`; from
+  then on the request must not answer an error (the gate would refund a second time).
+- Credit rules live in `internal/ai/credits` only: period credits first, then extra; extra credits never expire and
+  are never zeroed; nothing is spendable without a running subscription. Do not write to `ai_credit_*` tables from
+  another package (credit packs are granted by `internal/plus` settlement — the one exception).
+- Emergency, safety-alert, medication-reminder, EPDS and core-logging routes never sit behind this gate
+  (`internal/http/paywall_guard_int_test.go`).
+- New provider = a new adapter in `internal/ai` (see `openai_compat.go`) registered in `ai.New`; keys come from the
+  env only (`GEMINI_API_KEY`, `ARVAN_AI_API_KEY` + `ARVAN_AI_BASE_URL`) and are never stored, returned or logged.
+
 ### Code
 - SOLID, DRY, KISS, YAGNI. Small packages, explicit dependencies (`http.Deps`), no globals besides the route
   registry.

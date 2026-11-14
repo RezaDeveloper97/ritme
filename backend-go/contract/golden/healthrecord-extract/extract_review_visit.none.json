@@ -40,22 +40,6 @@
               "remaining": null
             },
             {
-              "key": "plus.lab_ai",
-              "allowed": true,
-              "unlimited": false,
-              "limit": 10,
-              "used": 0,
-              "remaining": 10
-            },
-            {
-              "key": "plus.assistant_unlimited",
-              "allowed": true,
-              "unlimited": true,
-              "limit": null,
-              "used": 0,
-              "remaining": null
-            },
-            {
               "key": "plus.pdf_share",
               "allowed": true,
               "unlimited": true,
@@ -72,7 +56,7 @@
               "remaining": null
             },
             {
-              "key": "plus.voice_log",
+              "key": "plus.analysis_long_range",
               "allowed": true,
               "unlimited": true,
               "limit": null,
@@ -80,12 +64,20 @@
               "remaining": null
             },
             {
-              "key": "plus.doc_ai",
+              "key": "plus.sms_reminders",
               "allowed": true,
-              "unlimited": false,
-              "limit": 20,
+              "unlimited": true,
+              "limit": null,
               "used": 0,
-              "remaining": 20
+              "remaining": null
+            },
+            {
+              "key": "plus.companion",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
             }
           ],
           "trial_offer": {
@@ -109,6 +101,7 @@
               "monthly_price": 790000,
               "savings_percent": 20,
               "is_highlighted": true,
+              "ai_credits": 300,
               "offer_price": 1185000,
               "offer_monthly_price": 395000
             }
@@ -251,12 +244,10 @@
       },
       "body": {
         "success": false,
-        "message": "این امکان بخشی از ریتمی پلاس است.",
-        "error_code": "plus_required",
-        "feature": "plus.doc_ai",
-        "reason": "locked",
-        "limit": null,
-        "resets_at": null
+        "message": "برای استفاده از قابلیت‌های هوشمند به اشتراک فعال نیاز داری.",
+        "error_code": "ai_subscription_required",
+        "feature": "doc_extract",
+        "extra_credits": 0
       }
     },
     {
@@ -576,22 +567,6 @@
               "remaining": null
             },
             {
-              "key": "plus.lab_ai",
-              "allowed": true,
-              "unlimited": false,
-              "limit": 10,
-              "used": 0,
-              "remaining": 10
-            },
-            {
-              "key": "plus.assistant_unlimited",
-              "allowed": true,
-              "unlimited": true,
-              "limit": null,
-              "used": 0,
-              "remaining": null
-            },
-            {
               "key": "plus.pdf_share",
               "allowed": true,
               "unlimited": true,
@@ -608,7 +583,7 @@
               "remaining": null
             },
             {
-              "key": "plus.voice_log",
+              "key": "plus.analysis_long_range",
               "allowed": true,
               "unlimited": true,
               "limit": null,
@@ -616,12 +591,20 @@
               "remaining": null
             },
             {
-              "key": "plus.doc_ai",
+              "key": "plus.sms_reminders",
               "allowed": true,
-              "unlimited": false,
-              "limit": 20,
-              "used": 1,
-              "remaining": 19
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.companion",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
             }
           ]
         }

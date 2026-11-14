@@ -118,8 +118,7 @@ it('points only at committed default files with the declared pixel sizes', funct
 
     $apple = getimagesize(public_path('icons/apple-touch-icon.png'));
     expect([$apple[0] ?? 0, $apple[1] ?? 0])->toBe([180, 180])
-        ->and(public_path('icons/favicon.svg'))->toBeFile()
-        ->and(public_path('icons/mask-icon.svg'))->toBeFile();
+        ->and(public_path('icons/favicon.svg'))->toBeFile();
 
     // favicon.ico: ICO header with a 32 px entry.
     $ico = (string) file_get_contents(public_path('favicon.ico'));
@@ -145,20 +144,19 @@ it('caches the manifest (no queries when warm) and busts it when the PWA setting
     expect(fetchManifest())->toMatchArray(['name' => 'ریتمی — همراه سلامت زنان', 'theme_color' => '#6E54F0']);
 });
 
-it('prints the install head tags on public pages', function (): void {
+it('prints the icon head tags but nothing that makes the site installable', function (): void {
     $html = (string) $this->get('/about')->assertOk()->getContent();
 
     expect($html)->toContain('<html lang="fa" dir="rtl">')
-        ->toContain('<link rel="manifest" href="/manifest.webmanifest">')
         ->toContain('<meta name="theme-color" media="(prefers-color-scheme: light)" content="#17112B">')
         ->toContain('<meta name="theme-color" media="(prefers-color-scheme: dark)" content="'.WebManifest::DARK_THEME_COLOR.'">')
         ->toContain('<meta name="application-name" content="ریتمی">')
-        ->toContain('<meta name="apple-mobile-web-app-capable" content="yes">')
-        ->toContain('<meta name="apple-mobile-web-app-title" content="ریتمی">')
         ->toContain('<link rel="icon" href="/favicon.ico" sizes="32x32">')
         ->toMatch('~<link rel="icon" href="/icons/favicon\.svg\?v=[0-9a-f]{8}" type="image/svg\+xml">~')
         ->toMatch('~<link rel="apple-touch-icon" href="/icons/apple-touch-icon\.png\?v=[0-9a-f]{8}" sizes="180x180">~')
-        ->toMatch('~<link rel="mask-icon" href="/icons/mask-icon\.svg\?v=[0-9a-f]{8}" color="#17112B">~');
+        ->not->toContain('rel="mask-icon"')
+        ->not->toContain('rel="manifest"')
+        ->not->toContain('web-app-capable');
 });
 
 it('generates the icon set from an uploaded logo and serves it in the manifest and head', function (): void {

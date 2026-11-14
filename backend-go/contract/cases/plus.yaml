@@ -9,6 +9,8 @@
 # redirect URL) are pattern-checked and passed between steps with capture.
 # Races (double trial, concurrent verify, discount limits), amount tampering, replayed bank references, IDOR and
 # provider errors are covered by internal/plus/plus_int_test.go; entitlement rules and pricing by its unit tests.
+# Credit packs (goose 00125, D-209): extra AI credits bought through the same invoice → fake gateway → verify path;
+# exactly-once grants, amount tampering and teen blocking are covered by internal/plus/plus_credit_packs_int_test.go.
 # Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
 group: plus
 defaults:
@@ -31,7 +33,7 @@ cases:
     status: 200
 
   - name: status_new_user
-    doc: Never trialled, never subscribed → free, trial available, Plus features locked, free assistant quota 5
+    doc: Never trialled, never subscribed → free, trial available, Plus features locked (no AI quotas — AI features spend credits, D-209)
     method: GET
     path: /api/v1/plus/status
     status: 200
@@ -232,3 +234,65 @@ cases:
     method: POST
     path: /api/v1/plus/restore
     status: 200
+
+  - name: credit_packs_public
+    doc: Public credit-pack list — seeded 50/150/400 packs with the highlighted badge
+    persona: anon
+    locales: [none, en, fa]
+    method: GET
+    path: /api/v1/plus/credit-packs
+    status: 200
+  - name: credit_pack_checkout_preview
+    doc: Price the 50-credit pack (VAT 10 % on 490,000 rials); nothing is written
+    method: POST
+    path: /api/v1/plus/credit-packs/checkout
+    body: {pack_id: 1, preview: true}
+    status: 200
+  - name: credit_pack_checkout_invalid
+    doc: Missing and unknown pack
+    locales: [none, en, fa]
+    steps:
+      - method: POST
+        path: /api/v1/plus/credit-packs/checkout
+        body: {}
+        status: 422
+      - method: POST
+        path: /api/v1/plus/credit-packs/checkout
+        body: {pack_id: 99}
+        status: 422
+  - name: credit_pack_checkout_anon
+    persona: anon
+    locales: none
+    method: POST
+    path: /api/v1/plus/credit-packs/checkout
+    body: {pack_id: 1}
+    status: 401
+  - name: credit_pack_purchase_flow
+    doc: Checkout a pack (client amounts and plan ignored) → pay → verify grants the credits once → replay → history shows kind credit_pack
+    locales: none
+    steps:
+      - method: POST
+        path: /api/v1/plus/credit-packs/checkout
+        body: {pack_id: 2, plan_id: 1, total: 1}
+        status: 200
+        capture: {ref: data.invoice.reference, auth: data.payment.authority}
+      - method: POST
+        path: "/api/v1/payments/fake/pay/{{auth}}"
+        raw_body: decision=success
+        content_type: application/x-www-form-urlencoded
+        status: 303
+        ignore_body: true
+        ignore: ["header:location"]
+      - method: POST
+        path: /api/v1/plus/verify
+        now: "2026-09-23T10:05:00+03:30"
+        body: {reference: "{{ref}}", authority: "{{auth}}", status: OK}
+        status: 200
+      - method: POST
+        path: /api/v1/plus/verify
+        now: "2026-09-23T10:06:00+03:30"
+        body: {reference: "{{ref}}", authority: "{{auth}}", status: OK}
+        status: 200
+      - method: GET
+        path: /api/v1/plus/history
+        status: 200

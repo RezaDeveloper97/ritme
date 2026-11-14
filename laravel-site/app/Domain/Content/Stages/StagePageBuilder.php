@@ -7,13 +7,17 @@ namespace App\Domain\Content\Stages;
 use App\Domain\Blog\Contracts\PostRepository;
 use App\Domain\Blog\Data\PostCardData;
 use App\Domain\Blog\Enums\LifeStage;
+use App\Domain\Content\Enums\SiteSection;
 use App\Domain\Content\Enums\StaticPage;
 use App\Domain\Content\SiteNavigation;
+use App\Domain\Content\SitePhotos;
+use App\Domain\Content\SiteSections;
 use App\Domain\Content\Stages\Data\StageCardData;
 use App\Domain\Content\Stages\Data\StageFeatureData;
 use App\Domain\Content\Stages\Data\StageFloatCardData;
 use App\Domain\Content\Stages\Data\StageHeroData;
 use App\Domain\Content\Stages\Data\StagePageData;
+use App\Domain\Content\Stages\Data\StageRedesignData;
 use App\Domain\Faq\Contracts\FaqRepository;
 use App\Domain\Seo\Schema\Data\FaqItem;
 use App\Domain\Settings\Contracts\SettingsRepository;
@@ -42,6 +46,8 @@ final class StagePageBuilder
         private readonly SettingsRepository $settings,
         private readonly UrlGenerator $url,
         private readonly FaqRepository $faqs,
+        private readonly SiteSections $sections,
+        private readonly SitePhotos $photos,
     ) {}
 
     public function build(StageDefinition $definition): StagePageData
@@ -60,11 +66,11 @@ final class StagePageBuilder
             nav: $this->stageNavigation->items($definition->stage()),
             hero: $this->hero($definition),
             features: $this->features($definition),
-            tools: array_map(fn (CardSpec $card): StageCardData => $this->card($group, 'tools', $card), $definition->tools()),
-            help: array_map(fn (CardSpec $card): StageCardData => $this->card($group, 'help', $card, $common('help.cta')), $definition->help()),
+            tools: array_map(fn (CardSpec $card): StageCardData => $this->card($group, 'tools', $card), $this->enabledCards($definition->tools())),
+            help: array_map(fn (CardSpec $card): StageCardData => $this->card($group, 'help', $card, $common('help.cta')), $this->enabledCards($definition->help())),
             emergencyText: $this->text($group, 'emergency'),
             emergencyNumber: $settings->general->emergencyNumber,
-            readings: $this->readings($definition->stage()),
+            readings: $this->sections->enabled(SiteSection::Blog) ? $this->readings($definition->stage()) : [],
             readingsMoreUrl: $this->navigation->url(StaticPage::Blog),
             faqGroup: $definition->faqGroup(),
             faqTitle: $this->text($group, 'faq.title'),
@@ -82,6 +88,44 @@ final class StagePageBuilder
                 'readingsTitle' => $common('readings.title'),
                 'readingsMore' => $common('readings.more'),
                 'faqEyebrow' => $common('faq.eyebrow'),
+            ],
+            redesign: ($spec = $definition->redesign()) === null ? null : $this->redesign($group, $spec),
+        );
+    }
+
+    private function redesign(string $group, RedesignSpec $spec): StageRedesignData
+    {
+        $common = fn (string $key): string => $this->text(self::COMMON, "redesign.{$key}");
+        $feature = fn (string $key): array => [
+            'title' => $this->text($group, "redesign.features.items.{$key}.title"),
+            'text' => $this->text($group, "redesign.features.items.{$key}.text"),
+        ];
+
+        return new StageRedesignData(
+            accent: $spec->accent,
+            eyebrow: $this->text($group, 'redesign.hero.eyebrow'),
+            title: $this->text($group, 'redesign.hero.title'),
+            lead: $this->text($group, 'redesign.hero.lead'),
+            chips: array_map(fn (string $chip): array => [
+                'title' => $this->text($group, "redesign.hero.chips.{$chip}.title"),
+                'text' => $this->text($group, "redesign.hero.chips.{$chip}.text"),
+            ], ['top', 'bottom']),
+            heroPhoto: $this->photos->get($spec->heroPhoto),
+            heroAlt: $spec->heroPhoto->alt(),
+            featurePhoto: $this->photos->get($spec->featurePhoto),
+            featureAlt: $spec->featurePhoto->alt(),
+            featuresTitle: $this->text($group, 'redesign.features.title'),
+            features: array_map($feature, $spec->featureKeys),
+            copy: [
+                'download' => $this->text(self::COMMON, 'hero.download'),
+                'see' => $common('see'),
+                'featuresEyebrow' => $common('features_eyebrow'),
+                'toolsEyebrow' => $this->text(self::COMMON, 'tools.eyebrow'),
+                'toolsTitle' => $this->text(self::COMMON, 'tools.title'),
+                'readingsMore' => $common('readings_more'),
+                'faqTitle' => $common('faq_title'),
+                'downloadTitle' => $common('download_title'),
+                'downloadLead' => $common('download_lead'),
             ],
         );
     }
@@ -151,6 +195,17 @@ final class StagePageBuilder
         return $features;
     }
 
+    /**
+     * Cards whose link target is not in a site section switched off in the admin «صفحه‌ها» settings.
+     *
+     * @param  list<CardSpec>  $cards
+     * @return list<CardSpec>
+     */
+    private function enabledCards(array $cards): array
+    {
+        return array_values(array_filter($cards, fn (CardSpec $card): bool => $this->sections->routeEnabled($card->route)));
+    }
+
     private function card(string $group, string $section, CardSpec $spec, ?string $cta = null): StageCardData
     {
         return new StageCardData(
@@ -161,6 +216,7 @@ final class StagePageBuilder
             text: $this->optional($group, "{$section}.{$spec->key}.text"),
             where: $spec->where === null ? null : $this->text(self::COMMON, "tools.{$spec->where}"),
             cta: $cta,
+            onSite: $spec->where === CardSpec::ON_SITE,
         );
     }
 

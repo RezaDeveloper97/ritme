@@ -2,7 +2,7 @@ package assistant_test
 
 // B-N7-06 end to end against MariaDB with the fake AI provider: departments, profile sharing, SSE chat with the
 // server-side emergency check (115 card, no model call, no consent / quota), diagnosis guard, triage + chips parsed
-// from the control lines, free quota vs Plus, photos, summary, handoff with the booking's consent, IDOR and hard delete.
+// from the control lines, AI credits (no subscription → 402, credits spent per message), photos, summary, handoff with the booking's consent, IDOR and hard delete.
 
 import (
 	"bufio"
@@ -31,6 +31,7 @@ import (
 
 	"github.com/ritme/backend-go/internal/ai"
 	"github.com/ritme/backend-go/internal/ai/access"
+	"github.com/ritme/backend-go/internal/ai/credits"
 	"github.com/ritme/backend-go/internal/ai/usage"
 	"github.com/ritme/backend-go/internal/assistant"
 	"github.com/ritme/backend-go/internal/auth"
@@ -45,11 +46,9 @@ import (
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/loss"
 	"github.com/ritme/backend-go/internal/platform/clock"
-	"github.com/ritme/backend-go/internal/platform/config"
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/ratelimit"
-	"github.com/ritme/backend-go/internal/plus"
 	"github.com/ritme/backend-go/internal/telemed"
 )
 
@@ -123,6 +122,7 @@ type env struct {
 	spy      *spyChat
 	svc      *assistant.Service
 	consents *consent.Service
+	credits  *credits.Service
 }
 
 func setup(t *testing.T) *env { t.Helper(); return setupWith(t, 0, nil) }
@@ -142,13 +142,13 @@ func setupWith(t *testing.T, maxConcurrent int, limiter *ratelimit.Limiter) *env
 	guard := auth.NewGuardWith(&key.PublicKey, q, clock.Real{}, quiet).RequireUser
 	locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(db), nil, quiet))
 
-	plusSvc := plus.NewService(db, config.Plus{TrialDays: 7}, nil, quiet)
-	gate := plus.NewGate(plusSvc, clock.Real{})
+	creditSvc := credits.NewService(db)
+	aiCatalog := credits.NewCatalog(db)
 	budget := usage.NewBudget(db, 5, clock.Real{}, quiet)
 	spy := &spyChat{Fake: ai.NewFake()}
 	client := ai.NewClientWith(ai.Options{Provider: "fake", Chatter: spy, Recorder: usage.NewRecorder(db, clock.Real{}, quiet), Limiter: budget})
 	consents := consent.NewService(db)
-	g := access.NewGuard(access.Options{Client: client, Consents: consents, Budget: budget, Gate: gate, Plus: plusSvc, Logger: quiet,
+	g := access.NewGuard(access.Options{Client: client, Consents: consents, Budget: budget, Credits: creditSvc, Catalog: aiCatalog, Logger: quiet,
 		MaxConcurrent: maxConcurrent, Limiter: limiter})
 	box, err := loss.NewNoteBox(nil, nil, false)
 	require.NoError(t, err)
@@ -159,7 +159,7 @@ func setupWith(t *testing.T, maxConcurrent int, limiter *ratelimit.Limiter) *env
 	svc := assistant.NewService(assistant.Options{DB: db, AI: client, Consents: consents,
 		Profile: assistant.RecordProfile(healthrecord.NewService(db, nil)), Photos: files.NewService(files.Options{DB: db, Vault: vault}),
 		Bookings: bookings, BookingNotFound: telemed.ErrBookingNotFound, Logger: quiet, Box: box})
-	h := assistant.NewHandlers(svc, plusSvc, clock.Real{})
+	h := assistant.NewHandlers(svc, creditQuota(creditSvc, aiCatalog), clock.Real{})
 
 	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(quiet)})
 	app.Use(clock.Middleware(clock.Real{}, true))
@@ -177,10 +177,43 @@ func setupWith(t *testing.T, maxConcurrent int, limiter *ratelimit.Limiter) *env
 	app.Post(p+"/conversations/:id/messages", locale, append(append([]any{guard, h.PrepareMessage}, g.Chain(ai.FeatureAssistant)...), h.StreamMessage)...)
 	app.Post(p+"/conversations/:id/summary", locale, append(append([]any{guard}, g.Gate(ai.FeatureAssistant)...), h.Summary)...)
 	app.Post(p+"/conversations/:id/handoff", locale, guard, h.Handoff)
-	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), spy: spy, svc: svc, consents: consents}
+	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), spy: spy, svc: svc, consents: consents, credits: creditSvc}
 }
 
-func (e *env) user(t *testing.T, mobile string, plusTrial bool) (uint64, string) {
+// creditQuota is the hub quota the routes wire (internal/http assistantQuota): the AI credits.
+func creditQuota(svc *credits.Service, cat *credits.Catalog) assistant.Quota {
+	return func(ctx context.Context, userID uint64, now time.Time) (assistant.QuotaState, error) {
+		b, err := svc.Balance(ctx, userID, now)
+		if err != nil {
+			return assistant.QuotaState{}, err
+		}
+		f, _, err := cat.Feature(ctx, ai.FeatureAssistant)
+		if err != nil {
+			return assistant.QuotaState{}, err
+		}
+		return assistant.QuotaState{Allowed: b.Active && b.Spendable() >= f.Cost, Limit: b.PlanTotal,
+			Used: b.PlanTotal - b.PlanRemaining, Remaining: b.Spendable()}, nil
+	}
+}
+
+// user creates a user who may use the AI: a running trial (20 credits) when trial is set, else a running Plus
+// month (plan plus_1m, 100 credits). unsubscribed creates one without either.
+func (e *env) user(t *testing.T, mobile string, trial bool) (uint64, string) {
+	t.Helper()
+	id, tok := e.unsubscribed(t, mobile)
+	if trial {
+		_, err := e.db.Exec(`INSERT INTO plus_trials (user_id, started_at, ends_at, created_at, updated_at)
+			VALUES (?, '2026-10-01 10:00:00', '2026-10-30 10:00:00', NOW(), NOW())`, id)
+		require.NoError(t, err)
+		return id, tok
+	}
+	_, err := e.db.Exec(`INSERT INTO plus_subscriptions (user_id, plan_id, status, source, starts_at, ends_at, created_at, updated_at)
+		VALUES (?, 1, 'active', 'purchase', '2026-10-01 10:00:00', '2026-10-31 10:00:00', NOW(), NOW())`, id)
+	require.NoError(t, err)
+	return id, tok
+}
+
+func (e *env) unsubscribed(t *testing.T, mobile string) (uint64, string) {
 	t.Helper()
 	res, err := e.db.Exec(`INSERT INTO users (name, mobile, created_at, updated_at) VALUES ('Sara Ahmadi', ?, '2026-09-01 09:00:00', '2026-09-01 09:00:00')`, mobile)
 	require.NoError(t, err)
@@ -188,11 +221,6 @@ func (e *env) user(t *testing.T, mobile string, plusTrial bool) (uint64, string)
 	_, err = e.db.Exec(`INSERT INTO user_profiles (user_id, birthday, cycle_duration, period_duration, created_at, updated_at)
 		VALUES (?, '1992-04-12', 29, 5, NOW(), NOW())`, id)
 	require.NoError(t, err)
-	if plusTrial {
-		_, err = e.db.Exec(`INSERT INTO plus_trials (user_id, started_at, ends_at, created_at, updated_at)
-			VALUES (?, '2026-10-01 10:00:00', '2026-10-30 10:00:00', NOW(), NOW())`, id)
-		require.NoError(t, err)
-	}
 	tok, err := e.iss.Issue(context.Background(), uint64(id), time.Now()) //nolint:gosec // positive id
 	require.NoError(t, err)
 	return uint64(id), tok.AccessToken //nolint:gosec // positive id
@@ -309,9 +337,12 @@ func TestAssistant_HubDepartmentsAndAuth(t *testing.T) {
 	assert.Equal(t, "مشاور پزشکی عمومی", depts[0].(map[string]any)["name"])
 	assert.NotContains(t, r.raw, "system_prompt")
 	assert.NotContains(t, r.raw, "You are")
-	q := r.data()["quota"].(map[string]any)
-	assert.InDelta(t, 5, q["limit"], 0)
-	assert.Equal(t, false, q["unlimited"])
+	assert.JSONEq(t, `{"unlimited":false,"allowed":true,"limit":100,"used":0,"remaining":100}`, mustJSON(t, r.data()["quota"]),
+		"the quota is the AI credits of the running Plus month")
+	_, free := e.unsubscribed(t, "09120000009")
+	r = e.do(t, "GET", "/api/v1/assistant", free, nil)
+	require.Equal(t, 200, r.status, r.raw)
+	assert.JSONEq(t, `{"unlimited":false,"allowed":false,"limit":0,"used":0,"remaining":0}`, mustJSON(t, r.data()["quota"]))
 
 	r = e.do(t, "GET", "/api/v1/assistant/departments/skin_beauty", tok, nil)
 	require.Equal(t, 200, r.status, r.raw)
@@ -398,31 +429,52 @@ func TestAssistant_DiagnosisGuardAndProfileFence(t *testing.T) {
 	assert.GreaterOrEqual(t, len(e.spy.last().Messages), 3)
 }
 
-func TestAssistant_FreeQuotaAndPlusUnlimited(t *testing.T) {
+func TestAssistant_CreditsPerMessage(t *testing.T) {
 	e := setup(t)
-	uid, tok := e.user(t, "09120000001", false)
+	// No subscription: every message is refused before the model, an emergency still gets the 115 card.
+	uid, tok := e.unsubscribed(t, "09120000001")
 	e.accept(t, uid, consent.AIAssistant)
 	conv := e.newConv(t, tok, "nutrition")
-	for i := range 5 {
-		r := e.send(t, tok, conv, map[string]any{"text": fmt.Sprintf("پرسش %d", i)})
-		require.Equal(t, 200, r.status, r.raw)
-	}
-	r := e.send(t, tok, conv, map[string]any{"text": "پرسش ششم"})
+	r := e.send(t, tok, conv, map[string]any{"text": "پرسش"})
 	assert.Equal(t, 402, r.status, r.raw)
-	assert.Equal(t, plus.CodePlusRequired, r.body["error_code"])
-	assert.Equal(t, "quota", r.body["reason"])
+	assert.Equal(t, access.CodeSubscriptionRequired, r.body["error_code"])
+	assert.Equal(t, "assistant", r.body["feature"])
 	r = e.send(t, tok, conv, map[string]any{"text": "می\u200cخواهم خودکشی کنم"})
-	require.Equal(t, 200, r.status, "an emergency is never blocked by the quota")
+	require.Equal(t, 200, r.status, "an emergency is never blocked by credits")
 	assert.NotNil(t, find(events(r.raw), "card"))
+	assert.Zero(t, e.spy.calls())
 
+	// A trial with 3 credits left: 3 messages, then 402 ai_credits_exhausted; emergencies stay free.
 	pid, ptok := e.user(t, "09120000002", true)
 	e.accept(t, pid, consent.AIAssistant)
+	now, err := time.Parse(time.RFC3339, testNow)
+	require.NoError(t, err)
+	b, err := e.credits.Balance(context.Background(), pid, now)
+	require.NoError(t, err)
+	require.Equal(t, uint32(20), b.PlanRemaining)
+	_, err = e.db.Exec(`UPDATE ai_credit_grants SET remaining = 3 WHERE user_id = ?`, pid)
+	require.NoError(t, err)
 	pconv := e.newConv(t, ptok, "nutrition")
-	for i := range 7 {
+	for i := range 3 {
 		r := e.send(t, ptok, pconv, map[string]any{"text": fmt.Sprintf("q %d", i)})
 		require.Equal(t, 200, r.status, r.raw)
 	}
+	r = e.send(t, ptok, pconv, map[string]any{"text": "q 4"})
+	assert.Equal(t, 402, r.status, r.raw)
+	assert.Equal(t, access.CodeCreditsExhausted, r.body["error_code"])
+	assert.InDelta(t, 1, r.body["required"], 0)
+	assert.InDelta(t, 0, r.body["balance"], 0)
+	r = e.send(t, ptok, pconv, map[string]any{"text": "می\u200cخواهم خودکشی کنم"})
+	require.Equal(t, 200, r.status, r.raw)
+	assert.Equal(t, 3, e.count(t, `SELECT COUNT(*) FROM ai_credit_spends WHERE user_id = ? AND feature = 'assistant' AND status = 'spent'`, pid))
 	assert.Equal(t, 0, e.count(t, `SELECT COUNT(*) FROM ai_usage_logs WHERE user_id = ? AND feature <> 'assistant'`, pid))
+}
+
+func mustJSON(t *testing.T, v any) string {
+	t.Helper()
+	b, err := json.Marshal(v)
+	require.NoError(t, err)
+	return string(b)
 }
 
 func pngBytes(t *testing.T) []byte {

@@ -111,6 +111,16 @@ export function calcInPmsWindow(calc: CycleCalculation): boolean {
  * wins. The window is the §19 one, so the day after ovulation carries no
  * fertile/ovulation marker.
  */
+/**
+ * The display phase of a day: period and ovulation as themselves, any other day
+ * inside the fertile window reads as `fertile` (the production calendar's tile).
+ */
+export function calcToPhase(calc: CycleCalculation): CyclePhase | null {
+  const phase = calcMainPhase(calc);
+  if (phase === "period" || phase === "ovulation") return phase;
+  return calcInFertileWindow(calc) ? "fertile" : phase;
+}
+
 export function cycleDayMarker(calc: CycleCalculation): CycleDayMarker | null {
   const phase = calcMainPhase(calc);
   if (phase === "period") return "period";

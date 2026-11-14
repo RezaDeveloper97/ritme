@@ -28,8 +28,10 @@ import (
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/platform/clock"
+	"github.com/ritme/backend-go/internal/platform/config"
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 	"github.com/ritme/backend-go/internal/platform/httpx"
+	profilestore "github.com/ritme/backend-go/internal/profile/store"
 	"github.com/ritme/backend-go/internal/reminder"
 )
 
@@ -101,13 +103,15 @@ func setup(t *testing.T) *env {
 	counter := &countingDB{DB: db}
 	h := care.NewHandlers(counter, clock.Real{})
 	deleg := &hookDelegation{Delegation: companion.NewDelegation(db, clock.Real{}, quiet)}
-	h.SetDelegation(deleg) // «ثبت برای …» (for_user_id), as in routes_care.go
+	h.SetDelegation(deleg)                         // «ثبت برای …» (for_user_id), as in routes_care.go
+	h.SetPush(config.Push{}, profilestore.New(db)) // GET /care/upcoming reads the notification settings
 	legacy := reminder.NewHandlers(db, clock.Real{})
 
 	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(quiet)})
 	app.Use(clock.Middleware(clock.Real{}, true))
 	app.Get("/api/v1/care/enums", locale, guard, h.Enums)
 	app.Get("/api/v1/care/today", locale, guard, h.Today)
+	app.Get("/api/v1/care/upcoming", locale, guard, h.Upcoming)
 	app.Get("/api/v1/care/medications", locale, guard, h.ListMedications)
 	app.Post("/api/v1/care/medications", locale, guard, h.StoreMedication)
 	app.Get("/api/v1/care/medications/:id", locale, guard, h.ShowMedication)

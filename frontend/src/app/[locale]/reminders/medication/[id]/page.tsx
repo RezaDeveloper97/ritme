@@ -18,7 +18,7 @@ export default async function EditMedicationRoute({ params, searchParams }: Prop
   const medicationId = Number(id);
   if (!/^\d+$/.test(id) || !Number.isSafeInteger(medicationId) || medicationId <= 0) notFound();
   return (
-    <RouteMessages route="reminderForm">
+    <RouteMessages route="reminderMedForm">
       <MedicationFormPage id={medicationId} from={from} forParam={forParam} />
     </RouteMessages>
   );

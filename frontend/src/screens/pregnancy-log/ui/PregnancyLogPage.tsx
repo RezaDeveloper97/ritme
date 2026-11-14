@@ -28,7 +28,6 @@ export function PregnancyLogPage({ initialTab }: { initialTab?: string }) {
       <div className="scroll">
         <ScreenHeader
           title={t('log.title')}
-          subtitle={t('log.subtitle')}
           onBack={() => router.push('/pregnancy')}
           backLabel={t('back')}
         />

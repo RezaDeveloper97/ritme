@@ -126,7 +126,6 @@
   },
   "log": {
     "title": "Daily pregnancy log",
-    "subtitle": "Record today's symptoms so Ritme can care for you better.",
     "tabs": {
       "symptoms": "Daily symptoms",
       "weekly": "Weekly checkup",

@@ -157,3 +157,34 @@ func TestLangFiles_SameKeys(t *testing.T) {
 	}
 	assert.Len(t, attributes("fa"), len(attributes("en")))
 }
+
+func TestDecideNotice(t *testing.T) {
+	day := time.Date(2026, 9, 23, 10, 0, 0, 0, civildate.Tehran)
+	night := time.Date(2026, 9, 23, 23, 30, 0, 0, civildate.Tehran)
+	p := Defaults()
+	assert.True(t, DecideNotice(p, "companion", day).Send)
+	assert.True(t, DecideNotice(p, "postpartum", day).Send, "a kind without a switch")
+
+	p.Categories[Companion] = false
+	for _, typ := range []string{"companion", "family"} {
+		assert.Equal(t, Decision{Reason: ReasonCategoryOff}, DecideNotice(p, typ, day), typ)
+	}
+	assert.True(t, DecideNotice(p, "learning", day).Send)
+
+	for _, typ := range []string{"learning", "message_push"} {
+		d := DecideNotice(p, typ, night)
+		assert.Equal(t, ReasonQuietHours, d.Reason, typ)
+		assert.Equal(t, time.Date(2026, 9, 24, 8, 0, 0, 0, civildate.Tehran), d.DeferUntil, typ)
+	}
+}
+
+func TestRenderNotice(t *testing.T) {
+	m := Message{Title: "همراه دعوتت را پذیرفت", Body: "متن", URL: "/fa/companions"}
+	p := Defaults() // «متن خنثی» on
+	assert.Equal(t, Push{Title: "اعلان تازه", Body: "یک اعلان تازه در ریتمی داری.", URL: "/fa/companions"}, RenderNotice(p, m, "fa"))
+	assert.Equal(t, "New notification", RenderNotice(p, m, "en").Title)
+
+	p.NeutralCopy = false
+	assert.Equal(t, Push{Title: m.Title, Body: m.Body, URL: m.URL}, RenderNotice(p, m, "fa"))
+	assert.Equal(t, "اعلان تازه", RenderNotice(p, Message{URL: "/fa/home"}, "fa").Title, "a row without a title")
+}

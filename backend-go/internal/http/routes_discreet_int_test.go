@@ -105,6 +105,7 @@ func TestDiscreetNotifications_InviteSMSFollowsNeutralCopy(t *testing.T) {
 	logs := &lockedBuffer{}
 	e := newCompanionEnvWithLogger(t, slog.New(slog.NewJSONHandler(logs, nil)))
 	sara := e.user("Sara", "09120007001")
+	e.plus(sara)
 
 	invite := func(phone string) {
 		t.Helper()

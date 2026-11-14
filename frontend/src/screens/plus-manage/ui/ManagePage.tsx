@@ -14,6 +14,7 @@ import {
   type PlusInvoice,
   type PlusStatus,
 } from '@/entities/plus';
+import { formatCredits, useAiCredits } from '@/entities/ai-credit';
 import { useCancelPlus } from '@/features/purchase-plus';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { formatLongDate, formatNumber } from '@/shared/lib/date';
@@ -92,6 +93,7 @@ function ManageBody({ status }: { status: PlusStatus }) {
   const t = useTranslations('plus');
   const router = useRouter();
   const loc = useLocale() as Locale;
+  const credits = useAiCredits();
   const plans = usePlusPlans();
   const cancel = useCancelPlus();
   const [confirm, setConfirm] = useState(false);
@@ -169,6 +171,16 @@ function ManageBody({ status }: { status: PlusStatus }) {
       ) : null}
 
       <ListGroup className="plus-manage-list">
+        {credits.data ? (
+          <ListRow
+            icon="sparkle"
+            iconTone="warm"
+            title={t('manage.credits')}
+            description={t('manage.creditsSub')}
+            value={t('manage.creditsValue', { count: formatCredits(credits.data.spendable, loc) })}
+            onClick={() => router.push('/profile/credits')}
+          />
+        ) : null}
         {upgrade ? (
           <ListRow
             icon="crown"

@@ -128,7 +128,7 @@ export function PredictionsCard({
         ))}
       </ul>
       {length && (
-        <Link href="/cycle" className="ch-len">
+        <Link href="/analysis?tab=history" className="ch-len">
           <span className="ch-len-body">
             <span className="ch-len-title">
               {length.basedOnCycles ? t('lengthTitle', { n: num(length.basedOnCycles) }) : t('lengthTitleBasic')}

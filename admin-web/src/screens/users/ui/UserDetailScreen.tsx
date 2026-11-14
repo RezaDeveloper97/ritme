@@ -4,6 +4,8 @@ import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 
+import { useCan, useCurrentAdmin } from "@/features/auth";
+import { UserAiCreditsPanel } from "@/features/user-ai-credits";
 import { fieldError } from "@/shared/api";
 import { blankToNull, formatDate, formatNumber } from "@/shared/lib";
 import {
@@ -60,6 +62,8 @@ function UserDetail({ detail }: { detail: UserDetail }) {
   const locale = useLocale();
   const router = useRouter();
   const notifyError = useNotifyError();
+  const canViewCredits = useCan("billing");
+  const isSuper = useCurrentAdmin()?.role === "super";
   const { user, profile, stats, options } = detail;
 
   const block = usersApi.useAction("block");
@@ -286,6 +290,12 @@ function UserDetail({ detail }: { detail: UserDetail }) {
                   <p className="m-0 p-4 text-ink-3 sm:p-5">{t("noProfile")}</p>
                 )}
               </Panel>
+
+              <UserAiCreditsPanel
+                userId={user.id}
+                canView={canViewCredits}
+                canManage={isSuper}
+              />
             </>
           ) : null
         }

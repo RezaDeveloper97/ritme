@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/ritme/backend-go/internal/care/store"
@@ -31,6 +32,147 @@ type MedicationMeta struct {
 	Amount   int      `json:"amount"`
 	Duration string   `json:"duration"`
 	Notify   bool     `json:"notify"`
+	// Frequency and Doses are the interval schedule («هر ۱ روز», «هر ۲ ساعت» + doses with amount, unit, time and
+	// meal relation). nil / empty = the weekday schedule above. When set, Times is derived from them (TimesOf),
+	// Weekdays is every day and Amount is the first dose's, so readers of the older fields keep working.
+	Frequency *Frequency `json:"frequency,omitempty"`
+	Doses     []DoseSpec `json:"doses,omitempty"`
+}
+
+// Frequency is the repeat interval of a medication: every N days or every N hours.
+type Frequency struct {
+	Every int    `json:"every"`
+	Unit  string `json:"unit"`
+}
+
+// DoseSpec is one dose of the schedule: how much, of what, when, and before or after a meal (nil = not said).
+// With an hourly frequency Time is the first intake of the day's chain (Time + k·Every hours).
+type DoseSpec struct {
+	Time   string  `json:"time"`
+	Amount int     `json:"amount"`
+	Unit   string  `json:"unit"`
+	Meal   *string `json:"meal"`
+}
+
+// Frequency units, dose units and meal relations.
+const (
+	FrequencyDay  = "day"
+	FrequencyHour = "hour"
+	MealBefore    = "before"
+	MealAfter     = "after"
+)
+
+var (
+	// FrequencyUnits are the units of Frequency.
+	FrequencyUnits = []string{FrequencyDay, FrequencyHour}
+	// HourIntervals are the hourly intervals offered: the divisors of 24, so the slots are the same every day.
+	HourIntervals = []int{1, 2, 3, 4, 6, 8, 12}
+	// MaxDayInterval is the longest «هر N روز».
+	MaxDayInterval = 30
+	// DoseUnits are the units of a dose amount («۱ قرص», «۵ قطره»).
+	DoseUnits = []string{"pill", "capsule", "drop", "ml", "spoon", "puff", "injection"}
+	// Meals are the meal relations of a dose.
+	Meals = []string{MealBefore, MealAfter}
+	// MaxDoses is the most doses one medication carries.
+	MaxDoses = 6
+)
+
+// formOfDoseUnit is the medication form shown for a dose unit (the icon of the lists).
+var formOfDoseUnit = map[string]string{
+	"pill": "tablet", "capsule": "capsule", "drop": "drops", "ml": "syrup", "spoon": "syrup",
+	"puff": "tablet", "injection": "injection",
+}
+
+// FormOfDoseUnit is the form a dose unit implies (tablet for an unknown one).
+func FormOfDoseUnit(unit string) string {
+	if f, ok := formOfDoseUnit[unit]; ok {
+		return f
+	}
+	return "tablet"
+}
+
+func slotMinutes(slot string) (int, bool) {
+	if len(slot) != 5 || slot[2] != ':' {
+		return 0, false
+	}
+	h, m := int(slot[0]-'0')*10+int(slot[1]-'0'), int(slot[3]-'0')*10+int(slot[4]-'0')
+	if h < 0 || h > 23 || m < 0 || m > 59 {
+		return 0, false
+	}
+	return h*60 + m, true
+}
+
+func minutesSlot(min int) string {
+	min = ((min % 1440) + 1440) % 1440
+	return string([]byte{byte('0' + min/600), byte('0' + min/60%10), ':', byte('0' + min%60/10), byte('0' + min%10)})
+}
+
+// TimesOf are the day's slots of an interval schedule, sorted and unique: the dose times for a daily
+// frequency; each dose's chain (time + k·every hours, around the clock) for an hourly one.
+func TimesOf(f Frequency, doses []DoseSpec) []string {
+	out := []string{}
+	add := func(s string) {
+		if !slices.Contains(out, s) {
+			out = append(out, s)
+		}
+	}
+	for _, d := range doses {
+		start, ok := slotMinutes(d.Time)
+		if !ok {
+			continue
+		}
+		if f.Unit != FrequencyHour || f.Every < 1 || f.Every > 24 {
+			add(d.Time)
+			continue
+		}
+		for k := 0; k*f.Every < 24; k++ {
+			add(minutesSlot(start + k*f.Every*60))
+		}
+	}
+	slices.Sort(out)
+	return out
+}
+
+// DoseAt is the dose taken at slot: the dose at that time (daily), or the one whose hourly chain holds the
+// slot. nil for a weekday-schedule medication or an unknown slot.
+func (m MedicationMeta) DoseAt(slot string) *DoseSpec {
+	at, ok := slotMinutes(slot)
+	if !ok || m.Frequency == nil {
+		return nil
+	}
+	for i := range m.Doses {
+		start, ok := slotMinutes(m.Doses[i].Time)
+		if !ok {
+			continue
+		}
+		if start == at {
+			return &m.Doses[i]
+		}
+		if m.Frequency.Unit == FrequencyHour && m.Frequency.Every > 0 && (at-start+1440)%(m.Frequency.Every*60) == 0 {
+			return &m.Doses[i]
+		}
+	}
+	return nil
+}
+
+// DoseLabel is «۱ قرص» / "1 pill" for a dose in the locale.
+func DoseLabel(d DoseSpec, locale string) string {
+	unit := d.Unit
+	if label, ok := Label("dose_units", d.Unit, locale); ok {
+		unit = label
+	}
+	return LocalizeDigits(strconv.Itoa(d.Amount), locale) + " " + unit
+}
+
+// DoseLine is the dose with its meal relation, «۱ قرص · بعد از غذا».
+func DoseLine(d DoseSpec, locale string) string {
+	line := DoseLabel(d, locale)
+	if d.Meal != nil {
+		if label, ok := Label("meals", *d.Meal, locale); ok {
+			line += " · " + label
+		}
+	}
+	return line
 }
 
 // AllWeekdays is every day of the week (Saturday = 0).
@@ -71,6 +213,9 @@ func (m MedicationMeta) Subtitle(locale string) sql.NullString {
 		parts = append(parts, unit)
 	}
 	if len(parts) == 0 {
+		if len(m.Doses) > 0 { // interval schedule without a strength: the first dose, «۱ قرص»
+			return sql.NullString{String: DoseLabel(m.Doses[0], locale), Valid: true}
+		}
 		return sql.NullString{}
 	}
 	return sql.NullString{String: strings.Join(parts, " "), Valid: true}
@@ -100,6 +245,12 @@ func ParseMedication(r store.Reminder) Medication {
 		if !slices.Contains(Durations, m.Duration) {
 			m.Duration = DurationOngoing
 		}
+		if m.Frequency != nil && (len(m.Doses) == 0 || m.Frequency.Every < 1 || !slices.Contains(FrequencyUnits, m.Frequency.Unit)) {
+			m.Frequency, m.Doses = nil, nil // not a usable interval schedule: read as the weekday one
+		}
+		if m.Frequency == nil {
+			m.Doses = nil
+		}
 		return Medication{Row: r, Meta: m}
 	}
 	m = MedicationMeta{
@@ -124,7 +275,62 @@ func (m Medication) Covers(d civildate.Date) bool {
 	if m.Row.EndsOn.Valid && d.After(m.Row.EndsOn.Date) {
 		return false
 	}
+	if f := m.Meta.Frequency; f != nil {
+		if f.Unit == FrequencyDay && f.Every > 1 && m.Row.StartsOn.Valid {
+			return m.Row.StartsOn.Date.DiffDays(d)%f.Every == 0
+		}
+		return true
+	}
 	return slices.Contains(m.Meta.Weekdays, SaturdayWeekday(d))
+}
+
+// SlotsOn are the slots of day d ("HH:MM", sorted), empty when d is not covered. An hourly chain starts at
+// its first dose time on the start date, so that day's earlier slots are left out.
+func (m Medication) SlotsOn(d civildate.Date) []string {
+	if !m.Covers(d) {
+		return nil
+	}
+	f := m.Meta.Frequency
+	if f == nil || f.Unit != FrequencyHour || !m.Row.StartsOn.Valid || m.Row.StartsOn.Date != d {
+		return m.Meta.Times
+	}
+	first := ""
+	for _, dose := range m.Meta.Doses {
+		if first == "" || dose.Time < first {
+			first = dose.Time
+		}
+	}
+	out := make([]string, 0, len(m.Meta.Times))
+	for _, s := range m.Meta.Times {
+		if s >= first {
+			out = append(out, s)
+		}
+	}
+	return out
+}
+
+// dosesJSON is the doses list of the resource (amount, unit + its label, time, meal).
+func (m MedicationMeta) dosesJSON(locale string) []*jsonx.OrderedMap {
+	out := make([]*jsonx.OrderedMap, 0, len(m.Doses))
+	for _, d := range m.Doses {
+		var label any
+		if l, ok := Label("dose_units", d.Unit, locale); ok {
+			label = l
+		}
+		var meal any
+		if d.Meal != nil && slices.Contains(Meals, *d.Meal) {
+			meal = *d.Meal
+		}
+		out = append(out, jsonx.Obj("time", d.Time, "amount", d.Amount, "unit", d.Unit, "unit_label", label, "meal", meal))
+	}
+	return out
+}
+
+func (m MedicationMeta) frequencyJSON() any {
+	if m.Frequency == nil {
+		return nil
+	}
+	return jsonx.Obj("every", m.Frequency.Every, "unit", m.Frequency.Unit)
 }
 
 // DisplaySubtitle is the subtitle in the reading locale: built from the meta (dose + unit) at
@@ -159,6 +365,8 @@ func (m Medication) JSON(locale string) *jsonx.OrderedMap {
 		"amount", m.Meta.Amount,
 		"duration", m.Meta.Duration,
 		"notify", m.Meta.Notify,
+		"frequency", m.Meta.frequencyJSON(),
+		"doses", m.Meta.dosesJSON(locale),
 		"starts_on", nullDate(r.StartsOn),
 		"ends_on", nullDate(r.EndsOn),
 		"is_active", r.IsActive,
@@ -197,6 +405,8 @@ func (m Medication) MemberJSON(locale string) *jsonx.OrderedMap {
 		"unit_label", unitLabel,
 		"times", m.Meta.Times,
 		"weekdays", m.Meta.Weekdays,
+		"frequency", m.Meta.frequencyJSON(),
+		"doses", m.Meta.dosesJSON(locale),
 		"starts_on", nullDate(r.StartsOn),
 		"ends_on", nullDate(r.EndsOn),
 		"is_active", r.IsActive,

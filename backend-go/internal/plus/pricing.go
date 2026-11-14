@@ -116,6 +116,9 @@ func SavingsPercent(p store.PlusPlan, base uint64) int {
 func BaseMonthly(plans []store.PlusPlan) uint64 {
 	var best *store.PlusPlan
 	for i := range plans {
+		if plans[i].DurationMinutes.Valid { // a minute-long developer test plan is never the base
+			continue
+		}
 		if best == nil || plans[i].DurationMonths < best.DurationMonths {
 			best = &plans[i]
 		}

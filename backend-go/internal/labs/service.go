@@ -20,7 +20,6 @@ import (
 	"github.com/ritme/backend-go/internal/labs/store"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
-	"github.com/ritme/backend-go/internal/plus"
 	"github.com/ritme/backend-go/internal/pregnancy/calc"
 	pregstore "github.com/ritme/backend-go/internal/pregnancy/store"
 )
@@ -33,12 +32,17 @@ type Service struct {
 	files    *files.Box
 	client   *ai.Client
 	consents *consent.Service
-	plus     *plus.Service
+	credits  Refunder
 	cat      catalogLoader
 	logger   *slog.Logger
 	clock    clock.Clock
 	runner   *Runner
 	cycle    CycleStates // nil = CYCLE_ENGINE v1
+}
+
+// Refunder gives the reserved credits of a use back (*credits.Service).
+type Refunder interface {
+	RefundAt(ctx context.Context, userID uint64, feature string, reservedAt, now time.Time) error
 }
 
 // Options wires a Service.
@@ -47,7 +51,7 @@ type Options struct {
 	Files    *files.Box
 	AI       *ai.Client       // nil = AI unavailable: uploads are refused by the gate, summaries fall back to rules
 	Consents *consent.Service // the AI consent is re-checked when a job runs
-	Plus     *plus.Service    // refunds the reserved use of a failed extraction
+	Credits  Refunder         // gives the reserved credits of a failed extraction back (*credits.Service)
 	Catalog  *catalog.Reader  // the lab_markers group (nil = empty catalog)
 	Logger   *slog.Logger
 	Clock    clock.Clock
@@ -64,7 +68,7 @@ func NewService(o Options) *Service {
 	if o.Clock == nil {
 		o.Clock = clock.Real{}
 	}
-	return &Service{db: o.DB, q: store.New(o.DB), preg: pregstore.New(o.DB), files: o.Files, client: o.AI, consents: o.Consents, plus: o.Plus,
+	return &Service{db: o.DB, q: store.New(o.DB), preg: pregstore.New(o.DB), files: o.Files, client: o.AI, consents: o.Consents, credits: o.Credits,
 		cat: catalogLoader{reader: o.Catalog, logger: o.Logger}, logger: o.Logger, clock: o.Clock, cycle: o.Cycle}
 }
 

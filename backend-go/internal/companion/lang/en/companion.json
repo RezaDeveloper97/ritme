@@ -11,6 +11,7 @@
         "left": "You left this companion link.",
         "grants_updated": "Access updated.",
         "children_updated": "Shared children updated.",
+        "preferences_updated": "Companion settings updated.",
         "section_not_shared": "This section is not shared with you.",
         "unavailable": "Companion invites are temporarily unavailable.",
         "too_many_attempts": "Too many attempts. Please try again later.",
@@ -35,7 +36,10 @@
         "level_view_only": "A parent can only see this, never change it.",
         "code_required": "Enter the companion code.",
         "child_invalid": "This child is not yours.",
-        "children_invalid": "Children must be a list of ids."
+        "children_invalid": "Children must be a list of ids.",
+        "action_prefs_invalid": "Suggestions must be food, gift, time, calm or help (at most 5).",
+        "signal_invalid": "This signal cannot be shared.",
+        "goal_invalid": "The selected goal is invalid."
     },
     "notices": {
         "someone": "Your companion",

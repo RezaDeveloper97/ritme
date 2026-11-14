@@ -58,19 +58,19 @@ it('leaves uncached responses alone', function (): void {
 
 // --- Security headers ------------------------------------------------------------------------------------------
 
-it('sends a strict CSP without any external origin on public pages', function (string $uri): void {
+it('sends a strict CSP whose only external origin is the enamad seal image on public pages', function (string $uri): void {
     $response = $this->get($uri);
     $csp = (string) $response->headers->get('Content-Security-Policy');
 
     expect($csp)->toContain("default-src 'self'")
         ->and($csp)->toContain("script-src 'self';")
         ->and($csp)->toContain("style-src 'self';")
-        ->and($csp)->toContain("img-src 'self' data:;")
+        ->and($csp)->toContain("img-src 'self' data: https://trustseal.enamad.ir;")
         ->and($csp)->toContain("object-src 'none'")
         ->and($csp)->toContain("frame-ancestors 'self'")
         ->and($csp)->not->toContain('unsafe-inline')
         ->and($csp)->not->toContain('unsafe-eval')
-        ->and($csp)->not->toMatch('#(https?:|wss?:)?//|\*#');
+        ->and(str_replace('https://trustseal.enamad.ir', '', $csp))->not->toMatch('#(https?:|wss?:)?//|\*#');
 })->with(['/', '/cycle', '/does-not-exist']);
 
 it('adds a fresh per-request nonce when enabled and keeps the ETag stable across nonces', function (): void {

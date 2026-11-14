@@ -46,6 +46,10 @@ type Config struct {
 	Companion Companion
 	// Learning is the courses domain (bloom B-N8-01): the «دوره برایت باز شد» SMS adapter.
 	Learning Learning
+	// ReminderSMS is «یادآور پیامکی» for Ritme Plus (internal/remindersms).
+	ReminderSMS ReminderSMS
+	// Push is Web Push (VAPID) for reminders; empty keys = no web push (the sender does not start).
+	Push Push
 	// PrivateNotes is the key of the encrypted private notes (CB-LOSS-01 loss path).
 	PrivateNotes PrivateNotes
 	// LabFiles is the key of the encrypted lab-sheet uploads (bloom B-N6-06, internal/labs/files).
@@ -237,6 +241,34 @@ type Passport struct {
 	PasswordClientSecret string
 }
 
+// Push holds VAPID_* (Web Push, internal/care reminder sender). Generate a pair with `api vapid-keys`.
+type Push struct {
+	VAPIDPublicKey  string
+	VAPIDPrivateKey string
+	// Subject is the VAPID `sub` claim: a mailto: or https: contact of the sender.
+	Subject string
+}
+
+// Enabled reports whether both VAPID keys are set.
+func (p Push) Enabled() bool { return p.VAPIDPublicKey != "" && p.VAPIDPrivateKey != "" }
+
+// ReminderSMS holds the reminder-by-SMS settings (Ritme Plus: medication doses and doctor appointments).
+type ReminderSMS struct {
+	// Provider is REMINDER_SMS_PROVIDER: none | fake | gateway (the CompanionSMS* ids). Unset = none everywhere:
+	// the sender starts only when asked to. fake with APP_ENV=production is refused at start-up.
+	Provider string
+	// MedicationTemplate (KAVENEGAR_TEMPLATE_MED_REMINDER): tokens token10 = medication name, token = dose time.
+	MedicationTemplate string
+	// AppointmentTemplate (KAVENEGAR_TEMPLATE_APPOINTMENT_REMINDER): token10 = appointment title, token20 = when
+	// («فردا ساعت 10:30»).
+	AppointmentTemplate string
+	// NeutralTemplate (KAVENEGAR_TEMPLATE_REMINDER_NEUTRAL): the wording without health data for users with
+	// «متن خنثی» on (the default); token = the time. Empty = those users get no SMS.
+	NeutralTemplate string
+	// DailyCap (REMINDER_SMS_DAILY_CAP, default 8) is the most SMS one user is sent per day.
+	DailyCap int
+}
+
 // SMS holds the OTP provider settings.
 type SMS struct {
 	Provider  string
@@ -316,6 +348,16 @@ type Payment struct {
 	// Timeout (PAYMENT_HTTP_TIMEOUT_SECONDS, default 15) bounds every server-to-server gateway call.
 	Timeout  time.Duration
 	Zarinpal Zarinpal
+	// Bazaar / Myket are the Android store in-app billing keys (store builds of android-shell). An empty RSA key
+	// leaves that store off (store verify answers 503 payment_unavailable).
+	Bazaar StoreBilling
+	Myket  StoreBilling
+}
+
+// StoreBilling holds one Android store's in-app billing settings (BAZAAR_* / MYKET_*).
+type StoreBilling struct {
+	PackageName  string // *_PACKAGE_NAME: the app package the purchase must name (default web.ritme.app)
+	RSAPublicKey string // *_RSA_PUBLIC_KEY: base64 X.509 key from the store's developer panel (public, not a secret)
 }
 
 // Zarinpal holds ZARINPAL_* (empty merchant id = provider disabled, payments answer 503).
@@ -330,6 +372,10 @@ const (
 	AIProviderNone   = "none"   // no provider: AI features answer 503 ai_unavailable
 	AIProviderFake   = "fake"   // deterministic fixtures (dev, tests, stage); never in production
 	AIProviderGemini = "gemini" // Google Gemini REST (server-side key)
+	// AIProviderArvan: the ArvanCloud AI gateway (OpenAI-compatible; server-side key). With gemini or arvan the
+	// model of each feature comes from the admin catalogue (ai_features → ai_models, goose 00125): every adapter
+	// whose key is set is available, whatever AI_PROVIDER names; the named one is only the default adapter.
+	AIProviderArvan = "arvan"
 )
 
 // AI holds the AI adapter settings (B-N3-05, extended by B-N6-05). No secret has a default: the provider key lives
@@ -354,6 +400,15 @@ type AI struct {
 	// missing from the table is priced at the table's highest rates (never free). The fake is always free.
 	Prices map[string]AIPrice
 	Gemini Gemini
+	Arvan  Arvan
+}
+
+// Arvan holds ARVAN_AI_* — the ArvanCloud AI gateway (docs.arvancloud.ir/fa/aiaas/gateway). Empty key or base URL =
+// adapter disabled.
+type Arvan struct {
+	APIKey string // ARVAN_AI_API_KEY (secret: server .env only; sent as `Authorization: apikey <key>`)
+	// BaseURL is ARVAN_AI_BASE_URL: the gateway address ending in /v1 (the panel's «آدرس AI gateway»).
+	BaseURL string
 }
 
 // AIPrice is one model's rates in USD per 1M tokens.
@@ -422,9 +477,9 @@ const MinCompanionPepperLen = 32
 
 // Companion holds the «همدم» settings (B-N4-02).
 type Companion struct {
-	// CodePepper (COMPANION_CODE_PEPPER, secret) keys the HMAC of invite codes at rest. Required in production: when it
-	// is empty there, invite creation and acceptance answer 503 (fail closed) instead of hashing with the public dev
-	// default. Changing it invalidates the open (≤ 24 h) invites.
+	// CodePepper (COMPANION_CODE_PEPPER, secret) keys the HMAC of invite codes at rest. Required (≥ 32 bytes) for every
+	// APP_ENV except local / testing / contract: the server refuses to start without it (CheckPepper, T-M11-08 FAM-L1)
+	// instead of hashing with the public dev default. Changing it invalidates the open (≤ 7 days) invites.
 	CodePepper string
 	// SMSProvider is COMPANION_SMS_PROVIDER: none | fake | gateway. Unset → fake outside production, none in
 	// production. fake with APP_ENV=production is refused at start-up (it claims an SMS went out).
@@ -447,8 +502,28 @@ type Learning struct {
 	UnlockTemplate string
 }
 
-// PepperMissing reports whether production runs without a pepper (companion invites are then disabled).
-func (c Companion) PepperMissing(app App) bool { return app.IsProduction() && c.CodePepper == "" }
+// devPepperEnvs are the APP_ENV values in which invite codes may be keyed with the public development pepper (T-M11-08,
+// FAM-L1 / CMP-L3). Everywhere else (production, staging, beta …) COMPANION_CODE_PEPPER is mandatory.
+var devPepperEnvs = map[string]bool{"local": true, "testing": true, "contract": true}
+
+// PepperMissing reports whether invite codes would be keyed with the public development pepper outside local /
+// testing / contract. The server then refuses to start (CheckPepper); the invite routes answer 503 as a second line.
+func (c Companion) PepperMissing(app App) bool { return c.CodePepper == "" && !devPepperEnvs[app.Env] }
+
+// CheckPepper is the start-up check of the invite pepper (FAM-L1): outside local / testing / contract it must be set
+// and at least MinCompanionPepperLen bytes long. internal/http fails the start-up on its error.
+func (c Companion) CheckPepper(app App) error {
+	if devPepperEnvs[app.Env] {
+		return nil
+	}
+	if c.CodePepper == "" {
+		return fmt.Errorf("COMPANION_CODE_PEPPER is required when APP_ENV=%q (invite codes would use the public default)", app.Env)
+	}
+	if len(c.CodePepper) < MinCompanionPepperLen {
+		return fmt.Errorf("COMPANION_CODE_PEPPER: must be at least %d bytes when APP_ENV=%q", MinCompanionPepperLen, app.Env)
+	}
+	return nil
+}
 
 // PrivateNoteKeyLen is the decoded length of PRIVATE_NOTE_KEY (AES-256).
 const PrivateNoteKeyLen = 32
@@ -641,6 +716,14 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 				Sandbox:    e.boolean("ZARINPAL_SANDBOX", false),
 				BaseURL:    strings.TrimRight(e.str("ZARINPAL_BASE_URL", ""), "/"),
 			},
+			Bazaar: StoreBilling{
+				PackageName:  e.str("BAZAAR_PACKAGE_NAME", "web.ritme.app"),
+				RSAPublicKey: e.str("BAZAAR_RSA_PUBLIC_KEY", ""),
+			},
+			Myket: StoreBilling{
+				PackageName:  e.str("MYKET_PACKAGE_NAME", "web.ritme.app"),
+				RSAPublicKey: e.str("MYKET_RSA_PUBLIC_KEY", ""),
+			},
 		},
 		AI: AI{
 			Provider:        strings.ToLower(e.str("AI_PROVIDER", "")),
@@ -653,12 +736,28 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 				Model:   e.str("GEMINI_MODEL", "gemini-flash-latest"),
 				BaseURL: strings.TrimRight(e.str("GEMINI_BASE_URL", ""), "/"),
 			},
+			Arvan: Arvan{
+				APIKey:  e.str("ARVAN_AI_API_KEY", ""),
+				BaseURL: strings.TrimRight(e.str("ARVAN_AI_BASE_URL", ""), "/"),
+			},
 		},
 		Companion: Companion{
 			CodePepper:            e.str("COMPANION_CODE_PEPPER", ""),
 			SMSProvider:           strings.ToLower(e.str("COMPANION_SMS_PROVIDER", "")),
 			InviteTemplate:        e.str("KAVENEGAR_TEMPLATE_COMPANION_INVITE", "companion-invite"),
 			InviteTemplateNeutral: e.str("KAVENEGAR_TEMPLATE_COMPANION_INVITE_NEUTRAL", ""),
+		},
+		ReminderSMS: ReminderSMS{
+			Provider:            strings.ToLower(e.str("REMINDER_SMS_PROVIDER", CompanionSMSNone)),
+			MedicationTemplate:  e.str("KAVENEGAR_TEMPLATE_MED_REMINDER", "med-reminder"),
+			AppointmentTemplate: e.str("KAVENEGAR_TEMPLATE_APPOINTMENT_REMINDER", "appointment-reminder"),
+			NeutralTemplate:     e.str("KAVENEGAR_TEMPLATE_REMINDER_NEUTRAL", ""),
+			DailyCap:            e.integer("REMINDER_SMS_DAILY_CAP", 8),
+		},
+		Push: Push{
+			VAPIDPublicKey:  e.str("VAPID_PUBLIC_KEY", ""),
+			VAPIDPrivateKey: e.str("VAPID_PRIVATE_KEY", ""),
+			Subject:         e.str("VAPID_SUBJECT", "mailto:support@ritme.app"),
 		},
 		Learning: Learning{
 			SMSProvider:    strings.ToLower(e.str("LEARNING_SMS_PROVIDER", "")),
@@ -748,13 +847,13 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 	}
 	cfg.AI.Provider = DefaultAIProvider(cfg.AI.Provider, cfg.App)
 	switch cfg.AI.Provider {
-	case AIProviderNone, AIProviderGemini:
+	case AIProviderNone, AIProviderGemini, AIProviderArvan:
 	case AIProviderFake:
 		if cfg.App.IsProduction() {
 			e.fail("AI_PROVIDER=fake is not allowed when APP_ENV=production (it returns canned fixtures)")
 		}
 	default:
-		e.fail("AI_PROVIDER: %q is not one of none, fake, gemini", cfg.AI.Provider)
+		e.fail("AI_PROVIDER: %q is not one of none, fake, gemini, arvan", cfg.AI.Provider)
 	}
 	if cfg.AI.Timeout < time.Second {
 		e.fail("AI_HTTP_TIMEOUT_SECONDS: must be at least 1")
@@ -785,6 +884,20 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 	default:
 		e.fail("COMPANION_SMS_PROVIDER: %q is not one of none, fake, gateway", cfg.Companion.SMSProvider)
 	}
+	switch cfg.ReminderSMS.Provider {
+	case "":
+		cfg.ReminderSMS.Provider = CompanionSMSNone
+	case CompanionSMSNone, CompanionSMSGateway:
+	case CompanionSMSFake:
+		if cfg.App.IsProduction() {
+			e.fail("REMINDER_SMS_PROVIDER=fake is not allowed when APP_ENV=production (it reports SMS as sent)")
+		}
+	default:
+		e.fail("REMINDER_SMS_PROVIDER: %q is not one of none, fake, gateway", cfg.ReminderSMS.Provider)
+	}
+	if cfg.ReminderSMS.DailyCap < 1 || cfg.ReminderSMS.DailyCap > 48 {
+		e.fail("REMINDER_SMS_DAILY_CAP: %d is not between 1 and 48", cfg.ReminderSMS.DailyCap)
+	}
 	cfg.Learning.SMSProvider = DefaultCompanionSMSProvider(cfg.Learning.SMSProvider, cfg.App)
 	switch cfg.Learning.SMSProvider {
 	case CompanionSMSNone, CompanionSMSGateway:
@@ -795,8 +908,8 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 	default:
 		e.fail("LEARNING_SMS_PROVIDER: %q is not one of none, fake, gateway", cfg.Learning.SMSProvider)
 	}
-	if p := cfg.Companion.CodePepper; p != "" && cfg.App.IsProduction() && len(p) < MinCompanionPepperLen {
-		e.fail("COMPANION_CODE_PEPPER: must be at least %d bytes in production", MinCompanionPepperLen)
+	if p := cfg.Companion.CodePepper; p != "" && !devPepperEnvs[cfg.App.Env] && len(p) < MinCompanionPepperLen {
+		e.fail("COMPANION_CODE_PEPPER: must be at least %d bytes outside local / testing / contract", MinCompanionPepperLen)
 	}
 	if raw := e.str("PRIVATE_NOTE_KEY", ""); raw != "" {
 		key, err := base64.StdEncoding.DecodeString(raw)

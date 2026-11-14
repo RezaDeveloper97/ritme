@@ -11,6 +11,9 @@ import type {
   PlusPlanRef,
   PlusQuote,
   PlusRestore,
+  PlusStoreIntent,
+  PlusStoreSync,
+  PlusStoreVerification,
   PlusStatus,
   PlusTier,
   PlusTrialOffer,
@@ -39,6 +42,9 @@ const planShape = z.object({
   monthly_price: money.optional(),
   savings_percent: z.number().optional(),
   is_highlighted: z.boolean().optional(),
+  duration_minutes: z.number().nullable().optional(),
+  ai_credits: z.number().nullable().optional(),
+  store_skus: z.object({ bazaar: z.string().optional(), myket: z.string().optional() }).nullable().optional(),
 });
 
 function toPlan(p: z.infer<typeof planShape>): PlusPlan {
@@ -52,6 +58,9 @@ function toPlan(p: z.infer<typeof planShape>): PlusPlan {
     monthlyPrice: p.monthly_price ?? Math.round(p.price / Math.max(1, p.duration_months)),
     savingsPercent: p.savings_percent ?? 0,
     isHighlighted: p.is_highlighted ?? false,
+    durationMinutes: p.duration_minutes ?? null,
+    aiCredits: p.ai_credits ?? 0,
+    storeSkus: p.store_skus ?? {},
   };
 }
 
@@ -93,9 +102,18 @@ export const catalogSchema = z
     vat_rate_bps: z.number().default(0),
     trial_days: z.number().default(0),
     plans: z.array(planSchema),
+    store_channels: z.array(z.string()).nullable().optional(),
+    store_trial_sku: z.string().nullable().optional(),
   })
   .transform(
-    (c): PlusCatalog => ({ currency: c.currency, vatRateBps: c.vat_rate_bps, trialDays: c.trial_days, plans: c.plans }),
+    (c): PlusCatalog => ({
+      currency: c.currency,
+      vatRateBps: c.vat_rate_bps,
+      trialDays: c.trial_days,
+      plans: c.plans,
+      storeChannels: c.store_channels ?? [],
+      storeTrialSku: c.store_trial_sku ?? null,
+    }),
   );
 
 const planRefSchema = z
@@ -218,8 +236,10 @@ export const invoiceSchema = z
   .object({
     reference: z.string(),
     status: z.string(),
+    kind: z.enum(['plan', 'credit_pack']).catch('plan'),
+    credits: z.number().nullable().default(null),
     plan: planRefSchema,
-    duration_months: z.number(),
+    duration_months: z.number().default(0),
     currency: z.string().default('IRR'),
     subtotal: money,
     discount: money.default(0),
@@ -240,6 +260,8 @@ export const invoiceSchema = z
     (i): PlusInvoice => ({
       reference: i.reference,
       status: i.status,
+      kind: i.kind,
+      credits: i.credits,
       plan: i.plan,
       durationMonths: i.duration_months,
       currency: i.currency,
@@ -287,6 +309,34 @@ export const verificationSchema = z
 export const restoreSchema = z
   .object({ restored: z.number().default(0), status: statusSchema })
   .transform((r): PlusRestore => r);
+
+export const storeIntentSchema = z
+  .object({ store: z.string(), sku: z.string(), kind: z.enum(['plan', 'trial']), payload: z.string() })
+  .transform((i): PlusStoreIntent => i);
+
+/** `message` is the envelope's, merged in by the caller. */
+export const storeVerificationSchema = z
+  .object({
+    kind: z.enum(['plan', 'trial']),
+    sku: z.string(),
+    invoice: invoiceSchema.nullable().default(null),
+    already_verified: z.boolean().default(false),
+    status: statusSchema,
+  })
+  .transform(
+    (v): PlusStoreVerification => ({
+      kind: v.kind,
+      sku: v.sku,
+      invoice: v.invoice,
+      alreadyVerified: v.already_verified,
+      status: v.status,
+      message: null,
+    }),
+  );
+
+export const storeSyncSchema = z
+  .object({ restored: z.number().default(0), rejected: z.number().default(0), status: statusSchema })
+  .transform((r): PlusStoreSync => r);
 
 const trialUsageSchema = z
   .object({

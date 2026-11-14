@@ -5,24 +5,21 @@ declare(strict_types=1);
 namespace App\Domain\Content\Enums;
 
 /**
- * Main navigation items, in display order (docs/AUDIT.md §2.1). Which item is active is decided by
- * StaticPage::navItem() for registered pages and by route-name prefixes for parameterised pages (blog.show …).
+ * Main navigation items, in display order (Nov 2026 redesign: خانه · امکانات · مجله · درباره ما · سؤالات متداول).
+ * Which item is active is decided by StaticPage::navItem() for registered pages and by route-name prefixes for
+ * parameterised pages (blog.show …). Services, shop, directory and tools are reached from the pages and the footer.
  */
 enum NavItem: string
 {
     case Home = 'home';
-    case Stages = 'stages';
-    case Services = 'services';
-    case Shop = 'shop';
+    case Features = 'features';
     case Blog = 'blog';
-    case Tools = 'tools';
     case About = 'about';
+    case Faq = 'faq';
 
     /** Route-name prefix => item, for routes that are not StaticPage cases (detail pages, filtered lists). */
     private const PREFIXES = [
-        'stage.' => self::Stages,
-        'directory.' => self::Services,
-        'shop.' => self::Shop,
+        'stage.' => self::Features,
         'blog.' => self::Blog,
     ];
 
@@ -50,32 +47,33 @@ enum NavItem: string
     {
         return match ($this) {
             self::Home => 'خانه',
-            self::Stages => 'مرحله‌ها',
-            self::Services => 'خدمات',
-            self::Shop => 'فروشگاه',
+            self::Features => 'امکانات',
             self::Blog => 'مجله',
-            self::Tools => 'ابزارها',
             self::About => 'درباره ما',
+            self::Faq => 'سؤالات متداول',
         };
     }
 
-    /** The page the item links to. «مرحله‌ها» has no overview page in the design: it opens the first stage. */
+    /** The page the item links to. «امکانات» is the feature grid of the home page (fragment()). */
     public function page(): StaticPage
     {
         return match ($this) {
-            self::Home => StaticPage::Home,
-            self::Stages => StaticPage::Cycle,
-            self::Services => StaticPage::Services,
-            self::Shop => StaticPage::Shop,
+            self::Home, self::Features => StaticPage::Home,
             self::Blog => StaticPage::Blog,
-            self::Tools => StaticPage::Tools,
             self::About => StaticPage::About,
+            self::Faq => StaticPage::Faq,
         };
     }
 
-    /** «مرحله‌ها» carries a decorative chevron in the design; there is no dropdown. */
+    /** Fragment appended to the page URL (`#features` for «امکانات»). */
+    public function fragment(): string
+    {
+        return $this === self::Features ? 'features' : '';
+    }
+
+    /** No item has a dropdown in the redesign; kept for the NavLinkData contract. */
     public function hasChevron(): bool
     {
-        return $this === self::Stages;
+        return false;
     }
 }

@@ -54,10 +54,20 @@ func (p *KavenegarProvider) SendOTP(ctx context.Context, mobile, code, template 
 	if !ok || name == "" {
 		name = template
 	}
+	return p.Lookup(ctx, mobile, name, map[string]string{"token": code})
+}
+
+// Lookup sends the gateway template with its tokens (token, token2, token3: no spaces; token10: up to 4 spaces;
+// token20: up to 8). Empty tokens are left out.
+func (p *KavenegarProvider) Lookup(ctx context.Context, mobile, template string, tokens map[string]string) error {
 	q := url.Values{}
 	q.Set("receptor", mobile)
-	q.Set("token", code)
-	q.Set("template", name)
+	for k, v := range tokens {
+		if v != "" {
+			q.Set(k, v)
+		}
+	}
+	q.Set("template", template)
 	// The API key is part of the path: never log this URL.
 	u := p.BaseURL + "/" + url.PathEscape(p.apiKey) + "/verify/lookup.json?" + q.Encode()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)

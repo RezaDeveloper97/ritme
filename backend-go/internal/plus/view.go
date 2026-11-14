@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"math"
+	"sort"
 	"time"
 
 	"github.com/ritme/backend-go/internal/i18n"
@@ -61,27 +62,106 @@ func PlanJSON(p Plan, l Localizer) *jsonx.OrderedMap {
 		"monthly_price", p.Monthly,
 		"savings_percent", p.Savings,
 		"is_highlighted", p.IsHighlighted,
+		"ai_credits", p.AiCredits, // AI credits of one purchased period (goose 00125)
 	)
+}
+
+// PackJSON is one credit pack card: extra AI credits that never expire.
+func PackJSON(p store.AiCreditPack, l Localizer) *jsonx.OrderedMap {
+	return jsonx.Obj(
+		"id", p.ID,
+		"code", p.Code,
+		"title", l.pick(p.Title),
+		"badge", l.pickNull(p.Badge),
+		"credits", p.Credits,
+		"price", p.PriceRials,
+		"is_highlighted", p.IsHighlighted,
+	)
+}
+
+// PacksJSON is GET /plus/credit-packs.
+func PacksJSON(packs []store.AiCreditPack, vatRateBps int, l Localizer) *jsonx.OrderedMap {
+	list := make([]any, len(packs))
+	for i, p := range packs {
+		list[i] = PackJSON(p, l)
+	}
+	return jsonx.Obj("currency", Currency, "vat_rate_bps", vatRateBps, "packs", list)
+}
+
+// PackQuoteJSON is the preview of a pack checkout.
+func PackQuoteJSON(q PackQuote, l Localizer) *jsonx.OrderedMap {
+	return jsonx.Obj(
+		"pack", PackJSON(q.Pack, l),
+		"currency", Currency,
+		"subtotal", q.Amounts.Subtotal,
+		"vat_rate_bps", q.Amounts.VATRateBps,
+		"vat", q.Amounts.VAT,
+		"total", q.Amounts.Total,
+	)
+}
+
+func packRef(p *store.AiCreditPack, l Localizer) any {
+	if p == nil {
+		return nil
+	}
+	return jsonx.Obj("id", p.ID, "code", p.Code, "title", l.pick(p.Title), "credits", p.Credits)
+}
+
+// storeSKUs is the plan's SKU per Android store ({} when the plan is web only).
+func storeSKUs(m map[string]string) *jsonx.OrderedMap {
+	o := jsonx.Obj()
+	for _, k := range sortedKeys(m) {
+		o.Set(k, m[k])
+	}
+	return o
+}
+
+func sortedKeys(m map[string]string) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+func nullInt32(v sql.NullInt32) any {
+	if !v.Valid {
+		return nil
+	}
+	return v.Int32
 }
 
 // PlansJSON is GET /plus/plans.
 func PlansJSON(plans []Plan, cfg Configured, l Localizer) *jsonx.OrderedMap {
 	list := make([]any, len(plans))
 	for i, p := range plans {
-		list[i] = PlanJSON(p, l)
+		// The plans list also carries the test-plan minutes and the Android store SKUs (store builds buy by SKU).
+		list[i] = PlanJSON(p, l).Set("duration_minutes", nullInt32(p.DurationMinutes)).Set("store_skus", storeSKUs(p.StoreSKUs))
 	}
 	return jsonx.Obj(
 		"currency", Currency,
 		"vat_rate_bps", cfg.VATRateBps,
 		"trial_days", cfg.TrialDays,
+		"store_channels", cfg.StoreChannels,
+		"store_trial_sku", nullStr(cfg.StoreTrialSKU),
 		"plans", list,
 	)
 }
 
 // Configured is the part of the config the views print.
 type Configured struct {
-	VATRateBps int
-	TrialDays  int
+	VATRateBps    int
+	TrialDays     int
+	StoreChannels []string // Android stores with billing configured (bazaar, myket)
+	StoreTrialSKU string   // the store SKU that starts the Plus trial ("" = none)
+}
+
+func nullStr(s string) any {
+	if s == "" {
+		return nil
+	}
+	return s
 }
 
 // planRef is the short plan object on subscriptions and invoices (null when the plan was deleted).
@@ -314,6 +394,12 @@ type Receipt struct {
 
 // InvoiceJSON is one invoice (checkout, verify, history).
 func InvoiceJSON(inv store.PlusInvoice, plan *store.PlusPlan, rc *Receipt, l Localizer) *jsonx.OrderedMap {
+	return PackInvoiceJSON(inv, plan, nil, rc, l)
+}
+
+// PackInvoiceJSON is InvoiceJSON for an invoice that may be a credit pack's: `kind` says which, `credits` is what a
+// pack invoice grants (null for a plan) and `credit_pack` its pack (null for a plan or a deleted pack).
+func PackInvoiceJSON(inv store.PlusInvoice, plan *store.PlusPlan, pack *store.AiCreditPack, rc *Receipt, l Localizer) *jsonx.OrderedMap {
 	var receipt any
 	if rc != nil {
 		var pan any
@@ -347,6 +433,9 @@ func InvoiceJSON(inv store.PlusInvoice, plan *store.PlusPlan, rc *Receipt, l Loc
 		"paid_at", isoNull(inv.PaidAt),
 		"receipt", receipt,
 		"discount_source", invoiceSource(inv),
+		"kind", inv.Kind,
+		"credits", nullInt32(inv.Credits),
+		"credit_pack", packRef(pack, l),
 	)
 }
 

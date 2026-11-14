@@ -1,17 +1,27 @@
-import type { MedicationDuration, MedicationForm, Weekday } from '@/entities/care-reminder';
+import type {
+  DoseUnit,
+  Meal,
+  MedicationDuration,
+  MedicationFrequency,
+} from '@/entities/care-reminder';
 
-/** What the medication form (v13_AddMedication) submits. */
+/** One dose block as the form submits it. */
+export interface DoseInput {
+  /** `HH:MM`. */
+  time: string;
+  amount: number;
+  unit: DoseUnit;
+  meal: Meal | null;
+}
+
+/** What the medication form (frequency + dose blocks flow) submits. */
 export interface MedicationInput {
   title: string;
-  dose: string;
-  unit: string;
-  form: MedicationForm;
-  /** 1–4 `HH:MM` slots. */
-  times: string[];
-  weekdays: Weekday[];
-  amount: number;
   /** `Y-m-d`. */
   startsOn: string;
+  frequency: MedicationFrequency;
+  /** 1–6 blocks, distinct times. */
+  doses: DoseInput[];
   duration: MedicationDuration;
   /** `Y-m-d`; required when `duration === 'until_date'`. */
   endsOn?: string | null;
@@ -22,21 +32,26 @@ export interface MedicationInput {
 export type MedicationPatch = Partial<MedicationInput> & { isActive?: boolean };
 
 /**
- * camelCase input → the API body. Fields go flat (`dose`, `times`, …), the
- * server packs them into `reminders.meta`; undefined fields are omitted so a
- * PUT stays partial. Times are de-duplicated and sorted, weekdays sorted,
- * and `ends_on` is sent only for `until_date`.
+ * camelCase input → the API body. Undefined fields are omitted so a PUT stays
+ * partial. The legacy `times` / `weekdays` / `form` / `dose` / `unit` / `amount`
+ * are never sent: the server derives them from `doses`. `ends_on` is sent only
+ * for `until_date`.
  */
 export function toMedicationBody(input: MedicationPatch): Record<string, unknown> {
   const body: Record<string, unknown> = {};
   if (input.title !== undefined) body.title = input.title.trim();
-  if (input.dose !== undefined) body.dose = input.dose.trim();
-  if (input.unit !== undefined) body.unit = input.unit.trim();
-  if (input.form !== undefined) body.form = input.form;
-  if (input.times !== undefined) body.times = [...new Set(input.times)].sort();
-  if (input.weekdays !== undefined) body.weekdays = [...new Set(input.weekdays)].sort((a, b) => a - b);
-  if (input.amount !== undefined) body.amount = input.amount;
   if (input.startsOn !== undefined) body.starts_on = input.startsOn;
+  if (input.frequency !== undefined) {
+    body.frequency = { every: input.frequency.every, unit: input.frequency.unit };
+  }
+  if (input.doses !== undefined) {
+    body.doses = input.doses.map((d) => ({
+      time: d.time,
+      amount: d.amount,
+      unit: d.unit,
+      meal: d.meal ?? null,
+    }));
+  }
   if (input.duration !== undefined) {
     body.duration = input.duration;
     body.ends_on = input.duration === 'until_date' ? (input.endsOn ?? null) : null;

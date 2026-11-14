@@ -33,6 +33,9 @@ type Store interface {
 	AnonymizeUsageBefore(ctx context.Context, before sql.NullTime) (int64, error)
 	UsageByDay(ctx context.Context, arg store.UsageByDayParams) ([]store.UsageByDayRow, error)
 	UsageByFeature(ctx context.Context, arg store.UsageByFeatureParams) ([]store.UsageByFeatureRow, error)
+	CreditSpendByDay(ctx context.Context, arg store.CreditSpendByDayParams) ([]store.CreditSpendByDayRow, error)
+	CreditSpendByFeature(ctx context.Context, arg store.CreditSpendByFeatureParams) ([]store.CreditSpendByFeatureRow, error)
+	UsageFXRate(ctx context.Context) (string, error)
 }
 
 // Retention of the user link (B-N6-05b, L5).

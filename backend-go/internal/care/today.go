@@ -26,6 +26,8 @@ type Dose struct {
 	Form       string
 	Slot       string
 	Taken      bool
+	// Spec is the dose of an interval schedule (amount, unit, meal); nil for a weekday-schedule medication.
+	Spec *DoseSpec
 }
 
 // TodayDoses are the doses of day: one per slot of every active medication whose
@@ -46,16 +48,18 @@ func TodayDoses(day civildate.Date, meds []store.Reminder, intakes []store.ListI
 			continue
 		}
 		m := ParseMedication(r)
-		if !m.Covers(day) {
+		slots := m.SlotsOn(day)
+		if len(slots) == 0 {
 			continue
 		}
 		title := r.Title
 		if sub := m.DisplaySubtitle(locale); sub.Valid && sub.String != "" {
 			title += " " + sub.String
 		}
-		for _, slot := range m.Meta.Times {
+		for _, slot := range slots {
 			doses = append(doses, Dose{
 				ReminderID: r.ID, Title: title, Form: m.Meta.Form, Slot: slot, Taken: taken[key{r.ID, slot}],
+				Spec: m.Meta.DoseAt(slot),
 			})
 		}
 	}
@@ -77,12 +81,22 @@ func NextAppointment(rows []store.Reminder, now time.Time) *Appointment {
 }
 
 // TodayJSON is the data of GET /care/today.
-func TodayJSON(day civildate.Date, doses []Dose, next *Appointment, now time.Time) *jsonx.OrderedMap {
+func TodayJSON(day civildate.Date, doses []Dose, next *Appointment, now time.Time, locale string) *jsonx.OrderedMap {
 	list := make([]*jsonx.OrderedMap, 0, len(doses))
 	takenCount := 0
 	for _, d := range doses {
 		if d.Taken {
 			takenCount++
+		}
+		var amount, unit, unitLabel, meal any
+		if d.Spec != nil {
+			amount, unit = d.Spec.Amount, d.Spec.Unit
+			if l, ok := Label("dose_units", d.Spec.Unit, locale); ok {
+				unitLabel = l
+			}
+			if d.Spec.Meal != nil {
+				meal = *d.Spec.Meal
+			}
 		}
 		list = append(list, jsonx.Obj(
 			"reminder_id", d.ReminderID,
@@ -90,6 +104,10 @@ func TodayJSON(day civildate.Date, doses []Dose, next *Appointment, now time.Tim
 			"form", d.Form,
 			"slot", d.Slot,
 			"taken", d.Taken,
+			"amount", amount,
+			"unit", unit,
+			"unit_label", unitLabel,
+			"meal", meal,
 		))
 	}
 	var appointment any
@@ -154,5 +172,5 @@ func (h *Handlers) Today(c fiber.Ctx) error {
 	if err != nil {
 		return fmt.Errorf("care: today appointments: %w", err)
 	}
-	return httpx.OK(c, TodayJSON(day, TodayDoses(day, meds, intakes, locale), NextAppointment(appts, now), now))
+	return httpx.OK(c, TodayJSON(day, TodayDoses(day, meds, intakes, locale), NextAppointment(appts, now), now, locale))
 }

@@ -44,7 +44,10 @@
             "expires_at": "2026-09-23T10:30:00+03:30",
             "paid_at": null,
             "receipt": null,
-            "discount_source": null
+            "discount_source": null,
+            "kind": "plan",
+            "credits": null,
+            "credit_pack": null
           },
           "payment": {
             "gateway": "fake",
@@ -147,7 +150,10 @@
               "amount": 2607000,
               "paid_at": "2026-09-23T10:05:00+03:30"
             },
-            "discount_source": null
+            "discount_source": null,
+            "kind": "plan",
+            "credits": null,
+            "credit_pack": null
           },
           "already_verified": false,
           "status": {
@@ -183,22 +189,6 @@
                 "remaining": null
               },
               {
-                "key": "plus.lab_ai",
-                "allowed": true,
-                "unlimited": false,
-                "limit": 10,
-                "used": 0,
-                "remaining": 10
-              },
-              {
-                "key": "plus.assistant_unlimited",
-                "allowed": true,
-                "unlimited": true,
-                "limit": null,
-                "used": 0,
-                "remaining": null
-              },
-              {
                 "key": "plus.pdf_share",
                 "allowed": true,
                 "unlimited": true,
@@ -215,7 +205,7 @@
                 "remaining": null
               },
               {
-                "key": "plus.voice_log",
+                "key": "plus.analysis_long_range",
                 "allowed": true,
                 "unlimited": true,
                 "limit": null,
@@ -223,12 +213,20 @@
                 "remaining": null
               },
               {
-                "key": "plus.doc_ai",
+                "key": "plus.sms_reminders",
                 "allowed": true,
-                "unlimited": false,
-                "limit": 20,
+                "unlimited": true,
+                "limit": null,
                 "used": 0,
-                "remaining": 20
+                "remaining": null
+              },
+              {
+                "key": "plus.companion",
+                "allowed": true,
+                "unlimited": true,
+                "limit": null,
+                "used": 0,
+                "remaining": null
               }
             ],
             "trial_offer": null
@@ -285,7 +283,10 @@
               "amount": 2607000,
               "paid_at": "2026-09-23T10:05:00+03:30"
             },
-            "discount_source": null
+            "discount_source": null,
+            "kind": "plan",
+            "credits": null,
+            "credit_pack": null
           },
           "already_verified": true,
           "status": {
@@ -321,22 +322,6 @@
                 "remaining": null
               },
               {
-                "key": "plus.lab_ai",
-                "allowed": true,
-                "unlimited": false,
-                "limit": 10,
-                "used": 0,
-                "remaining": 10
-              },
-              {
-                "key": "plus.assistant_unlimited",
-                "allowed": true,
-                "unlimited": true,
-                "limit": null,
-                "used": 0,
-                "remaining": null
-              },
-              {
                 "key": "plus.pdf_share",
                 "allowed": true,
                 "unlimited": true,
@@ -353,7 +338,7 @@
                 "remaining": null
               },
               {
-                "key": "plus.voice_log",
+                "key": "plus.analysis_long_range",
                 "allowed": true,
                 "unlimited": true,
                 "limit": null,
@@ -361,12 +346,20 @@
                 "remaining": null
               },
               {
-                "key": "plus.doc_ai",
+                "key": "plus.sms_reminders",
                 "allowed": true,
-                "unlimited": false,
-                "limit": 20,
+                "unlimited": true,
+                "limit": null,
                 "used": 0,
-                "remaining": 20
+                "remaining": null
+              },
+              {
+                "key": "plus.companion",
+                "allowed": true,
+                "unlimited": true,
+                "limit": null,
+                "used": 0,
+                "remaining": null
               }
             ],
             "trial_offer": null
@@ -415,7 +408,10 @@
               "amount": 2607000,
               "paid_at": "2026-09-23T10:05:00+03:30"
             },
-            "discount_source": null
+            "discount_source": null,
+            "kind": "plan",
+            "credits": null,
+            "credit_pack": null
           }
         ]
       }
@@ -469,22 +465,6 @@
               "remaining": null
             },
             {
-              "key": "plus.lab_ai",
-              "allowed": true,
-              "unlimited": false,
-              "limit": 10,
-              "used": 0,
-              "remaining": 10
-            },
-            {
-              "key": "plus.assistant_unlimited",
-              "allowed": true,
-              "unlimited": true,
-              "limit": null,
-              "used": 0,
-              "remaining": null
-            },
-            {
               "key": "plus.pdf_share",
               "allowed": true,
               "unlimited": true,
@@ -501,7 +481,7 @@
               "remaining": null
             },
             {
-              "key": "plus.voice_log",
+              "key": "plus.analysis_long_range",
               "allowed": true,
               "unlimited": true,
               "limit": null,
@@ -509,12 +489,20 @@
               "remaining": null
             },
             {
-              "key": "plus.doc_ai",
+              "key": "plus.sms_reminders",
               "allowed": true,
-              "unlimited": false,
-              "limit": 20,
+              "unlimited": true,
+              "limit": null,
               "used": 0,
-              "remaining": 20
+              "remaining": null
+            },
+            {
+              "key": "plus.companion",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
             }
           ],
           "trial_offer": null
@@ -552,22 +540,6 @@
               "remaining": 0
             },
             {
-              "key": "plus.lab_ai",
-              "allowed": false,
-              "unlimited": false,
-              "limit": 0,
-              "used": 0,
-              "remaining": 0
-            },
-            {
-              "key": "plus.assistant_unlimited",
-              "allowed": true,
-              "unlimited": false,
-              "limit": 5,
-              "used": 0,
-              "remaining": 5
-            },
-            {
               "key": "plus.pdf_share",
               "allowed": false,
               "unlimited": false,
@@ -584,7 +556,7 @@
               "remaining": 0
             },
             {
-              "key": "plus.voice_log",
+              "key": "plus.analysis_long_range",
               "allowed": false,
               "unlimited": false,
               "limit": 0,
@@ -592,7 +564,15 @@
               "remaining": 0
             },
             {
-              "key": "plus.doc_ai",
+              "key": "plus.sms_reminders",
+              "allowed": false,
+              "unlimited": false,
+              "limit": 0,
+              "used": 0,
+              "remaining": 0
+            },
+            {
+              "key": "plus.companion",
               "allowed": false,
               "unlimited": false,
               "limit": 0,

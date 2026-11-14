@@ -74,6 +74,9 @@ cases:
       owner's list (appointments: view only → 403) → owner narrows meds to view (the next write is refused) → audit
       trail → owner revokes → access ends at once
     steps:
+      - method: POST  # «ریتمی همراه» is Ritme Plus (plus.companion): the owner starts her trial first
+        path: /api/v1/plus/trial/start
+        status: 200
       - method: POST
         path: /api/v1/companions
         body: {type: partner, display_name: Ali, phone: "09900000001", grants: {cycle: view, meds: edit, appointments: view, symptoms: none}}
@@ -144,6 +147,9 @@ cases:
   - name: spouse_renew_children_leave
     doc: Code-only spouse invite → renew (old code refused) → accept the new code → children [] ok, [5] refused → the companion leaves
     steps:
+      - method: POST  # «ریتمی همراه» is Ritme Plus (plus.companion): the owner starts her trial first
+        path: /api/v1/plus/trial/start
+        status: 200
       - method: POST
         path: /api/v1/companions
         body: {type: spouse, grants: {pregnancy: view}}
@@ -195,6 +201,9 @@ cases:
       is 422; a paused medication is 404 for the companion (outside the meds view) but not for the owner. Section and
       delegated GETs carry the companion throttles' X-RateLimit headers.
     steps:
+      - method: POST  # «ریتمی همراه» is Ritme Plus (plus.companion): the owner starts her trial first
+        path: /api/v1/plus/trial/start
+        status: 200
       - method: POST
         path: /api/v1/companions
         body: {type: partner, grants: {cycle: view, meds: edit}}

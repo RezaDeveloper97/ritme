@@ -1,41 +1,36 @@
 {{--
-    Home page (L3-02), design/html/index.html. Data from App\Http\Controllers\HomeController:
+    Home page, Nov 2026 design (design/Main.html). Data from App\Http\Controllers\HomeController:
+      $heroPhoto MediaData|null, $heroAlt, $appLinks AppLinksSettings — the per-request hero (LCP photo, priority)
       $staticSections HtmlString — pages/home/static.blade.php pre-rendered and cached (`pages` namespace)
-      $readings       list<PostCardData> — newest posts; the block renders nothing while the magazine is empty
-      $appLinks       AppLinksSettings, $qrUrl string — the #download card
-      $faq            FaqGroupData|null — FAQ group `home`, from the FaqServiceProvider view composer (L3-09)
-    Copy: lang/fa/home.php. Sections: hero (dark block, the LCP is the h1 — text, nothing lazy) → static sections →
-    readings → FAQ «قبل از نصب» (x-faq, group `home`) → #download → promise banner.
+      $readings       list<PostCardData> — six newest posts; hidden while the magazine is empty / switched off
+      $faqItems       list<array{question, answer}>, $faqTitle — FAQ group `home` ($faq from the FaqServiceProvider composer)
+    Copy: lang/fa/home.php. Order: hero → stages → #features → steps → partner → privacy → readings → #download → FAQ.
+    The header is the light variant (StaticPage::headerVariant), so the hero is plain content.
 --}}
 @extends('layouts.app')
 
-@section('hero')
-    @include('pages.home.hero')
-@endsection
-
 @section('content')
+@php
+    $faqItems = array_map(static fn ($item): array => ['question' => $item->question, 'answer' => $item->answer], ($faq ?? null)?->items ?? []);
+@endphp
+<div class="bleed-rows bg-surface">
+    @include('pages.home.hero')
+
     {{ $staticSections }}
 
-    <x-stage.readings
+    @siteSection('blog')
+    <x-site.readings
         :posts="$readings"
         :eyebrow="__('home.readings.eyebrow')"
         :title="__('home.readings.title')"
         :more-href="route('blog.index')"
         :more-label="__('home.readings.more')"
         id="home-readings"
-        bg="surface"
     />
+    @endsiteSection
 
-    {{-- FAQ «قبل از نصب» (L3-09): group `home` from the FaqServiceProvider composer ($faq, null → nothing renders);
-         its questions are already in the page's FAQPage JSON-LD. The h2 is the group title (admin-editable). --}}
-    <x-faq :faq="$faq ?? null" eyebrow="سؤال‌های رایج" :title="($faq ?? null)?->title" align="center" heading-id="home-faq-title"/>
+    <x-site.download-band :title="__('home.download.title')" :lead="__('home.download.lead')" :links="$appLinks"/>
 
-    <x-ui.app-cta
-        :title="__('home.app_cta.title')"
-        :lead="__('home.app_cta.lead')"
-        :links="$appLinks"
-        :qr-url="$qrUrl"
-    />
-
-    <x-ui.promise-banner :href="route('social-responsibility')"/>
+    <x-site.faq :items="$faqItems" :title="($faq ?? null)?->title ?? __('home.faq.title')" id="home-faq"/>
+</div>
 @endsection

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Domain\Settings\Data\EnamadSeal;
 use App\View\Components\Layout\Assets;
 use Closure;
 use Illuminate\Contracts\Config\Repository as Config;
@@ -98,6 +99,8 @@ final class SecurityHeaders
             }
             // Inline critical CSS (L9-01): only the exact build-generated <style> blocks, by hash.
             $style = [...$style, ...Assets::criticalStyleHashes($this->vite)];
+            // The enamad seal image must come from enamad itself (the only external request, see EnamadSeal).
+            $img[] = EnamadSeal::HOST;
         }
 
         if ($hot !== []) {

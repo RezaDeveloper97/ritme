@@ -1,6 +1,6 @@
 package labs_test
 
-// B-N6-06 end to end against MariaDB with the fake AI provider: the AI gate (401, Plus 402, consent 403), the upload
+// B-N6-06 end to end against MariaDB with the fake AI provider: the AI gate (401, subscription 402, consent 403, credits reserved and refunded), the upload
 // (PDF and photo), encryption at rest, the job states (sync and the async worker, lease recovery), verify / edit /
 // add, the interpretation (AI summary, red flags, questions), feedback, trends, deletion (lab, page, account) and
 // the IDOR matrix.
@@ -33,6 +33,7 @@ import (
 
 	"github.com/ritme/backend-go/internal/ai"
 	"github.com/ritme/backend-go/internal/ai/access"
+	"github.com/ritme/backend-go/internal/ai/credits"
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/auth/passport"
 	authstore "github.com/ritme/backend-go/internal/auth/store"
@@ -66,6 +67,7 @@ type env struct {
 	svc      *labs.Service
 	runner   *labs.Runner
 	plus     *plus.Service
+	credits  *credits.Service
 	consents *consent.Service
 	storage  string
 }
@@ -84,16 +86,19 @@ func setup(t *testing.T, sync bool) *env {
 	locale := i18n.Middleware(languages)
 
 	plusSvc := plus.NewService(db, config.Plus{TrialDays: 7}, nil, quiet)
-	gate := plus.NewGate(plusSvc, clock.Real{})
+	creditSvc := credits.NewService(db)
+	// Enough trial credits for every upload of a test (one lab analysis costs 5).
+	_, err = db.Exec("UPDATE plus_settings SET value = '1000' WHERE `key` = 'trial_ai_credits'")
+	require.NoError(t, err)
 	fake := ai.NewFake()
 	client := ai.NewClientWith(ai.Options{Provider: config.AIProviderFake, Chatter: fake, Extractor: fake})
 	consents := consent.NewService(db)
-	g := access.NewGuard(access.Options{Client: client, Consents: consents, Gate: gate, Plus: plusSvc, Logger: quiet})
+	g := access.NewGuard(access.Options{Client: client, Consents: consents, Credits: creditSvc, Catalog: credits.NewCatalog(db), Logger: quiet})
 
 	storage := t.TempDir()
 	box, err := files.New(storage, nil, nil, false)
 	require.NoError(t, err)
-	svc := labs.NewService(labs.Options{DB: db, Files: box, AI: client, Consents: consents, Plus: plusSvc,
+	svc := labs.NewService(labs.Options{DB: db, Files: box, AI: client, Consents: consents, Credits: creditSvc,
 		Catalog: catalog.NewReader(catalogstore.New(db), nil, 0, quiet), Logger: quiet})
 	runner := labs.NewRunner(svc, labs.RunnerOptions{Sync: sync, Poll: 50 * time.Millisecond, StoragePath: storage})
 	h := labs.NewHandlers(svc, languages, clock.Real{})
@@ -121,10 +126,10 @@ func setup(t *testing.T, sync bool) *env {
 	app.Get(p+"/:id/files/:fid", locale, guard, h.File)
 	app.Delete(p+"/:id/files/:fid", locale, guard, h.DestroyFile)
 	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), svc: svc, runner: runner,
-		plus: plusSvc, consents: consents, storage: storage}
+		plus: plusSvc, credits: creditSvc, consents: consents, storage: storage}
 }
 
-// user creates a user; plus = trial started, consent = ai_lab_analysis accepted.
+// user creates a user; trial = trial started (AI credits), consent = ai_lab_analysis accepted.
 func (e *env) user(t *testing.T, mobile string, trial, consented bool) (uint64, string) {
 	t.Helper()
 	res, err := e.db.Exec(`INSERT INTO users (name, mobile, created_at, updated_at) VALUES ('Sara Test', ?, NOW(), NOW())`, mobile)
@@ -221,25 +226,26 @@ func markers(r resp) []any { l, _ := data(r)["markers"].([]any); return l }
 
 func labID(r resp) uint64 { return uint64(data(r)["id"].(float64)) }
 
+// usage is how many lab analyses the user paid credits for (reserved and not refunded).
 func usage(t *testing.T, e *env, userID uint64) int {
 	t.Helper()
-	var n sql.NullInt64
-	require.NoError(t, e.db.QueryRow(`SELECT SUM(used) FROM plus_usage_counters WHERE user_id = ? AND feature = 'plus.lab_ai'`, userID).Scan(&n))
-	return int(n.Int64)
+	var n int
+	require.NoError(t, e.db.QueryRow(`SELECT COUNT(*) FROM ai_credit_spends WHERE user_id = ? AND feature = 'lab_analysis' AND status = 'spent'`, userID).Scan(&n))
+	return n
 }
 
 func TestGateAndUploadPipeline(t *testing.T) {
 	e := setup(t, true)
-	free, freeTok := e.user(t, "09900006001", false, false)
+	free, freeTok := e.user(t, "09900006001", false, true)
 	noConsent, ncTok := e.user(t, "09900006002", true, false)
 	a, aTok := e.user(t, "09900006003", true, true)
-	_ = free
 
 	assert.Equal(t, http.StatusUnauthorized, e.json(t, http.MethodGet, "/api/v1/labs", "", nil).status)
-	// D-178 (A-03): a free user has 1 lab-AI use a month, so she passes the Plus gate and stops at consent.
+	// AI credits (D-209): no free lab analysis any more — without a subscription or trial the gate answers 402.
 	r := e.upload(t, freeTok, nil, part{"files", "sheet.pdf", pdf("lab_panel")})
-	require.Equal(t, http.StatusForbidden, r.status, string(r.raw))
-	assert.Equal(t, "consent_required", r.body["error_code"])
+	require.Equal(t, http.StatusPaymentRequired, r.status, string(r.raw))
+	assert.Equal(t, access.CodeSubscriptionRequired, r.body["error_code"])
+	assert.Equal(t, 0, usage(t, e, free))
 
 	r = e.upload(t, ncTok, nil, part{"files", "sheet.pdf", pdf("lab_panel")})
 	require.Equal(t, http.StatusForbidden, r.status, string(r.raw))
@@ -569,7 +575,7 @@ func TestFailedExtractionRefundsAndPhoto(t *testing.T) {
 	assert.Equal(t, labs.StatusFailed, data(r)["status"])
 	assert.Equal(t, labs.CodeAIFailed, data(r)["error_code"])
 	assert.NotEmpty(t, data(r)["error_message"])
-	assert.Equal(t, 0, usage(t, e, a), "a failed extraction gives the Plus use back")
+	assert.Equal(t, 0, usage(t, e, a), "a failed extraction gives the credits back")
 	edit := e.json(t, http.MethodPost, fmt.Sprintf("/api/v1/labs/%d/markers", labID(r)), aTok, map[string]any{"name": "x", "value": 1})
 	assert.Equal(t, http.StatusConflict, edit.status)
 	vf := e.json(t, http.MethodPost, fmt.Sprintf("/api/v1/labs/%d/verify", labID(r)), aTok, nil)
@@ -801,15 +807,17 @@ func TestSweepFinishesStuckJobsAndLabs(t *testing.T) {
 	e := setup(t, false)
 	a, _ := e.user(t, "09900006061", true, true)
 	now := time.Now()
+	at := now.In(time.FixedZone("IRST", 3*3600+1800)).Truncate(time.Second)
 	insertLab := func(status string, quota bool) uint64 {
-		q := "NULL"
+		var quotaAt sql.NullTime
 		if quota {
-			q = "NOW()"
-			_, err := e.plus.Consume(context.Background(), a, plus.LabAI, now.In(time.FixedZone("IRST", 3*3600+1800)).Truncate(time.Second))
+			at = at.Add(time.Second) // one reservation per second: RefundAt finds each by its moment
+			res, err := e.credits.Reserve(context.Background(), a, string(ai.FeatureLabAnalysis), 5, at)
 			require.NoError(t, err)
+			quotaAt = sql.NullTime{Time: res.At, Valid: true}
 		}
 		res, err := e.db.Exec(`INSERT INTO lab_reports (user_id, source, category, status, quota_at, interpret_count, created_at, updated_at)
-			VALUES (?, 'upload', 'blood', ?, `+q+`, 1, DATE_SUB(NOW(), INTERVAL 2 HOUR), DATE_SUB(NOW(), INTERVAL 2 HOUR))`, a, status)
+			VALUES (?, 'upload', 'blood', ?, ?, 1, DATE_SUB(NOW(), INTERVAL 2 HOUR), DATE_SUB(NOW(), INTERVAL 2 HOUR))`, a, status, quotaAt)
 		require.NoError(t, err)
 		id, _ := res.LastInsertId()
 		return uint64(id) //nolint:gosec // test ids

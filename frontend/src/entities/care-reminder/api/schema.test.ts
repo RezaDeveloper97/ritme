@@ -100,6 +100,8 @@ describe('medicationSchema', () => {
       amount: 1,
       duration: 'pregnancy_end',
       notify: true,
+      frequency: null,
+      doses: [],
       startsOn: '2026-09-21',
       endsOn: '2027-05-18',
       isActive: true,
@@ -156,6 +158,44 @@ describe('medicationSchema', () => {
   });
 });
 
+describe('medicationSchema (frequency + doses)', () => {
+  it('parses the new fields', () => {
+    const m = medicationSchema.parse({
+      id: 5,
+      title: 'X',
+      frequency: { every: 2, unit: 'hour' },
+      doses: [
+        { time: '08:00:00', amount: 1, unit: 'pill', unit_label: 'قرص', meal: 'after' },
+        { time: '20:00', amount: 2, unit: 'bogus', meal: null },
+        { time: '21:00', amount: 3, unit: 'drop', unit_label: null, meal: 'nope' },
+      ],
+    });
+    expect(m.frequency).toEqual({ every: 2, unit: 'hour' });
+    expect(m.doses).toEqual([
+      { time: '08:00', amount: 1, unit: 'pill', unitLabel: 'قرص', meal: 'after' },
+      { time: '21:00', amount: 3, unit: 'drop', unitLabel: null, meal: null },
+    ]);
+  });
+
+  it('reads an old medication as frequency null and no doses', () => {
+    const m = medicationSchema.parse({ id: 6, title: 'Y', frequency: null, doses: [] });
+    expect(m.frequency).toBeNull();
+    expect(m.doses).toEqual([]);
+    const bare = medicationSchema.parse({ id: 7, title: 'Z' });
+    expect(bare.frequency).toBeNull();
+    expect(bare.doses).toEqual([]);
+  });
+
+  it('carries amount / unit / meal on today doses', () => {
+    const t = careTodaySchema.parse({
+      date: '2026-09-23',
+      doses: [{ reminder_id: 1, title: 'A', slot: '08:00', amount: 2, unit: 'pill', unit_label: 'قرص', meal: 'before' }, { reminder_id: 2, title: 'B', slot: '09:00' }],
+    });
+    expect(t.doses[0]).toMatchObject({ amount: 2, unit: 'pill', unitLabel: 'قرص', meal: 'before' });
+    expect(t.doses[1]).toMatchObject({ amount: null, unit: null, unitLabel: null, meal: null });
+  });
+});
+
 describe('appointmentSchema', () => {
   it('reads a row with nested meta (README data model)', () => {
     const a = appointmentSchema.parse({ ...appointmentRow, meta: appointmentMeta });
@@ -208,7 +248,7 @@ describe('careTodaySchema', () => {
   it('reads the README example', () => {
     expect(careTodaySchema.parse(todayFixture)).toEqual({
       date: '2026-09-23',
-      doses: [{ reminderId: 12, title: 'فولیک اسید ۴۰۰ میکروگرم', form: 'tablet', slot: '08:00', taken: true }],
+      doses: [{ reminderId: 12, title: 'فولیک اسید ۴۰۰ میکروگرم', form: 'tablet', slot: '08:00', taken: true, amount: null, unit: null, unitLabel: null, meal: null }],
       takenCount: 1,
       total: 2,
       nextAppointment: {

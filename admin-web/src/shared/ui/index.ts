@@ -35,3 +35,4 @@ export { useNotifyError } from './use-notify-error';
 export { useRowCommands, CrudRowActions } from './row-commands';
 export { LoadGate } from './LoadGate';
 export { FormPage } from './FormPage';
+export { FormDialog } from './FormDialog';

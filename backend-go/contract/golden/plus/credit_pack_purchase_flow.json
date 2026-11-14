@@ -1,0 +1,359 @@
+{
+  "case": "plus/credit_pack_purchase_flow",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/plus/credit-packs/checkout",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "pack_id": 2,
+          "plan_id": 1,
+          "total": 1
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "صورتحساب ساخته شد",
+        "data": {
+          "invoice": {
+            "reference": "<pattern:^RP[A-Z2-7]{16}$>",
+            "status": "pending",
+            "plan": null,
+            "duration_months": 0,
+            "currency": "IRR",
+            "subtotal": 1290000,
+            "discount": 0,
+            "discount_code": null,
+            "vat_rate_bps": 1000,
+            "vat": 129000,
+            "total": 1419000,
+            "gateway": "fake",
+            "created_at": "2026-09-23T10:00:00+03:30",
+            "expires_at": "2026-09-23T10:30:00+03:30",
+            "paid_at": null,
+            "receipt": null,
+            "discount_source": null,
+            "kind": "credit_pack",
+            "credits": 150,
+            "credit_pack": {
+              "id": 2,
+              "code": "credits_150",
+              "title": "۱۵۰ اعتبار",
+              "credits": 150
+            }
+          },
+          "payment": {
+            "gateway": "fake",
+            "authority": "<pattern:^FAKE-RP[A-Z2-7]{16}$>",
+            "redirect_url": "<pattern:^http://127\\.0\\.0\\.1:8090/api/v1/payments/fake/pay/FAKE-RP[A-Z2-7]{16}$>"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/payments/fake/pay/{{auth}}",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "raw_body": "decision=success"
+      },
+      "status": 303,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59",
+        "location": "<ignored>"
+      },
+      "body_ignored": true
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/plus/verify",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:05:00+03:30",
+        "body": {
+          "reference": "{{ref}}",
+          "authority": "{{auth}}",
+          "status": "OK"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "پرداخت تأیید شد. اعتبارت اضافه شد",
+        "data": {
+          "invoice": {
+            "reference": "<pattern:^RP[A-Z2-7]{16}$>",
+            "status": "paid",
+            "plan": null,
+            "duration_months": 0,
+            "currency": "IRR",
+            "subtotal": 1290000,
+            "discount": 0,
+            "discount_code": null,
+            "vat_rate_bps": 1000,
+            "vat": 129000,
+            "total": 1419000,
+            "gateway": "fake",
+            "created_at": "2026-09-23T10:00:00+03:30",
+            "expires_at": "2026-09-23T10:30:00+03:30",
+            "paid_at": "2026-09-23T10:05:00+03:30",
+            "receipt": {
+              "ref_id": "<pattern:^FAKE-REF-RP[A-Z2-7]{16}$>",
+              "card_pan": null,
+              "amount": 1419000,
+              "paid_at": "2026-09-23T10:05:00+03:30"
+            },
+            "discount_source": null,
+            "kind": "credit_pack",
+            "credits": 150,
+            "credit_pack": {
+              "id": 2,
+              "code": "credits_150",
+              "title": "۱۵۰ اعتبار",
+              "credits": 150
+            }
+          },
+          "already_verified": false,
+          "status": {
+            "tier": "free",
+            "is_plus": false,
+            "subscription": null,
+            "trial": null,
+            "trial_available": true,
+            "period_start": "2026-09-01",
+            "resets_at": "2026-10-01T00:00:00+03:30",
+            "entitlements": [
+              {
+                "key": "plus.deep_analysis",
+                "allowed": false,
+                "unlimited": false,
+                "limit": 0,
+                "used": 0,
+                "remaining": 0
+              },
+              {
+                "key": "plus.pdf_share",
+                "allowed": false,
+                "unlimited": false,
+                "limit": 0,
+                "used": 0,
+                "remaining": 0
+              },
+              {
+                "key": "plus.visit_discount",
+                "allowed": false,
+                "unlimited": false,
+                "limit": 0,
+                "used": 0,
+                "remaining": 0
+              },
+              {
+                "key": "plus.analysis_long_range",
+                "allowed": false,
+                "unlimited": false,
+                "limit": 0,
+                "used": 0,
+                "remaining": 0
+              },
+              {
+                "key": "plus.sms_reminders",
+                "allowed": false,
+                "unlimited": false,
+                "limit": 0,
+                "used": 0,
+                "remaining": 0
+              },
+              {
+                "key": "plus.companion",
+                "allowed": false,
+                "unlimited": false,
+                "limit": 0,
+                "used": 0,
+                "remaining": 0
+              }
+            ],
+            "trial_offer": null
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/plus/verify",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:06:00+03:30",
+        "body": {
+          "reference": "{{ref}}",
+          "authority": "{{auth}}",
+          "status": "OK"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "این پرداخت قبلاً تأیید شده است",
+        "data": {
+          "invoice": {
+            "reference": "<pattern:^RP[A-Z2-7]{16}$>",
+            "status": "paid",
+            "plan": null,
+            "duration_months": 0,
+            "currency": "IRR",
+            "subtotal": 1290000,
+            "discount": 0,
+            "discount_code": null,
+            "vat_rate_bps": 1000,
+            "vat": 129000,
+            "total": 1419000,
+            "gateway": "fake",
+            "created_at": "2026-09-23T10:00:00+03:30",
+            "expires_at": "2026-09-23T10:30:00+03:30",
+            "paid_at": "2026-09-23T10:05:00+03:30",
+            "receipt": {
+              "ref_id": "<pattern:^FAKE-REF-RP[A-Z2-7]{16}$>",
+              "card_pan": null,
+              "amount": 1419000,
+              "paid_at": "2026-09-23T10:05:00+03:30"
+            },
+            "discount_source": null,
+            "kind": "credit_pack",
+            "credits": 150,
+            "credit_pack": {
+              "id": 2,
+              "code": "credits_150",
+              "title": "۱۵۰ اعتبار",
+              "credits": 150
+            }
+          },
+          "already_verified": true,
+          "status": {
+            "tier": "free",
+            "is_plus": false,
+            "subscription": null,
+            "trial": null,
+            "trial_available": true,
+            "period_start": "2026-09-01",
+            "resets_at": "2026-10-01T00:00:00+03:30",
+            "entitlements": [
+              {
+                "key": "plus.deep_analysis",
+                "allowed": false,
+                "unlimited": false,
+                "limit": 0,
+                "used": 0,
+                "remaining": 0
+              },
+              {
+                "key": "plus.pdf_share",
+                "allowed": false,
+                "unlimited": false,
+                "limit": 0,
+                "used": 0,
+                "remaining": 0
+              },
+              {
+                "key": "plus.visit_discount",
+                "allowed": false,
+                "unlimited": false,
+                "limit": 0,
+                "used": 0,
+                "remaining": 0
+              },
+              {
+                "key": "plus.analysis_long_range",
+                "allowed": false,
+                "unlimited": false,
+                "limit": 0,
+                "used": 0,
+                "remaining": 0
+              },
+              {
+                "key": "plus.sms_reminders",
+                "allowed": false,
+                "unlimited": false,
+                "limit": 0,
+                "used": 0,
+                "remaining": 0
+              },
+              {
+                "key": "plus.companion",
+                "allowed": false,
+                "unlimited": false,
+                "limit": 0,
+                "used": 0,
+                "remaining": 0
+              }
+            ],
+            "trial_offer": null
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/plus/history",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": [
+          {
+            "reference": "<pattern:^RP[A-Z2-7]{16}$>",
+            "status": "paid",
+            "plan": null,
+            "duration_months": 0,
+            "currency": "IRR",
+            "subtotal": 1290000,
+            "discount": 0,
+            "discount_code": null,
+            "vat_rate_bps": 1000,
+            "vat": 129000,
+            "total": 1419000,
+            "gateway": "fake",
+            "created_at": "2026-09-23T10:00:00+03:30",
+            "expires_at": "2026-09-23T10:30:00+03:30",
+            "paid_at": "2026-09-23T10:05:00+03:30",
+            "receipt": {
+              "ref_id": "<pattern:^FAKE-REF-RP[A-Z2-7]{16}$>",
+              "card_pan": null,
+              "amount": 1419000,
+              "paid_at": "2026-09-23T10:05:00+03:30"
+            },
+            "discount_source": null,
+            "kind": "credit_pack",
+            "credits": 150,
+            "credit_pack": null
+          }
+        ]
+      }
+    }
+  ]
+}

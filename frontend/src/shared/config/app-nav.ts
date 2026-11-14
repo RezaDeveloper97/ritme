@@ -19,6 +19,8 @@ export const NAV_ROOT_PATHS: readonly string[] = [
   '/postpartum',
   '/children',
   '/companion',
+  '/companion/learn', // companion v2: «یادگیری» tab (compLearn)
+  '/companion/actions', // companion v2: «اقدام‌ها» tab (compCards)
   '/analysis',
   '/menopause/score', // CB-MENO-08: menopause mode tab «علائم» (nbl_Meno_Score)
   '/ivf', // CB-IVF-02: IVF «امروز» (nbl_IVF_Home, TTC + «IVF/IUI»)

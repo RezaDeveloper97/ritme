@@ -4,11 +4,10 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 
 import { useLocalized } from '@/shared/i18n';
-import { formatDateTime, formatNumber, useListParams } from '@/shared/lib';
+import { formatDateTime, formatNumber, rialsToToman, useListParams } from '@/shared/lib';
 import { DataTable, Pagination, Panel, SearchInput, Select, Skeleton, TextInput, type Column } from '@/shared/ui';
 
 import { paymentsApi, type PaymentRow } from '../api/billing';
-import { rialsToToman } from '../lib/money';
 import { StatusBadge, Toman, UserCell } from './parts';
 
 const STATUSES = ['all', 'paid', 'pending', 'failed', 'expired', 'refunded'] as const;

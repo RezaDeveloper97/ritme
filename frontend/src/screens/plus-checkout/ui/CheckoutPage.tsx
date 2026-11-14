@@ -4,11 +4,26 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useId, useState, type FormEvent } from 'react';
 
-import { formatToman, planFromParam, usePlusPlans, usePlusQuote, type PlusQuote } from '@/entities/plus';
-import { goToGateway, useCheckout } from '@/features/purchase-plus';
+import {
+  formatToman,
+  planFromParam,
+  plansForChannel,
+  storeAvailable,
+  usePlusPlans,
+  usePlusQuote,
+  type PlusQuote,
+} from '@/entities/plus';
+import {
+  goToGateway,
+  isStoreCancelled,
+  storeErrorMessage,
+  useCheckout,
+  useStorePurchase,
+} from '@/features/purchase-plus';
 import { ApiError, getApiErrorCode, getApiErrorStatus, type ApiEnvelope } from '@/shared/api';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { useBillingChannel } from '@/shared/billing';
 import {
   EmptyState,
   Icon,
@@ -22,6 +37,7 @@ import {
 import { useNavMode } from '@/widgets/bottom-nav';
 
 import { codeState } from '../lib/code-state';
+import { PackCheckout } from './PackCheckout';
 
 /** The server's localized `errors.discount_code[0]` of a rejected code (422 `discount_*`). */
 function discountError(error: unknown): string | null | undefined {
@@ -40,20 +56,44 @@ function discountError(error: unknown): string | null | undefined {
  * browser to the gateway. A 100% discount is settled at once → success.
  */
 export function CheckoutPage() {
+  const params = useSearchParams();
+  const raw = params.get('pack');
+  // `?pack=<id>` buys a credit pack through the same checkout / gateway return (no discount code, no plan).
+  if (raw !== null) return /^\d+$/.test(raw) ? <PackCheckout packId={Number(raw)} /> : <PackMissing />;
+  return <PlanCheckout />;
+}
+
+function PackMissing() {
+  const router = useRouter();
+  const t = useTranslations('credits');
+  useEffect(() => {
+    router.replace('/plus/credits');
+  }, [router]);
+  return <div className="view plus-page" aria-busy aria-label={t('loading')} />;
+}
+
+function PlanCheckout() {
   const t = useTranslations('plus');
   const router = useRouter();
   const params = useSearchParams();
   const loc = useLocale() as Locale;
   const navMode = useNavMode().mode;
   const plans = usePlusPlans();
-  const plan = plans.data ? planFromParam(plans.data.plans, params.get('plan')) : null;
+  const { channel, ready } = useBillingChannel();
+  const store = channel !== 'web' ? channel : null;
+  const storeOff = !!plans.data && store !== null && !storeAvailable(plans.data, store);
+  const offered = !plans.data || storeOff ? [] : store ? plansForChannel(plans.data.plans, store) : plans.data.plans;
+  const plan = offered.length ? planFromParam(offered, params.get('plan')) : null;
   const planId = plan?.id ?? null;
+  // Store builds are priced by the store; the server quote is a gateway thing.
+  const quotePlanId = store ? null : planId;
 
   const [code, setCode] = useState('');
   const [applied, setApplied] = useState<string | null>(null);
-  const base = usePlusQuote(planId);
-  const withCode = usePlusQuote(applied ? planId : null, applied);
+  const base = usePlusQuote(quotePlanId);
+  const withCode = usePlusQuote(applied ? quotePlanId : null, applied);
   const checkout = useCheckout();
+  const storeBuy = useStorePurchase();
   const [payError, setPayError] = useState<string | null>(null);
   const codeId = useId();
 
@@ -76,6 +116,21 @@ export function CheckoutPage() {
   const onPay = () => {
     if (!planId) return;
     setPayError(null);
+    if (store) {
+      const sku = plan?.storeSkus[store];
+      if (!sku) return;
+      storeBuy.mutate(
+        { store, sku },
+        {
+          onSuccess: () => router.replace('/plus/success'),
+          onError: (error) => {
+            if (isStoreCancelled(error)) return;
+            setPayError(storeErrorMessage(error) ?? t('checkout.storeFailed'));
+          },
+        },
+      );
+      return;
+    }
     checkout.mutate(
       { planId, discountCode: codeAccepted ? applied : null },
       {
@@ -95,13 +150,60 @@ export function CheckoutPage() {
   const toman = (rials: number) => t('toman', { amount: formatToman(rials, loc) });
 
   let body;
-  if (plans.isPending || (planId !== null && base.isPending)) {
+  if (plans.isPending || !ready || (quotePlanId !== null && base.isPending)) {
     body = (
       <SkeletonGroup label={t('loading')} className="plus-checkout">
         <Skeleton shape="card" />
         <Skeleton shape="block" />
         <Skeleton shape="card" />
       </SkeletonGroup>
+    );
+  } else if (storeOff) {
+    body = <EmptyState icon="crown" title={t('plans.storeUnavailableTitle')} body={t('plans.storeUnavailableBody')} />;
+  } else if (store && plan) {
+    const minutes = plan.durationMinutes != null;
+    body = (
+      <div className="plus-checkout">
+        <section className="nb-card plus-summary" aria-labelledby="plus-summary-title">
+          <div className="plus-summary-head">
+            <h2 id="plus-summary-title" className="plus-summary-title">
+              {t('checkout.summary', { plan: plan.title })}
+            </h2>
+            <button type="button" className="plus-link is-brand" onClick={() => router.push(`/plus/plans?plan=${plan.id}`)}>
+              {t('checkout.change')}
+            </button>
+          </div>
+          <dl className="plus-lines">
+            <div className="plus-line">
+              <dt>{t('checkout.duration')}</dt>
+              <dd>
+                {minutes
+                  ? t('plans.minutes', { minutes: formatNumber(plan.durationMinutes ?? 0, loc) })
+                  : t('plans.months', { months: formatNumber(plan.durationMonths, loc) })}
+              </dd>
+            </div>
+          </dl>
+        </section>
+        <section className="plus-methods" aria-labelledby="plus-methods-title">
+          <h2 id="plus-methods-title" className="plus-section-title">
+            {t('checkout.methods')}
+          </h2>
+          <div role="radiogroup" aria-labelledby="plus-methods-title">
+            <div role="radio" aria-checked tabIndex={0} className="plus-method">
+              <span className="plus-plan-dot" aria-hidden />
+              <span className="plus-method-text">
+                <b>{t(`checkout.store.${store}`)}</b>
+                <span>{t('checkout.storeSub')}</span>
+              </span>
+              <Icon name="card" size={22} strokeWidth={1.8} className="plus-method-icon" />
+            </div>
+          </div>
+          <p className="plus-secure">
+            <Icon name="lock" size={14} />
+            {t('checkout.storeSecure')}
+          </p>
+        </section>
+      </div>
     );
   } else if (plans.isError || base.isError || !plan || !quote) {
     body = (
@@ -268,14 +370,14 @@ export function CheckoutPage() {
         </div>
         {body}
       </div>
-      {quote && plan ? (
+      {plan && (store || quote) && !storeOff ? (
         <div className="plus-footer">
           {payError ? (
             <p className="plus-field-error is-center" role="alert">
               {payError}
             </p>
           ) : null}
-          <PrimaryButton loading={checkout.isPending || checkout.isSuccess} onClick={onPay}>
+          <PrimaryButton loading={checkout.isPending || checkout.isSuccess || storeBuy.isPending} onClick={onPay}>
             {t('checkout.pay')}
           </PrimaryButton>
         </div>

@@ -44,20 +44,29 @@ func (g *Gate) Require(key Key) fiber.Handler {
 		panic("plus: Require of unknown entitlement " + string(key))
 	}
 	return func(c fiber.Ctx) error {
-		userID, ok := auth.CurrentUserID(c)
-		if !ok {
-			return &auth.UnauthenticatedError{Code: auth.CodeUnauthenticated}
-		}
-		now := clock.FromContext(c, g.clock).Now().In(civildate.Tehran).Truncate(time.Second)
-		e, tier, err := g.svc.entitlement(c, userID, key, now)
-		if err != nil {
+		if err := g.Check(c, key); err != nil {
 			return err
 		}
-		if e.Allowed {
-			return c.Next()
-		}
-		return Denied(e, tier, now, i18n.Locale(c))
+		return c.Next()
 	}
+}
+
+// Check is Require for a handler that only knows inside the request whether the feature applies (a companion
+// invite is gated by its type): nil while the current user may use key now, else the gating response.
+func (g *Gate) Check(c fiber.Ctx, key Key) error {
+	userID, ok := auth.CurrentUserID(c)
+	if !ok {
+		return &auth.UnauthenticatedError{Code: auth.CodeUnauthenticated}
+	}
+	now := clock.FromContext(c, g.clock).Now().In(civildate.Tehran).Truncate(time.Second)
+	e, tier, err := g.svc.entitlement(c, userID, key, now)
+	if err != nil {
+		return err
+	}
+	if e.Allowed {
+		return nil
+	}
+	return Denied(e, tier, now, i18n.Locale(c))
 }
 
 // GateError maps a Service.Consume error to the gating response (other errors pass through unchanged).

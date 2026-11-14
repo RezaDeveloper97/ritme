@@ -10,5 +10,14 @@
     "today": "امروز",
     "yesterday": "دیروز",
     "daysAgo": "{days} روز پیش"
+  },
+  "bell": {
+    "count": "اعلان‌ها: {count, number} مورد تازه",
+    "urgent": "اعلان‌ها: {count, number} مورد تازه، {urgent, number} مورد فوری"
+  },
+  "sections": {
+    "alerts": "هشدارهای سلامت",
+    "notifications": "اعلان‌ها",
+    "history": "هشدارهای قبلی"
   }
 }

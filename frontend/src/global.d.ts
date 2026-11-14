@@ -23,6 +23,9 @@ import type enLogCustomize from '../messages/en/log-customize.json';
 import type enLogSheet from '../messages/en/log-sheet.json';
 import type enAlerts from '../messages/en/alerts.json';
 import type enVoiceLog from '../messages/en/voice-log.json';
+import type enAiCredit from '../messages/en/ai-credit.json';
+import type enAiGate from '../messages/en/ai-gate.json';
+import type enCredits from '../messages/en/credits.json';
 import type enVitals from '../messages/en/vitals.json'; // B-N6-02
 import type enTodo from '../messages/en/todo.json'; // B-N6-08
 import type enLearn from '../messages/en/learn.json'; // B-N8-03
@@ -123,6 +126,9 @@ type Messages = {
   logCustomize: typeof enLogCustomize;
   logSheet: typeof enLogSheet;
   voiceLog: typeof enVoiceLog; // B-N3-05 features/voice-log
+  aiCredit: typeof enAiCredit; // entities/ai-credit
+  aiGate: typeof enAiGate; // features/ai-gate
+  credits: typeof enCredits; // screens/credits-usage + credits-buy
   alerts: typeof enAlerts; // T-M10-15 entities/alert, screens/alerts, home bell
   vitals: typeof enVitals; // B-N6-02 entities/vital, features/add-vital, screens/vitals-*
   todo: typeof enTodo; // B-N6-08 entities/todo, screens/todo*

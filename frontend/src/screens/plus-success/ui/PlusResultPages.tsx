@@ -10,6 +10,7 @@ import { getApiErrorCode, getApiErrorStatus } from '@/shared/api';
 import { useRouter } from '@/shared/i18n';
 import { EmptyState, Icon, PrimaryButton, SecondaryButton, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
+import { CreditPackSuccess } from './CreditPackSuccess';
 import { SuccessView } from './SuccessView';
 
 /** Error codes after which re-trying verify cannot help: the payment itself did not happen. */
@@ -55,6 +56,10 @@ export function PlusReturnPage() {
         />
       </Shell>
     );
+  }
+
+  if (verify.isSuccess && verify.data.invoice.kind === 'credit_pack') {
+    return <CreditPackSuccess credits={verify.data.invoice.credits ?? 0} refId={verify.data.invoice.receipt?.refId} />;
   }
 
   if (verify.isSuccess) {

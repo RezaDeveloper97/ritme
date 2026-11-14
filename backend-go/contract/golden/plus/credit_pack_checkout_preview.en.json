@@ -1,0 +1,45 @@
+{
+  "case": "plus/credit_pack_checkout_preview.en",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/plus/credit-packs/checkout",
+        "persona": "no_profile",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "pack_id": 1,
+          "preview": true
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "quote": {
+            "pack": {
+              "id": 1,
+              "code": "credits_50",
+              "title": "50 credits",
+              "badge": null,
+              "credits": 50,
+              "price": 490000,
+              "is_highlighted": false
+            },
+            "currency": "IRR",
+            "subtotal": 490000,
+            "vat_rate_bps": 1000,
+            "vat": 49000,
+            "total": 539000
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,11 +1,12 @@
+import { aiDenialOf, isGateDenial, type AiGateDenial } from '@/entities/ai-credit';
 import { ApiError } from '@/shared/api';
-import { plusDenialOf, type PlusDenial } from '@/shared/ui/plus-gate';
 
 /*
- * What a failed `POST /labs` means for the upload screen (the AI gate order is
- * throttle → Plus → consent → cost/busy → reserve, B-N6-05b):
+ * What a failed `POST /labs` means for the upload screen. The AI gate refusals come from the ONE normaliser
+ * `aiDenialOf` (entities/ai-credit):
  *
- * - `plus` — 402 plus_required / 429 plus_quota_exceeded → the Plus gate;
+ * - `gate` — 402 ai_subscription_required / ai_credits_exhausted, 403 ai_feature_disabled → the gate sheet
+ *   (`ai.handleError` opens it; the form shows nothing of its own);
  * - `consent` — 403 consent_required {consent, version} → the consent sheet;
  * - `validation` — 422 with field errors (files / category / taken_on);
  * - `busy` — any other 429 (ai_busy, ai_user_budget_exhausted, too_many_requests, the daily upload cap);
@@ -14,7 +15,7 @@ import { plusDenialOf, type PlusDenial } from '@/shared/ui/plus-gate';
  *
  * Reads only the envelope's top-level fields — never a health payload.
  */
-export type UploadErrorKind = 'plus' | 'consent' | 'validation' | 'busy' | 'unavailable' | 'network' | 'unknown';
+export type UploadErrorKind = 'gate' | 'consent' | 'validation' | 'busy' | 'unavailable' | 'network' | 'unknown';
 
 export interface UploadError {
   kind: UploadErrorKind;
@@ -22,7 +23,7 @@ export interface UploadError {
   message: string | null;
   /** 422 field → first message. */
   fields: Record<string, string>;
-  denial: PlusDenial | null;
+  denial: AiGateDenial | null;
 }
 
 function body(error: ApiError): Record<string, unknown> {
@@ -37,9 +38,9 @@ export function uploadErrorOf(error: unknown): UploadError {
   const b = body(error);
   const message = typeof b.message === 'string' && b.message.trim() ? b.message : null;
   const status = error.response.status;
-  const denial = plusDenialOf(error);
-  if (denial) return { ...base, kind: 'plus', message, denial };
-  if (status === 403 && b.error_code === 'consent_required') return { ...base, kind: 'consent', message };
+  const denial = aiDenialOf(error);
+  if (isGateDenial(denial)) return { ...base, kind: 'gate', message, denial };
+  if (denial?.kind === 'consent') return { ...base, kind: 'consent', message };
   if (status === 422) {
     const fields: Record<string, string> = {};
     const errs = b.errors;

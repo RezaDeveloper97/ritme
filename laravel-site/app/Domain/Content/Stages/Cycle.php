@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Content\Stages;
 
 use App\Domain\Blog\Enums\LifeStage;
+use App\Domain\Content\Enums\SitePhoto;
 
 /**
  * /cycle — «پیگیری چرخه» (design/html/cycle.html). Copy: lang/fa/stages/cycle.php.
@@ -59,5 +60,10 @@ final class Cycle extends StageDefinition
     public function eyebrowIcon(): string
     {
         return 'sprout';
+    }
+
+    public function redesign(): RedesignSpec
+    {
+        return new RedesignSpec(SitePhoto::CycleHero, SitePhoto::WindowTea, 'cycle', ['calendar', 'prediction', 'fertile', 'daily', 'pill', 'report']);
     }
 }

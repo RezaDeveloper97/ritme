@@ -45,9 +45,9 @@ type ConsentChecker interface {
 	Require(ctx context.Context, userID uint64, code string) error
 }
 
-// Refunder gives a reserved Plus use back (*plus.Service).
+// Refunder gives the reserved credits of a use back (*credits.Service).
 type Refunder interface {
-	Refund(ctx context.Context, userID uint64, key plus.Key, reservedAt, now time.Time) error
+	RefundAt(ctx context.Context, userID uint64, feature string, reservedAt, now time.Time) error
 }
 
 // Options wires a Service.
@@ -331,7 +331,7 @@ func (s *Service) refund(ctx context.Context, userID uint64, reservedAt time.Tim
 			return
 		}
 	}
-	if err := s.plus.Refund(ctx, userID, plus.DocAI, reservedAt, now); err != nil {
+	if err := s.plus.RefundAt(ctx, userID, string(ai.FeatureDocExtract), reservedAt, now); err != nil {
 		s.logger.ErrorContext(ctx, "extract: plus refund failed", slog.String("error", err.Error()))
 	}
 }
@@ -357,7 +357,7 @@ func RefundDeleted(p Refunder, c clock.Clock, logger *slog.Logger) healthrecord.
 			return
 		}
 		now := tehranSecond(clock.FromContext(ctx, c).Now())
-		if err := p.Refund(ctx, userID, plus.DocAI, at, now); err != nil {
+		if err := p.RefundAt(ctx, userID, string(ai.FeatureDocExtract), at, now); err != nil {
 			logger.ErrorContext(ctx, "extract: plus refund on delete failed", slog.String("error", err.Error()))
 		}
 	}

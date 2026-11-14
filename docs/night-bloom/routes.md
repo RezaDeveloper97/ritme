@@ -37,7 +37,7 @@ and their own scroll are **routes**; short decisions and pickers are **sheets**.
 | 17 | `Onb_Preg` | L+D | R | `/onboarding/pregnancy-basis` | restyle | B-N2-02 |  |
 | 18 | `Onb_Ready` | L+D | R | `/onboarding/setting-up` | restyle | B-N2-02 |  |
 | 19 | `Onb_Welcome` | L+D | R | `/welcome (final card)` | restyle | B-N1-05 |  |
-| 20 | `Prem_Checkout` | L+D | R | `/plus/checkout` | NEW | B-N2-07 | bank gateway only on web |
+| 20 | `Prem_Checkout` | L+D | R | `/plus/checkout` | NEW | B-N2-07 | bank gateway only on web; `?pack=<id>` buys an AI credit pack through the same checkout / `/plus/return` |
 | 21 | `Prem_Manage` | L+D | R | `/plus/manage` | NEW | B-N2-07 |  |
 | 22 | `Prem_Paywall` | L+D | R | `/plus` | NEW | B-N2-07 |  |
 | 23 | `Prem_Plans` | L+D | R | `/plus/plans` | NEW | B-N2-07 |  |
@@ -246,3 +246,17 @@ and their own scroll are **routes**; short decisions and pickers are **sheets**.
 | 181 | `Admin_Safety` | L+D | A | `admin-web /safety` | NEW | B-N9-10 |  |
 | 182 | `Admin_UserDetail` | L+D | A | `admin-web /users/[id]` | restyle | B-N9-04 |  |
 | 183 | `Admin_Users` | L+D | A | `admin-web /users` | restyle | B-N9-04 |  |
+
+## AI credits («اعتبار», docs/ai-credits.md) — not in the artboards
+
+Added 2026-11-12 with the credits system; no canvas artboard, built from the Night & Bloom primitives (flat cards,
+amber `--warm` = the credits accent). Both are routes (back-header screens with their own scroll); the gate's
+«اشتراک لازم است» / «اعتبار تمام شد» / «در دسترس نیست» is one global short-decision **sheet** (`AiGateSheet`, zustand
+state in `features/ai-gate`, no `?sheet=` id — it opens from an AI request, not from a link).
+
+| Screen | Kind | Route | Slice | Notes |
+|---|---|---|---|---|
+| مصرف اعتبار | R | `/profile/credits` | `screens/credits-usage` | ring of the period's credits, extra credits, costs, last 30 days, history; back → `/profile` |
+| خرید اعتبار | R | `/plus/credits` | `screens/credits-buy` | credit packs → `/plus/checkout?pack=<id>` (`screens/plus-checkout`); hidden for teen / companion / store builds |
+| اعتبار اضافه شد | V | `/plus/return` (pack invoice) | `screens/plus-success` | `invoice.kind === 'credit_pack'` |
+| AI gate sheet | S | — (global, shell) | `features/ai-gate` | `openAiGate(denial)` / `useAiGate().guard()` / `handleError()` |

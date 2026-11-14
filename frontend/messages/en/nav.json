@@ -10,7 +10,10 @@
   "treatment": "Treatment",
   "child": "Child",
   "symptoms": "Symptoms",
+  "analysis": "Analysis",
   "services": "Services",
+  "learn": "Learn",
+  "actions": "Actions",
   "me": "Me",
   "badgeNew": "New",
   "badgeCount": "{count, plural, one {# new item} other {# new items}}",
@@ -78,6 +81,16 @@
     "appointment": "Appointment or visit",
     "task": "New task",
     "child": "Log for {name}",
-    "childSub": "Feeding, sleep, diapers"
+    "childSub": "Feeding, sleep, diapers",
+    "vitalsTitle": "Vital signs",
+    "vitals": "Blood pressure, heart rate or sugar",
+    "vitalsSub": "Log a new reading"
+  },
+  "vitalsChooser": {
+    "title": "Log a vital sign",
+    "bp": { "title": "Blood pressure", "sub": "Systolic, diastolic and pulse" },
+    "hr": { "title": "Heart rate", "sub": "Beats per minute" },
+    "glucose": { "title": "Blood sugar", "sub": "Fasting, after a meal or random" },
+    "hub": { "title": "Reports and history", "sub": "All your readings and their trend" }
   }
 }

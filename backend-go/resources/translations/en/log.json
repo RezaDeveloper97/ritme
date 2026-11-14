@@ -1,6 +1,5 @@
 {
   "title": "Daily log",
-  "subtitle": "Record what you felt today so Ritme gets to know you better.",
   "today": "Today",
   "prevDay": "Previous day",
   "nextDay": "Next day",
@@ -10,7 +9,6 @@
   "saved": "Saved",
   "autoSaved": "Saved automatically",
   "saveError": "Couldn't save; please try again.",
-  "sheetHint": "Pick whatever applies to you.",
   "done": "Done",
   "submit": "Submit",
   "close": "Close",
@@ -33,21 +31,6 @@
     "weight": "Weight",
     "temperature": "Temperature",
     "notes": "Notes"
-  },
-  "categoryHint": {
-    "bleeding": "Intensity, color and character of bleeding",
-    "pain": "Intensity of pains and physical symptoms",
-    "digestion": "Appetite, energy and how your body felt",
-    "mood": "How you feel today",
-    "sleep": "Sleep duration and quality",
-    "exercise": "Type, duration and intensity of activity",
-    "body": "Skin and hair",
-    "discharge": "Texture, amount, color and smell",
-    "intimate": "Urinary and vaginal symptoms",
-    "sexual": "Desire, intercourse and how it felt",
-    "weight": "Your weight measurement",
-    "temperature": "Basal body temperature measurement",
-    "notes": "Anything else you want to remember"
   },
   "fields": {
     "bleeding_intensity": "Bleeding intensity",

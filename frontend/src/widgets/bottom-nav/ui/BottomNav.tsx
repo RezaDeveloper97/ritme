@@ -1,5 +1,6 @@
 'use client';
 
+import { Art3d } from '@/shared/ui';
 import { clsx } from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 import type { MouseEvent } from 'react';
@@ -49,7 +50,7 @@ function scrollToTop(event: MouseEvent<HTMLAnchorElement>) {
 
 /**
  * Night & Bloom floating glass nav (B-N1-04, docs/night-bloom/nav.md):
- * امروز · <mode tab> · solid FAB (+) · خدمات · من. Rendered only on tab roots
+ * امروز · <mode tab> · solid FAB (+) · تحلیل · من. Rendered only on tab roots
  * and first-level hubs (`shared/config/app-nav`) — every other screen may keep
  * mounting it and it simply stays out. The FAB opens the mode's log sheet
  * (`?sheet=log`) over the current screen instead of navigating.
@@ -121,19 +122,8 @@ export function BottomNav({ badges, mode: forcedMode, ivf: forcedIvf, childIds }
       {config.before.map((tab, i) => renderTab(tab, i))}
       {config.fab ? (
         <button type="button" className="nbnav-fab" aria-label={t('log')} onClick={() => openSheet('log')}>
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-            aria-hidden
-            focusable="false"
-          >
-            <path d="M12 5v14M5 12h14" />
-          </svg>
+          {/* the whole orb (violet glass, iridescent rim, white plus) is one Canva render — no CSS disc behind it */}
+          <Art3d name="fab-plus" size={64} className="nbnav-fab-art" />
         </button>
       ) : null}
       {config.after.map((tab, i) => renderTab(tab, config.before.length + i))}

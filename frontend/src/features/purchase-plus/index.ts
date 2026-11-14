@@ -2,6 +2,8 @@
 export {
   goToGateway,
   startCheckout,
+  startPackCheckout,
+  useCreditPackCheckout,
   useCancelPlus,
   useCheckout,
   useRestorePlus,
@@ -9,3 +11,13 @@ export {
   useVerifyPayment,
   type CheckoutInput,
 } from './api/mutations';
+export {
+  buyThroughStore,
+  isStoreCancelled,
+  restoreStorePurchases,
+  storeErrorMessage,
+  useStorePurchase,
+  type StorePurchaseInput,
+} from './api/store';
+export { StoreBillingSync } from './ui/StoreBillingSync';
+export { useStartPlusTrial } from './api/trial';

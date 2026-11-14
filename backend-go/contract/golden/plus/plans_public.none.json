@@ -18,6 +18,8 @@
           "currency": "IRR",
           "vat_rate_bps": 1000,
           "trial_days": 7,
+          "store_channels": [],
+          "store_trial_sku": null,
           "plans": [
             {
               "id": 1,
@@ -28,7 +30,10 @@
               "price": 990000,
               "monthly_price": 990000,
               "savings_percent": 0,
-              "is_highlighted": false
+              "is_highlighted": false,
+              "ai_credits": 100,
+              "duration_minutes": null,
+              "store_skus": {}
             },
             {
               "id": 2,
@@ -39,7 +44,10 @@
               "price": 2370000,
               "monthly_price": 790000,
               "savings_percent": 20,
-              "is_highlighted": true
+              "is_highlighted": true,
+              "ai_credits": 300,
+              "duration_minutes": null,
+              "store_skus": {}
             },
             {
               "id": 3,
@@ -50,7 +58,10 @@
               "price": 3900000,
               "monthly_price": 650000,
               "savings_percent": 34,
-              "is_highlighted": false
+              "is_highlighted": false,
+              "ai_credits": 600,
+              "duration_minutes": null,
+              "store_skus": {}
             }
           ]
         }

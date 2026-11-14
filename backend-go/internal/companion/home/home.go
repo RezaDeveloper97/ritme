@@ -128,10 +128,25 @@ func (h *Handlers) build(ctx context.Context, u *auth.User, locale, deflt string
 		return nil, err
 	}
 
+	// One read of today's log for every owner whose card may show a signal she consented to.
+	signalOwners := make([]uint64, 0, len(links))
+	for _, l := range links {
+		for _, sig := range memberSignals {
+			if signalsShown(l) && l.Preferences.Signals.On(sig) {
+				signalOwners = append(signalOwners, l.OwnerID)
+				break
+			}
+		}
+	}
+	days, err := daySignals(ctx, q, signalOwners, now)
+	if err != nil {
+		return nil, err
+	}
+
 	partners := make([]*jsonx.OrderedMap, 0, len(links))
 	articlePhase := ""
 	for _, l := range links {
-		p, phase, err := h.partner(ctx, svc, tc, l, u.ID, names, locale, now)
+		p, phase, err := h.partner(ctx, svc, tc, l, u.ID, names, days[l.OwnerID], locale, now)
 		if err != nil {
 			return nil, err
 		}
@@ -171,7 +186,7 @@ func (h *Handlers) build(ctx context.Context, u *auth.User, locale, deflt string
 // partner is one link's card set and its tip phase. A section is read only with a view/edit grant on the link
 // (loaded in the same request), and the read is audited before the view is built.
 func (h *Handlers) partner(ctx context.Context, svc *companion.Service, tc *tipCopy, l companion.Link, viewerID uint64,
-	names map[uint64]string, locale string, now time.Time) (*jsonx.OrderedMap, string, error) {
+	names map[uint64]string, day DaySignals, locale string, now time.Time) (*jsonx.OrderedMap, string, error) {
 	views := map[companion.Section]any{}
 	for _, s := range homeSections {
 		if !l.Grants.Of(s).CanRead() {
@@ -217,6 +232,9 @@ func (h *Handlers) partner(ctx context.Context, svc *companion.Service, tc *tipC
 		"note", nullable(tc.note(phase, shownName)),
 		"tips", tips,
 		"child", child, // shared children card (spouse links, bloom B-N5-02)
+		"settings", companion.SettingsJSON(l.Preferences),
+		// signalsShown also needs the cycle card to have been read (and audited) above.
+		"signals", signalsJSON(l.Preferences.Signals, day, signalsShown(l) && views[companion.SectionCycle] != nil),
 	), phase, nil
 }
 

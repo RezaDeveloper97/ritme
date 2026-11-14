@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { clsx } from 'clsx';
 
-import { Icon } from '../Icon';
+import { CheckTick } from './CheckTick';
 
 interface CheckboxProps {
   checked: boolean;
@@ -31,7 +31,7 @@ export function Checkbox({ checked, onCheckedChange, label, description, disable
         onChange={(event) => onCheckedChange(event.target.checked)}
       />
       <span className="nb-check-box" aria-hidden>
-        <Icon name="check" size={14} strokeWidth={3} />
+        <CheckTick on={checked} />
       </span>
       <span className="nb-check-text">
         <span className="nb-check-label">{label}</span>

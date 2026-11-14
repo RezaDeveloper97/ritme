@@ -36,10 +36,10 @@
 </head>
 <body class="antialiased" data-module="pwa">
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-primary focus:px-5 focus:py-3 focus:text-base focus:font-extrabold focus:text-white">رفتن به محتوای اصلی</a>
-    <div class="relative mx-auto grid w-full max-w-page grid-cols-1 overflow-hidden bg-canvas">
+    <div class="relative mx-auto grid w-full max-w-page grid-cols-1 bg-canvas">
         @if ($layoutVariant->isDark())
             <div aria-hidden="true" @class([
-                'col-start-1 row-start-1 row-end-3 bg-night bg-hero-glow',
+                'bleed bleed-night col-start-1 row-start-1 row-end-3 bg-night bg-hero-glow',
                 'supports-[grid-template-rows:subgrid]:row-end-4' => $layoutHasHero,
             ])></div>
         @endif
@@ -47,13 +47,13 @@
         <main id="main" tabindex="-1" class="col-start-1 row-start-3 row-end-5 grid grid-cols-1 grid-rows-subgrid focus:outline-none">
             @if ($layoutHasHero)
                 <div @class([
-                    'relative',
+                    'bleed-rows relative',
                     'not-supports-[grid-template-rows:subgrid]:bg-night not-supports-[grid-template-rows:subgrid]:bg-hero-glow' => $layoutVariant->isDark(),
                 ])>
                     @yield('hero')
                 </div>
             @endif
-            <div>
+            <div class="bleed-rows">
                 @yield('content')
             </div>
         </main>

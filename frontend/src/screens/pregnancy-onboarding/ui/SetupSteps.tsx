@@ -11,17 +11,26 @@ import {
   type SetupCopy,
 } from '@/entities/pregnancy';
 import type { Locale } from '@/shared/i18n';
-import { type DateParts, formatDayMonth, formatLongDate, fromApiDate, partsToDate } from '@/shared/lib/date';
+import {
+  type DateParts,
+  formatDayMonth,
+  formatLongDate,
+  formatNumber,
+  fromApiDate,
+  partsToDate,
+} from '@/shared/lib/date';
 import { AppSheet } from '@/shared/sheet';
 import {
   CalendarPicker,
   Card,
   Icon,
   InfoNote,
-  LocaleNumberField,
   PillChip,
+  PrimaryButton,
+  SecondaryButton,
   Skeleton,
   SkeletonGroup,
+  WheelPicker,
 } from '@/shared/ui';
 
 import { noneFirst, toggleCondition, type SetupDating, type SetupHistory } from '../model/setup';
@@ -67,7 +76,10 @@ function DateField({
   );
 }
 
-/** Week + day as two number inputs on one row, digits in the locale's script (۸ in fa). */
+const WEEK_OPTIONS = Array.from({ length: 42 }, (_, i) => i + 1);
+const DAY_OPTIONS = [0, 1, 2, 3, 4, 5, 6];
+
+/** Week (1–42) + day (0–6): one field that opens two wheels in a sheet, digits in the locale's script (۸ in fa). */
 function AgeFields({
   weeks,
   days,
@@ -79,23 +91,116 @@ function AgeFields({
 }) {
   const t = useTranslations('pregnancyV2.setup');
   const loc = useLocale() as Locale;
+  const [open, setOpen] = useState(false);
+  const [draftWeek, setDraftWeek] = useState(0);
+  const [draftDay, setDraftDay] = useState(0);
+  const openSheet = () => {
+    setDraftWeek(Math.max(0, WEEK_OPTIONS.indexOf(weeks ?? 8)));
+    setDraftDay(Math.max(0, DAY_OPTIONS.indexOf(days)));
+    setOpen(true);
+  };
   return (
-    <div className="pgn-pair">
-      <LocaleNumberField
-        label={t('week')}
-        locale={loc}
-        value={weeks ?? undefined}
-        onChange={(w) => onChange(w ?? null, days)}
-        max={42}
-      />
-      <LocaleNumberField
-        label={t('day')}
-        locale={loc}
-        value={days}
-        onChange={(d) => onChange(weeks, Math.min(6, Math.max(0, Math.trunc(d ?? 0))))}
-        max={6}
-      />
-    </div>
+    <>
+      <div className="pgn-pair">
+        <button type="button" className="pgn-fieldbox" onClick={openSheet} aria-haspopup="dialog">
+          <span className="pgn-fieldbox-label">{t('week')}</span>
+          <span className={weeks ? 'pgn-fieldbox-value' : 'pgn-fieldbox-value is-empty'}>
+            {weeks ? formatNumber(weeks, loc) : t('choose')}
+          </span>
+          <Icon name="chevronDown" size={18} className="pgn-fieldbox-icon" />
+        </button>
+        <button type="button" className="pgn-fieldbox" onClick={openSheet} aria-haspopup="dialog">
+          <span className="pgn-fieldbox-label">{t('day')}</span>
+          <span className="pgn-fieldbox-value">{formatNumber(days, loc)}</span>
+          <Icon name="chevronDown" size={18} className="pgn-fieldbox-icon" />
+        </button>
+      </div>
+      <AppSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        size="half"
+        title={t('ageSheetTitle')}
+        footer={
+          <div className="pgn-sheet-btns">
+            <SecondaryButton block={false} onClick={() => setOpen(false)}>
+              {t('cancel')}
+            </SecondaryButton>
+            <PrimaryButton
+              block={false}
+              onClick={() => {
+                onChange(WEEK_OPTIONS[draftWeek] ?? null, DAY_OPTIONS[draftDay] ?? 0);
+                setOpen(false);
+              }}
+            >
+              {t('confirm')}
+            </PrimaryButton>
+          </div>
+        }
+      >
+        {open && (
+          <div className="pgn-wheels">
+            <div className="pgn-wheel-col">
+              <span className="pgn-fieldbox-label">{t('week')}</span>
+              <WheelPicker
+                id="pgn-age-week"
+                items={WEEK_OPTIONS.map((w) => formatNumber(w, loc))}
+                selectedIndex={draftWeek}
+                onChange={setDraftWeek}
+              />
+            </div>
+            <div className="pgn-wheel-col">
+              <span className="pgn-fieldbox-label">{t('day')}</span>
+              <WheelPicker
+                id="pgn-age-day"
+                items={DAY_OPTIONS.map((d) => formatNumber(d, loc))}
+                selectedIndex={draftDay}
+                onChange={setDraftDay}
+              />
+            </div>
+          </div>
+        )}
+      </AppSheet>
+    </>
+  );
+}
+
+/** Single-choice chips for an optional field: tapping the picked chip clears it. */
+function RadioChips({
+  id,
+  label,
+  options,
+  value,
+  onChange,
+  render,
+}: {
+  id: string;
+  label: string;
+  options: string[];
+  value: string | null;
+  onChange: (next: string | null) => void;
+  render: (option: string) => string;
+}) {
+  return (
+    <>
+      <span id={id} className="pgn-field-label">
+        {label}
+      </span>
+      <div className="nb-chips pgn-chips" role="radiogroup" aria-labelledby={id}>
+        {options.map((o) => (
+          <button
+            key={o}
+            type="button"
+            role="radio"
+            aria-checked={value === o}
+            className="nb-chip is-multi nb-tone-bloom pgn-chip pgn-radio-chip"
+            onClick={() => onChange(value === o ? null : o)}
+          >
+            <bdi>{render(o)}</bdi>
+            {value === o && <Icon name="check" size={14} strokeWidth={2.6} className="nb-chip-check" />}
+          </button>
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -241,38 +346,22 @@ export function HistoryStep({
             </PillChip>
           ))}
         </div>
-        <div className="pgn-pair">
-          <label className="pgn-fieldbox">
-            <span className="pgn-fieldbox-label">{t('bloodGroup')}</span>
-            <select
-              className="pgn-fieldbox-select"
-              value={value.bloodType ?? ''}
-              onChange={(e) => set({ bloodType: e.target.value || null })}
-            >
-              <option value="">{t('choose')}</option>
-              {bloodTypes.map((b) => (
-                <option key={b} value={b}>
-                  {b}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="pgn-fieldbox">
-            <span className="pgn-fieldbox-label">{t('rh')}</span>
-            <select
-              className="pgn-fieldbox-select"
-              value={value.rhFactor ?? ''}
-              onChange={(e) => set({ rhFactor: e.target.value || null })}
-            >
-              <option value="">{t('choose')}</option>
-              {rhFactors.map((r) => (
-                <option key={r} value={r}>
-                  {r === 'negative' ? t('rhNegative') : t('rhPositive')}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+        <RadioChips
+          id="pgn-setup-blood"
+          label={t('bloodGroup')}
+          options={bloodTypes}
+          value={value.bloodType}
+          onChange={(bloodType) => set({ bloodType })}
+          render={(b) => b}
+        />
+        <RadioChips
+          id="pgn-setup-rh"
+          label={t('rh')}
+          options={rhFactors}
+          value={value.rhFactor}
+          onChange={(rhFactor) => set({ rhFactor })}
+          render={(r) => (r === 'negative' ? t('rhNegative') : t('rhPositive'))}
+        />
       </Card>
       {/* Truthful copy: history is stored on the server (README open point 1). */}
       <InfoNote icon="shield">{copy?.history.disclaimer ?? t('historyDisclaimer')}</InfoNote>

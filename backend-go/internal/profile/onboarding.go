@@ -649,7 +649,7 @@ func (h *OnboardingHandlers) Complete(c fiber.Ctx) error {
 	}
 	if !l.Gender.Valid {
 		missing.Add(StepGender, OT("messages.step_missing.gender", locale))
-	} else if l.Gender.String == string(enums.GenderFemale) && !l.LifeMode.Valid {
+	} else if l.Gender.String != string(enums.GenderMale) && !l.LifeMode.Valid { // female or unspecified: the woman path
 		missing.Add(StepGoal, OT("messages.step_missing.goal", locale))
 	}
 	if !missing.Empty() {

@@ -27,6 +27,8 @@ export interface RequestConfig {
   params?: Record<string, ParamValue>;
   /** Overrides {@link REQUEST_TIMEOUT_MS} (e.g. an upload that waits for speech-to-text). */
   timeoutMs?: number;
+  /** A JSON body for `delete` only (e.g. DELETE /push/subscriptions `{endpoint}`); other verbs take `data`. */
+  data?: unknown;
   /**
    * Upload progress (0–1) of a `FormData` body. When set, the request goes over
    * `XMLHttpRequest` (fetch has no upload progress); everything else — headers,
@@ -262,7 +264,7 @@ export const apiClient = {
     return request<T>('GET', path, undefined, config);
   },
   delete<T = unknown>(path: string, config?: RequestConfig): Promise<ApiResponse<T>> {
-    return request<T>('DELETE', path, undefined, config);
+    return request<T>('DELETE', path, config?.data, config);
   },
   post<T = unknown>(path: string, data?: unknown, config?: RequestConfig): Promise<ApiResponse<T>> {
     return request<T>('POST', path, data, config);

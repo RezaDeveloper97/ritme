@@ -25,7 +25,7 @@ import {
   toParts,
   today,
 } from "@/shared/lib/date";
-import { AppSheet } from "@/shared/sheet";
+import { AppSheet, openSheet } from "@/shared/sheet";
 import {
   CalendarPicker,
   Card,
@@ -399,7 +399,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
                   {t("log.queued")}
                 </span>
               ) : (
-                `${t("log.offlineNote")} ${t("log.editNote")}`
+                t("log.offlineNote")
               )}
             </span>
           </div>
@@ -431,9 +431,9 @@ function RaisedAlerts({ alerts }: { alerts: PregnancyAlertV2[] }) {
           </li>
         ))}
       </ul>
-      <Link href="/pregnancy/alerts" className="pgn-link">
+      <button type="button" className="pgn-link" onClick={() => openSheet('notifications')}>
         {t("log.seeAlerts")}
-      </Link>
+      </button>
     </Card>
   );
 }

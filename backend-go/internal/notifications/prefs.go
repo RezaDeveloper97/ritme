@@ -46,10 +46,14 @@ const (
 	// Pill is «قرص پیشگیری» (B-N1-09): switched and timed on the cycle-settings screen only, so it is not in
 	// Groups (the nbl_Me_Notifications list) but is a known, opt-in category every sender gates on.
 	Pill Category = "pill"
+	// SMSReminders is the «یادآور پیامکی» switch (Ritme Plus, internal/remindersms): medication and appointment
+	// reminders also go out by SMS. On by default — the sender only reaches Plus users — and not a row of Groups:
+	// it is the settings' own sms_reminders field.
+	SMSReminders Category = "sms_reminders"
 )
 
 // extraCategories are known categories that are not a switch of the notification-settings screen.
-var extraCategories = []Category{Pill}
+var extraCategories = []Category{Pill, SMSReminders}
 
 // Group is a titled block of categories.
 type Group struct {

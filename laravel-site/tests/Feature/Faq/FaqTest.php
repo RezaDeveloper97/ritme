@@ -146,7 +146,7 @@ it('renders the home FAQ «قبل از نصب» from group home with its FAQPage
     expect($html)->toContain('قبل از نصب')
         ->and($html)->toContain('aria-labelledby="home-faq-title"')
         ->and(substr_count($html, '<details'))->toBe(4)
-        ->and(substr_count($html, '<details open'))->toBe(1)
+        ->and(preg_match_all('~<details[^>]*\sopen[\s>]~', $html))->toBe(1)
         ->and(faqQuestions($html))->toBe(['ریتمی رایگان است؟', 'ریتمی جای پزشک را می‌گیرد؟', 'داده‌هایم کجا می‌رود؟', 'با تغییر مرحله زندگی، داده قبلی‌ام چه می‌شود؟']);
 });
 

@@ -36,7 +36,8 @@ final class LegalSettingsPage extends SettingsPage
     protected function fields(): array
     {
         return [
-            TextInput::make('enamad_code')->label('کد اینماد')->maxLength(64),
+            TextInput::make('enamad_code')->label('لینک یا کد اینماد')->maxLength(255)
+                ->helperText('لینک نماد (https://trustseal.enamad.ir/?id=…&Code=…) را اینجا یا کد HTML را پایین بگذارید؛ تصویر نماد در فوتر نمایش داده می‌شود.'),
             Textarea::make('enamad_html')->label('کد HTML نشان اینماد')->rows(4)->maxLength(4000)
                 ->helperText('فقط برچسب‌های مجاز زیر نگه داشته می‌شوند.'),
             TagsInput::make('enamad_allowed_tags')->label('برچسب‌های مجاز HTML'),

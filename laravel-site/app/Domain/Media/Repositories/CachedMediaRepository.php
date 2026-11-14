@@ -45,4 +45,12 @@ final class CachedMediaRepository extends CachedRepository implements MediaRepos
 
         return $result;
     }
+
+    public function findByHash(string $hash): ?MediaData
+    {
+        /** @var int|null $id */
+        $id = $this->remember(['hash', $hash], fn (): ?int => $this->inner->findByHash($hash)?->id, cacheNull: true);
+
+        return $id === null ? null : $this->find($id);
+    }
 }

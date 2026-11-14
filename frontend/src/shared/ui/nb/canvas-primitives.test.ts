@@ -142,7 +142,7 @@ describe('StepTimeline', () => {
     expect(out).toContain('<span class="sr-only"> — مرحله فعلی</span>');
     // numbered markers in locale digits; done shows a check instead
     expect(out).toMatch(/nb-tl-marker" aria-hidden="true">۲</);
-    expect(out).toMatch(/nb-tl-marker" aria-hidden="true"><svg/);
+    expect(out).toMatch(/nb-tl-marker" aria-hidden="true"><img src="\/art3d\/icons\/check\.webp"/);
   });
 
   it('dot variant; done steps are data-toned, current can be bloom («waiting on you»)', () => {

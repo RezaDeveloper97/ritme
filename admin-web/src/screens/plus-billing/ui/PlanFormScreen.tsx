@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { RequireSuper } from '@/features/auth';
 import { fieldError, fieldErrorsOf } from '@/shared/api';
 import { useLocalized } from '@/shared/i18n';
-import { formatNumber, toIntOrNull } from '@/shared/lib';
+import { formatNumber, rialsToToman, toIntOrNull, tomanToRials } from '@/shared/lib';
 import {
   FormPage,
   LoadGate,
@@ -21,7 +21,6 @@ import {
 } from '@/shared/ui';
 
 import { plansApi, type Plan } from '../api/billing';
-import { rialsToToman, tomanToRials } from '../lib/money';
 
 /** /plus/plans/new and /plus/plans/:id (super admin). */
 export function PlanFormScreen({ id }: { id: number | null }) {
@@ -55,6 +54,7 @@ function PlanForm({ id, row, nextSort }: { id: number | null; row: Plan | null; 
   const [months, setMonths] = useState(String(row?.duration_months ?? 1));
   const [price, setPrice] = useState(row ? String(rialsToToman(row.price_rials)) : '');
   const [monthly, setMonthly] = useState(row?.monthly_display_rials ? String(rialsToToman(row.monthly_display_rials)) : '');
+  const [aiCredits, setAiCredits] = useState(String(row?.ai_credits ?? 0));
   const [sortOrder, setSortOrder] = useState(String(row?.sort_order ?? nextSort));
   const [highlighted, setHighlighted] = useState(row?.is_highlighted ?? false);
   const [active, setActive] = useState(row?.is_active ?? true);
@@ -73,6 +73,7 @@ function PlanForm({ id, row, nextSort }: { id: number | null; row: Plan | null; 
         duration_months: monthsN,
         price_rials: priceRials,
         monthly_display_rials: tomanToRials(monthly),
+        ai_credits: toIntOrNull(aiCredits) ?? 0,
         sort_order: toIntOrNull(sortOrder),
         is_highlighted: highlighted,
         is_active: active,
@@ -136,6 +137,15 @@ function PlanForm({ id, row, nextSort }: { id: number | null; row: Plan | null; 
           value={monthly}
           onChange={(e) => setMonthly(e.target.value)}
           error={err('monthly_display_rials')}
+        />
+        <TextInput
+          label={t('aiCredits')}
+          hint={t('aiCreditsHint')}
+          type="number"
+          min={0}
+          value={aiCredits}
+          onChange={(e) => setAiCredits(e.target.value)}
+          error={err('ai_credits')}
         />
         <TextInput
           label={tc('sortOrder')}

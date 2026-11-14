@@ -316,7 +316,6 @@ export interface PregnancyWeek {
   relation: WeekRelation;
   range: DateRange | null;
   rangeLabel: string | null;
-  bookmarked: boolean;
   details: WeekDetails;
   /** Week tasks merged with the user's done state. */
   tasks: WeekTask[];
@@ -325,13 +324,11 @@ export interface PregnancyWeek {
 
 /** PUT /pregnancy/v2/weeks/{n}/state — every field optional. */
 export interface WeekStateInput {
-  bookmarked?: boolean;
   done_task_keys?: string[];
 }
 
 export interface WeekState {
   week: number;
-  bookmarked: boolean;
   doneTaskKeys: string[];
 }
 

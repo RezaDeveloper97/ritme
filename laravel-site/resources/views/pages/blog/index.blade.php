@@ -42,6 +42,7 @@
         @endif
     </section>
 
+    @siteSection('newsletter')
     <div class="flex flex-col gap-3 px-30 pt-0 pb-24 max-lg:px-5 max-lg:pb-[52.8px]">
         <x-ui.newsletter id="newsletter" name="email" :action="route('newsletter.store')" :value="old('email')"
                          :describedby="session('newsletter_status') ? 'newsletter-status' : null"
@@ -62,6 +63,7 @@
             </p>
         @endif
     </div>
+    @endsiteSection
 
     <x-ui.app-cta :title="__('blog.app_cta.title')" :lead="__('blog.app_cta.lead')" :links="$appLinks" :qr-url="$qrUrl"/>
 @endsection

@@ -19,7 +19,7 @@ import {
 import { getApiErrorStatus } from '@/shared/api';
 import { Link, type Locale, usePathname, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
-import { Card, EmptyState, Icon, Skeleton, SkeletonGroup } from '@/shared/ui';
+import { Card, CheckTick, EmptyState, Icon, Skeleton, SkeletonGroup } from '@/shared/ui';
 
 import { APP_SHOP, FACET_KEYS, FACET_SOURCE, type FacetKey, type Filters, NO_FILTERS, STORE_HOME, storeCategoryHref } from '../model/store';
 import { ShopWebShell, WebTile } from './ShopWebShell';
@@ -168,7 +168,8 @@ export function WebShopList({
                 </h3>
                 {g.items.map((f) => (
                   <label key={f.value} className="wsh-check">
-                    <input type="checkbox" checked={filters[g.key].includes(f.value)} onChange={() => toggle(g.key, f.value)} />
+                    <input type="checkbox" className="nb-check-native" checked={filters[g.key].includes(f.value)} onChange={() => toggle(g.key, f.value)} />
+                    <span className="nb-check-box" aria-hidden><CheckTick on={filters[g.key].includes(f.value)} /></span>
                     <span>{label(g.key, f)}</span>
                     <span className="wsh-sub-n">{formatNumber(f.count, locale)}</span>
                   </label>

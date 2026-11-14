@@ -78,6 +78,23 @@
     --color-blush: #fff1f5;
     --color-mist: #efeaff;
 
+    /* Nov 2026 site redesign («ریتمی — وب‌سایت یکپارچه» canvas): white pages, soft stage bands, ink CTAs. */
+    --color-rose: #b82a52; /* logo tile, store-button icons, cycle accent */
+    --color-rose-line: #f4c6d3;
+    --color-rose-mid: #e58aa6;
+    --color-rose-bright: #ff7aa2;
+    --color-rose-pale: #fbd3df;
+    --color-rose-mist: #ffe3ec;
+    --color-sand: #fff3df; /* ttc band */
+    --color-sand-line: #fce3b0;
+    --color-amber: #f2b544;
+    --color-peach: #fff1e6; /* pregnancy band */
+    --color-stage-pregnancy-warm: #a04c18; /* pregnancy accent of the redesign (design-system `pregnancy`) */
+    --color-aqua-soft: #e3f9fe;
+    --color-lilac-line: #cfc4fb;
+    --color-on-ink-muted: #c9c1e2; /* footer text on bg-ink */
+    --color-on-ink-soft: #d9d2ee; /* lead text in the ink download band */
+
     /* ---------- Typography (AUDIT §3.2) ---------- */
     --font-*: initial;
     --font-sans: Vazirmatn, 'Vazirmatn Fallback', 'Vazirmatn Fallback Geeza', Tahoma, ui-sans-serif, system-ui, sans-serif;
@@ -136,6 +153,10 @@
     --shadow-card: 0 20px 40px -20px rgb(110 84 240 / 0.5);
     --shadow-search: 0 20px 40px -24px rgb(110 84 240 / 0.35);
     --shadow-booking: 0 30px 60px -36px rgb(110 84 240 / 0.45);
+    --shadow-pop: 0 12px 28px -14px rgb(35 27 59 / 0.3); /* floating chips on photos */
+    --shadow-tile: 0 10px 24px -16px rgb(35 27 59 / 0.35);
+    --shadow-store: 0 14px 30px -16px rgb(0 0 0 / 0.7);
+    --shadow-rose: 0 24px 48px -24px rgb(184 42 82 / 0.55);
 
     /* ---------- Layout ---------- */
     --container-page: 90rem; /* 1440 — .rt-page */
@@ -172,6 +193,7 @@
     }
 
     html {
+        overflow-x: clip; /* full-bleed band pseudos (.bleed) reach past the screen edge */
         -webkit-text-size-adjust: 100%;
         text-size-adjust: 100%;
     }
@@ -260,8 +282,50 @@
         radial-gradient(circle at 45% 110%, color-mix(in srgb, var(--color-phase-fertile) 16%, transparent), transparent 45%);
 }
 
+/* Full-bleed bands: content stays inside the 1440 shell, but a band's background (and its top/bottom border)
+   runs to both edges of the screen. Two side pseudos copy the band's own background; body clips the overflow.
+   `.bleed` marks one band, `.bleed-rows` every direct child. Pseudos that already exist (cards) are not touched. */
+@utility bleed-night {
+    &::before,
+    &::after {
+        background: var(--color-night);
+    }
+}
+
 /* ---------- Components (only genuinely shared, content-driven bits) ---------- */
 @layer components {
+    .bleed,
+    .bleed-rows > * {
+        position: relative;
+
+        &::before,
+        &::after {
+            content: "";
+            position: absolute;
+            inset-block: 0;
+            width: max(0px, (100vw - 100%) / 2);
+            background: inherit;
+            border-block: inherit;
+            pointer-events: none;
+        }
+
+        &::before {
+            inset-inline-end: 100%;
+        }
+
+        &::after {
+            inset-inline-start: 100%;
+        }
+    }
+
+    /* A wrapper band paints its ::after after its children; keep its strips under the inner bands' strips. */
+    .bleed-rows > .bleed-rows {
+        &::before,
+        &::after {
+            z-index: -1;
+        }
+    }
+
     /* Long-form rich text from the admin (articles, legal pages, place descriptions). */
     .rt-prose {
         color: var(--color-ink);
@@ -359,6 +423,60 @@
         & th {
             background-color: var(--color-canvas);
             font-weight: 800;
+        }
+    }
+}
+
+/* ---------- «home» block (pages/home, components/home) ---------- */
+/* Hero dot ring: slow turn + three outward pulses (design Main.html .hr / .hp); still under reduced motion. */
+@keyframes home-ring-turn {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes home-ring-pulse {
+    0% {
+        opacity: 0.55;
+        transform: scale(0.6);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(2.5);
+    }
+}
+
+@layer components {
+    .home-ring {
+        animation: home-ring-turn 90s linear infinite;
+        transform-box: fill-box;
+        transform-origin: center;
+    }
+
+    .home-pulse {
+        animation: home-ring-pulse 8s ease-out infinite;
+        opacity: 0;
+        transform-box: view-box;
+        transform-origin: 0 0;
+    }
+
+    .home-pulse-2 {
+        animation-delay: 2.7s;
+    }
+
+    .home-pulse-3 {
+        animation-delay: 5.4s;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .home-ring,
+        .home-pulse {
+            animation: none;
+        }
+
+        .home-pulse {
+            opacity: 0.2;
         }
     }
 }

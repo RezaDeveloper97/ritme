@@ -7,7 +7,7 @@ export const vitalsKeys = {
   plan: () => [...vitalsKeys.all, 'plan'] as const,
   thresholds: () => [...vitalsKeys.all, 'thresholds'] as const,
   targets: () => [...vitalsKeys.all, 'targets'] as const,
-  readings: (type: VitalType, from: string, to: string) => [...vitalsKeys.all, 'readings', type, from, to] as const,
+  readings: (type: VitalType | null, from: string, to: string) => [...vitalsKeys.all, 'readings', type ?? 'all', from, to] as const,
   reports: () => [...vitalsKeys.all, 'report'] as const,
   report: (type: VitalType, range: ReportRange, filter: GlucoseFilter | null) =>
     [...vitalsKeys.reports(), type, range, filter ?? 'all'] as const,

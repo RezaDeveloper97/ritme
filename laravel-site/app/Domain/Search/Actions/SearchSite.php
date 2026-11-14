@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Search\Actions;
 
+use App\Domain\Content\SiteSections;
 use App\Domain\Search\Data\SearchHit;
 use App\Domain\Search\Data\SearchResults;
 use App\Domain\Search\Support\SearchRegistry;
@@ -27,6 +28,7 @@ final class SearchSite
         private readonly SearchRegistry $registry,
         private readonly CacheAside $cache,
         private readonly SearchTermLog $log,
+        private readonly SiteSections $sections,
     ) {}
 
     public function handle(?string $input, int $page = 1, int $perPage = 10): SearchResults
@@ -66,6 +68,9 @@ final class SearchSite
     {
         $hits = [];
         foreach ($this->registry->all() as $order => $provider) {
+            if (! $this->sections->searchEnabled($provider->key())) { // its site section is switched off
+                continue;
+            }
             foreach ($provider->search($terms, self::PER_PROVIDER) as $rank => $hit) {
                 $hits[] = ['hit' => $hit, 'order' => $order, 'rank' => $rank];
             }

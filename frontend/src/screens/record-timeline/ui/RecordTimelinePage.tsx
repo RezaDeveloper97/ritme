@@ -24,7 +24,6 @@ import {
   HeaderButton,
   Icon,
   IconCircle,
-  InfoNote,
   PillChip,
   PrimaryButton,
   ScreenHeader,
@@ -120,7 +119,6 @@ export function RecordTimelinePage() {
           ))}
         </ChipGroup>
         {body}
-        {months.length > 0 ? <InfoNote>{t('note')}</InfoNote> : null}
       </div>
       <UploadDocumentSheet
         open={uploadOpen}

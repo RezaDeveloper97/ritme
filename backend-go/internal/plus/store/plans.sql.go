@@ -10,7 +10,7 @@ import (
 )
 
 const getActivePlan = `-- name: GetActivePlan :one
-SELECT id, code, title, badge, duration_months, price_rials, monthly_display_rials, is_highlighted, is_active, sort_order, created_at, updated_at FROM plus_plans
+SELECT id, code, title, badge, duration_months, price_rials, monthly_display_rials, is_highlighted, is_active, sort_order, created_at, updated_at, duration_minutes, ai_credits FROM plus_plans
 WHERE id = ? AND is_active = 1
 `
 
@@ -30,12 +30,14 @@ func (q *Queries) GetActivePlan(ctx context.Context, id uint64) (PlusPlan, error
 		&i.SortOrder,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DurationMinutes,
+		&i.AiCredits,
 	)
 	return i, err
 }
 
 const getPlan = `-- name: GetPlan :one
-SELECT id, code, title, badge, duration_months, price_rials, monthly_display_rials, is_highlighted, is_active, sort_order, created_at, updated_at FROM plus_plans
+SELECT id, code, title, badge, duration_months, price_rials, monthly_display_rials, is_highlighted, is_active, sort_order, created_at, updated_at, duration_minutes, ai_credits FROM plus_plans
 WHERE id = ?
 `
 
@@ -55,13 +57,15 @@ func (q *Queries) GetPlan(ctx context.Context, id uint64) (PlusPlan, error) {
 		&i.SortOrder,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DurationMinutes,
+		&i.AiCredits,
 	)
 	return i, err
 }
 
 const listActivePlans = `-- name: ListActivePlans :many
 
-SELECT id, code, title, badge, duration_months, price_rials, monthly_display_rials, is_highlighted, is_active, sort_order, created_at, updated_at FROM plus_plans
+SELECT id, code, title, badge, duration_months, price_rials, monthly_display_rials, is_highlighted, is_active, sort_order, created_at, updated_at, duration_minutes, ai_credits FROM plus_plans
 WHERE is_active = 1
 ORDER BY sort_order, id
 `
@@ -89,6 +93,8 @@ func (q *Queries) ListActivePlans(ctx context.Context) ([]PlusPlan, error) {
 			&i.SortOrder,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.DurationMinutes,
+			&i.AiCredits,
 		); err != nil {
 			return nil, err
 		}

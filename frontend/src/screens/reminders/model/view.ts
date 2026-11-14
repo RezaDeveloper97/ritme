@@ -1,6 +1,11 @@
 import {
   type Appointment,
   type AppointmentKind,
+  type DoseUnit,
+  doseDetail,
+  type FrequencySummary,
+  frequencySummary,
+  type Meal,
   type Medication,
   type MedicationForm,
   type MedicationSchedule,
@@ -103,6 +108,7 @@ export interface DoseCardState {
   period: SlotPeriod;
   /** What tapping the check does next. */
   nextTaken: boolean;
+  detail: ReturnType<typeof doseDetail>;
 }
 
 export function doseCardState(dose: TodayDose): DoseCardState {
@@ -115,6 +121,7 @@ export function doseCardState(dose: TodayDose): DoseCardState {
     clock: slotClock(dose.slot),
     period: slotPeriod(dose.slot),
     nextTaken: !dose.taken,
+    detail: doseDetail(dose),
   };
 }
 
@@ -140,6 +147,10 @@ export interface MedicationRowState {
   tone: MedicationTone;
   form: MedicationForm;
   schedule: MedicationSchedule;
+  /** Set for a medication saved with the frequency form; null for an old one. */
+  frequency: FrequencySummary | null;
+  /** The first dose block's amount / unit / meal, or null for an old medication. */
+  doseLine: { amount: number; unit: DoseUnit; meal: Meal | null } | null;
   /** Every slot of the day, in order. */
   slots: Array<{ clock: string; period: SlotPeriod }>;
   amount: number;
@@ -155,6 +166,10 @@ export function medicationRowState(med: Medication): MedicationRowState {
     tone: med.form === 'capsule' ? 'teal' : 'brand',
     form: med.form,
     schedule: medicationSchedule(med.weekdays),
+    frequency: med.frequency ? frequencySummary(med.frequency) : null,
+    doseLine: med.doses[0]
+      ? { amount: med.doses[0].amount, unit: med.doses[0].unit, meal: med.doses[0].meal }
+      : null,
     slots: med.times.map((slot) => ({ clock: slotClock(slot), period: slotPeriod(slot) })),
     amount: med.amount,
     isActive: med.isActive,

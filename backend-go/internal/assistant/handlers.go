@@ -34,7 +34,6 @@ import (
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
-	"github.com/ritme/backend-go/internal/plus"
 )
 
 // Error codes.
@@ -89,13 +88,13 @@ func T(key, locale string) string {
 // Handlers serve /api/v1/assistant.
 type Handlers struct {
 	svc   *Service
-	plus  *plus.Service
+	quota Quota
 	clock clock.Clock
 }
 
 // NewHandlers builds the handlers (plusSvc nil = no quota block in the hub).
-func NewHandlers(svc *Service, plusSvc *plus.Service, base clock.Clock) *Handlers {
-	return &Handlers{svc: svc, plus: plusSvc, clock: base}
+func NewHandlers(svc *Service, quota Quota, base clock.Clock) *Handlers {
+	return &Handlers{svc: svc, quota: quota, clock: base}
 }
 
 func (h *Handlers) now(c fiber.Ctx) time.Time {
@@ -269,15 +268,28 @@ func handoffJSON(hd store.AssistantHandoff) *jsonx.OrderedMap {
 
 // --- Hub, departments, profile --------------------------------------------------------------------------------------
 
-func (h *Handlers) quota(c fiber.Ctx, userID uint64) (any, error) {
-	if h.plus == nil {
+// Quota says what the user can still spend on the assistant (the AI credits of goose 00125): allowed = a running
+// subscription with at least one message's cost left; limit / used are the period's credits, remaining everything
+// spendable now (the period's plus the extra credits).
+type Quota func(ctx context.Context, userID uint64, now time.Time) (QuotaState, error)
+
+// QuotaState is the hub's `quota` object.
+type QuotaState struct {
+	Allowed   bool
+	Limit     uint32
+	Used      uint32
+	Remaining uint32
+}
+
+func (h *Handlers) quotaJSON(c fiber.Ctx, userID uint64) (any, error) {
+	if h.quota == nil {
 		return nil, nil
 	}
-	e, err := h.plus.Entitlement(c, userID, plus.AssistantUnlimited, h.now(c))
+	q, err := h.quota(c, userID, h.now(c))
 	if err != nil {
 		return nil, fmt.Errorf("assistant: quota: %w", err)
 	}
-	return jsonx.Obj("unlimited", e.Unlimited, "allowed", e.Allowed, "limit", e.Limit, "used", e.Used, "remaining", e.Remaining), nil
+	return jsonx.Obj("unlimited", false, "allowed", q.Allowed, "limit", q.Limit, "used", q.Used, "remaining", q.Remaining), nil
 }
 
 // Hub is GET /assistant: departments, quota, recent conversations, profile chips.
@@ -305,7 +317,7 @@ func (h *Handlers) Hub(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	q, err := h.quota(c, userID)
+	q, err := h.quotaJSON(c, userID)
 	if err != nil {
 		return err
 	}
@@ -685,11 +697,6 @@ func (h *Handlers) PrepareMessage(c fiber.Ctx) error {
 		return err
 	}
 	if !in.terms.IsEmergency(in.text) {
-		// A-04: a Plus user at the fair-use cap gets a polite in-chat answer, never the 429 of the AI gate. An
-		// emergency message never reaches this (the 115 card above always wins).
-		if handled, err := h.fairUseReply(c, userID, in, now); handled || err != nil {
-			return err
-		}
 		c.Locals(inputKey{}, in)
 		return c.Next()
 	}

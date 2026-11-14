@@ -6,8 +6,8 @@ vi.mock('next/navigation', () => ({ redirect }));
 import PregnancyAlertsRoute from './page';
 
 describe('/pregnancy/alerts', () => {
-  it('redirects the old URL to the generic /alerts inbox, keeping the locale', async () => {
+  it('redirects the old URL to home with the notifications sheet open, keeping the locale', async () => {
     await PregnancyAlertsRoute({ params: Promise.resolve({ locale: 'fa' }) });
-    expect(redirect).toHaveBeenCalledWith('/fa/alerts');
+    expect(redirect).toHaveBeenCalledWith('/fa?sheet=notifications');
   });
 });

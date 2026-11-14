@@ -1,0 +1,77 @@
+# AI credits (/api/v1/ai/credits*, goose 00125, deviation D-209) — Go only: there is no Laravel route, so these goldens
+# were recorded from the Go server (`contract diff --record-go`) and reviewed by hand (new-endpoint skill, step 8).
+# The balance is read-only here: credits are granted by the trial, a plan purchase or a credit pack (plus group) and
+# spent by the AI gate. Spend order, expiry, refunds, races and the admin grants are covered by
+# internal/ai/credits/credits_int_test.go; the gate's refusals by internal/ai/access/access_int_test.go.
+# Case format: backend-go/cmd/contract/cases.go (StepSpec / CaseSpec doc comments).
+group: ai-credits
+defaults:
+  persona: no_profile
+  locales: [none, en]
+  patterns:
+    data.invoice.reference: '^RP[A-Z2-7]{16}$'
+    data.payment.authority: '^FAKE-RP[A-Z2-7]{16}$'
+    data.invoice.receipt.ref_id: '^FAKE-REF-RP[A-Z2-7]{16}$'
+    data.payment.redirect_url: '^http://127\.0\.0\.1:8090/api/v1/payments/fake/pay/FAKE-RP[A-Z2-7]{16}$'
+cases:
+  - name: balance_new_user
+    doc: No subscription, no credits → nothing spendable; the feature price list is still shown
+    locales: [none, en, fa]
+    method: GET
+    path: /api/v1/ai/credits
+    status: 200
+  - name: usage_new_user
+    doc: Nothing spent → empty summary and history
+    method: GET
+    path: /api/v1/ai/credits/usage
+    status: 200
+  - name: anon
+    persona: anon
+    locales: none
+    steps:
+      - method: GET
+        path: /api/v1/ai/credits
+        status: 401
+      - method: GET
+        path: /api/v1/ai/credits/usage
+        status: 401
+
+  - name: trial_then_pack
+    doc: The trial grants its period credits; a paid credit pack adds extra credits that outlive the trial (locked without a subscription)
+    locales: none
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: GET
+        path: /api/v1/ai/credits
+        status: 200
+      - method: POST
+        path: /api/v1/plus/credit-packs/checkout
+        body: {pack_id: 1}
+        status: 200
+        capture: {ref: data.invoice.reference, auth: data.payment.authority}
+      - method: POST
+        path: "/api/v1/payments/fake/pay/{{auth}}"
+        raw_body: decision=success
+        content_type: application/x-www-form-urlencoded
+        status: 303
+        ignore_body: true
+        ignore: ["header:location"]
+      - method: POST
+        path: /api/v1/plus/verify
+        now: "2026-09-23T10:05:00+03:30"
+        body: {reference: "{{ref}}", authority: "{{auth}}", status: OK}
+        status: 200
+      - method: GET
+        path: /api/v1/ai/credits
+        now: "2026-09-23T10:06:00+03:30"
+        status: 200
+      - method: GET
+        path: /api/v1/ai/credits
+        now: "2026-09-30T10:00:00+03:30"
+        status: 200
+      - method: GET
+        path: /api/v1/ai/credits/usage
+        now: "2026-09-30T10:00:00+03:30"
+        status: 200

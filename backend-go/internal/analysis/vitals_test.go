@@ -19,6 +19,7 @@ func TestSummaryVitals_MergedReadings(t *testing.T) {
 		{Type: vitals.TypeGlucose, Date: d("2026-10-05"), MgDl: 160, Context: vitals.ContextAfterMeal, MeasuredAt: d("2026-10-05").TehranMidnight()},
 		{Type: vitals.TypeGlucose, Date: d("2026-10-03"), MgDl: 100, Context: vitals.ContextRandom, Source: vitals.SourceLog},
 		{Type: vitals.TypeHR, Date: d("2026-10-05"), Pulse: 70},
+		{Type: vitals.TypeHR, Date: d("2026-10-02"), Pulse: 80},
 	})}
 	v := in.vitals(d("2026-09-01"), d("2026-10-06"))
 	assert.Equal(t, 2, v.BPReadings)
@@ -26,6 +27,11 @@ func TestSummaryVitals_MergedReadings(t *testing.T) {
 	assert.InDelta(t, 82, *v.Diastolic, 0.001)
 	assert.Equal(t, 2, v.GlucoseReadings, "fasting timed + log value; after-meal left out")
 	assert.InDelta(t, 97, *v.Glucose, 0.001)
+	assert.Equal(t, 2, v.HR.Readings, "heart-rate readings; a BP pulse stays out")
+	assert.True(t, v.HR.Ready())
+	assert.InDelta(t, 75, v.HR.Mean[0], 0.001)
+	assert.InDelta(t, 70, v.HR.Min[0], 0.001)
+	assert.InDelta(t, 80, v.HR.Max[0], 0.001)
 }
 
 func TestMergeVitals_Pregnancy(t *testing.T) {

@@ -20,9 +20,9 @@ import {
 import { useDirection, useRouter } from '@/shared/i18n';
 import { AppSheet } from '@/shared/sheet';
 import {
+  Art3d,
   EmptyState,
   Icon,
-  IconCircle,
   ListRow,
   PrimaryButton,
   ScreenHeader,
@@ -48,7 +48,7 @@ function radioStep(key: string, index: number, count: number, rtl: boolean): num
 
 /**
  * «مرحله زندگی» (`/profile/mode`, B-N2-03, `nbl_Me_Mode` / `nbd_Me_Mode`): the
- * six life-stage modes as radio cards (tab + log hint chips), the IVF/IUI switch
+ * six life-stage modes as radio cards (icon + title only), the IVF/IUI switch
  * inside the TTC card, «track contraception» and the «data kept» note. Reads and
  * writes `GET|PUT /profile/life-stage`; pregnancy goes through the pregnancy
  * endpoints (setup to enter, deactivate to leave). In pregnancy mode a calm exit
@@ -263,6 +263,7 @@ function ModeBody({ stage }: { stage: LifeStage }) {
             <ListRow
               icon="pill"
               iconTone="brand"
+              art="contraception"
               title={tc('manage')}
               description={tc('manageDesc')}
               onClick={() => router.push('/contraception')}
@@ -322,7 +323,7 @@ interface ModeCardProps {
   children?: React.ReactNode;
 }
 
-/** One mode: the radio (icon, title, description, dot + the tab / log chips) and its extras below. */
+/** One mode: the radio (icon, title, dot) and its extras below. */
 function ModeCard({ card, checked, tabIndex, buttonRef, idPrefix, disabled, onSelect, onKeyDown, children }: ModeCardProps) {
   const t = useTranslations('me.mode');
   return (
@@ -333,7 +334,6 @@ function ModeCard({ card, checked, tabIndex, buttonRef, idPrefix, disabled, onSe
         role="radio"
         aria-checked={checked}
         aria-labelledby={`${idPrefix}-t`}
-        aria-describedby={`${idPrefix}-d ${idPrefix}-c`}
         tabIndex={tabIndex}
         disabled={disabled && !checked}
         className="mode-radio"
@@ -341,20 +341,13 @@ function ModeCard({ card, checked, tabIndex, buttonRef, idPrefix, disabled, onSe
         onKeyDown={onKeyDown}
       >
         <span className="mode-head">
-          <IconCircle icon={card.icon} tone={card.tone} size="lg" />
+          <Art3d name={card.art} size={52} />
           <span className="mode-text">
             <b id={`${idPrefix}-t`} className="mode-title">
               {t(`cards.${card.key}.title`)}
             </b>
-            <span id={`${idPrefix}-d`} className="mode-desc">
-              {t(`cards.${card.key}.desc`)}
-            </span>
           </span>
           <span className="mode-dot" aria-hidden />
-        </span>
-        <span id={`${idPrefix}-c`} className="mode-chips">
-          <span className="mode-chip">{t(`cards.${card.key}.tab`)}</span>
-          <span className="mode-chip">{t(`cards.${card.key}.log`)}</span>
         </span>
       </button>
       {children}

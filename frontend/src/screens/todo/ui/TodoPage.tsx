@@ -114,13 +114,7 @@ export function TodoPage() {
             icon={filter === 'all' ? 'todo' : CATEGORY_LOOK[filter].icon}
             className={clsx('td-empty', `nb-tone-${filter === 'all' ? 'brand' : CATEGORY_LOOK[filter].tone}`)}
             title={t(fresh ? 'empty.freshTitle' : 'empty.allDoneTitle')}
-            body={
-              fresh
-                ? t('empty.freshBody')
-                : filter === 'all'
-                  ? t('empty.allDoneBodyAll')
-                  : t('empty.allDoneBody', { category: t(`categories.${filter}`) })
-            }
+            body={fresh ? t('empty.freshBody') : undefined}
             action={
               <PrimaryButton icon="plus" onClick={() => openAdd(filter === 'all' ? undefined : filter)}>
                 {t('newTask')}

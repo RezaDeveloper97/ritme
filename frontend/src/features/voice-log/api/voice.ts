@@ -5,9 +5,7 @@ import { z } from 'zod';
 
 import { contraceptionKeys } from '@/entities/contraception';
 import { menopauseKeys } from '@/entities/menopause';
-import { plusKeys } from '@/entities/plus';
 import { type ApiEnvelope, apiClient } from '@/shared/api';
-import { plusDenialOf } from '@/shared/ui/plus-gate';
 
 const valueSchema = z.union([z.string(), z.number(), z.boolean()]);
 
@@ -78,15 +76,11 @@ export async function postVoiceLog({ audio, durationMs }: VoiceUpload): Promise<
   return voiceResultSchema.parse(data.data);
 }
 
-/** The upload mutation; a Plus refusal refreshes the entitlements so the tab's lock catches up. */
+/** The upload mutation. Gate refusals (402 / 403) are handled by the caller through `useAiGate(...).handleError`. */
 export function useVoiceLog() {
-  const queryClient = useQueryClient();
   return useMutation<VoiceResult, unknown, VoiceUpload>({
     mutationFn: postVoiceLog,
     retry: false,
-    onError: (error) => {
-      if (plusDenialOf(error)) void queryClient.invalidateQueries({ queryKey: plusKeys.all });
-    },
   });
 }
 

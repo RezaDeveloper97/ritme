@@ -1,6 +1,7 @@
 /**
  * Night & Bloom bottom nav per life-stage mode (B-N1-04, docs/night-bloom/nav.md):
- * امروز · <mode tab> · FAB(+) · خدمات · من.
+ * امروز · <mode tab> · FAB(+) · تحلیل · من. The services hub (`/services`) left
+ * the nav for «تحلیل» (analysis + cycle history) and is now reached from «من».
  *
  * DOM order is the RTL visual order: «امروز» sits on the right in `fa`, «من»
  * on the left, the FAB always in the middle; in LTR it simply mirrors.
@@ -21,8 +22,13 @@ export type NavKey =
   | 'pregnancy'
   | 'child'
   | 'symptoms'
+  | 'analysis'
   | 'services'
-  | 'me';
+  | 'me'
+  // Companion nav (companion v2 tabbarM): یادگیری · اقدام‌ها · پروفایل.
+  | 'learn'
+  | 'actions'
+  | 'profile';
 
 export type NavIconName =
   | 'home'
@@ -32,8 +38,11 @@ export type NavIconName =
   | 'pregnancy'
   | 'child'
   | 'symptoms'
+  | 'analysis'
   | 'services'
-  | 'me';
+  | 'me'
+  | 'learn'
+  | 'actions';
 
 export interface NavTab {
   /** Stable key; also the label's message key under the `nav` i18n namespace. */
@@ -117,10 +126,21 @@ export const NAV_READY: NavReady = { postpartum: true, children: true, analysis:
 /** «درمان» before CB-IVF-03: the IVF home's today-injections section (`id="ivf-doses"`), never a 404. */
 export const IVF_TREATMENT_FALLBACK = '/ivf#ivf-doses';
 
-// B-N6-02: the vitals hub is a services hub (nbl_Vitals_Hub marks «خدمات» active).
-const SERVICES: NavTab = { key: 'services', href: '/services', icon: 'services', alsoActive: ['/vitals', '/programs', '/programs/pelvic', '/insurance', '/city-services', '/city-services/'] };
-// B-N6-08: «کارهای من» lives under «من» (nav.md: Todo_Home → من).
-const ME: NavTab = { key: 'me', href: '/profile', icon: 'me', alsoActive: ['/todo', '/learn'] };
+// «تحلیل»: the analysis hub + the cycle history (`/cycle` redirects to `/analysis?tab=history`).
+const ANALYSIS: NavTab = { key: 'analysis', href: '/analysis', icon: 'analysis', alsoActive: ['/analysis/', '/cycle', '/cycle/'] };
+// B-N6-08: «کارهای من» lives under «من» (nav.md: Todo_Home → من). The services hub and its sub-hubs
+// (B-N6-02 vitals, programs, insurance, city services) moved under «من» when «تحلیل» took the «خدمات» slot.
+const SERVICES_PATHS: readonly string[] = [
+  '/services',
+  '/vitals',
+  '/programs',
+  '/programs/pelvic',
+  '/insurance',
+  '/assistant',
+  '/city-services',
+  '/city-services/',
+];
+const ME: NavTab = { key: 'me', href: '/profile', icon: 'me', alsoActive: ['/todo', '/learn', ...SERVICES_PATHS] };
 
 /** The second tab, whose label and target follow the mode. */
 export function modeTab(mode: NavMode, options: NavOptions = {}): NavTab | null {
@@ -138,21 +158,20 @@ export function modeTab(mode: NavMode, options: NavOptions = {}): NavTab | null 
   switch (mode) {
     case 'cycle':
     case 'teen':
-      // /cycle (history) and the future /analysis live under the mode tab (nav.md).
-      return { key: 'calendar', href: '/calendar', icon: 'calendar', alsoActive: ['/cycle', '/analysis', '/analysis/'] };
+      return { key: 'calendar', href: '/calendar', icon: 'calendar' };
     case 'ttc':
       return {
         key: 'fertility',
         href: '/calendar',
         icon: 'fertility',
-        alsoActive: ['/cycle', '/analysis', '/analysis/', '/fertility/'],
+        alsoActive: ['/fertility/'],
       };
     case 'pregnancy':
       return {
         key: 'pregnancy',
         href: '/pregnancy/weeks',
         icon: 'pregnancy',
-        alsoActive: ['/pregnancy/weeks/', '/pregnancy/calendar', '/analysis', '/analysis/'],
+        alsoActive: ['/pregnancy/weeks/', '/pregnancy/calendar'],
       };
     case 'postpartum': {
       const ids = options.childIds ?? [];
@@ -164,14 +183,8 @@ export function modeTab(mode: NavMode, options: NavOptions = {}): NavTab | null 
       };
     }
     case 'menopause':
-      // CB-MENO-08 (CB-CORE-01 C3): «علائم» = the monthly score (nbl_Meno_Score); bloom's symptom
-      // analysis stays reachable from that screen and keeps the tab lit.
-      return {
-        key: 'symptoms',
-        href: '/menopause/score',
-        icon: 'symptoms',
-        alsoActive: ['/analysis', '/analysis/', '/cycle/symptoms'],
-      };
+      // CB-MENO-08 (CB-CORE-01 C3): «علائم» = the monthly score (nbl_Meno_Score).
+      return { key: 'symptoms', href: '/menopause/score', icon: 'symptoms' };
     case 'companion':
       return null;
   }
@@ -192,14 +205,31 @@ export function todayHref(mode: NavMode, ready: Partial<NavReady> = {}, ivf = fa
   }
 }
 
+/**
+ * Companion v2 (tabbarM): امروز · یادگیری · اقدام‌ها · پروفایل, no FAB — a man logs nothing of hers, and his own
+ * value is the learn content and the action ideas.
+ */
+const COMPANION_NAV: NavConfig = {
+  before: [
+    { key: 'today', href: '/companion', icon: 'home' },
+    { key: 'learn', href: '/companion/learn', icon: 'learn' },
+  ],
+  after: [
+    { key: 'actions', href: '/companion/actions', icon: 'actions' },
+    { key: 'profile', href: '/profile', icon: 'me' },
+  ],
+  fab: false,
+};
+
 /** Every tab + FAB presence for `mode`. */
 export function navConfig(mode: NavMode, options: NavOptions = {}): NavConfig {
+  if (mode === 'companion') return COMPANION_NAV;
   const today: NavTab = { key: 'today', href: todayHref(mode, options.ready, options.ivf), icon: 'home' };
   const second = modeTab(mode, options);
   return {
     before: second ? [today, second] : [today],
-    after: [SERVICES, ME],
-    fab: mode !== 'companion',
+    after: [ANALYSIS, ME],
+    fab: true,
   };
 }
 
@@ -214,14 +244,14 @@ function matches(pattern: string, path: string): boolean {
 /**
  * Which tab is active on `pathname` (locale stripped), or `null`. The FAB is
  * never "active" — it opens a sheet over the current screen.
- * Services sub-hubs (`/services/*`) keep «خدمات» lit (nav.md).
+ * Services sub-screens (`/services/*`) keep «من» lit (the services hub lives under «من»).
  */
 export function activeTabKey(config: NavConfig, pathname: string): NavKey | null {
   const path = stripSlash(pathname);
   const tabs = [...config.before, ...config.after];
   const exact = tabs.find((tab) => tab.href === path);
   if (exact) return exact.key;
-  if (path.startsWith('/services/')) return 'services';
+  if (path.startsWith('/services/')) return 'me';
   const also = tabs.find((tab) => tab.alsoActive?.some((p) => matches(p, path)));
   return also?.key ?? null;
 }

@@ -192,12 +192,13 @@
       "notReadyLogs": "Log your weight {n} more times in these two weeks to see the trend."
     },
     "vitals": {
-      "title": "Blood pressure & sugar",
+      "title": "Vital signs",
       "bp": "Pressure (average)",
       "sugar": "Fasting sugar",
+      "hr": "Heart rate",
       "none": "—",
-      "notReady": "Log your blood pressure or sugar to see the average here.",
-      "notReadyMin": "Log your blood pressure or sugar at least {readings} times on {days} different days to see a summary.",
+      "notReady": "Log your blood pressure, sugar or heart rate to see the average here.",
+      "notReadyMin": "Log your blood pressure, sugar or heart rate at least {readings} times on {days} different days to see a summary.",
       "range": "{min} to {max}"
     },
     "labs": {
@@ -209,6 +210,11 @@
       "body": "Weight, blood pressure and baby movement trends during pregnancy will appear here soon.",
       "cta": "Go to pregnancy"
     }
+  },
+  "tabs": {
+    "label": "Analysis or history",
+    "analysis": "Analysis",
+    "history": "History"
   },
   "detail": {
     "back": "Back to analysis",

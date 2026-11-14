@@ -25,17 +25,7 @@ import {
 } from '@/shared/lib/date';
 import { buildIcs, downloadIcs } from '@/shared/lib/ics';
 import { AppSheet } from '@/shared/sheet';
-import {
-  HeaderButton,
-  Icon,
-  type IconName,
-  ScreenHeader,
-  SecondaryButton,
-  Skeleton,
-  SkeletonGroup,
-  SkyLayer,
-  Switch,
-} from '@/shared/ui';
+import { CheckTick, HeaderButton, Icon, type IconName, ScreenHeader, SecondaryButton, Skeleton, SkeletonGroup, SkyLayer, Switch } from '@/shared/ui';
 
 import {
   appointmentIcsEvent,
@@ -270,7 +260,7 @@ function Detail({ appt }: { appt: Appointment }) {
                   onClick={() => togglePrep.mutate({ appointment: appt, itemId: item.id, done: !item.done })}
                 >
                   <span className="apd-box" aria-hidden>
-                    {item.done && <Icon name="check" size={14} strokeWidth={3} />}
+                    <CheckTick on={item.done} />
                   </span>
                   <span>{item.text}</span>
                 </button>

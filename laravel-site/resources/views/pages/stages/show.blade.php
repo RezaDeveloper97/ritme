@@ -16,15 +16,13 @@
         @include($feature->partial, ['feature' => $feature])
     @endforeach
 
-    <x-stage.tools-block :items="$page->toolProps()" :eyebrow="$page->copy['toolsEyebrow']" :title="$page->copy['toolsTitle']"/>
+    @if ($page->tools !== [])
+        <x-stage.tools-block :items="$page->toolProps()" :eyebrow="$page->copy['toolsEyebrow']" :title="$page->copy['toolsTitle']"/>
+    @endif
 
     @if ($page->help !== [])
         <x-stage.help-block :items="$page->helpProps()" :eyebrow="$page->copy['helpEyebrow']" :title="$page->copy['helpTitle']"/>
     @endif
-
-    <x-ui.section as="div" pad="none" class="pt-16 max-lg:pt-[35.2px]">
-        <x-ui.alert-emergency :number="$page->emergencyNumber">{{ $page->emergencyText }}</x-ui.alert-emergency>
-    </x-ui.section>
 
     <x-stage.readings :posts="$page->readings" :more-href="$page->readingsMoreUrl" :more-label="$page->copy['readingsMore']" :eyebrow="$page->copy['readingsEyebrow']" :title="$page->copy['readingsTitle']"/>
 

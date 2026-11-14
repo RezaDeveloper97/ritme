@@ -3,6 +3,8 @@ package http
 import (
 	"github.com/gofiber/fiber/v3"
 
+	"github.com/ritme/backend-go/internal/ai/credits"
+
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/catalog"
 	catalogstore "github.com/ritme/backend-go/internal/catalog/store"
@@ -13,7 +15,6 @@ import (
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/labs"
 	"github.com/ritme/backend-go/internal/platform/clock"
-	"github.com/ritme/backend-go/internal/plus"
 )
 
 // Record documents, extras and timeline (canvas-build CB-REC-01, deviations.md D-70), Go only, on top of bloom's
@@ -43,7 +44,7 @@ func init() {
 		})
 		// CB-REC-02: deleting a document whose extraction still waits in the queue gives the reserved Plus use back.
 		docs := healthrecord.NewDocuments(d.DB, fileSvc, labsSvc).
-			OnDeletePending(extract.RefundDeleted(plus.NewService(d.DB, d.Config.Plus, nil, d.Logger), clock.Real{}, d.Logger))
+			OnDeletePending(extract.RefundDeleted(credits.NewService(d.DB), clock.Real{}, d.Logger))
 		h := healthrecord.NewDocumentHandlers(docs, clock.Real{})
 
 		const p = "/api/v1/health-record"

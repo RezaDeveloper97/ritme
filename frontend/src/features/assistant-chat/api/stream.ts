@@ -1,4 +1,4 @@
-import { ApiError } from '@/shared/api';
+import { ApiError, reportApiFailure } from '@/shared/api';
 import { env } from '@/shared/config';
 import { getAuthToken } from '@/shared/session';
 
@@ -91,10 +91,13 @@ export async function* streamMessage(
     } catch {
       /* not JSON */
     }
-    throw new ApiError(`Request failed with status code ${response.status}`, {
+    const failure = new ApiError(`Request failed with status code ${response.status}`, {
       response: { status: response.status, data, headers: {} },
       sentToken: token,
     });
+    // This stream bypasses apiClient (and the QueryClient caches): tell the AI gate's safety net itself.
+    reportApiFailure(failure);
+    throw failure;
   }
   yield* parseSse(response.body);
 }

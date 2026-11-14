@@ -49,7 +49,6 @@ function InsuranceBody() {
 
   return (
     <>
-      <p className="ins-intro">{t('intro')}</p>
       {s.coverage ? (
         <section className="nb-card ins-card" aria-labelledby="ins-cov-h">
           <h2 id="ins-cov-h" className="ins-h">

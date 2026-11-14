@@ -4,11 +4,7 @@ import type { ComponentType, ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
 
 import type { LogCategory, LogDayValues, LogParamValue } from '@/entities/health-log';
-import { PlusFeatureGate } from '@/entities/plus';
 import { Icon, type IconName, SecondaryButton, type Tone } from '@/shared/ui';
-
-/** The Plus entitlement of voice logging (backend-go/internal/plus/entitlements.go). */
-export const VOICE_FEATURE = 'plus.voice_log';
 
 /**
  * What the log sheet hands the voice recorder (B-N3-05 `features/voice-log`, passed in by the screen —
@@ -48,20 +44,14 @@ export interface VoiceLogSlotProps {
 export type VoiceLogSlot = ComponentType<VoiceLogSlotProps>;
 
 /**
- * «ثبت با صدا» (nbl_Log_Day). With the recorder slot (B-N3-05) it renders the recorder behind the Plus
- * lock; without one (a host that doesn't wire voice) it keeps the explanatory «به‌زودی» card.
+ * «ثبت با صدا» (nbl_Log_Day). With the recorder slot (B-N3-05) it renders the recorder (which asks the AI
+ * gate before recording); without one (a host that doesn't wire voice) it keeps the explanatory «به‌زودی» card.
  */
 export function VoiceTab({ onManual, children }: { onManual: () => void; children?: ReactNode }) {
   const t = useTranslations('logSheet');
-  if (children) {
-    return (
-      <PlusFeatureGate feature={VOICE_FEATURE} className="lday-voice-gate">
-        {children}
-      </PlusFeatureGate>
-    );
-  }
+  if (children) return <>{children}</>;
   return (
-    <PlusFeatureGate feature={VOICE_FEATURE} className="lday-voice-gate">
+    <>
       <section className="nb-card lday-voice">
         <span className="lday-voice-mic" aria-hidden>
           <Icon name="mic" size={30} strokeWidth={1.8} />
@@ -71,6 +61,6 @@ export function VoiceTab({ onManual, children }: { onManual: () => void; childre
         <span className="lday-voice-soon">{t('voice.soon')}</span>
         <SecondaryButton onClick={onManual}>{t('voice.manual')}</SecondaryButton>
       </section>
-    </PlusFeatureGate>
+    </>
   );
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 
 	"github.com/ritme/backend-go/internal/messages/events"
+	"github.com/ritme/backend-go/internal/payments"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/config"
 	"github.com/ritme/backend-go/internal/platform/configcache"
@@ -22,6 +23,7 @@ import (
 // Domain errors (the handlers map them to responses).
 var (
 	ErrPlanNotFound       = errors.New("plus: plan not found")
+	ErrPackNotFound       = errors.New("plus: credit pack not found")
 	ErrTrialUsed          = errors.New("plus: trial already used")
 	ErrTrialUnavailable   = errors.New("plus: trial unavailable after a subscription")
 	ErrNoSubscription     = errors.New("plus: no active subscription")
@@ -45,6 +47,12 @@ const (
 	InvoiceRefunded = "refunded"
 )
 
+// Invoice kinds (plus_invoices.kind, goose 00125): a subscription period, or a pack of extra AI credits.
+const (
+	KindPlan       = "plan"
+	KindCreditPack = "credit_pack"
+)
+
 // Service is the subscription domain. It takes the clock's "now" on every call (handlers pass the request clock,
 // so X-Test-Now drives trials, periods and quotas in tests).
 type Service struct {
@@ -54,6 +62,7 @@ type Service struct {
 	gateway Gateway // nil = no payment provider (checkout/verify answer 503)
 	logger  *slog.Logger
 	plans   *configcache.Cache[[]store.PlusPlan] // active plans (T-M9-13); admin plan writes publish PlansTable
+	stores  payments.StoreVerifiers              // Android store billing (store_billing.go); nil = none
 }
 
 // PlansTable is the plans table; the admin plan writers publish it (configcache.Changed) after their commit.
@@ -78,8 +87,9 @@ func (s *Service) Config() config.Plus { return s.cfg }
 // Plan is an active plan with its derived display figures.
 type Plan struct {
 	store.PlusPlan
-	Monthly uint64 // rials per month
-	Savings int    // percent cheaper per month than the base plan
+	Monthly   uint64            // rials per month
+	Savings   int               // percent cheaper per month than the base plan
+	StoreSKUs map[string]string // store → SKU (Android store builds); set by the plans handler
 }
 
 // Plans lists the active plans in display order (from the process snapshot: no query until an admin plan write or
@@ -93,6 +103,9 @@ func (s *Service) Plans(ctx context.Context) ([]Plan, error) {
 	out := make([]Plan, len(rows))
 	for i, p := range rows {
 		out[i] = Plan{PlusPlan: p, Monthly: MonthlyPrice(p), Savings: SavingsPercent(p, base)}
+		if p.DurationMinutes.Valid { // developer test plan: no per-month figure or savings claim
+			out[i].Monthly, out[i].Savings = p.PriceRials, 0
+		}
 	}
 	return out, nil
 }
@@ -155,6 +168,16 @@ func tierOf(ctx context.Context, q *store.Queries, userID uint64, now time.Time)
 		return TierTrial, nil, trial, nil
 	}
 	return TierFree, nil, trial, nil
+}
+
+// PlusUsers are the users whose tier is Plus or trial at now — the audience of a background sender for a feature
+// that is unlimited on Plus and locked on free (SMSReminders). Per-request code asks Entitlement instead.
+func (s *Service) PlusUsers(ctx context.Context, now time.Time) ([]uint64, error) {
+	ids, err := s.q.ListPlusUserIDs(ctx, store.ListPlusUserIDsParams{Now: now})
+	if err != nil {
+		return nil, fmt.Errorf("plus: plus users: %w", err)
+	}
+	return ids, nil
 }
 
 func trialRunning(t store.PlusTrial, now time.Time) bool {
@@ -431,8 +454,9 @@ func (s *Service) Preview(ctx context.Context, userID, planID uint64, code strin
 // Checkout is a created invoice and, unless it was free, where to pay it.
 type Checkout struct {
 	Invoice store.PlusInvoice
-	Plan    store.PlusPlan
-	Payment *PaymentSession // nil when the invoice was settled at once (100 % discount)
+	Plan    store.PlusPlan      // KindPlan
+	Pack    *store.AiCreditPack // KindCreditPack
+	Payment *PaymentSession     // nil when the invoice was settled at once (100 % discount)
 }
 
 // Checkout prices planID (the client never sends an amount), writes a pending invoice holding the discount for
@@ -455,8 +479,8 @@ func (s *Service) Checkout(ctx context.Context, userID, planID uint64, code stri
 		stamp := sql.NullTime{Time: now, Valid: true}
 		invoiceID, err = q.InsertInvoice(ctx, store.InsertInvoiceParams{
 			Reference: ref, UserID: userID, PlanID: sql.NullInt64{Int64: int64(qt.Plan.ID), Valid: true}, //nolint:gosec // G115: ids are positive
-			DurationMonths: qt.Plan.DurationMonths,
-			SubtotalRials:  qt.Amounts.Subtotal, DiscountRials: qt.Amounts.Discount,
+			DurationMonths: qt.Plan.DurationMonths, DurationMinutes: qt.Plan.DurationMinutes,
+			SubtotalRials: qt.Amounts.Subtotal, DiscountRials: qt.Amounts.Discount,
 			VatRateBps: qt.Amounts.VATRateBps, VatRials: qt.Amounts.VAT, TotalRials: qt.Amounts.Total,
 			DiscountCodeID: qt.DiscountCodeID, DiscountCode: sql.NullString{String: qt.DiscountCode, Valid: qt.DiscountCode != ""},
 			Gateway:   sql.NullString{String: s.gateway.Name(), Valid: true},
@@ -472,7 +496,7 @@ func (s *Service) Checkout(ctx context.Context, userID, planID uint64, code stri
 		if err := q.MarkInvoicePaidFree(ctx, store.MarkInvoicePaidFreeParams{Now: stamp, ID: uint64(invoiceID)}); err != nil { //nolint:gosec // G115: ids are positive
 			return fmt.Errorf("plus: invoice: %w", err)
 		}
-		return activate(ctx, q, userID, qt.Plan.ID, uint64(invoiceID), int(qt.Plan.DurationMonths), now) //nolint:gosec // G115: ids are positive
+		return activate(ctx, q, userID, qt.Plan.ID, uint64(invoiceID), periodOf(qt.Plan.DurationMonths, qt.Plan.DurationMinutes), now) //nolint:gosec // G115: ids are positive
 	})
 	if err != nil {
 		return Checkout{}, err
@@ -500,9 +524,161 @@ func (s *Service) Checkout(ctx context.Context, userID, planID uint64, code stri
 	return out, nil
 }
 
+// ---------------------------------------------------------------------------
+// Credit packs (goose 00125): extra AI credits bought through the same invoice → gateway → verify path as a plan.
+// No discount code and no trial offer apply to a pack; VAT does. The credits never expire and need no subscription
+// to be bought — only to be spent (internal/ai/credits).
+
+// Packs lists the purchasable credit packs in display order.
+func (s *Service) Packs(ctx context.Context) ([]store.AiCreditPack, error) {
+	rows, err := s.q.ListActiveCreditPacks(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("plus: credit packs: %w", err)
+	}
+	return rows, nil
+}
+
+// PackQuote is a priced credit pack.
+type PackQuote struct {
+	Pack    store.AiCreditPack
+	Amounts Amounts
+}
+
+func (s *Service) packQuote(ctx context.Context, q *store.Queries, packID uint64) (PackQuote, error) {
+	pack, err := q.GetActiveCreditPack(ctx, packID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return PackQuote{}, ErrPackNotFound
+	}
+	if err != nil {
+		return PackQuote{}, fmt.Errorf("plus: credit pack: %w", err)
+	}
+	rate, err := vatRateBps(ctx, q, s)
+	if err != nil {
+		return PackQuote{}, err
+	}
+	return PackQuote{Pack: pack, Amounts: Price(pack.PriceRials, "", 0, uint32(rate))}, nil //nolint:gosec // G115: validated 0–10000
+}
+
+// PreviewPack prices a pack checkout without creating anything.
+func (s *Service) PreviewPack(ctx context.Context, packID uint64) (PackQuote, error) {
+	return s.packQuote(ctx, s.q, packID)
+}
+
+// CheckoutPack prices packID (the client never sends an amount or a credit count), writes a pending invoice that
+// snapshots the pack's credits, and registers the payment with the gateway. The credits are granted by settle.
+func (s *Service) CheckoutPack(ctx context.Context, userID, packID uint64, now time.Time) (Checkout, error) {
+	if s.gateway == nil {
+		return Checkout{}, ErrPaymentUnavailable
+	}
+	ref, err := newReference()
+	if err != nil {
+		return Checkout{}, err
+	}
+	var qt PackQuote
+	var invoiceID int64
+	stamp := sql.NullTime{Time: now, Valid: true}
+	err = s.inTx(ctx, func(q *store.Queries) error {
+		var err error
+		if qt, err = s.packQuote(ctx, q, packID); err != nil {
+			return err
+		}
+		invoiceID, err = q.InsertPackInvoice(ctx, store.InsertPackInvoiceParams{
+			Reference: ref, UserID: userID,
+			CreditPackID:  sql.NullInt64{Int64: int64(qt.Pack.ID), Valid: true},      //nolint:gosec // G115: ids are positive
+			Credits:       sql.NullInt32{Int32: int32(qt.Pack.Credits), Valid: true}, //nolint:gosec // G115: admin-bounded
+			SubtotalRials: qt.Amounts.Subtotal, VatRateBps: qt.Amounts.VATRateBps, VatRials: qt.Amounts.VAT, TotalRials: qt.Amounts.Total,
+			Gateway:   sql.NullString{String: s.gateway.Name(), Valid: true},
+			ExpiresAt: now.Add(s.cfg.InvoiceTTL), CreatedAt: stamp, UpdatedAt: stamp,
+		})
+		if err != nil {
+			return fmt.Errorf("plus: invoice: %w", err)
+		}
+		return nil
+	})
+	if err != nil {
+		return Checkout{}, err
+	}
+	sess, err := s.gateway.Create(ctx, PaymentRequest{
+		Reference: ref, AmountRials: qt.Amounts.Total, Description: "Ritme credits " + qt.Pack.Code, CallbackURL: s.cfg.CallbackURL,
+	})
+	if err != nil {
+		s.logger.WarnContext(ctx, "plus: gateway create failed", "gateway", s.gateway.Name(), "reference", ref, "error", err.Error())
+		_ = s.q.MarkInvoiceFailed(ctx, store.MarkInvoiceFailedParams{Now: stamp, ID: uint64(invoiceID)}) //nolint:gosec // G115
+		return Checkout{}, fmt.Errorf("%w: %w", ErrPaymentUnavailable, err)
+	}
+	if err := s.q.SetInvoiceAuthority(ctx, store.SetInvoiceAuthorityParams{
+		Authority: sql.NullString{String: sess.Authority, Valid: true}, UpdatedAt: stamp, ID: uint64(invoiceID), //nolint:gosec // G115
+	}); err != nil {
+		return Checkout{}, fmt.Errorf("plus: invoice authority: %w", err)
+	}
+	out := Checkout{Pack: &qt.Pack, Payment: &sess}
+	if out.Invoice, err = s.q.GetUserInvoiceByReference(ctx, store.GetUserInvoiceByReferenceParams{Reference: ref, UserID: userID}); err != nil {
+		return Checkout{}, fmt.Errorf("plus: invoice: %w", err)
+	}
+	return out, nil
+}
+
+// Pack returns a credit pack by id (any state), nil when it is gone.
+func (s *Service) Pack(ctx context.Context, id sql.NullInt64) (*store.AiCreditPack, error) {
+	if !id.Valid {
+		return nil, nil
+	}
+	p, err := s.q.GetCreditPack(ctx, uint64(id.Int64)) //nolint:gosec // G115: ids are positive
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("plus: credit pack: %w", err)
+	}
+	return &p, nil
+}
+
+// fulfil gives a paid invoice what it bought, on q (the settle transaction): a subscription period, or — for a
+// credit pack — its extra credits. UNIQUE(invoice_id) on both tables makes a replay impossible.
+func fulfil(ctx context.Context, q *store.Queries, inv store.PlusInvoice, now time.Time) error {
+	if inv.Kind == KindCreditPack {
+		if !inv.Credits.Valid || inv.Credits.Int32 <= 0 {
+			return fmt.Errorf("plus: credit pack invoice %d has no credits", inv.ID)
+		}
+		stamp := sql.NullTime{Time: now, Valid: true}
+		if err := q.InsertExtraCreditGrant(ctx, store.InsertExtraCreditGrantParams{
+			UserID: inv.UserID, InvoiceID: sql.NullInt64{Int64: int64(inv.ID), Valid: true}, //nolint:gosec // G115: ids are positive
+			Amount: uint32(inv.Credits.Int32), CreatedAt: stamp, UpdatedAt: stamp, //nolint:gosec // G115: checked positive
+		}); err != nil {
+			return fmt.Errorf("plus: credit grant: %w", err)
+		}
+		return nil
+	}
+	var planID uint64
+	if inv.PlanID.Valid {
+		planID = uint64(inv.PlanID.Int64) //nolint:gosec // G115: ids are positive
+	}
+	return activate(ctx, q, inv.UserID, planID, inv.ID, periodOf(inv.DurationMonths, inv.DurationMinutes), now)
+}
+
+// period is how long a purchase lasts: whole months, or minutes for developer test plans (duration_minutes).
+type period struct {
+	months  int
+	minutes int
+}
+
+func periodOf(months uint16, minutes sql.NullInt32) period {
+	if minutes.Valid && minutes.Int32 > 0 {
+		return period{minutes: int(minutes.Int32)}
+	}
+	return period{months: int(months)}
+}
+
+func (p period) end(start time.Time) time.Time {
+	if p.minutes > 0 {
+		return start.Add(time.Duration(p.minutes) * time.Minute)
+	}
+	return AddMonths(start, p.months)
+}
+
 // activate adds a subscription period for a paid invoice: it starts now, or — when a period is still running or
 // queued — right after the last one ends (buying again extends, never overlaps).
-func activate(ctx context.Context, q *store.Queries, userID, planID, invoiceID uint64, months int, now time.Time) error {
+func activate(ctx context.Context, q *store.Queries, userID, planID, invoiceID uint64, p period, now time.Time) error {
 	start := now
 	last, err := q.LatestValidSubscription(ctx, store.LatestValidSubscriptionParams{UserID: userID, Now: now})
 	switch {
@@ -515,7 +691,7 @@ func activate(ctx context.Context, q *store.Queries, userID, planID, invoiceID u
 	_, err = q.InsertSubscription(ctx, store.InsertSubscriptionParams{
 		UserID: userID, PlanID: sql.NullInt64{Int64: int64(planID), Valid: planID > 0}, //nolint:gosec // G115: ids are positive
 		InvoiceID: sql.NullInt64{Int64: int64(invoiceID), Valid: true}, //nolint:gosec // G115: ids are positive
-		Source:    "purchase", StartsAt: start, EndsAt: AddMonths(start, months), CreatedAt: stamp, UpdatedAt: stamp,
+		Source:    "purchase", StartsAt: start, EndsAt: p.end(start), CreatedAt: stamp, UpdatedAt: stamp,
 	})
 	if err != nil {
 		return fmt.Errorf("plus: subscription: %w", err)
@@ -595,11 +771,7 @@ func (s *Service) settle(ctx context.Context, userID uint64, reference, authorit
 		if err != nil {
 			return fmt.Errorf("plus: receipt: %w", err)
 		}
-		var planID uint64
-		if inv.PlanID.Valid {
-			planID = uint64(inv.PlanID.Int64) //nolint:gosec // G115: ids are positive
-		}
-		if err := activate(ctx, q, userID, planID, inv.ID, int(inv.DurationMonths), now); err != nil {
+		if err := fulfil(ctx, q, inv, now); err != nil {
 			return err
 		}
 		if err := q.MarkInvoicePaid(ctx, store.MarkInvoicePaidParams{Now: stamp, ID: inv.ID}); err != nil {
@@ -610,7 +782,7 @@ func (s *Service) settle(ctx context.Context, userID uint64, reference, authorit
 	if err != nil {
 		return Settled{}, err
 	}
-	if outcome == nil && !out.AlreadyPaid {
+	if outcome == nil && !out.AlreadyPaid && out.Invoice.Kind != KindCreditPack {
 		events.Goal(ctx, userID, "plus_purchased") // T-M10-06, M-17: server-matched message goal (after commit)
 	}
 	if out.Invoice, err = s.q.GetUserInvoiceByReference(ctx, store.GetUserInvoiceByReferenceParams{Reference: reference, UserID: userID}); err != nil {

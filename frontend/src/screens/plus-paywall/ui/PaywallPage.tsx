@@ -4,20 +4,21 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { PlusCrown, usePlusPlans, usePlusStatus } from '@/entities/plus';
-import { useRestorePlus, useStartTrial } from '@/features/purchase-plus';
+import { useRestorePlus, useStartPlusTrial } from '@/features/purchase-plus';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { HeaderButton, Icon, PrimaryButton, SecondaryButton, SkyLayer } from '@/shared/ui';
 import { useNavMode } from '@/widgets/bottom-nav';
 
-type FeatureKey = 'analysis' | 'prediction' | 'assistant' | 'pdf' | 'tracking' | 'todo';
+type FeatureKey = 'analysis' | 'prediction' | 'credits' | 'pdf' | 'sms' | 'tracking' | 'todo';
 
 /** Free vs Plus rows of `nbl_Prem_Paywall` (marketing copy; prices come from the API). */
 const FEATURES: readonly { key: FeatureKey; free: boolean }[] = [
   { key: 'analysis', free: false },
   { key: 'prediction', free: false },
-  { key: 'assistant', free: false },
+  { key: 'credits', free: false },
   { key: 'pdf', free: false },
+  { key: 'sms', free: false },
   { key: 'tracking', free: true },
   { key: 'todo', free: true },
 ];
@@ -36,7 +37,7 @@ export function PaywallPage() {
   const status = usePlusStatus();
   const plans = usePlusPlans();
   const restore = useRestorePlus();
-  const trial = useStartTrial();
+  const trial = useStartPlusTrial(plans.data);
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
@@ -60,7 +61,7 @@ export function PaywallPage() {
 
   const onTrial = () => {
     setNotice(null);
-    trial.mutate(undefined, {
+    trial.start({
       onSuccess: () => router.push('/plus/success?trial=1'),
       onError: () => setNotice(t('paywall.trialFailed')),
     });
@@ -119,6 +120,18 @@ export function PaywallPage() {
             ))}
           </tbody>
         </table>
+        {plans.data && plans.data.plans.some((p) => p.aiCredits > 0) ? (
+          <ul className="nb-card plus-credit-list" aria-label={t('paywall.creditsLabel')}>
+            {plans.data.plans
+              .filter((p) => p.aiCredits > 0)
+              .map((p) => (
+                <li key={p.id} className="plus-credit-item">
+                  <span>{p.title}</span>
+                  <b>{t('plans.credits', { count: formatNumber(p.aiCredits, loc) })}</b>
+                </li>
+              ))}
+          </ul>
+        ) : null}
       </div>
 
       <div className="plus-footer">

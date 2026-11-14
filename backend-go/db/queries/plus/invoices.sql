@@ -19,9 +19,9 @@ WHERE discount_code_id = sqlc.arg(discount_code_id)
   AND (status = 'paid' OR (status = 'pending' AND expires_at > sqlc.arg(now)));
 
 -- name: InsertInvoice :execlastid
-INSERT INTO plus_invoices (reference, user_id, plan_id, duration_months, status, currency, subtotal_rials, discount_rials,
+INSERT INTO plus_invoices (reference, user_id, plan_id, duration_months, duration_minutes, status, currency, subtotal_rials, discount_rials,
   vat_rate_bps, vat_rials, total_rials, discount_code_id, discount_code, gateway, expires_at, created_at, updated_at)
-VALUES (?, ?, ?, ?, 'pending', 'IRR', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+VALUES (?, ?, ?, ?, ?, 'pending', 'IRR', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: SetInvoiceAuthority :exec
 UPDATE plus_invoices SET authority = ?, updated_at = ?
@@ -74,3 +74,27 @@ WHERE invoice_id = ? AND user_id = ?;
 -- UNIQUE(gateway, ref_id): a bank reference pays one invoice only (replay guard).
 INSERT INTO plus_receipts (invoice_id, user_id, gateway, ref_id, card_pan, amount_rials, paid_at, created_at, updated_at)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+-- name: InsertPackInvoice :execlastid
+-- A credit pack checkout (goose 00125): no plan, no period; `credits` is the snapshot the paid invoice grants.
+INSERT INTO plus_invoices (reference, user_id, plan_id, kind, credit_pack_id, credits, duration_months, status, currency,
+  subtotal_rials, discount_rials, vat_rate_bps, vat_rials, total_rials, gateway, expires_at, created_at, updated_at)
+VALUES (?, ?, NULL, 'credit_pack', ?, ?, 0, 'pending', 'IRR', ?, 0, ?, ?, ?, ?, ?, ?, ?);
+
+-- name: GetActiveCreditPack :one
+SELECT * FROM ai_credit_packs
+WHERE id = ? AND is_active = 1;
+
+-- name: GetCreditPack :one
+SELECT * FROM ai_credit_packs
+WHERE id = ?;
+
+-- name: InsertExtraCreditGrant :exec
+-- The credits of a paid pack invoice. UNIQUE(invoice_id): a replayed settle can never grant twice.
+INSERT INTO ai_credit_grants (user_id, kind, invoice_id, amount, remaining, created_at, updated_at)
+VALUES (?, 'extra', ?, sqlc.arg(amount), sqlc.arg(amount), ?, ?);
+
+-- name: ListActiveCreditPacks :many
+SELECT * FROM ai_credit_packs
+WHERE is_active = 1
+ORDER BY sort_order, id;

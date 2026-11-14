@@ -117,7 +117,6 @@
     "more": "More",
     "empty": "No documents here yet",
     "emptyBody": "Add a photo or PDF of a visit, prescription or ultrasound.",
-    "note": "Every document you add lands here at its own date and can be picked for a claim or a doctor.",
     "noDate": "No date",
     "markers": "{n} markers",
     "allNormal": "All normal",
@@ -203,15 +202,11 @@
         "frequency": "How often",
         "duration": "For how long"
       },
-      "plusTitle": "Automatic reading is part of Ritme Plus",
-      "plusBody": "Without Plus you can still enter every detail yourself.",
-      "plusCta": "See Ritme Plus",
       "busy": "Reading isn't available right now. Try again a little later.",
       "noFiles": "Add the document's file first to read it automatically.",
       "error": "That didn't work. Try again.",
       "invalid": "Some values aren't valid. Please check.",
       "stalled": "Reading is taking longer than usual",
-      "stalledBody": "You can check its status again.",
       "recheck": "Check again"
     },
     "consent": {

@@ -196,8 +196,8 @@ func TestPreview_Validation(t *testing.T) {
 func TestToday(t *testing.T) {
 	e := setup(t)
 	uid, tok := e.lmpUser(t, "09120000703", "2026-07-01") // 12w0d → week 13
-	_, err := e.db.Exec(`INSERT INTO pregnancy_week_user_state (user_id, week, bookmarked, done_task_keys, created_at, updated_at)
-		SELECT ?, 13, 0, JSON_ARRAY(JSON_UNQUOTE(JSON_EXTRACT(tasks, '$[0].key'))), NOW(), NOW() FROM pregnancy_week_details WHERE week_number = 13`, uid)
+	_, err := e.db.Exec(`INSERT INTO pregnancy_week_user_state (user_id, week, done_task_keys, created_at, updated_at)
+		SELECT ?, 13, JSON_ARRAY(JSON_UNQUOTE(JSON_EXTRACT(tasks, '$[0].key'))), NOW(), NOW() FROM pregnancy_week_details WHERE week_number = 13`, uid)
 	require.NoError(t, err)
 
 	e.counter.n.Store(0)
@@ -341,13 +341,13 @@ func TestWeekAndState(t *testing.T) {
 	require.NotEmpty(t, tasks)
 	key := tasks[0].(map[string]any)["key"].(string)
 
-	r = e.do(t, http.MethodPut, base+"/weeks/20/state", tok, "fa", `{"bookmarked":true,"done_task_keys":["`+key+`","nope","`+key+`"]}`)
+	r = e.do(t, http.MethodPut, base+"/weeks/20/state", tok, "fa", `{"done_task_keys":["`+key+`","nope","`+key+`"]}`)
 	require.Equal(t, http.StatusOK, r.status, r.raw)
 	assert.Equal(t, "وضعیت هفته ذخیره شد", r.body["message"])
-	assert.Equal(t, map[string]any{"week": float64(20), "bookmarked": true, "done_task_keys": []any{key}}, r.data())
+	assert.Equal(t, map[string]any{"week": float64(20), "done_task_keys": []any{key}}, r.data())
 
-	// Partial: bookmark only, tasks kept.
-	r = e.do(t, http.MethodPut, base+"/weeks/20/state", tok, "en", `{"bookmarked":false}`)
+	// Empty body: tasks kept.
+	r = e.do(t, http.MethodPut, base+"/weeks/20/state", tok, "en", `{}`)
 	require.Equal(t, http.StatusOK, r.status, r.raw)
 	assert.Equal(t, []any{key}, r.data()["done_task_keys"])
 
@@ -357,10 +357,10 @@ func TestWeekAndState(t *testing.T) {
 	// IDOR: the other user sees their own (empty) state.
 	r = e.do(t, http.MethodGet, base+"/weeks/20", other, "en", "")
 	require.Equal(t, http.StatusOK, r.status, r.raw)
-	assert.Equal(t, false, r.data()["bookmarked"])
+	assert.NotContains(t, r.data(), "bookmarked")
 	assert.Equal(t, []any{}, r.data()["done_task_keys"])
 
-	r = e.do(t, http.MethodPut, base+"/weeks/20/state", tok, "en", `{"bookmarked":"maybe"}`)
+	r = e.do(t, http.MethodPut, base+"/weeks/20/state", tok, "en", `{"done_task_keys":"maybe"}`)
 	assert.Equal(t, http.StatusUnprocessableEntity, r.status, r.raw)
 }
 

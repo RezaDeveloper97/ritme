@@ -7,6 +7,7 @@ namespace App\View\Components\Layout;
 use App\Domain\Content\Enums\HeaderVariant;
 use App\Domain\Content\Enums\StaticPage;
 use App\Domain\Content\SiteNavigation;
+use App\Domain\Pwa\Support\PwaIconFiles;
 use App\Domain\Settings\Contracts\SettingsRepository;
 use App\Support\Cache\CacheAside;
 use App\Support\Cache\CacheKey;
@@ -62,6 +63,7 @@ final class Header extends Component
                 'links' => $navigation->main($this->routeName),
                 'homeUrl' => $navigation->url(StaticPage::Home),
                 'siteName' => $settings->general->siteName,
+                'logoUrl' => PwaIconFiles::publicUrl(PwaIconFiles::SITE_LOGO),
                 'loginUrl' => $settings->appLinks->webApp,
                 'downloadHref' => $downloadHref,
             ])->render();

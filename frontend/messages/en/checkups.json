@@ -97,7 +97,6 @@
   },
   "markDone": {
     "title": "I did my {title}",
-    "subtitle": "Log the details so the next due date can be worked out",
     "editTitle": "Edit {title}",
     "date": "Date done",
     "result": "Result",

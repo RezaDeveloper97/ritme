@@ -70,6 +70,18 @@ export const NAV: readonly NavGroup[] = [
     ],
   },
   {
+    // «هوش مصنوعی و اعتبار» (docs/ai-credits.md, admin-api.md §29): the catalogue and slots are config, the credit packs
+    // are billing; every write is super-only (API 403 + hidden buttons).
+    key: 'groupAi',
+    other: true,
+    items: [
+      { key: 'aiFeatures', href: '/ai/features', icon: 'sparkle', cap: 'config', ready: true },
+      { key: 'aiModels', href: '/ai/models', icon: 'gear', cap: 'config', ready: true },
+      { key: 'aiCreditPacks', href: '/ai/credit-packs', icon: 'tag', cap: 'billing', ready: true },
+      { key: 'aiUsage', href: '/ai/usage', icon: 'listOrdered', cap: 'config', ready: true },
+    ],
+  },
+  {
     // «همدم» (B-N4-07): tips are content (editor + super); the links overview is masked and read-only.
     key: 'groupCompanions',
     other: true,

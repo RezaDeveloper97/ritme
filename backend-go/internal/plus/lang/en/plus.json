@@ -8,7 +8,8 @@
         "payment_already_verified": "This payment was already confirmed",
         "subscription_canceled": "Auto-renewal is off. Plus stays active until the end of your subscription",
         "restored": "Purchases restored",
-        "nothing_to_restore": "No purchase to restore"
+        "nothing_to_restore": "No purchase to restore",
+        "credits_added": "Payment confirmed. Your credit has been added"
     },
     "errors": {
         "trial_used": "You have already used your free trial.",
@@ -23,7 +24,11 @@
         "payment_unavailable": "Payment is not available right now. Please try again later.",
         "teen_commercial_blocked": "Ritme Plus is not available in teen mode.",
         "plus_required": "This feature is part of Ritme Plus.",
-        "quota_exceeded": "You have reached this month's limit for this feature. It renews at the start of next month."
+        "quota_exceeded": "You have reached this month's limit for this feature. It renews at the start of next month.",
+        "store_purchase_invalid": "The store purchase could not be verified. If you were charged, use Restore purchase.",
+        "store_product_unknown": "This store product is not available in Ritme.",
+        "store_purchase_owned": "This purchase belongs to another account.",
+        "pack_invalid": "The selected credit pack is not available."
     },
     "discount": {
         "invalid": "This discount code is not valid.",
@@ -39,6 +44,7 @@
         "preview": "preview",
         "reference": "invoice reference",
         "authority": "payment id",
-        "status": "payment status"
+        "status": "payment status",
+        "pack_id": "credit pack"
     }
 }

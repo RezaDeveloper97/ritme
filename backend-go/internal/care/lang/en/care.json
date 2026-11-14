@@ -55,7 +55,9 @@
         "medication_limit": "You have reached the maximum number of medication reminders. Delete one you no longer need to add a new one.",
         "appointment_limit": "You have reached the maximum number of appointments. Delete one you no longer need to add a new one.",
         "companion_forbidden": "You don't have permission to do this for that account.",
-        "too_many_writes": "Too many changes in the last minute. Wait a moment and save again."
+        "too_many_writes": "Too many changes in the last minute. Wait a moment and save again.",
+        "push_subscribed": "Notifications are on for this device",
+        "push_unsubscribed": "Notifications are off for this device"
     },
     "validation": {
         "for_user_invalid": "The account id is invalid.",
@@ -63,7 +65,11 @@
         "slot_unknown": "This time is not one of the medication's dose times.",
         "date_not_scheduled": "This medication is not scheduled on that day.",
         "scope_invalid": "The scope must be upcoming, past or all.",
-        "cancelled_reminder": "This appointment was cancelled, so its reminder can't be turned back on."
+        "cancelled_reminder": "This appointment was cancelled, so its reminder can't be turned back on.",
+        "doses_time_distinct": "Each dose needs a different time.",
+        "frequency_hour_interval": "The hourly interval must be 1, 2, 3, 4, 6, 8 or 12 hours.",
+        "push_endpoint": "This browser's push endpoint is not supported.",
+        "push_keys": "This browser's push keys are invalid."
     },
     "attributes": {
         "title": "medication name",
@@ -82,7 +88,19 @@
         "notes": "notes",
         "is_active": "active",
         "date": "date",
-        "slot": "dose time"
+        "slot": "dose time",
+        "frequency": "frequency",
+        "frequency.every": "repeat interval",
+        "frequency.unit": "repeat unit",
+        "doses": "doses",
+        "doses.*.time": "dose time",
+        "doses.*.amount": "dose amount",
+        "doses.*.unit": "dose unit",
+        "doses.*.meal": "meal relation",
+        "hours": "window",
+        "endpoint": "push endpoint",
+        "keys.p256dh": "push key",
+        "keys.auth": "push key"
     },
     "appointment_attributes": {
         "kind": "appointment type",
@@ -104,5 +122,29 @@
         "result_note": "result note",
         "is_active": "reminder",
         "done": "done"
+    },
+    "dose_units": {
+        "pill": "pill",
+        "capsule": "capsule",
+        "drop": "drop",
+        "ml": "ml",
+        "spoon": "spoon",
+        "puff": "puff",
+        "injection": "injection"
+    },
+    "meals": {
+        "before": "before a meal",
+        "after": "after a meal"
+    },
+    "frequency_units": {
+        "day": "day",
+        "hour": "hour"
+    },
+    "push": {
+        "medication_title": "Time for your medication",
+        "appointment_title": "Appointment reminder",
+        "when_today": "today at :time",
+        "when_tomorrow": "tomorrow at :time",
+        "when_days": "in :days days at :time"
     }
 }

@@ -160,6 +160,12 @@ export const SHEET_REGISTRY: Record<string, SheetDefinition> = {
    * AddChooser (M3): medication / doctor visit / consultation. Opened by the
    * home «یادآورهای امروز» card and the Reminders CTA.
    */
+  /** «ثبت علائم حیاتی»: BP / heart rate / glucose add forms + the hub — the + sheet and Today quick access. */
+  'vitals-add': {
+    size: 'half',
+    Title: dynamic(() => import('@/screens/vitals-chooser').then((m) => m.VitalsChooserTitle), { ssr: false }),
+    Component: dynamic(() => import('@/screens/vitals-chooser').then((m) => m.VitalsChooserSheet), { ssr: false }),
+  },
   'reminders-add': {
     size: 'half',
     Title: AddReminderTitle,

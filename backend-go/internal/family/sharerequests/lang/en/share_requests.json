@@ -1,0 +1,19 @@
+{
+    "messages": {
+        "validation_failed": "The given data was invalid.",
+        "not_found": "Not found.",
+        "created": "Request sent. Nothing changes until she approves.",
+        "approved": "Access updated.",
+        "declined": "Request declined.",
+        "too_many_requests": "You already asked for this recently. Try again later.",
+        "link_pending": "There is an open invite between you; answer it first.",
+        "level_not_allowed": "This access level isn't allowed for this part.",
+        "teen_parent_only": "In teen mode you can only share with your mother or a parent."
+    },
+    "validation": {
+        "domains_required": "Choose at least one part.",
+        "domain_invalid": "Unknown part.",
+        "level_invalid": "The access level must be view, nudge or write.",
+        "self": "You cannot ask yourself."
+    }
+}

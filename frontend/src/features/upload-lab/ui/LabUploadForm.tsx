@@ -4,8 +4,8 @@ import { clsx } from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 
-import { type Lab, LAB_PLUS_FEATURE } from '@/entities/lab';
-import { PlusFeatureGate } from '@/entities/plus';
+import type { AiGateHooks } from '@/entities/ai-credit';
+import type { Lab } from '@/entities/lab';
 import { type Locale, useDirection } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import {
@@ -42,6 +42,8 @@ interface LabUploadFormProps {
   onUploaded: (lab: Lab) => void;
   /** 403 consent_required — open the consent sheet; the draft stays. */
   onConsentRequired: () => void;
+  /** `useAiGate('lab_analysis')` from the screen (a feature can't import the ai-gate feature). */
+  ai: AiGateHooks;
 }
 
 let seq = 0;
@@ -66,7 +68,7 @@ function usePreviews(pages: readonly DraftPage[]): Record<string, string> {
  * (`model/validation.ts`); photos above the size limit are shrunk on the device
  * first. Files never leave the page except in the upload itself.
  */
-export function LabUploadForm({ limits, onUploaded, onConsentRequired }: LabUploadFormProps) {
+export function LabUploadForm({ limits, onUploaded, onConsentRequired, ai }: LabUploadFormProps) {
   const t = useTranslations('labs.upload');
   const locale = useLocale() as Locale;
   const rtl = useDirection() === 'rtl';
@@ -121,9 +123,14 @@ export function LabUploadForm({ limits, onUploaded, onConsentRequired }: LabUplo
     setErrors(found);
     setServerError(null);
     if (Object.keys(found).length) return;
+    if (!ai.guard()) return;
     upload.mutate(draft, {
-      onSuccess: onUploaded,
+      onSuccess: (lab) => {
+        ai.refresh();
+        onUploaded(lab);
+      },
       onError: (error) => {
+        if (ai.handleError(error)) return; // the gate sheet explains it
         const e = uploadErrorOf(error);
         setServerError(e);
         if (e.kind === 'consent') onConsentRequired();
@@ -146,7 +153,7 @@ export function LabUploadForm({ limits, onUploaded, onConsentRequired }: LabUplo
     if (!serverError) return null;
     switch (serverError.kind) {
       case 'validation':
-      case 'plus':
+      case 'gate':
         return Object.keys(serverError.fields).length ? null : serverError.message;
       case 'consent':
         return t('errors.consent');
@@ -273,11 +280,6 @@ export function LabUploadForm({ limits, onUploaded, onConsentRequired }: LabUplo
           </ul>
         </Card>
 
-        {serverError?.kind === 'plus' ? (
-          <PlusFeatureGate feature={LAB_PLUS_FEATURE} denial={serverError.denial}>
-            <p className="lab-up-plus">{t('plusNote')}</p>
-          </PlusFeatureGate>
-        ) : null}
         {generalError ? (
           <p className="lab-error is-block" role="alert">
             {generalError}

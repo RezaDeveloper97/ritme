@@ -28,6 +28,36 @@ export function onSessionEnd(cleanup: Cleanup): () => void {
   };
 }
 
+type BeforeLogout = () => void | Promise<void>;
+
+const beforeLogout = new Set<BeforeLogout>();
+
+/**
+ * Run `task` at an explicit logout BEFORE the token is dropped, so it can still
+ * make authenticated calls (e.g. delete this device's push subscription). Not
+ * run for a 401 or account deletion — the token is already unusable there;
+ * use {@link onSessionEnd} for the local part.
+ */
+export function onBeforeLogout(task: BeforeLogout): () => void {
+  beforeLogout.add(task);
+  return () => {
+    beforeLogout.delete(task);
+  };
+}
+
+/** Awaits every {@link onBeforeLogout} task (each bounded by `timeoutMs`; failures are ignored). */
+export async function runBeforeLogout(timeoutMs = 4000): Promise<void> {
+  await Promise.all(
+    [...beforeLogout].map(async (task) => {
+      try {
+        await Promise.race([task(), new Promise<void>((resolve) => setTimeout(resolve, timeoutMs))]);
+      } catch {
+        // Logging out must never wait on, or fail because of, a cleanup.
+      }
+    }),
+  );
+}
+
 /**
  * Run every registered wipe. One failing wipe (blocked storage, a closed
  * IndexedDB) must not stop the others, nor the logout itself.

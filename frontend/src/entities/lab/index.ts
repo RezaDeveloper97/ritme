@@ -3,7 +3,6 @@
 export {
   LAB_CATEGORIES,
   LAB_CONSENT_CODE,
-  LAB_PLUS_FEATURE,
   type CatalogMarker,
   type Lab,
   type LabCategory,

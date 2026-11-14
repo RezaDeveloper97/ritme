@@ -192,7 +192,7 @@ it('shows local cover illustrations and no lightbox for a place without photos',
     $html = (string) $this->get('/directory/place/ab-pari')->getContent();
 
     expect($html)->not->toContain('data-module="gallery"')
-        ->and($html)->not->toContain('<img');
+        ->and($html)->not->toMatch('~<img(?! src="/icons/logo-wordmark\.webp)~'); // only the header/footer brand logo
 });
 
 // ---- URLs --------------------------------------------------------------------------------------------------------

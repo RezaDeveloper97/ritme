@@ -5,12 +5,24 @@ import { useTranslations } from 'next-intl';
 
 import { Link } from '@/shared/i18n';
 import { openSheet } from '@/shared/sheet';
-import { Icon } from '@/shared/ui';
+import { Icon, type IconName, type Tone } from '@/shared/ui';
 
 import { useQuickAccess } from '../model/use-quick-access';
 
 /** Registry id of the edit sheet (`app/sheets/registry.tsx`). */
 export const QUICK_ACCESS_SHEET = 'quick-access';
+
+function ShortcutFace({ id, icon, tone }: { id: string; icon: IconName; tone: Tone }) {
+  const t = useTranslations('nav.quickAccess');
+  return (
+    <>
+      <span className={clsx('qac-ic', `nb-tone-${tone}`)} aria-hidden>
+        <Icon name={icon} size={22} strokeWidth={1.8} />
+      </span>
+      <span className="qac-label">{t(`items.${id}` as 'items.record')}</span>
+    </>
+  );
+}
 
 /**
  * Today «دسترسی سریع» (CB-NAV-03, nbd_Nav_Today): her own shortcuts as round tiles plus «ویرایش», which opens
@@ -32,12 +44,15 @@ export function QuickAccess({ className }: { className?: string }) {
       <ul className="qac-grid">
         {qa.visible.map((s) => (
           <li key={s.id}>
-            <Link href={s.href as string} className="qac-tile">
-              <span className={clsx('qac-ic', `nb-tone-${s.tone}`)} aria-hidden>
-                <Icon name={s.icon} size={22} strokeWidth={1.8} />
-              </span>
-              <span className="qac-label">{t(`items.${s.id}` as 'items.record')}</span>
-            </Link>
+            {s.sheet ? (
+              <button type="button" className="qac-tile" onClick={() => openSheet(s.sheet as string)}>
+                <ShortcutFace id={s.id} icon={s.icon} tone={s.tone} />
+              </button>
+            ) : (
+              <Link href={s.href as string} className="qac-tile">
+                <ShortcutFace id={s.id} icon={s.icon} tone={s.tone} />
+              </Link>
+            )}
           </li>
         ))}
         <li>

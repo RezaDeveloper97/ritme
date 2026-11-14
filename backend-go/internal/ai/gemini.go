@@ -59,6 +59,9 @@ func NewGemini(cfg config.Gemini, client *http.Client) *Gemini {
 		streamIdle: GeminiStreamIdleTimeout}
 }
 
+// modelOf is the model of this call: the route's (admin data, route.go), else the configured default.
+func (g *Gemini) modelOf(ctx context.Context) string { return routeModel(ctx, g.model) }
+
 // WithCallTimeout sets the bound of one non-streaming call (≤ 0 keeps the current one).
 func (g *Gemini) WithCallTimeout(d time.Duration) *Gemini {
 	if d > 0 {
@@ -77,8 +80,8 @@ func (g *Gemini) WithStreamIdleTimeout(d time.Duration) *Gemini {
 
 // thinkingBudget is the smallest thinking budget the model accepts: 0 (off) for flash models, 128 for the pro
 // models that cannot turn thinking off. Parse / extract / transcribe need no reasoning tokens (B-N6-05b, M1).
-func (g *Gemini) thinkingBudget() int {
-	if strings.Contains(strings.ToLower(g.model), "-pro") {
+func thinkingBudget(model string) int {
+	if strings.Contains(strings.ToLower(model), "-pro") {
 		return 128
 	}
 	return 0
@@ -86,9 +89,9 @@ func (g *Gemini) thinkingBudget() int {
 
 // taskConfig is the generationConfig of a deterministic task call: temperature 0, minimal thinking and an
 // output cap, plus extra keys (responseMimeType).
-func (g *Gemini) taskConfig(maxOutput int, extra map[string]any) map[string]any {
+func (g *Gemini) taskConfig(ctx context.Context, maxOutput int, extra map[string]any) map[string]any {
 	cfg := map[string]any{"temperature": 0, "maxOutputTokens": maxOutput,
-		"thinkingConfig": map[string]any{"thinkingBudget": g.thinkingBudget()}}
+		"thinkingConfig": map[string]any{"thinkingBudget": thinkingBudget(g.modelOf(ctx))}}
 	for k, v := range extra {
 		cfg[k] = v
 	}
@@ -165,13 +168,13 @@ func (m gUsage) apply(u *Usage) {
 
 // generate posts raw (a generateContent body the caller owns and wipes afterwards).
 func (g *Gemini) generate(ctx context.Context, raw []byte) (string, Usage, error) {
-	u := Usage{Provider: config.AIProviderGemini, Model: g.model}
+	u := Usage{Provider: config.AIProviderGemini, Model: g.modelOf(ctx)}
 	if g.callTimeout > 0 {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, g.callTimeout)
 		defer cancel()
 	}
-	endpoint := g.baseURL + "/v1beta/models/" + url.PathEscape(g.model) + ":generateContent"
+	endpoint := g.baseURL + "/v1beta/models/" + url.PathEscape(g.modelOf(ctx)) + ":generateContent"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(raw))
 	if err != nil {
 		return "", u, fmt.Errorf("%w: build request", ErrUpstream)
@@ -221,7 +224,7 @@ Return only the transcript text: no quotes, no translation, no commentary. If no
 func (g *Gemini) Transcribe(ctx context.Context, req TranscribeRequest) (Transcript, Usage, error) {
 	prompt, _ := json.Marshal(fmt.Sprintf(geminiTranscribePrompt, req.Language))
 	mimeType, _ := json.Marshal(req.Audio.MIME)
-	genCfg, _ := json.Marshal(g.taskConfig(GeminiTranscribeMaxOutputTokens, nil))
+	genCfg, _ := json.Marshal(g.taskConfig(ctx, GeminiTranscribeMaxOutputTokens, nil))
 	b64 := make([]byte, base64.StdEncoding.EncodedLen(len(req.Audio.Data)))
 	base64.StdEncoding.Encode(b64, req.Audio.Data)
 	var buf bytes.Buffer
@@ -261,55 +264,20 @@ Answer JSON only: {"items":[{"key":"<slot key>","value":<value>,"confidence":<0.
 
 // ParseLog implements LogParser.
 func (g *Gemini) ParseLog(ctx context.Context, req LogParseRequest) ([]Candidate, Usage, error) {
-	var vb strings.Builder
-	for _, v := range req.Vocabulary {
-		vb.WriteString(v.Key + " | " + v.Type + " | " + v.Label)
-		switch v.Type {
-		case "single", "items":
-			codes := make([]string, len(v.Values))
-			for i, x := range v.Values {
-				codes[i] = x.Code + "=" + x.Label
-			}
-			vb.WriteString(" | " + strings.Join(codes, ", "))
-		case "number", "integer":
-			fmt.Fprintf(&vb, " | %g–%g %s", v.Min, v.Max, v.Unit)
-		case "text":
-			fmt.Fprintf(&vb, " | ≤ %d characters", v.MaxLen)
-		case "time":
-			vb.WriteString(" | HH:MM")
-		}
-		vb.WriteByte('\n')
-	}
 	body := gRequest{
 		SystemInstruction: &gContent{Parts: []gPart{{Text: geminiParseInstruction}}},
-		Contents: []gContent{{Role: "user", Parts: []gPart{{Text: "LANGUAGE: " + req.Language +
-			"\nVOCABULARY:\n" + vb.String() + "TEXT:\n<<<\n" + req.Text + "\n>>>"}}}},
-		GenerationConfig: g.taskConfig(GeminiParseMaxOutputTokens, map[string]any{"responseMimeType": "application/json"}),
+		Contents:          []gContent{{Role: "user", Parts: []gPart{{Text: parseLogPrompt(req)}}}},
+		GenerationConfig:  g.taskConfig(ctx, GeminiParseMaxOutputTokens, map[string]any{"responseMimeType": "application/json"}),
 	}
 	raw, err := json.Marshal(body)
 	if err != nil {
-		return nil, Usage{Provider: config.AIProviderGemini, Model: g.model}, fmt.Errorf("%w: encode request", ErrUpstream)
+		return nil, Usage{Provider: config.AIProviderGemini, Model: g.modelOf(ctx)}, fmt.Errorf("%w: encode request", ErrUpstream)
 	}
 	text, u, err := g.generate(ctx, raw)
 	clear(raw)
 	if err != nil {
 		return nil, u, err
 	}
-	var parsed struct {
-		Items []struct {
-			Key          string   `json:"key"`
-			Value        any      `json:"value"`
-			Confidence   float64  `json:"confidence"`
-			Alternatives []string `json:"alternatives"`
-		} `json:"items"`
-	}
-	text = strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(strings.TrimSpace(text), "```json"), "```"))
-	if err := json.Unmarshal([]byte(text), &parsed); err != nil {
-		return nil, u, fmt.Errorf("%w: unparsable answer", ErrUpstream)
-	}
-	out := make([]Candidate, 0, len(parsed.Items))
-	for _, it := range parsed.Items {
-		out = append(out, Candidate{Key: it.Key, Value: it.Value, Confidence: it.Confidence, Alternatives: it.Alternatives})
-	}
-	return out, u, nil
+	out, err := decodeCandidates(text)
+	return out, u, err
 }

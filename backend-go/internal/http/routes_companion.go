@@ -11,11 +11,14 @@ import (
 	"github.com/ritme/backend-go/internal/companion"
 	"github.com/ritme/backend-go/internal/companion/shared"
 	"github.com/ritme/backend-go/internal/family"
+	"github.com/ritme/backend-go/internal/family/invites"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/ratelimit"
+	"github.com/ritme/backend-go/internal/plus"
 	"github.com/ritme/backend-go/internal/sms"
+	"github.com/ritme/backend-go/internal/teen"
 )
 
 // Companion «همدم» throttles (bloom B-N4-02). A code has 32^6 ≈ 1.07e9 values and lives 24 h, so with these caps a
@@ -44,20 +47,44 @@ func init() {
 		if err != nil {
 			panic(err) // config.Load already refused unknown providers and fake in production
 		}
-		disabled := d.Config.Companion.PepperMissing(d.Config.App)
-		if disabled {
-			d.Logger.Error("COMPANION_CODE_PEPPER is not set in production: companion invites are disabled (503)")
+		// FAM-L1 / CMP-L3 (T-M11-08): outside local / testing / contract the invite pepper is mandatory — the server
+		// refuses to start without it; the routes also answer 503 as a second line.
+		if err := d.Config.Companion.CheckPepper(d.Config.App); err != nil {
+			auth.FailStartup(r, d.Logger, err)
 		}
+		disabled := d.Config.Companion.PepperMissing(d.Config.App)
+		teenPolicy := teen.NewPolicy(d.DB)
+		plusGate := plus.NewGate(plus.NewService(d.DB, d.Config.Plus, nil, d.Logger), clock.Real{}) // entitlements only
 		h := companion.NewHandlers(d.DB, clock.Real{}, companion.HandlerOptions{
 			Service: companion.Options{CodePepper: []byte(d.Config.Companion.CodePepper),
-				ReadAudit: family.NewReadAudit(d.Cache)}, // F-16, D-203: Redis read-audit coalescing
+				ReadAudit:         family.NewReadAudit(d.Cache), // F-16, D-203: Redis read-audit coalescing
+				MinAcceptDuration: invites.DefaultMinDuration,   // CMP-L2: constant-time accept (D-196 invite service)
+				Mismatch:          inviteMismatchGate(d)},       // CMP-L8: one mismatch per account
 			SMS:      sender,
 			Reader:   shared.NewReader(d.DB).WithEngine(engineStates(r, d)),
 			Children: children.NewService(d.DB, nil), // spouse shared children: owner's own children only (B-N5-02)
 			Disabled: disabled,
 			Logger:   d.Logger,
 			SendGate: companionSendGate(d),
-			Breaker:  companionAcceptBreaker(d), // CMP-M3 (companion_guards.go)
+			// «ریتمی همراه» is a Ritme Plus feature: a partner / spouse invite needs plus.companion. A teen's parent
+			// link stays free, and a teen-mode account is never shown a paywall (CB-TEEN-01: it cannot buy Plus) —
+			// its partner invite goes on to the teen_parent_only refusal.
+			InviteGate: func(c fiber.Ctx, t companion.Type) error {
+				if t == companion.TypeParent {
+					return nil
+				}
+				if userID, ok := auth.CurrentUserID(c); ok {
+					commercial, err := teenPolicy.AllowsCommercial(c.Context(), userID)
+					if err != nil {
+						return err
+					}
+					if !commercial {
+						return nil
+					}
+				}
+				return plusGate.Check(c, plus.Companion)
+			},
+			Breaker: companionAcceptBreaker(d), // CMP-M3 (companion_guards.go)
 		})
 		acceptUser := companionThrottle(d, "companion-accept", CompanionAcceptPerUser, auth.ThrottleIdentity)
 		acceptIP := companionThrottle(d, "companion-accept-ip", CompanionAcceptPerIP, nil)
@@ -76,6 +103,7 @@ func init() {
 		r.Post(c+"/:id/renew", locale, guard, writes, invites, h.Renew)
 		r.Put(c+"/:id/grants", locale, guard, writes, h.UpdateGrants)
 		r.Put(c+"/:id/children", locale, guard, writes, h.UpdateChildren)
+		r.Put(c+"/:id/preferences", locale, guard, writes, h.UpdatePreferences) // «ریتمی همراه» v2
 	})
 }
 
@@ -105,4 +133,24 @@ func companionSendGate(d *Deps) companion.SendGate {
 		return nil
 	}
 	return redisSendGate{l: ratelimit.New(d.Cache, clock.Real{})}
+}
+
+// inviteMismatchGate counts a phone-bound code's wrong-account tries once per account (CMP-L8); without Redis (unit
+// tests) every try counts.
+func inviteMismatchGate(d *Deps) invites.Gate {
+	if d.Cache == nil {
+		return nil
+	}
+	return redisSendGate{l: ratelimit.New(d.Cache, clock.Real{})}
+}
+
+// companionInviteSender is the /companions invite SMS (adapter, CB-PRIV-01 wording, gates) for POST /family/members.
+func companionInviteSender(d *Deps) invites.Sender {
+	sender, err := sms.New(d.Config, nil, d.Logger)
+	if err != nil {
+		panic(err) // config.Load already refused unknown providers and fake in production
+	}
+	h := companion.NewHandlers(d.DB, clock.Real{}, companion.HandlerOptions{SMS: sender, Logger: d.Logger,
+		SendGate: companionSendGate(d)})
+	return h.SendInviteCode
 }

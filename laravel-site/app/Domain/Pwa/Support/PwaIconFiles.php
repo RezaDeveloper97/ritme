@@ -14,7 +14,7 @@ use App\Domain\Media\Models\Media;
 final class PwaIconFiles
 {
     /** Bump when the generated artwork changes (new sizes, padding …): every generated set gets a new URL. */
-    public const REVISION = 1;
+    public const REVISION = 2;
 
     /** Root of generated sets on the media disk (served under /media, immutable-cached, hence versioned names). */
     public const GENERATED_ROOT = 'pwa';
@@ -52,6 +52,12 @@ final class PwaIconFiles
     public const DEFAULT_MASK_ICON = 'icons/mask-icon.svg';
 
     public const DEFAULT_FAVICON_ICO = 'favicon.ico';
+
+    /**
+     * Brand logo (ring + «ریتمی» wordmark) shown in the header and footer: 212×80 WebP for 40 CSS px height, made from
+     * resources/images/brand/ritme-wordmark.png (`magick … -resize x80`, `cwebp -q 90 -alpha_q 100`).
+     */
+    public const SITE_LOGO = 'icons/logo-wordmark.webp';
 
     /** Manifest screenshots, relative to public/: file => [width, height, form_factor, label]. */
     public const SCREENSHOTS = [

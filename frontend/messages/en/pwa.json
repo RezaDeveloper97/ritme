@@ -13,5 +13,33 @@
   "iosSignInNote": "The installed app asks you to sign in once; after that you stay signed in.",
   "inAppTitle": "Open Ritme in your browser",
   "inAppBody": "This page is open inside another app's browser. Use its ⋯ menu to open it in Safari or Chrome, so you can install Ritme and stay signed in.",
-  "dismiss": "Dismiss"
+  "dismiss": "Dismiss",
+  "push": {
+    "sheet": {
+      "title": "Turn on notifications?",
+      "body": "To remind you at dose time, Ritme needs to be able to send notifications to this device. You can turn them off whenever you like.",
+      "enable": "Turn on notifications",
+      "later": "Not now"
+    },
+    "device": {
+      "title": "Notifications on this device",
+      "state": {
+        "on": "On",
+        "off": "Off",
+        "blocked": "Blocked",
+        "install": "Install needed",
+        "unsupported": "Not supported"
+      },
+      "onHint": "Your reminders and new notifications reach this device.",
+      "onHintShell": "Medication and appointment reminders reach this device on time.",
+      "offHint": "Turn it on so your reminders and new notifications reach this device.",
+      "offHintShell": "Turn it on so medication and appointment reminders reach this device on time.",
+      "enable": "Turn on notifications",
+      "blockedHint": "Notifications are blocked for Ritme. Allow them in your browser's site settings, then come back to this page.",
+      "blockedHintShell": "Notifications are blocked for Ritme. Allow them in your phone's settings under Ritme's notifications, then come back here.",
+      "installHint": "To get notifications, first add Ritme to your home screen, then turn them on from here.",
+      "unsupportedHint": "This device doesn't support notifications.",
+      "failed": "Couldn't turn them on. Try again in a moment."
+    }
+  }
 }

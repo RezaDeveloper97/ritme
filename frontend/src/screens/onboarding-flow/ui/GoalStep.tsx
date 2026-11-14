@@ -11,11 +11,11 @@ import { useSaveOnboardingStep } from '../api/onboarding';
 import type { OnboardingGoal } from '../model/flow';
 import { StepScreen, type StepContext } from './StepScreen';
 
-const META: Record<OnboardingGoal, Pick<RadioCardOption<OnboardingGoal>, 'icon' | 'iconTone'>> = {
-  cycle: { icon: 'drop', iconTone: 'period' },
-  ttc: { icon: 'target', iconTone: 'warm' },
-  pregnancy: { icon: 'user', iconTone: 'bloom' },
-  menopause: { icon: 'moon', iconTone: 'brand' },
+const META: Record<OnboardingGoal, Pick<RadioCardOption<OnboardingGoal>, 'icon' | 'iconTone' | 'art'>> = {
+  cycle: { icon: 'drop', iconTone: 'period', art: 'cycle' },
+  ttc: { icon: 'target', iconTone: 'warm', art: 'ttc' },
+  pregnancy: { icon: 'user', iconTone: 'bloom', art: 'pregnancy' },
+  menopause: { icon: 'moon', iconTone: 'brand', art: 'menopause' },
 };
 
 function GoalForm({ ctx }: { ctx: StepContext }) {

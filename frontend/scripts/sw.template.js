@@ -88,6 +88,86 @@ self.addEventListener('message', (event) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Web Push (medication reminders). The server sends JSON
+// {"title","body","url","tag"}; `url` is an in-app path such as /fa/reminders.
+// Privacy (CLAUDE.md §11): the notification text is health data — it is shown
+// and then forgotten, never logged, never cached, never written anywhere.
+// ---------------------------------------------------------------------------
+const PUSH_FALLBACK_TITLE = '\u0631\u06cc\u062a\u0645\u06cc';
+const PUSH_DEFAULT_TAG = 'ritme-reminder';
+const RTL_LANGS = ['fa', 'ar', 'he', 'ur'];
+
+// Same-origin in-app paths only: one leading "/", no protocol-relative or
+// backslash tricks, no control characters. Anything else falls back to "/".
+function safeAppPath(value) {
+  if (typeof value !== 'string' || value.length === 0 || value.length > 2000) return '/';
+  if (value[0] !== '/' || value[1] === '/' || value[1] === '\\') return '/';
+  if (/[\u0000-\u001f\u007f]/.test(value)) return '/';
+  try {
+    const parsed = new URL(value, self.location.origin);
+    if (parsed.origin !== self.location.origin) return '/';
+    return parsed.pathname + parsed.search + parsed.hash;
+  } catch {
+    return '/';
+  }
+}
+
+function pushText(value, max) {
+  return typeof value === 'string' ? value.slice(0, max) : '';
+}
+
+function parsePush(event) {
+  try {
+    const raw = event.data ? event.data.json() : null;
+    return raw && typeof raw === 'object' ? raw : {};
+  } catch {
+    return {};
+  }
+}
+
+self.addEventListener('push', (event) => {
+  const payload = parsePush(event);
+  const title = pushText(payload.title, 200) || PUSH_FALLBACK_TITLE;
+  const url = safeAppPath(payload.url);
+  const lang = url.split('/')[1] || '';
+  const options = {
+    body: pushText(payload.body, 500),
+    tag: pushText(payload.tag, 100) || PUSH_DEFAULT_TAG,
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
+    data: { url },
+    dir: RTL_LANGS.includes(lang.split('-')[0]) ? 'rtl' : 'ltr',
+  };
+  if (/^[a-z]{2,3}(?:-[A-Za-z]{2,4})?$/.test(lang)) options.lang = lang;
+  // A push without a visible notification is penalised by browsers, so this
+  // always shows one — a neutral one when the payload is missing or malformed.
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const target = safeAppPath(event.notification.data && event.notification.data.url);
+  const absolute = new URL(target, self.location.origin).href;
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      const existing = windows.find((client) => new URL(client.url).origin === self.location.origin);
+      if (existing) {
+        try {
+          const focused = await existing.focus();
+          const client = focused || existing;
+          if (typeof client.navigate === 'function') await client.navigate(absolute);
+          return;
+        } catch {
+          // Fall through to opening a fresh window.
+        }
+      }
+      await self.clients.openWindow(absolute);
+    })(),
+  );
+});
+
 function isHashedAsset(url) {
   return url.pathname.startsWith('/_next/static/');
 }

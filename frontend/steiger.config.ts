@@ -405,10 +405,10 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
-    // CB-NAV-03: the Today header mode chip, «برای امروز», «دسترسی سریع» and the + sheet «برای بعد» rows are
+    // CB-NAV-03: the Today header actions (bell + light/dark), «برای امروز», «دسترسی سریع» and the + sheet «برای بعد» rows are
     // mounted by screens/home, pregnancy, postpartum, ivf and log (the quick-access edit sheet by app/sheets) —
     // references FROM `screens` are invisible to steiger.
-    files: ['./src/widgets/mode-chip/**', './src/widgets/for-today/**', './src/widgets/quick-access/**', './src/widgets/log-later/**'],
+    files: ['./src/widgets/notification-bell/**', './src/widgets/for-today/**', './src/widgets/quick-access/**', './src/widgets/log-later/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
@@ -478,6 +478,26 @@ export default defineConfig([
     // CB-DIR-13: `features/review-city-booking` is used by screens/city-services (bookings list + booked page) only —
     // references FROM `screens` are invisible to steiger.
     files: ['./src/features/review-city-booking/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    // companion v2 (member side): `features/join-companion` is used by screens/companion-home and
+    // screens/onboarding-flow, `widgets/companion-support` by screens/companion-home|actions|learn — references
+    // FROM `screens` are invisible to steiger.
+    files: ['./src/features/join-companion/**', './src/widgets/companion-support/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    // companion v2 (host side): `widgets/companion-invite-banner` is mounted by screens/home only — references FROM
+    // `screens` are invisible to steiger.
+    files: ['./src/widgets/companion-invite-banner/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
+    // AI credits: `entities/ai-credit` is read by screens/credits-*, profile, assistant, plus-* and the ai-gate
+    // feature; `widgets/voice-log-slot` is mounted by the log screens — references FROM `screens` are invisible
+    // to steiger.
+    files: ['./src/entities/ai-credit/**', './src/widgets/voice-log-slot/**'],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
 ]);

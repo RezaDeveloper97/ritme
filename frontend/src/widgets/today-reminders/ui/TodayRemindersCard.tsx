@@ -8,13 +8,20 @@ import { useLogIntake } from '@/features/log-intake';
 import { Link, type Locale } from '@/shared/i18n';
 import { formatNumber, fromApiDate, monthName, toParts } from '@/shared/lib/date';
 import { openSheet } from '@/shared/sheet';
-import { Icon, Skeleton } from '@/shared/ui';
+import { CheckTick, Icon, Skeleton } from '@/shared/ui';
 
 import { cardStatus, doseRowState, type DoseRowState } from '../model/dose-row';
 import { showRemindChip } from '../model/remind-chip';
 
 
 type T = ReturnType<typeof useTranslations<'care'>>;
+
+/** «۱ قرص · بعد از غذا» from a dose's detail parts. */
+function doseLine(detail: NonNullable<DoseRowState['detail']>, t: T, locale: Locale): string {
+  const unit = detail.unit ? t(`doseUnits.${detail.unit}`) : (detail.unitLabel ?? '');
+  const base = t('doseLine', { amount: formatNumber(detail.amount, locale), unit });
+  return detail.meal ? `${base} · ${t(`meals.${detail.meal}`)}` : base;
+}
 
 /** The AddChooser sheet (`app/sheets/registry.tsx`). */
 const ADD_SHEET = 'reminders-add';
@@ -69,6 +76,7 @@ function DoseRow({
             time: formatNumber(row.clock, locale),
             period: t(`slotPeriod.${row.period}`),
           })}
+          {row.detail && ` · ${doseLine(row.detail, t, locale)}`}
         </div>
       </div>
       <button
@@ -82,7 +90,7 @@ function DoseRow({
         onClick={onToggle}
       >
         <span className="trm-check-dot" aria-hidden>
-          {row.taken && <Icon name="check" size={14} strokeWidth={3} />}
+          <CheckTick on={row.taken} />
         </span>
       </button>
     </div>

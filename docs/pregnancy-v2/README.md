@@ -77,7 +77,7 @@ Pregnancy-mode bottom nav: امروز · تقویم · (+ ثبت امروز, gra
 - `pregnancy_daily_extras` (user_id, log_date unique pair): `mood` (1–5), `water_glasses`, `heartburn_severity`,
   `constipation_severity`, `visit_note` — the columns `pregnancy_symptom_logs` lacks, kept separate so the Laravel
   contract of `/pregnancy/symptoms` stays unchanged.
-- `pregnancy_week_user_state` (user_id, week unique pair): `bookmarked`, `done_task_keys` json.
+- `pregnancy_week_user_state` (user_id, week unique pair): `done_task_keys` json (`bookmarked` dropped in goose 00120).
 - Shipped in T-M7-01 as goose `00005_pregnancy_v2.sql` + Laravel twin `2026_09_26_000001_create_pregnancy_v2_tables.php`
   (identical seeds, insert-or-ignore). sqlc: `db/queries/pregnancy/v2_*.sql` → `internal/pregnancy/store`
   (`GetWeekDetails`, `ListWeekDetailsRange`, `UpsertWeekDetails`, care-item CRUD + `SetCareItemSortOrder`/`SetCareItemActive`,

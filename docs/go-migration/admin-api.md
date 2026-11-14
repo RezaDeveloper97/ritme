@@ -568,25 +568,25 @@ the CSRF check of the admin chain (419 without the token) and each one writes a 
 
 | Method | Path | Role | Body / query | `data` |
 |---|---|---|---|---|
-| GET | `/plus/plans` | A | — | `{items: [Plan], currency: "IRR", limits{min_price_rials, max_price_rials, max_duration_months}, next_sort_order}` (every plan, `sort_order, id`; not paginated) |
-| POST | `/plus/plans` | S | `code` (`^[a-z][a-z0-9_]*$`, unique, fixed afterwards), `title` (translatable, default language required, ≤ 64), `badge?` (translatable, ≤ 32), `duration_months` (1–36), `price_rials` (10,000 – 10¹¹), `monthly_display_rials?`, `is_highlighted?` (false), `is_active?` (true), `sort_order?` (default max + 1) | 201 `{plan}` |
+| GET | `/plus/plans` | A | — | `{items: [Plan], currency: "IRR", limits{min_price_rials, max_price_rials, max_duration_months, max_ai_credits}, next_sort_order}` (every plan, `sort_order, id`; not paginated) |
+| POST | `/plus/plans` | S | `code` (`^[a-z][a-z0-9_]*$`, unique, fixed afterwards), `title` (translatable, default language required, ≤ 64), `badge?` (translatable, ≤ 32), `duration_months` (1–36), `price_rials` (10,000 – 10¹¹), `monthly_display_rials?`, `ai_credits?` (0–1,000,000, default 0: the AI credits of one purchased period, docs/ai-credits.md), `is_highlighted?` (false), `is_active?` (true), `sort_order?` (default max + 1) | 201 `{plan}` |
 | GET | `/plus/plans/:id` | A | — | `{plan}` |
-| PUT | `/plus/plans/:id` | S | as POST without `code`; absent optional fields keep their value | `{plan}` — existing invoices keep the price they were charged |
+| PUT | `/plus/plans/:id` | S | as POST without `code`; absent optional fields keep their value (`ai_credits` too) | `{plan}` — existing invoices keep the price they were charged; a changed `ai_credits` applies to periods whose credit bucket is created from now on (a running period keeps its bucket) |
 | DELETE | `/plus/plans/:id` | S | — | `{id, deleted, deactivated}` — a plan referenced by invoices or subscriptions is **deactivated** (and un-highlighted) instead |
 | GET | `/plus/discount-codes` | A | `q` (code substring), `status=all\|active\|inactive`, `page`, `per_page` | list of `DiscountCode` (newest first) + `filters` |
 | POST | `/plus/discount-codes` | S | `code` (3–64, `[A-Za-z0-9_-]`, stored upper-case, unique case-insensitively, fixed afterwards), `kind=percent\|amount`, `value` (percent 1–100 / rials), `max_redemptions?` (null = unlimited), `per_user_limit?` (absent = 1, null = unlimited), `plan_ids?` (existing plan ids; empty / null = every plan), `starts_at?`, `expires_at?` (≥ starts_at), `is_active?` | 201 `{discount_code}` |
 | GET | `/plus/discount-codes/:id` | A | — | `{discount_code}` |
 | PUT | `/plus/discount-codes/:id` | S | as POST without `code`; absent optional fields keep their value | `{discount_code}` |
 | DELETE | `/plus/discount-codes/:id` | S | — | `{id, deleted, deactivated}` — a code used on any invoice is deactivated instead |
-| GET | `/plus/settings` | A | — | `{settings: {trial_offer_percent, vat_rate_bps (effective), vat_override_bps\|null, vat_env_rate_bps, vat_source: env\|admin, trial_days, ai_cost_usd_irr_rate\|null}}` |
-| PUT | `/plus/settings` | S | `trial_offer_percent` (0–100, 0 = no offer), `vat_rate_bps?` (0–10000; **null** removes the override → `PLUS_VAT_RATE_BPS`; absent = unchanged), `ai_cost_usd_irr_rate?` (IRR per USD, number 1–100 000 000; **null** removes it → KPI `ai_cost.share` null; absent = unchanged; stored as `plus_settings.ai_cost_usd_irr_rate`, read by the KPI snapshot job) | same as GET; a ledger row only when something changed |
+| GET | `/plus/settings` | A | — | `{settings: {trial_offer_percent, vat_rate_bps (effective), vat_override_bps\|null, vat_env_rate_bps, vat_source: env\|admin, trial_days, ai_cost_usd_irr_rate\|null, trial_ai_credits, max_trial_ai_credits}}` |
+| PUT | `/plus/settings` | S | `trial_offer_percent` (0–100, 0 = no offer), `vat_rate_bps?` (0–10000; **null** removes the override → `PLUS_VAT_RATE_BPS`; absent = unchanged), `ai_cost_usd_irr_rate?` (IRR per USD, number 1–100 000 000; **null** removes it → KPI `ai_cost.share` null; absent = unchanged; stored as `plus_settings.ai_cost_usd_irr_rate`, read by the KPI snapshot job), `trial_ai_credits?` (0–100,000; absent / null = unchanged; `plus_settings.trial_ai_credits`, the credits a trial carries — a trial whose bucket already exists keeps its amount) | same as GET; a ledger row only when something changed |
 | GET | `/plus/subscriptions` | A | `status=all\|active\|canceled\|expired\|refunded` (expired = active/canceled with `ends_at` ≤ now), `plan_id`, `from`/`to` (start date, Tehran, inclusive), `q` (part of the mobile; Persian digits accepted), `page`, `per_page` | list of `{id, user{id, name, mobile (masked)}, plan{id, code, title}\|null, invoice_reference, status, effective_status, source, starts_at, ends_at, days_left, auto_renew, canceled_at, created_at}` + `filters` + `counts{active, canceled, expired, refunded}` |
 | POST | `/plus/subscriptions/:id/extend` | S | `days` (1–365), `note` (3–500, required) | `{id, ends_at, days, queued_shifted}` — only a running period (active / canceled, not ended; else 422 `subscription_not_active`); the user's queued periods starting at/after the old end move back by the same days |
 | GET | `/plus/payments` | A | `status=all\|pending\|paid\|failed\|expired\|refunded`, `gateway`, `from`/`to` (created date), `q` (invoice reference, bank reference or part of the mobile), `page`, `per_page` | list of `{id, reference, user{…masked}, plan, duration_months, status, effective_status, subtotal_rials, discount_rials, vat_rate_bps, vat_rials, total_rials, discount_code, gateway, receipt{ref_id, amount_rials, paid_at}\|null, paid_at, created_at}` + `filters` + `summary{paid_count, paid_rials, refunded_rials}` (of the filtered rows) + `gateways` + `statuses` |
 | GET | `/plus/payments/:id` | A | — | `{payment: {…, authority, receipt{gateway, ref_id, amount_rials, paid_at}, subscriptions[{id, status, source, starts_at, ends_at}], refund{refundable, gateway_available, amount_rials}, actions[{id, action, admin{id, name}, amount_rials, days, gateway, gateway_ref, note, details, created_at}]}}` |
 | POST | `/plus/payments/:id/refund` | S | `mode=gateway\|manual`, `note` (manual: required 3–500; gateway: optional) | `{payment}` (refreshed) |
 
-`Plan` = `{id, code, title, badge, duration_months, price_rials, monthly_display_rials, monthly_price_rials, is_highlighted,
+`Plan` = `{id, code, title, badge, duration_months, price_rials, monthly_display_rials, monthly_price_rials, ai_credits, is_highlighted,
 is_active, sort_order, invoices_count, subscriptions_count, active_subscriptions, created_at, updated_at}`.
 `DiscountCode` = `{id, code, kind, value, max_redemptions, per_user_limit, plan_ids|null, starts_at, expires_at, is_active,
 uses{paid, pending}, state: active|scheduled|expired|exhausted|inactive, created_at, updated_at}`.
@@ -656,10 +656,16 @@ ids, no content. The admin-web screen comes with B-N9.
 
 | Method | Path | Role | Body / query | `data` |
 |---|---|---|---|---|
-| GET | `/ai/usage` | A | `from`, `to` (`Y-m-d`, Tehran days, inclusive; default the last 30 days up to today; ≤ 92 days, 422 `validation_failed` otherwise) | `{from, to, today{spent_micros, spent_usd, cap_micros, cap_usd, exhausted}, totals{calls, ok_calls, input_tokens, output_tokens, cost_micros, cost_usd}, by_day[{day, calls, ok_calls, input_tokens, output_tokens, cost_micros, cost_usd}], by_feature[{feature, provider, model, calls, ok_calls, users, input_tokens, output_tokens, audio_bytes, image_bytes, avg_latency_ms, cost_micros, cost_usd}]}` (by_feature: highest cost first) |
+| GET | `/ai/usage` | A (`config`) | `from`, `to` (`Y-m-d`, Tehran days, inclusive; default the last 30 days up to today; ≤ 92 days, 422 `validation_failed` otherwise) | `{from, to, today{spent_micros, spent_usd, cap_micros, cap_usd, exhausted}, totals{calls, ok_calls, input_tokens, output_tokens, cost_micros, cost_usd}, by_day[{day, calls, ok_calls, input_tokens, output_tokens, cost_micros, cost_usd}], by_feature[{feature, provider, model, calls, ok_calls, users, input_tokens, output_tokens, audio_bytes, image_bytes, avg_latency_ms, cost_micros, cost_usd}], credits{total, uses, plan_credits, extra_credits, by_day[{day, uses, credits, plan_credits, extra_credits}], by_feature[{feature, uses, users, credits, plan_credits, extra_credits}]}, usd_irr_rate\|null}` (by_feature: highest cost first; credits.by_feature: most credits first) |
 
 `today` is the spend of the current Tehran day against `AI_DAILY_COST_CAP_USD`; `exhausted: true` means every AI
 feature currently answers 503 `ai_budget_exhausted`.
+
+`credits` (goose 00125) are the «اعتبار» users spent in the same window, from `ai_credit_spends` (status `spent` —
+refunded uses are excluded; `plan_credits` came from subscription / trial periods, `extra_credits` from packs and admin
+gifts): the revenue side next to the provider cost. `usd_irr_rate` is `plus_settings.ai_cost_usd_irr_rate` (IRR per
+USD, §15) as a number, `null` when unset; admin-web converts the cost to toman with it. The fields above are unchanged.
+admin-web screen: `/ai/usage` (§29).
 
 ## 18. Child catalogs, WHO viewer and postpartum copy (B-N5-09)
 
@@ -1067,3 +1073,76 @@ Effects of an off module:
   `ivf_iui=true` / `track_contraception=true` are 422. With companion off, `POST /onboarding/complete` stores a missing
   gender as `female` (the frontend skips the gender screen). `GET /profile/life-stage` reports an off stored mode as
   `cycle` and an off IVF / contraception switch as `false`; the stored values stay and come back when the module is on.
+
+## 29. AI credits — models, feature slots, credit packs, a user's credits (goose 00125)
+
+Design and rules: [`docs/ai-credits.md`](../ai-credits.md). Package `internal/admin/aicredits`, routes in
+`routes_admin_ai.go` (with `/ai/usage`, §17), queries `db/queries/admin/ai_credits.sql`. **API keys are env only**
+(`GEMINI_API_KEY`, `ARVAN_AI_API_KEY` + `ARVAN_AI_BASE_URL`) — never stored, returned, logged or editable here.
+
+**Roles.** Reads: `kit.Admin` with the route's capability — `/ai/models`, `/ai/features` (and `/ai/usage`) → `config`;
+`/ai/credit-packs*` and `/users/:id/ai-credits*` → `billing` (`httpadmin.capabilityOf`). Every write: super admin
+(**S**), CSRF (419 without the token), audited (`httpadmin.Audit` → `admin_audit_logs`). Pack writes and credit
+adjustments also write a **`plus_admin_actions`** row (like §15), audit line `plus.<action>`.
+
+**Publishing.** Model writes publish `ai_models`, feature writes `ai_features` (`httpadmin.Publishes` →
+`configcache.Changed`), so every API process reloads `credits.Catalog` (the gate's price list and the model router)
+without a restart.
+
+### Models (`ai_models`)
+
+| Method | Path | Role | Body / query | `data` |
+|---|---|---|---|---|
+| GET | `/ai/models` | config | — | `{items: [Model], providers: ["gemini","arvan"], configured_providers: [...], capabilities: ["chat","vision","audio","json"], limits{max_price_milli}}` (order: provider, title, id; not paginated) |
+| POST | `/ai/models` | S | `code` (`^[a-z0-9][a-z0-9_-]*$`, ≤ 64, unique, fixed afterwards), `provider` (∈ providers), `upstream_model` (≤ 128; `(provider, upstream_model)` unique → 422 on `upstream_model`), `title` (≤ 128), `capabilities` (non-empty array ⊆ capabilities; deduplicated, stored in canonical order), `input_price_milli?` / `output_price_milli?` / `audio_price_milli?` (milli-USD per 1M tokens, 0–100,000,000, default 0), `is_active?` (true) | 201 `{model, slots}`; audit `ai_model.create` |
+| GET | `/ai/models/:id` | config | — | `{model, slots: [feature keys using it]}` |
+| PUT | `/ai/models/:id` | S | as POST without `code`; absent prices / `is_active` keep their value | `{model, slots}`; 422 **`ai_capability_in_use`** `{slots, missing}` when the new capability set no longer covers a declared slot that uses the model. Switching the model off is allowed (its slots fall back or stop; admin-web confirms first). Audit `ai_model.update` |
+| DELETE | `/ai/models/:id` | S | — | `{id, deleted: true}`; 422 **`ai_model_in_use`** `{slots_count, slots}` while a slot points at it (primary or fallback). Usage logs keep provider / model as text, so the history survives. Audit `ai_model.delete` |
+| POST | `/ai/models/sync` | S | `provider` (∈ providers) | `{provider, added: [{code, upstream_model}], existing, skipped}` — asks the provider's gateway for its model list (`ai.Client.ProviderModels`; Arvan: `GET {ARVAN_AI_BASE_URL}/models`) and inserts the unknown names as **inactive** rows with `capabilities ["chat"]` and zero prices; `code` = a slug of the name (`[a-z0-9-]`, made unique with `-2`, `-3`, …); names > 128 chars are `skipped`. 422 **`ai_provider_not_configured`** (no key for that provider on this server), 422 **`ai_provider_unavailable`** (the gateway cannot list — add models by hand). Audit `ai_model.sync` (`provider`, `added`, `existing`) |
+
+`Model` = `{id, code, provider, upstream_model, title, capabilities[], input_price_milli, output_price_milli,
+audio_price_milli, is_active, configured (the provider's adapter has a key on this server), slots_count, created_at,
+updated_at}`.
+
+### Feature slots (`ai_features`)
+
+Slots are declared in code (`ai.RegisterFeature(key, needs…)`) and their rows created at start-up
+(`credits.Catalog.Sync`) — there is no POST / DELETE.
+
+| Method | Path | Role | Body / query | `data` |
+|---|---|---|---|---|
+| GET | `/ai/features` | config | — | `{items: [Feature] (sort_order, id), models: [{id, code, title, provider, upstream_model, capabilities, is_active, configured}], capabilities, limits{max_credit_cost}}` (not paginated) |
+| PUT | `/ai/features/:id` | S | `title?` (translatable ≤ 128, absent = unchanged), `model_id?` / `fallback_model_id?` (absent = unchanged, `null` = none), `credit_cost` (0–100,000), `is_active?`, `sort_order?` | `{feature}`. 422 `validation_failed` (unknown model id on `model_id` / `fallback_model_id`), **`ai_model_inactive`** `{field}`, **`ai_model_lacks_capability`** `{field, missing}` (the model lacks a capability the slot needs), **`ai_fallback_same_as_model`** `{field}`. Audit `ai_feature.update` (`key`, `credit_cost`, `is_active`, `model_id`, `fallback_model_id`) |
+
+`Feature` = `{id, key, title, needs[] (ai.SpecOf; [] when not declared), declared (still registered in code), model_id,
+fallback_model_id, model{id, code, title, provider, is_active}|null, fallback_model{…}|null, credit_cost, is_active,
+sort_order, usable (what the gate sees: on, declared and ≥ 1 assigned model that is active and capable), routes (how
+many assigned models are usable), usable_model_ids[] (every active model with the needed capabilities), created_at,
+updated_at}`. A slot no longer declared in code stays listed (`declared: false`) and is never called.
+
+### Credit packs (`ai_credit_packs`)
+
+| Method | Path | Role | Body / query | `data` |
+|---|---|---|---|---|
+| GET | `/ai/credit-packs` | billing | — | `{items: [Pack], currency: "IRR", limits{min_price_rials, max_price_rials, max_credits}, next_sort_order}` (`sort_order, id`; not paginated) |
+| POST | `/ai/credit-packs` | S | `code` (`^[a-z][a-z0-9_]*$`, unique, fixed afterwards), `title` (translatable, default language required, ≤ 64), `badge?` (translatable, ≤ 32), `credits` (1–1,000,000), `price_rials` (10,000 – 10¹¹), `is_highlighted?` (false), `is_active?` (true), `sort_order?` (default max + 1) | 201 `{pack}`; ledger `credit_pack.create` |
+| GET | `/ai/credit-packs/:id` | billing | — | `{pack}` |
+| PUT | `/ai/credit-packs/:id` | S | as POST without `code`; absent optional fields keep their value | `{pack}`; invoices keep the credits / price they were issued with; ledger `credit_pack.update` |
+| DELETE | `/ai/credit-packs/:id` | S | — | `{id, deleted, deactivated}` — a pack an invoice references is **deactivated** (and un-highlighted) instead; ledger `credit_pack.delete` / `credit_pack.deactivate` |
+
+`Pack` = `{id, code, title, badge, credits, price_rials, price_per_credit_rials, is_highlighted, is_active, sort_order,
+invoices_count, paid_count, created_at, updated_at}`. Packs are read per request by checkout (no cache to publish).
+
+### A user's credits
+
+| Method | Path | Role | Body / query | `data` |
+|---|---|---|---|---|
+| GET | `/users/:id/ai-credits` | billing | — | `{user_id, balance{active, period: plus\|trial\|null, period_ends_at, plan_total, plan_remaining, extra, extra_locked, spendable}, grants: [{id, kind: plan\|trial\|extra\|admin, amount, remaining, current, valid_until, subscription_id, trial_id, invoice_id, note, created_at}] (newest first, ≤ 100), spends: [{id, feature, credits, plan_credits, extra_credits, status: spent\|refunded, created_at}] (last 30), adjustments: [{id, admin{id, name}, note, details{delta, granted, taken, grant_id?}, created_at}] (last 20), limits{max_delta, max_note}}`; 404 unknown user. The balance comes from `credits.Service.Balance` (it creates the running period's bucket when missing, like every balance read) |
+| POST | `/users/:id/ai-credits/adjust` | S | `delta` (integer ≠ 0, −1,000,000…1,000,000), `note` (required, ≤ 255, not blank) | `{delta, granted, taken, grant_id\|null, credits: <the GET body>}`. `delta > 0` → `credits.Service.AdminGrant` (a never-expiring `admin` bucket carrying the note); `delta < 0` → `AdminDeduct`: takes up to \|delta\| from the **extra** credits only (never a period's) — `taken` is how many were actually taken (0 when there were none). Ledger `credits.adjust` (target `user`, `user_id`, note, `details{delta, granted, taken, grant_id?}`, days NULL) + audit `plus.credits.adjust` |
+
+Error codes of this section: `ai_model_in_use`, `ai_capability_in_use`, `ai_provider_not_configured`,
+`ai_provider_unavailable`, `ai_model_inactive`, `ai_model_lacks_capability`, `ai_fallback_same_as_model` (+ §2).
+
+admin-web: `screens/ai-credits` (`/ai/features`, `/ai/models`, `/ai/credit-packs`, `/ai/usage`), the «اعتبار» field
+on the plan form and `trial_ai_credits` on `/plus/settings` (`screens/plus-billing`), and
+`features/user-ai-credits` (the credits panel + adjust dialog on `/users/:id`).

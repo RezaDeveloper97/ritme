@@ -85,7 +85,7 @@ interface WeekStateContext {
 }
 
 /**
- * Bookmark toggle and «مراقبت‌های این هفته» ticks (Week + Today share the
+ * «مراقبت‌های این هفته» ticks (Week + Today share the
  * task list). Optimistic: the tick shows at once on both screens and rolls
  * back if the PUT fails. Send the *whole* `done_task_keys` list — build it
  * with `toggleDoneKey` from `entities/pregnancy`.
@@ -110,7 +110,6 @@ export function useUpdateWeekState() {
       if (previousWeek) {
         queryClient.setQueryData<PregnancyWeek>(weekKey, {
           ...previousWeek,
-          bookmarked: state.bookmarked ?? previousWeek.bookmarked,
           tasks: state.done_task_keys ? applyDoneKeys(previousWeek.tasks, state.done_task_keys) : previousWeek.tasks,
         });
       }

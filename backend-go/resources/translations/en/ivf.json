@@ -393,7 +393,6 @@
     },
     "setup": {
       "title": "Start a treatment cycle",
-      "intro": "A few short details are enough — you can change them any time.",
       "protocol": "Treatment protocol",
       "protocolHint": "Leave it empty if you're not sure.",
       "where": "Where are you in treatment now?",

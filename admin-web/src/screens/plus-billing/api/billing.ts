@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 import { api, createResource, pagedSchema, translationsSchema } from '@/shared/api';
 
-/** Ritme Plus admin (admin-api.md §15). Money is integer rials; the UI shows toman (lib/money). */
+/** Ritme Plus admin (admin-api.md §15). Money is integer rials; the UI shows toman (shared/lib money). */
 
 const userSchema = z.object({ id: z.number(), name: z.string().nullable(), mobile: z.string().nullable() });
 const planRefSchema = z.object({ id: z.number(), code: z.string(), title: translationsSchema }).nullable();
@@ -19,6 +19,8 @@ export const planSchema = z.object({
   price_rials: z.number(),
   monthly_display_rials: z.number().nullable(),
   monthly_price_rials: z.number(),
+  /** AI credits of one purchased period (docs/ai-credits.md). */
+  ai_credits: z.number().default(0),
   is_highlighted: z.boolean(),
   is_active: z.boolean(),
   sort_order: z.number(),
@@ -30,7 +32,12 @@ export type Plan = z.infer<typeof planSchema>;
 
 const plansListSchema = z.object({
   items: z.array(planSchema),
-  limits: z.object({ min_price_rials: z.number(), max_price_rials: z.number(), max_duration_months: z.number() }),
+  limits: z.object({
+    min_price_rials: z.number(),
+    max_price_rials: z.number(),
+    max_duration_months: z.number(),
+    max_ai_credits: z.number().optional(),
+  }),
   next_sort_order: z.number(),
 });
 
@@ -82,6 +89,9 @@ export const settingsSchema = z.object({
   vat_env_rate_bps: z.number(),
   vat_source: z.enum(['env', 'admin']),
   trial_days: z.number(),
+  /** AI credits a new trial carries. */
+  trial_ai_credits: z.number().default(0),
+  max_trial_ai_credits: z.number().default(100000),
 });
 export type PlusSettings = z.infer<typeof settingsSchema>;
 const settingsBody = z.object({ settings: settingsSchema });
@@ -94,7 +104,7 @@ export function useSettings() {
 export function useSaveSettings() {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: (body: { trial_offer_percent: number; vat_rate_bps: number | null }) =>
+    mutationFn: (body: { trial_offer_percent: number; vat_rate_bps: number | null; trial_ai_credits?: number }) =>
       api.put('/plus/settings', body, { schema: settingsBody }),
     onSuccess: (data) => client.setQueryData(settingsKey, data),
   });

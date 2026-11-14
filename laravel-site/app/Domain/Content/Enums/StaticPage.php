@@ -121,13 +121,13 @@ enum StaticPage: string
     {
         return match ($this) {
             self::Home => NavItem::Home,
-            self::Cycle, self::Ttc, self::Pregnancy, self::Postpartum, self::Menopause, self::Teen => NavItem::Stages,
-            self::Services, self::Directory, self::DirectoryBusiness, self::DirectoryJoin, self::DirectoryJoinDone => NavItem::Services,
-            self::Shop, self::ShopCart, self::ShopCheckout => NavItem::Shop,
+            self::Cycle, self::Ttc, self::Pregnancy, self::Postpartum, self::Menopause, self::Teen => NavItem::Features,
             self::Blog => NavItem::Blog,
-            self::Tools => NavItem::Tools,
             self::About => NavItem::About,
-            self::Plus, self::SocialResponsibility, self::Privacy, self::Terms, self::Faq, self::Contact => null,
+            self::Faq => NavItem::Faq,
+            self::Services, self::Directory, self::DirectoryBusiness, self::DirectoryJoin, self::DirectoryJoinDone,
+            self::Shop, self::ShopCart, self::ShopCheckout, self::Tools,
+            self::Plus, self::SocialResponsibility, self::Privacy, self::Terms, self::Contact => null,
         };
     }
 
@@ -164,7 +164,8 @@ enum StaticPage: string
     public function headerVariant(): HeaderVariant
     {
         return match ($this) {
-            self::Home, self::Cycle, self::Ttc, self::Pregnancy, self::Postpartum, self::Menopause, self::Teen,
+            // Home, cycle, ttc and pregnancy moved to the white redesign (Nov 2026); the rest keep their dark hero.
+            self::Postpartum, self::Menopause, self::Teen,
             self::About, self::Privacy, self::SocialResponsibility => HeaderVariant::Dark,
             default => HeaderVariant::Light,
         };

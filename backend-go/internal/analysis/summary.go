@@ -69,11 +69,11 @@ func (v *VitalStats) finish() {
 	}
 }
 
-// Vitals are the range's blood-pressure and fasting-sugar figures.
+// Vitals are the range's blood-pressure, fasting-sugar and heart-rate figures.
 type Vitals struct {
 	Systolic, Diastolic, Glucose *float64
 	BPReadings, GlucoseReadings  int
-	BP, Sugar                    VitalStats
+	BP, Sugar, HR                VitalStats
 }
 
 // vitals summarises the readings of [from, to]: the merged vitals readings when the handler loaded them (bloom
@@ -90,6 +90,9 @@ func (in *Input) vitals(from, to civildate.Date) Vitals {
 			}
 			if r.Glucose > 0 && r.SummaryGlucose() {
 				out.Sugar.add(r.Date, r.Class, r.Glucose)
+			}
+			if r.HeartRate > 0 {
+				out.HR.add(r.Date, r.Class, r.HeartRate)
 			}
 		}
 	} else {
@@ -110,6 +113,7 @@ func (in *Input) vitals(from, to civildate.Date) Vitals {
 	}
 	out.BP.finish()
 	out.Sugar.finish()
+	out.HR.finish()
 	out.BPReadings, out.GlucoseReadings = out.BP.Readings, out.Sugar.Readings
 	if out.BP.Readings > 0 {
 		out.Systolic, out.Diastolic = &out.BP.Mean[0], &out.BP.Mean[1]
@@ -121,7 +125,7 @@ func (in *Input) vitals(from, to civildate.Date) Vitals {
 }
 
 // Ready: either type meets the §4.1 minimum.
-func (v Vitals) Ready() bool { return v.BP.Ready() || v.Sugar.Ready() }
+func (v Vitals) Ready() bool { return v.BP.Ready() || v.Sugar.Ready() || v.HR.Ready() }
 
 func classesJSON(m map[string]int) *jsonx.OrderedMap {
 	out := jsonx.NewObject()
@@ -162,7 +166,20 @@ func (v Vitals) JSON() *jsonx.OrderedMap {
 		}
 		glucose = o
 	}
-	return jsonx.Obj("min_readings", P.VitalsMinLogs, "min_days", P.VitalsMinDays, "blood_pressure", bp, "blood_sugar", glucose)
+	var hr any
+	if s := v.HR; s.Readings > 0 {
+		o := jsonx.Obj("ready", s.Ready(), "readings", s.Readings, "days", s.Days, "readings_needed", s.ReadingsNeeded(),
+			"avg", nil, "min", nil, "max", nil, "classes", nil, "unit", "bpm")
+		if s.Ready() {
+			o.Set("avg", int(s.Mean[0]))
+			o.Set("min", int(s.Min[0]))
+			o.Set("max", int(s.Max[0]))
+			o.Set("classes", classesJSON(s.Classes))
+		}
+		hr = o
+	}
+	return jsonx.Obj("min_readings", P.VitalsMinLogs, "min_days", P.VitalsMinDays, "blood_pressure", bp, "blood_sugar", glucose,
+		"heart_rate", hr)
 }
 
 // Summary is GET /analysis/summary: the hub.

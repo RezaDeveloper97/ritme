@@ -114,6 +114,9 @@ func setup(t *testing.T, gw plus.Gateway) *env {
 	app.Post("/api/v1/plus/verify", locale, guard, h.Verify)
 	app.Post("/api/v1/plus/cancel", locale, guard, h.Cancel)
 	app.Post("/api/v1/plus/restore", locale, guard, h.Restore)
+	app.Post("/api/v1/plus/store/intent", locale, guard, h.StoreIntent)
+	app.Post("/api/v1/plus/store/verify", locale, guard, h.StoreVerify)
+	app.Post("/api/v1/plus/store/sync", locale, guard, h.StoreSync)
 	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), svc: svc, guard: guard}
 }
 
@@ -241,7 +244,13 @@ func TestPlans_PublicWithDerivedFigures(t *testing.T) {
 	assert.EqualValues(t, 1000, r.data()["vat_rate_bps"])
 	assert.EqualValues(t, 7, r.data()["trial_days"])
 	plans, _ := r.data()["plans"].([]any)
-	require.Len(t, plans, 3)
+	require.Len(t, plans, 4) // + the 5-minute developer test plan `mtest` (00124)
+	mt := plans[3].(map[string]any)
+	assert.Equal(t, "mtest", mt["code"])
+	assert.EqualValues(t, 5, mt["duration_minutes"])
+	assert.EqualValues(t, 0, mt["savings_percent"])
+	assert.Equal(t, map[string]any{"bazaar": "mtest"}, mt["store_skus"])
+	assert.Equal(t, "trial_subscription", r.data()["store_trial_sku"])
 	p3 := plans[1].(map[string]any)
 	assert.Equal(t, "plus_3m", p3["code"])
 	assert.Equal(t, "۳ ماهه", p3["title"])
@@ -258,7 +267,7 @@ func TestPlans_PublicWithDerivedFigures(t *testing.T) {
 	require.NoError(t, err)
 	r = e.do(t, http.MethodGet, "/api/v1/plus/plans", "", "en", "")
 	plans, _ = r.data()["plans"].([]any)
-	require.Len(t, plans, 2)
+	require.Len(t, plans, 3)
 	assert.Equal(t, "Most popular", plans[1].(map[string]any)["badge"])
 }
 
@@ -281,8 +290,11 @@ func TestTrial_StartOnceAndExpire(t *testing.T) {
 	assert.Equal(t, true, r.data()["is_plus"])
 	assert.Equal(t, false, r.data()["trial_available"])
 	assert.Equal(t, map[string]any{"started_at": "2026-09-23T10:00:00+03:30", "ends_at": "2026-09-30T10:00:00+03:30", "is_active": true, "days_left": float64(7)}, r.obj("trial"))
-	lab := entitlement(t, r.data()["entitlements"], "plus.lab_ai")
-	assert.Equal(t, map[string]any{"key": "plus.lab_ai", "allowed": true, "unlimited": false, "limit": float64(10), "used": float64(0), "remaining": float64(10)}, lab)
+	deep := entitlement(t, r.data()["entitlements"], "plus.deep_analysis")
+	assert.Equal(t, map[string]any{"key": "plus.deep_analysis", "allowed": true, "unlimited": true, "limit": nil, "used": float64(0), "remaining": nil}, deep)
+	for _, retired := range []string{"plus.voice_log", "plus.lab_ai", "plus.assistant_unlimited", "plus.doc_ai"} {
+		assert.NotContains(t, r.raw, retired, "AI features spend credits (goose 00125)")
+	}
 
 	r = e.do(t, http.MethodPost, "/api/v1/plus/trial/start", tok, "fa", "")
 	require.Equal(t, http.StatusUnprocessableEntity, r.status, r.raw)
@@ -666,63 +678,50 @@ func TestRestore(t *testing.T) {
 	assert.Equal(t, 1, e.count(t, `SELECT COUNT(*) FROM plus_invoices WHERE reference = ? AND status = 'failed'`, ref))
 }
 
-func TestUsage_QuotaAndConcurrency(t *testing.T) {
+// The quota arithmetic of Consume is kept for future limited keys; every production key is «Plus only,
+// unlimited». The DB cases of the retired AI keys (lab AI 1 free / 10 Plus, the free assistant quota, the 25-way
+// concurrent lab consume) went with them: AI credits are tested in internal/ai/credits.
+func TestUsage_UnlimitedCountsAndLockedRefuses(t *testing.T) {
 	e := setup(t, plus.FakeGateway{})
 	uid, tok := e.user(t, "09120000818")
 	ctx := context.Background()
 
-	lab, err := e.svc.Consume(ctx, uid, plus.LabAI, tNow)
-	require.NoError(t, err, "free users get one lab AI a month (A-03)")
-	assert.Equal(t, plus.Entitlement{Key: plus.LabAI, Limit: 1, Used: 1}, lab)
-	_, err = e.svc.Consume(ctx, uid, plus.LabAI, tNow)
-	require.ErrorIs(t, err, plus.ErrQuotaExceeded, "the second free lab AI of the month")
-	ent, err := e.svc.Consume(ctx, uid, plus.AssistantUnlimited, tNow)
-	require.NoError(t, err)
-	assert.Equal(t, 4, ent.Remaining, "free assistant quota")
+	ent, err := e.svc.Consume(ctx, uid, plus.DeepAnalysis, tNow)
+	require.ErrorIs(t, err, plus.ErrNotEntitled, "free users have no deep analysis")
+	assert.False(t, ent.Allowed)
 	_, err = e.svc.Consume(ctx, uid, "plus.unknown", tNow)
 	require.ErrorIs(t, err, plus.ErrUnknownFeature)
+	_, err = e.svc.Consume(ctx, uid, "plus.lab_ai", tNow)
+	require.ErrorIs(t, err, plus.ErrUnknownFeature, "retired AI key")
+	assert.Zero(t, e.count(t, `SELECT COUNT(*) FROM plus_usage_counters WHERE user_id = ?`, uid), "a refused use is not counted")
 
 	require.NoError(t, e.svc.StartTrial(ctx, uid, tNow))
 	var wg sync.WaitGroup
-	errs := make([]error, 25)
+	errs := make([]error, 10)
 	for i := range errs {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			_, errs[i] = e.svc.Consume(ctx, uid, plus.LabAI, tNow)
-		}()
+		wg.Go(func() { _, errs[i] = e.svc.Consume(ctx, uid, plus.DeepAnalysis, tNow) })
 	}
 	wg.Wait()
-	ok := 0
 	for _, err := range errs {
-		if err == nil {
-			ok++
-		} else {
-			assert.ErrorIs(t, err, plus.ErrQuotaExceeded)
-		}
+		require.NoError(t, err)
 	}
-	assert.Equal(t, 9, ok, "exactly the monthly quota (10, one used while free)")
-	_, err = e.svc.Consume(ctx, uid, plus.DeepAnalysis, tNow)
-	require.NoError(t, err)
 
 	r := e.do(t, http.MethodGet, "/api/v1/plus/usage", tok, "en", "")
 	require.Equal(t, http.StatusOK, r.status, r.raw)
 	assert.Equal(t, "trial", r.data()["tier"])
 	assert.Equal(t, "2026-09-01", r.data()["period_start"])
 	assert.Equal(t, "2026-10-01T00:00:00+03:30", r.data()["resets_at"])
-	assert.Equal(t, map[string]any{"key": "plus.lab_ai", "allowed": false, "unlimited": false, "limit": float64(10), "used": float64(10), "remaining": float64(0)},
-		entitlement(t, r.data()["features"], "plus.lab_ai"))
-	assert.Equal(t, map[string]any{"key": "plus.deep_analysis", "allowed": true, "unlimited": true, "limit": nil, "used": float64(1), "remaining": nil},
-		entitlement(t, r.data()["features"], "plus.deep_analysis"))
+	assert.Equal(t, map[string]any{"key": "plus.deep_analysis", "allowed": true, "unlimited": true, "limit": nil, "used": float64(10), "remaining": nil},
+		entitlement(t, r.data()["features"], "plus.deep_analysis"), "unlimited uses are still counted, never lost under concurrency")
 
-	// Next month the quota is fresh (the trial is over by then: buy a month first).
+	// Next month the counter is fresh.
 	ref, authority, _ := e.checkout(t, "2026-10-02T10:00:00+03:30", tok, `{"plan_id":1}`)
 	r = e.doAt(t, "2026-10-02T10:00:00+03:30", http.MethodPost, "/api/v1/plus/verify", tok, "en", verifyBody(ref, authority, "OK"))
 	require.Equal(t, http.StatusOK, r.status, r.raw)
-	ent, err = e.svc.Consume(ctx, uid, plus.LabAI, mustTime("2026-10-02T10:00:00+03:30"))
+	ent, err = e.svc.Consume(ctx, uid, plus.DeepAnalysis, mustTime("2026-10-02T10:00:00+03:30"))
 	require.NoError(t, err)
-	assert.Equal(t, 9, ent.Remaining)
-	e2, err := e.svc.Entitlement(ctx, uid, plus.LabAI, mustTime("2026-10-02T10:00:00+03:30"))
+	assert.Equal(t, 1, ent.Used)
+	e2, err := e.svc.Entitlement(ctx, uid, plus.DeepAnalysis, mustTime("2026-10-02T10:00:00+03:30"))
 	require.NoError(t, err)
 	assert.Equal(t, ent, e2, "Entitlement reads without counting")
 }

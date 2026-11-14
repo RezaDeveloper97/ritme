@@ -67,7 +67,7 @@ type Querier interface {
 	// Pregnancy v2 week details (table pregnancy_week_details, T-M7-01, docs/pregnancy-v2/README.md § Data).
 	// One row per week 1–42, admin-defined; translatable columns are JSON keyed by language code.
 	GetWeekDetails(ctx context.Context, weekNumber uint8) (PregnancyWeekDetail, error)
-	// Pregnancy v2 per-week user state (table pregnancy_week_user_state, T-M7-01): bookmark and the done
+	// Pregnancy v2 per-week user state (table pregnancy_week_user_state, T-M7-01): the done
 	// task keys of that week's checklist. Every query is scoped by user_id. Unique (user_id, week).
 	GetWeekUserState(ctx context.Context, arg GetWeekUserStateParams) (PregnancyWeekUserState, error)
 	// PregnancyWeeklyContent (table pregnancy_weekly_content).
@@ -178,7 +178,7 @@ type Querier interface {
 	UpsertDailyExtras(ctx context.Context, arg UpsertDailyExtrasParams) error
 	// Admin editor (T-M7-06): one row per week_number; created_at is kept on update.
 	UpsertWeekDetails(ctx context.Context, arg UpsertWeekDetailsParams) error
-	// Callers merge the partial PUT (bookmarked?, done_task_keys?) with the current row first.
+	// Callers merge the partial PUT (done_task_keys?) with the current row first.
 	UpsertWeekUserState(ctx context.Context, arg UpsertWeekUserStateParams) error
 }
 

@@ -102,7 +102,6 @@ function RecordSheet({ q, rows, onClose }: { q: InsuranceQuestionnaire; rows: Ti
       }
     >
       <div className="ins-form">
-        <p className="ins-hint">{t('record.hint')}</p>
         <h3 className="ins-label">{t('record.step')}</h3>
         <ChipGroup label={t('record.step')}>
           {STEPS.map((s) => (

@@ -193,6 +193,32 @@ func rendererOf(key string) EvidenceRenderer {
 	return nil
 }
 
+// RenderTexts renders title / body / CTA label of v for a rule key: through the key's evidence renderer when one is
+// installed and every variable fills (localized digits, dates, basis / symptom labels), else the plain fact render. It
+// is what the alerts list uses, so its texts read the same as the feed's.
+func RenderTexts(key string, v rules.Variant, vars map[string]any, locale string) rules.Variant {
+	if fn := rendererOf(key); fn != nil {
+		out := v
+		out.Title, out.Body, out.CTALabel = fn(v.Title, vars, locale), fn(v.Body, vars, locale), fn(v.CTALabel, vars, locale)
+		if len(rules.Placeholders(out.Title, out.Body, out.CTALabel)) == 0 {
+			return out
+		}
+	}
+	out, _ := rules.RenderVariant(v, vars)
+	return out
+}
+
+// RenderText renders one evidence text for a rule key, like RenderTexts.
+func RenderText(key, s string, vars map[string]any, locale string) string {
+	if fn := rendererOf(key); fn != nil {
+		if out := fn(s, vars, locale); len(rules.Placeholders(out)) == 0 {
+			return out
+		}
+	}
+	out, _ := rules.Render(s, vars)
+	return out
+}
+
 // HeldRule is the code-held definition of a locked rule (rule_key key, the open row's rule_id id) with its texts in
 // locale, or nil when the domain holds none for key.
 type HeldRule func(key string, id uint64, locale string) *rules.Rule

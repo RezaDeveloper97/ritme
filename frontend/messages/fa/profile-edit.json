@@ -18,7 +18,7 @@
     "cycleLabel": "طول چرخه",
     "periodLabel": "طول پریود",
     "lastPeriodLabel": "شروع آخرین پریود",
-    "lastPeriodHint": "روزی را که آخرین پریودت شروع شد انتخاب کن",
+    "lastPeriodHint": "روزی را انتخاب کن که آخرین پریودت شروع شد",
     "dayCount": "{days, plural, other {# روز}}"
   },
   "months": {

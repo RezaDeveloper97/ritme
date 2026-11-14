@@ -1,20 +1,11 @@
-import { setRequestLocale } from 'next-intl/server';
-
-import { AlertsPage } from '@/screens/alerts';
-
-import { RouteMessages } from '../../RouteMessages';
+import { redirect } from 'next/navigation';
 
 interface Props {
   params: Promise<{ locale: string }>;
 }
 
-/** `/alerts` — «هشدارها و پیام‌ها»: the generic alerts inbox for every mode (T-M10-15, SPEC §5.4.1). */
+/** `/alerts` — alerts have no screen any more: they live in the notifications sheet. Old links open it on home. */
 export default async function AlertsRoute({ params }: Props) {
   const { locale } = await params;
-  setRequestLocale(locale);
-  return (
-    <RouteMessages route="alerts">
-      <AlertsPage />
-    </RouteMessages>
-  );
+  redirect(`/${locale}?sheet=notifications`);
 }

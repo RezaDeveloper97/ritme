@@ -1,0 +1,16 @@
+{
+  "unit": "{count, plural, one {# credit} other {# credits}}",
+  "meter": {
+    "label": "This period's credits",
+    "of": "{remaining} of {total}",
+    "spoken": "{remaining} of {total} credits left",
+    "renews": "Yours until {date}"
+  },
+  "card": {
+    "title": "Smart credits",
+    "left": "{count} credits left",
+    "noSubscription": "A subscription is needed for the smart features",
+    "locked": "{count} extra credits are kept for you",
+    "action": "Credit usage"
+  }
+}

@@ -7,13 +7,23 @@ package store
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
+
+	"github.com/ritme/backend-go/db"
 )
 
 type Querier interface {
+	// invited → active | awaiting_owner for the accepting member. 0 rows = no longer invited.
+	AcceptFamilyLink(ctx context.Context, arg AcceptFamilyLinkParams) (int64, error)
 	ActivateCompanion(ctx context.Context, arg ActivateCompanionParams) (int64, error)
 	AddFamilyChild(ctx context.Context, arg AddFamilyChildParams) error
+	// Pending acceptance: an open phone invite bound to one account (used_by_id while used_at stays NULL).
+	BindInviteToUser(ctx context.Context, arg BindInviteToUserParams) (int64, error)
 	// Revoke / expiry of a link: its pending proposals can no longer be applied (rows kept for the activity log).
 	CancelPendingFamilyProposalsForLink(ctx context.Context, arg CancelPendingFamilyProposalsForLinkParams) (int64, error)
+	// The owner confirms an accepted high-impact code invite (F-11): awaiting_owner → active, only while the
+	// confirmation window is open (accepted after stale_before) and the link has not reached its end date.
+	ConfirmFamilyLink(ctx context.Context, arg ConfirmFamilyLinkParams) (int64, error)
 	// Quota: nudges one member sent one owner in [from, to) — the owner-local day (3 per day, F-06). Index (member_id,
 	// owner_id, sent_at).
 	CountFamilyNudgesForPair(ctx context.Context, arg CountFamilyNudgesForPairParams) (int64, error)
@@ -26,8 +36,22 @@ type Querier interface {
 	// Quota: the member's live pending proposals. Index (actor_id, status, created_at).
 	CountPendingFamilyProposalsByActor(ctx context.Context, arg CountPendingFamilyProposalsByActorParams) (int64, error)
 	CountUnseenFamilyMemberAlerts(ctx context.Context, memberID uint64) (int64, error)
+	// goal / share_* / action_prefs are the owner's «ریتمی همراه» v2 preferences (goose 00117; validated in Go).
 	CreateCompanion(ctx context.Context, arg CreateCompanionParams) (int64, error)
 	CreateFamily(ctx context.Context, arg CreateFamilyParams) (int64, error)
+	// Family invites v6 and share requests (T-M11-08; SPEC §1.7–§1.8; docs/engine-v6/family.md §7; DECISIONS.md F-11,
+	// F-12, F-13, F-17; D-196). internal/family/invites and internal/family/sharerequests. Every statement is scoped by the
+	// owner, the member or the invite in the statement itself.
+	//
+	// Link statuses: invited → active, or invited → awaiting_owner → active (F-11: a code-only invite with child write,
+	// urgent alert or vitals waits for the owner's confirmation; the member sees nothing before it, since every member
+	// read only considers `active`), or → revoked with revoked_by owner | companion | declined | expired (F-12).
+	// A phone invite is bound to an account (the one with that mobile at invite time, or the one created later by the
+	// signup hook) through companion_invites.used_by_id while used_at stays NULL: a *pending acceptance* the member answers
+	// without the code (GET /family/invites/pending). Owner views never read used_by_id, so a binding tells the owner
+	// nothing before the member accepts.
+	// A v6 link: an invited one (POST /family/members) or the member's own active reverse link of a mutual answer.
+	CreateFamilyLink(ctx context.Context, arg CreateFamilyLinkParams) (int64, error)
 	CreateInvite(ctx context.Context, arg CreateInviteParams) (int64, error)
 	// pending → approved | rejected | cancelled, only while still live. 0 rows = already decided or expired (the caller
 	// re-reads). applied_ref = the record an approval created.
@@ -68,6 +92,8 @@ type Querier interface {
 	// RecheckTx (CMP-L4): the pair snapshot read with shared locks inside a write transaction, so a revoke or grant
 	// change committed meanwhile wins (a locking read sees the latest committed rows) and cannot commit until we do.
 	FamilyLockPair(ctx context.Context, arg FamilyLockPairParams) ([]FamilyLockPairRow, error)
+	// Carer time-box inputs (F-13): the active pregnancy's EDD and the delivery date (both one row per user).
+	FamilyOwnerDates(ctx context.Context, ownerID uint64) (FamilyOwnerDatesRow, error)
 	// SyncMode outside a snapshot (after a mode write): the inputs of enums.ResolveLifeMode and the stored state.
 	FamilyOwnerModeInputs(ctx context.Context, ownerID uint64) (FamilyOwnerModeInputsRow, error)
 	// Every owner of one member (member home). Index companions_companion_user_id_status_owner_id_index.
@@ -81,18 +107,29 @@ type Querier interface {
 	// creates it lazily). Only active links: every other status denies (family.md §5 step 3), expiry is checked in Go.
 	// One owner and one member (check() on a member request): a one-row ref on either new composite companions key.
 	FamilySnapshotForPair(ctx context.Context, arg FamilySnapshotForPairParams) ([]FamilySnapshotForPairRow, error)
+	// The account of an invited mobile (bind a phone invite at creation). users.mobile is unique.
+	FamilyUserIDByMobile(ctx context.Context, mobile sql.NullString) (uint64, error)
 	// The viewer's level on one section of the owner's data through an active link (no row = none), with the link type
 	// (Go refuses a section the type may not hold — CB-TEEN-01 parent links).
 	GetAccess(ctx context.Context, arg GetAccessParams) (GetAccessRow, error)
+	// Accept / decline without the code: the newest open invite of a link bound to the member (no row = not hers).
+	GetBoundInvite(ctx context.Context, arg GetBoundInviteParams) (CompanionInvite, error)
 	GetCompanion(ctx context.Context, id uint64) (Companion, error)
 	GetFamilyByCompanion(ctx context.Context, companionID uint64) (Family, error)
 	GetFamilyOwnerState(ctx context.Context, ownerID uint64) (FamilyOwnerState, error)
 	// One proposal. expired = 1 for a pending row past expires_at (lazy expiry): the caller treats it as expired.
 	GetFamilyProposal(ctx context.Context, arg GetFamilyProposalParams) (GetFamilyProposalRow, error)
-	// One request; expired = 1 for a pending row past expires_at (lazy expiry).
+	// One request asked of to_user_id (the data owner: approve / decline path, IDOR-scoped in the query); expired = 1 for
+	// a pending row past expires_at (lazy expiry).
 	GetFamilyShareRequest(ctx context.Context, arg GetFamilyShareRequestParams) (GetFamilyShareRequestRow, error)
+	// users.name (preview: the owner's first name) and the member's sex (male owner rule of a mutual link, F-20).
+	GetFamilyUserProfile(ctx context.Context, id uint64) (GetFamilyUserProfileRow, error)
 	GetInvite(ctx context.Context, id uint64) (CompanionInvite, error)
 	GetInviteByHash(ctx context.Context, codeHash string) (CompanionInvite, error)
+	// The intent of an invite (mutual request, children level, consent version) kept on its `invited` activity row.
+	GetLinkInviteIntent(ctx context.Context, companionID sql.NullInt64) (db.NullRawJSON, error)
+	// The active link owner → member (share requests apply to it).
+	GetOpenLinkForPair(ctx context.Context, arg GetOpenLinkForPairParams) (Companion, error)
 	// Companion account and panel home (bloom B-N4-03). Read-only.
 	// user_life_profiles.gender of one account (onboarding v2 Gender step; no row / NULL = never asked → a woman's
 	// account, the legacy default). male = a companion account.
@@ -132,6 +169,8 @@ type Querier interface {
 	InsertLinkedUserNotification(ctx context.Context, arg InsertLinkedUserNotificationParams) (int64, error)
 	// Owner inbox row (accept / companion write, B-N4-02): title/body are {lang: text} JSON without any health payload.
 	InsertUserNotification(ctx context.Context, arg InsertUserNotificationParams) error
+	// GET /family/invites/pending: the open invites bound to the member, newest first. Index (used_by_id).
+	ListBoundInvites(ctx context.Context, arg ListBoundInvitesParams) ([]ListBoundInvitesRow, error)
 	// «برای خواندن» on the companion home: published articles of category `companion`, then articles tagged with the
 	// partner's phase (has_phases = 0 skips them); untagged general articles are not companion reading.
 	ListCompanionArticles(ctx context.Context, arg ListCompanionArticlesParams) ([]ListCompanionArticlesRow, error)
@@ -144,6 +183,10 @@ type Querier interface {
 	ListCompanionUserGrants(ctx context.Context, companionUserID sql.NullInt64) ([]CompanionGrant, error)
 	// Dispatcher: unsent notices that are due, oldest first. Index (sent_at, due_at).
 	ListDueFamilyMemberNotices(ctx context.Context, arg ListDueFamilyMemberNoticesParams) ([]FamilyMemberNotice, error)
+	// family.invites_sweep: active links past expires_at (carer time-box, F-13). Index (status, expires_at).
+	ListExpiredActiveLinks(ctx context.Context, arg ListExpiredActiveLinksParams) ([]ListExpiredActiveLinksRow, error)
+	// family.invites_sweep: invited links without an open, unexpired invite (F-12).
+	ListExpiredInvitedLinks(ctx context.Context, arg ListExpiredInvitedLinksParams) ([]ListExpiredInvitedLinksRow, error)
 	// Who is coming to one appointment. Index (reminder_id, member_id).
 	ListFamilyAttendanceForReminder(ctx context.Context, reminderID uint64) ([]ListFamilyAttendanceForReminderRow, error)
 	ListFamilyChildIDs(ctx context.Context, familyID uint64) ([]uint64, error)
@@ -153,6 +196,10 @@ type Querier interface {
 	ListFamilyNudgesForOwnerDay(ctx context.Context, arg ListFamilyNudgesForOwnerDayParams) ([]ListFamilyNudgesForOwnerDayRow, error)
 	// The member's own proposals (outcome cards), newest first; expired = 1 marks a lapsed pending row. Index (actor_id, …).
 	ListFamilyProposalsByActor(ctx context.Context, arg ListFamilyProposalsByActorParams) ([]ListFamilyProposalsByActorRow, error)
+	// Share-request throttle: one per domain per pair per 7 days. Index (from_user_id, to_user_id, created_at).
+	ListFamilyShareRequestDomainsForPairSince(ctx context.Context, arg ListFamilyShareRequestDomainsForPairSinceParams) ([]json.RawMessage, error)
+	// GET /family/share-requests?box=out: the caller's own requests, newest first; expired = 1 for a lapsed pending row.
+	ListFamilyShareRequestsFrom(ctx context.Context, arg ListFamilyShareRequestsFromParams) ([]ListFamilyShareRequestsFromRow, error)
 	ListGrants(ctx context.Context, companionID uint64) ([]CompanionGrant, error)
 	// Every invite of one of the owner's links, newest first.
 	ListLinkInvites(ctx context.Context, arg ListLinkInvitesParams) ([]CompanionInvite, error)
@@ -167,10 +214,19 @@ type Querier interface {
 	ListOwnerCompanions(ctx context.Context, ownerID uint64) ([]Companion, error)
 	// Grants of every non-revoked link of an owner.
 	ListOwnerGrants(ctx context.Context, ownerID uint64) ([]CompanionGrant, error)
+	// «ریتمی همراه» v2 day signals: the few health-log slots the coarse yes/no signals derive from (companionhome.Signals),
+	// for every partner of the home in one statement. Only codes and the post-partum sleep hours are read — never a note,
+	// a free-text item, a pain score or any mood row (mood is never shared, SPEC §1.7); the caller keeps only booleans.
+	ListOwnersDaySignalEntries(ctx context.Context, arg ListOwnersDaySignalEntriesParams) ([]ListOwnersDaySignalEntriesRow, error)
 	// The approver's waiting list, newest first; expired rows are left out. Index (approver_id, status, created_at).
 	ListPendingFamilyProposalsForApprover(ctx context.Context, arg ListPendingFamilyProposalsForApproverParams) ([]ListPendingFamilyProposalsForApproverRow, error)
 	// The owner's inbox of live requests, newest first. Index (to_user_id, status, created_at).
 	ListPendingFamilyShareRequestsForOwner(ctx context.Context, arg ListPendingFamilyShareRequestsForOwnerParams) ([]FamilyShareRequest, error)
+	// family.invites_sweep: awaiting_owner links the owner did not confirm in time (accepted at or before stale_before)
+	// or past their end date.
+	ListStaleAwaitingLinks(ctx context.Context, arg ListStaleAwaitingLinksParams) ([]ListStaleAwaitingLinksRow, error)
+	// Signup hook: the open, unbound phone invites of a mobile (not the new account's own).
+	ListUnboundPhoneInvites(ctx context.Context, arg ListUnboundPhoneInvitesParams) ([]uint64, error)
 	// Families the user belongs to (as owner or as accepted spouse) through an active spouse link.
 	ListUserFamilies(ctx context.Context, arg ListUserFamiliesParams) ([]Family, error)
 	// Approve / reject / cancel: lock the row, then DecideFamilyProposal. The caller treats a pending row past expires_at as
@@ -194,6 +250,9 @@ type Querier interface {
 	RevokeCompanion(ctx context.Context, arg RevokeCompanionParams) (int64, error)
 	RevokeOpenInvites(ctx context.Context, arg RevokeOpenInvitesParams) error
 	SetFamilySpouse(ctx context.Context, arg SetFamilySpouseParams) error
+	// The owner's preferences of one of her invited or active links (the caller merged the partial update); scoped by the
+	// owner in the statement so a foreign id changes nothing.
+	UpdateCompanionPreferences(ctx context.Context, arg UpdateCompanionPreferencesParams) (int64, error)
 	// Grants.Apply: one v6 grant stamped with the owner's current mode epoch (NULL for an epoch-free domain is fine too).
 	UpsertFamilyGrant(ctx context.Context, arg UpsertFamilyGrantParams) error
 	// SyncMode: store the owner's effective mode. A new owner starts at epoch 1, nothing to review; a different mode bumps

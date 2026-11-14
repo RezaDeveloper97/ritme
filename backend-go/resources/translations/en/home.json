@@ -223,7 +223,18 @@
     "noData": "No period yet",
     "logPeriod": "Log period",
     "noPrediction": "Forecast",
-    "noPredictionValue": "Not yet"
+    "noPredictionValue": "Not yet",
+    "thisDay": "This day",
+    "milestoneIn": {
+      "fertile": "Fertile window in",
+      "ovulation": "Ovulation in",
+      "pms": "PMS in"
+    },
+    "milestoneOn": {
+      "fertile": "Fertile window",
+      "ovulation": "Ovulation",
+      "pms": "PMS"
+    }
   },
   "phaseCard": {
     "title": {

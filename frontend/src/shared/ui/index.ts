@@ -1,6 +1,8 @@
 export { Button } from './Button';
 export { DropSolid, Icon, isIconName } from './Icon';
 export type { IconName } from './Icon';
+export { Art3d, ART3D_NAMES, ICON_ART } from './Art3d';
+export type { Art3dName, Art3dPath } from './Art3d';
 export { CalendarPicker } from './CalendarPicker';
 export { NavBack } from './NavBack';
 export { RulerPicker } from './RulerPicker';

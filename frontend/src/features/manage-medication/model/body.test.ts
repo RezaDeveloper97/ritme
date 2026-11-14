@@ -3,36 +3,34 @@ import { describe, expect, it } from 'vitest';
 import { toMedicationBody, withForUser } from './body';
 
 describe('toMedicationBody', () => {
-  it('serialises the form in the README meta shape', () => {
-    expect(
-      toMedicationBody({
-        title: ' فولیک اسید ',
-        dose: '400',
-        unit: 'mcg',
-        form: 'tablet',
-        times: ['20:00', '08:00', '08:00'],
-        weekdays: [6, 0, 3],
-        amount: 1,
-        startsOn: '2026-09-21',
-        duration: 'pregnancy_end',
-        endsOn: '2027-01-01',
-        notify: true,
-        notes: '  ',
-      }),
-    ).toEqual({
+  it('serialises the dose-block shape and never the legacy fields', () => {
+    const body = toMedicationBody({
+      title: ' فولیک اسید ',
+      startsOn: '2026-09-21',
+      frequency: { every: 2, unit: 'hour' },
+      doses: [
+        { time: '08:00', amount: 1, unit: 'pill', meal: 'after' },
+        { time: '20:00', amount: 2, unit: 'drop', meal: null },
+      ],
+      duration: 'pregnancy_end',
+      endsOn: '2027-01-01',
+      notify: true,
+      notes: '  ',
+    });
+    expect(body).toEqual({
       title: 'فولیک اسید',
-      dose: '400',
-      unit: 'mcg',
-      form: 'tablet',
-      times: ['08:00', '20:00'],
-      weekdays: [0, 3, 6],
-      amount: 1,
       starts_on: '2026-09-21',
+      frequency: { every: 2, unit: 'hour' },
+      doses: [
+        { time: '08:00', amount: 1, unit: 'pill', meal: 'after' },
+        { time: '20:00', amount: 2, unit: 'drop', meal: null },
+      ],
       duration: 'pregnancy_end',
       ends_on: null,
       notify: true,
       notes: null,
     });
+    for (const k of ['times', 'weekdays', 'form', 'dose', 'unit', 'amount']) expect(body).not.toHaveProperty(k);
   });
 
   it('keeps ends_on for until_date and stays partial for a PUT', () => {

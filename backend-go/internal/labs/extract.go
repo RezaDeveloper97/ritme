@@ -198,7 +198,7 @@ func (s *Service) failLab(ctx context.Context, lab store.LabReport, code string)
 		ErrorCode: sql.NullString{String: code, Valid: true}, Now: nullTime(now), ID: lab.ID}); err != nil {
 		s.logger.ErrorContext(ctx, "labs: mark failed", slog.String("error", err.Error()))
 	}
-	if !lab.QuotaAt.Valid || s.plus == nil {
+	if !lab.QuotaAt.Valid || s.credits == nil {
 		return
 	}
 	if paidCodes[code] {
@@ -214,8 +214,8 @@ func (s *Service) failLab(ctx context.Context, lab store.LabReport, code string)
 	if err != nil || n == 0 {
 		return
 	}
-	if err := s.plus.Refund(ctx, lab.UserID, plus.LabAI, lab.QuotaAt.Time, tehranSecond(now)); err != nil {
-		s.logger.ErrorContext(ctx, "labs: plus refund failed", slog.String("error", err.Error()))
+	if err := s.credits.RefundAt(ctx, lab.UserID, string(ai.FeatureLabAnalysis), lab.QuotaAt.Time, tehranSecond(now)); err != nil {
+		s.logger.ErrorContext(ctx, "labs: credit refund failed", slog.String("error", err.Error()))
 	}
 }
 

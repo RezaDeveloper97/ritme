@@ -1,41 +1,53 @@
 import { z } from 'zod';
 
 import {
-  ALL_WEEKDAYS,
+  DAY_EVERY_MAX,
+  DOSE_UNITS,
+  HOUR_EVERY_OPTIONS,
+  MEALS,
   MEDICATION_DURATIONS,
-  MEDICATION_FORMS,
+  type DoseUnit,
+  type FrequencyUnit,
+  type Meal,
   type Medication,
   type MedicationDuration,
   type MedicationForm,
-  type Weekday,
+  type MedicationFrequency,
 } from '@/entities/care-reminder';
 import type { MedicationInput } from '@/features/manage-medication';
 
 /*
- * Pure form logic for v13_AddMedication — state shape, the times ↔ count
- * rule, the weekday summary, zod validation mirroring the Go request rules
+ * Pure form logic for the medication form (frequency + dose blocks) — state
+ * shape, frequency/dose helpers, zod validation mirroring the Go request rules
  * (backend-go/internal/care/request.go) and 422 → field mapping.
  *
  * Privacy (§11): nothing here logs; values only travel to the API.
  */
 
-export const MAX_TIMES = 4;
-export const TIMES_OPTIONS = [1, 2, 3, 4] as const;
-/** Slot n's default when the count grows (Scope §2). */
-export const DEFAULT_TIMES = ['08:00', '20:00', '14:00', '23:00'] as const;
+export const MAX_DOSES = 6;
 export const AMOUNT_MIN = 1;
-export const AMOUNT_MAX = 10;
+export const AMOUNT_MAX = 99;
+/** The wheel's unit order (server enum order). */
+export const DOSE_UNIT_OPTIONS: readonly DoseUnit[] = DOSE_UNITS;
+export const FREQUENCY_UNIT_OPTIONS: readonly FrequencyUnit[] = ['day', 'hour'];
+
+/** One editable dose block; a field is null until the user picks it. */
+export interface DoseBlock {
+  /** Stable React key (blocks can be removed from the middle). */
+  key: string;
+  /** `HH:MM` or null. */
+  time: string | null;
+  amount: number | null;
+  unit: DoseUnit | null;
+  meal: Meal | null;
+}
 
 export interface MedicationFormState {
   title: string;
-  dose: string;
-  unit: string;
-  form: MedicationForm;
-  times: string[];
-  weekdays: Weekday[];
-  amount: number;
   /** `Y-m-d`. */
   startsOn: string;
+  frequency: MedicationFrequency;
+  doses: DoseBlock[];
   duration: MedicationDuration;
   /** `Y-m-d` or null. */
   endsOn: string | null;
@@ -45,16 +57,25 @@ export interface MedicationFormState {
 
 export type FormField =
   | 'title'
-  | 'dose'
-  | 'unit'
-  | 'form'
-  | 'times'
-  | 'weekdays'
-  | 'amount'
   | 'startsOn'
+  | 'frequency'
+  | 'doses'
   | 'duration'
   | 'endsOn'
   | 'notes';
+
+/** Per-block errors: `time` covers the clock tile, `amount` the dose tile. */
+export type DoseFieldErrors = Record<number, { time?: string; amount?: string }>;
+
+let blockSeq = 0;
+function nextKey(): string {
+  blockSeq += 1;
+  return `dose-${blockSeq}`;
+}
+
+export function emptyDose(): DoseBlock {
+  return { key: nextKey(), time: null, amount: null, unit: null, meal: null };
+}
 
 /**
  * The duration a new medication starts with: «تا پایان بارداری» for a pregnant
@@ -67,13 +88,9 @@ export function defaultDuration(pregnancy: boolean): MedicationDuration {
 export function emptyForm(todayApi: string, pregnancy = false): MedicationFormState {
   return {
     title: '',
-    dose: '',
-    unit: 'mg',
-    form: 'tablet',
-    times: [DEFAULT_TIMES[0]],
-    weekdays: [...ALL_WEEKDAYS],
-    amount: 1,
     startsOn: todayApi,
+    frequency: { every: 1, unit: 'day' },
+    doses: [emptyDose()],
     duration: defaultDuration(pregnancy),
     endsOn: null,
     notify: true,
@@ -81,16 +98,43 @@ export function emptyForm(todayApi: string, pregnancy = false): MedicationFormSt
   };
 }
 
+/** Old `form` → the closest dose unit (for a medication saved before dose blocks). */
+const FORM_TO_UNIT: Record<MedicationForm, DoseUnit> = {
+  tablet: 'pill',
+  capsule: 'capsule',
+  drops: 'drop',
+  syrup: 'ml',
+  injection: 'injection',
+};
+
+const clampAmount = (n: number) => Math.min(AMOUNT_MAX, Math.max(AMOUNT_MIN, Math.round(n) || AMOUNT_MIN));
+
 export function fromMedication(med: Medication, todayApi: string): MedicationFormState {
+  const frequency: MedicationFrequency = med.frequency ?? { every: 1, unit: 'day' };
+  let doses: DoseBlock[];
+  if (med.doses.length > 0) {
+    doses = med.doses.map((d) => ({
+      key: nextKey(),
+      time: d.time,
+      amount: clampAmount(d.amount),
+      unit: d.unit,
+      meal: d.meal,
+    }));
+  } else {
+    const times = med.times.length ? med.times : ['08:00'];
+    doses = times.slice(0, MAX_DOSES).map((time) => ({
+      key: nextKey(),
+      time,
+      amount: clampAmount(med.amount || 1),
+      unit: FORM_TO_UNIT[med.form] ?? 'pill',
+      meal: null,
+    }));
+  }
   return {
     title: med.title,
-    dose: med.dose ?? '',
-    unit: med.unit || 'mg',
-    form: med.form,
-    times: med.times.length ? [...med.times] : [DEFAULT_TIMES[0]],
-    weekdays: med.weekdays.length ? [...med.weekdays] : [...ALL_WEEKDAYS],
-    amount: med.amount || 1,
     startsOn: med.startsOn ?? todayApi,
+    frequency,
+    doses,
     duration: med.duration,
     endsOn: med.duration === 'until_date' ? med.endsOn : null,
     notify: med.notify,
@@ -98,27 +142,56 @@ export function fromMedication(med: Medication, todayApi: string): MedicationFor
   };
 }
 
-// ── Times ↔ count ────────────────────────────────────────────────
+// ── Frequency ────────────────────────────────────────────────────
 
-/**
- * Resize the slot list to `count` (1–4). Shrinking drops the last rows;
- * growing appends the first default (08:00, 20:00, 14:00, 23:00 in that
- * order) that isn't already taken, so a new row never duplicates one.
- */
-export function setTimesCount(times: readonly string[], count: number): string[] {
-  const n = Math.min(MAX_TIMES, Math.max(1, Math.round(count)));
-  if (times.length >= n) return times.slice(0, n);
-  const next = [...times];
-  while (next.length < n) {
-    const free = DEFAULT_TIMES.find((slot) => !next.includes(slot));
-    next.push(free ?? DEFAULT_TIMES[next.length] ?? '08:00');
-  }
-  return next;
+/** The numbers the «هر …» wheel offers for a unit. */
+export function everyOptions(unit: FrequencyUnit): number[] {
+  return unit === 'hour'
+    ? [...HOUR_EVERY_OPTIONS]
+    : Array.from({ length: DAY_EVERY_MAX }, (_, i) => i + 1);
 }
 
-export function replaceTime(times: readonly string[], index: number, value: string): string[] {
-  return times.map((slot, i) => (i === index ? value : slot));
+/** Keep `every` legal after the unit changes (e.g. 5 days → 4 hours). */
+export function snapEvery(unit: FrequencyUnit, every: number): number {
+  const options = everyOptions(unit);
+  if (options.includes(every)) return every;
+  let best = options[0]!;
+  for (const o of options) if (Math.abs(o - every) < Math.abs(best - every)) best = o;
+  return best;
 }
+
+// ── Dose blocks ──────────────────────────────────────────────────
+
+export function isDoseComplete(d: DoseBlock): boolean {
+  return d.time !== null && d.amount !== null && d.unit !== null;
+}
+
+/** Append an empty block (no-op at the cap). */
+export function addDose(doses: readonly DoseBlock[]): DoseBlock[] {
+  return doses.length >= MAX_DOSES ? [...doses] : [...doses, emptyDose()];
+}
+
+/** Remove a block; the first block (and a sole block) can't be removed. */
+export function removeDose(doses: readonly DoseBlock[], key: string): DoseBlock[] {
+  if (doses.length <= 1 || doses[0]?.key === key) return [...doses];
+  return doses.filter((d) => d.key !== key);
+}
+
+export function patchDose(doses: readonly DoseBlock[], key: string, patch: Partial<Omit<DoseBlock, 'key'>>): DoseBlock[] {
+  return doses.map((d) => (d.key === key ? { ...d, ...patch } : d));
+}
+
+/** Tapping the selected meal again clears it. */
+export function toggleMeal(current: Meal | null, tapped: Meal): Meal | null {
+  return current === tapped ? null : tapped;
+}
+
+/** The save button's gate: a name and at least one complete dose. */
+export function canSubmit(state: MedicationFormState): boolean {
+  return state.title.trim() !== '' && state.doses.some(isDoseComplete);
+}
+
+// ── Slots ────────────────────────────────────────────────────────
 
 export function toSlot(hour: number, minute: number): string {
   return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
@@ -149,31 +222,6 @@ export function slotPeriod(slot: string): SlotPeriod {
   return 'night';
 }
 
-// ── Weekdays ─────────────────────────────────────────────────────
-
-export function toggleWeekday(days: readonly Weekday[], day: Weekday): Weekday[] {
-  const next = days.includes(day) ? days.filter((d) => d !== day) : [...days, day];
-  return [...next].sort((a, b) => a - b);
-}
-
-/** Display order: Saturday-first for the Jalali calendar, Sunday-first otherwise. */
-export function weekdayOrder(saturdayFirst: boolean): Weekday[] {
-  return saturdayFirst ? [...ALL_WEEKDAYS] : [1, 2, 3, 4, 5, 6, 0];
-}
-
-export type WeekdaySummary =
-  | { kind: 'everyDay' }
-  | { kind: 'none' }
-  | { kind: 'days'; count: number; days: Weekday[] };
-
-/** All seven on = «هر روز»; otherwise the count (and the days, sorted). */
-export function weekdaySummary(days: readonly Weekday[]): WeekdaySummary {
-  const unique = [...new Set(days)].sort((a, b) => a - b);
-  if (unique.length === 0) return { kind: 'none' };
-  if (unique.length === ALL_WEEKDAYS.length) return { kind: 'everyDay' };
-  return { kind: 'days', count: unique.length, days: unique };
-}
-
 // ── Validation (mirrors request.go) ──────────────────────────────
 
 /** i18n keys under `care.medicationForm.errors`. */
@@ -182,7 +230,9 @@ export type FormErrorKey =
   | 'tooLong'
   | 'timesDuplicate'
   | 'timesInvalid'
-  | 'weekdaysRequired'
+  | 'doseRequired'
+  | 'frequencyInvalid'
+  | 'dosesRange'
   | 'amountRange'
   | 'dateInvalid'
   | 'endsOnRequired'
@@ -191,20 +241,35 @@ export type FormErrorKey =
 const API_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const SLOT = /^([01]\d|2[0-3]):[0-5]\d$/;
 
+const doseSchema = z.object({
+  time: z.string({ message: 'timesInvalid' }).regex(SLOT, 'timesInvalid'),
+  amount: z
+    .number({ message: 'amountRange' })
+    .int('amountRange')
+    .min(AMOUNT_MIN, 'amountRange')
+    .max(AMOUNT_MAX, 'amountRange'),
+  unit: z.enum(DOSE_UNITS, { message: 'amountRange' }),
+  meal: z.enum(MEALS).nullable(),
+});
+
 export const medicationFormSchema = z
   .object({
     title: z.string().trim().min(1, 'titleRequired').max(255, 'tooLong'),
-    dose: z.string().trim().max(50, 'tooLong'),
-    unit: z.string().trim().max(50, 'tooLong'),
-    form: z.enum(MEDICATION_FORMS),
-    times: z
-      .array(z.string().regex(SLOT, 'timesInvalid'))
-      .min(1, 'timesInvalid')
-      .max(MAX_TIMES, 'timesInvalid')
-      .refine((times) => new Set(times).size === times.length, 'timesDuplicate'),
-    weekdays: z.array(z.number().int().min(0).max(6)).min(1, 'weekdaysRequired').max(7),
-    amount: z.number().int('amountRange').min(AMOUNT_MIN, 'amountRange').max(AMOUNT_MAX, 'amountRange'),
     startsOn: z.string().regex(API_DATE, 'dateInvalid'),
+    frequency: z
+      .object({ every: z.number().int(), unit: z.enum(['day', 'hour']) })
+      .superRefine((f, ctx) => {
+        const ok =
+          f.unit === 'hour'
+            ? (HOUR_EVERY_OPTIONS as readonly number[]).includes(f.every)
+            : f.every >= 1 && f.every <= DAY_EVERY_MAX;
+        if (!ok) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'frequencyInvalid' });
+      }),
+    doses: z
+      .array(doseSchema)
+      .min(1, 'doseRequired')
+      .max(MAX_DOSES, 'dosesRange')
+      .refine((list) => new Set(list.map((d) => d.time)).size === list.length, 'timesDuplicate'),
     duration: z.enum(MEDICATION_DURATIONS),
     endsOn: z.string().regex(API_DATE, 'dateInvalid').nullable(),
     notify: z.boolean(),
@@ -221,18 +286,40 @@ export const medicationFormSchema = z
 
 export type FieldErrors = Partial<Record<FormField, string>>;
 
+export interface FormErrors {
+  fields: Partial<Record<FormField, FormErrorKey>>;
+  doses: Record<number, { time?: FormErrorKey; amount?: FormErrorKey }>;
+}
+
 export type ValidationResult =
   | { ok: true; input: MedicationInput }
-  | { ok: false; errors: Partial<Record<FormField, FormErrorKey>> };
+  | { ok: false; errors: FormErrors };
 
 /** Validate and convert to the feature's `MedicationInput`. */
 export function validateForm(state: MedicationFormState): ValidationResult {
   const parsed = medicationFormSchema.safeParse(state);
   if (!parsed.success) {
-    const errors: Partial<Record<FormField, FormErrorKey>> = {};
+    const errors: FormErrors = { fields: {}, doses: {} };
     for (const issue of parsed.error.issues) {
-      const field = issue.path[0] as FormField | undefined;
-      if (field && !errors[field]) errors[field] = issue.message as FormErrorKey;
+      const [head, index, leaf] = issue.path;
+      const key = issue.message as FormErrorKey;
+      if (head === 'doses' && typeof index === 'number') {
+        const slot = (errors.doses[index] ??= {});
+        const which = leaf === 'time' ? 'time' : 'amount';
+        slot[which] ??= key;
+      } else if (typeof head === 'string') {
+        const field = head as FormField;
+        errors.fields[field] ??= key;
+      }
+    }
+    // A duplicate time is a list-level issue: pin it on the later block's clock tile.
+    if (errors.fields.doses === 'timesDuplicate') {
+      const seen = new Set<string>();
+      state.doses.forEach((d, i) => {
+        if (d.time && seen.has(d.time)) errors.doses[i] = { ...errors.doses[i], time: 'timesDuplicate' };
+        if (d.time) seen.add(d.time);
+      });
+      delete errors.fields.doses;
     }
     return { ok: false, errors };
   }
@@ -241,13 +328,9 @@ export function validateForm(state: MedicationFormState): ValidationResult {
     ok: true,
     input: {
       title: v.title,
-      dose: v.dose,
-      unit: v.unit,
-      form: v.form,
-      times: v.times,
-      weekdays: v.weekdays as Weekday[],
-      amount: v.amount,
       startsOn: v.startsOn,
+      frequency: v.frequency,
+      doses: v.doses,
       duration: v.duration,
       endsOn: v.duration === 'until_date' ? v.endsOn : null,
       notify: v.notify,
@@ -260,42 +343,50 @@ export function validateForm(state: MedicationFormState): ValidationResult {
 
 const SERVER_FIELDS: Record<string, FormField> = {
   title: 'title',
-  dose: 'dose',
-  unit: 'unit',
-  form: 'form',
-  times: 'times',
-  weekdays: 'weekdays',
-  amount: 'amount',
   starts_on: 'startsOn',
+  frequency: 'frequency',
+  doses: 'doses',
   duration: 'duration',
   ends_on: 'endsOn',
   notes: 'notes',
 };
 
 /**
- * `{errors: {"times.1": ["…"], "ends_on": ["…"]}}` → first (already localized)
- * message per form field. Keys the form doesn't render are returned under
- * `unknown` so the screen can still show something.
+ * `{errors: {"doses.1.time": ["…"], "frequency.every": ["…"]}}` → first
+ * (already localized) message per form field / dose block. Keys the form
+ * doesn't render are returned under `unknown` so the screen can still show something.
  */
-export function mapServerErrors(body: unknown): { fields: FieldErrors; unknown: string | null } {
+export function mapServerErrors(body: unknown): {
+  fields: FieldErrors;
+  doses: DoseFieldErrors;
+  unknown: string | null;
+} {
   const fields: FieldErrors = {};
+  const doses: DoseFieldErrors = {};
   let unknown: string | null = null;
   const errors =
     body && typeof body === 'object' && 'errors' in body
       ? (body as { errors: unknown }).errors
       : null;
-  if (!errors || typeof errors !== 'object') return { fields, unknown };
+  if (!errors || typeof errors !== 'object') return { fields, doses, unknown };
   for (const [key, value] of Object.entries(errors as Record<string, unknown>)) {
     const message = Array.isArray(value) ? value.find((m) => typeof m === 'string') : value;
     if (typeof message !== 'string') continue;
-    const field = SERVER_FIELDS[key.split('.')[0]];
+    const [head, index, leaf] = key.split('.');
+    if (head === 'doses' && index !== undefined && /^\d+$/.test(index)) {
+      const slot = (doses[Number(index)] ??= {});
+      const which = leaf === 'time' ? 'time' : 'amount';
+      slot[which] ??= message;
+      continue;
+    }
+    const field = SERVER_FIELDS[head ?? ''];
     if (field) {
-      if (!fields[field]) fields[field] = message;
+      fields[field] ??= message;
     } else if (!unknown) {
       unknown = message;
     }
   }
-  return { fields, unknown };
+  return { fields, doses, unknown };
 }
 
 // ── Navigation ───────────────────────────────────────────────────

@@ -5,7 +5,9 @@
     },
     "push": {
         "neutral_title": "یادآور امروز",
-        "neutral_body": "یک یادآور برای امروز داری."
+        "neutral_body": "یک یادآور برای امروز داری.",
+        "notice_title": "اعلان تازه",
+        "notice_body": "یک اعلان تازه در ریتمی داری."
     },
     "attributes": {
         "categories": "دسته‌ها",
@@ -24,6 +26,7 @@
         "quiet_hours.enabled": "ساعت سکوت",
         "quiet_hours.start": "شروع ساعت سکوت",
         "quiet_hours.end": "پایان ساعت سکوت",
-        "neutral_copy": "متن خنثی"
+        "neutral_copy": "متن خنثی",
+        "sms_reminders": "یادآور پیامکی"
     }
 }

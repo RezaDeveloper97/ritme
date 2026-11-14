@@ -47,3 +47,11 @@ WHERE user_id = sqlc.arg(user_id)
 -- A free period (challenge reward, B-N9-07): no plan, no invoice, auto-renew off.
 INSERT INTO plus_subscriptions (user_id, plan_id, invoice_id, status, source, starts_at, ends_at, auto_renew, created_at, updated_at)
 VALUES (?, NULL, NULL, 'active', ?, ?, ?, 0, ?, ?);
+
+-- name: ListPlusUserIDs :many
+-- Every user on Plus right now: a period that covers `now`, or a running trial (the reminder SMS sender's set).
+SELECT s.user_id FROM plus_subscriptions s
+WHERE s.status IN ('active', 'canceled') AND s.starts_at <= sqlc.arg(now) AND s.ends_at > sqlc.arg(now)
+UNION
+SELECT t.user_id FROM plus_trials t
+WHERE t.started_at <= sqlc.arg(now) AND t.ends_at > sqlc.arg(now);

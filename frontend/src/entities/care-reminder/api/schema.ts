@@ -9,9 +9,14 @@ import {
   type CareEnums,
   type CareOption,
   type CareToday,
+  DOSE_UNITS,
+  FREQUENCY_UNITS,
+  MEALS,
   MEDICATION_DURATIONS,
   MEDICATION_FORMS,
   type Medication,
+  type MedicationDose,
+  type MedicationFrequency,
   REMIND_BEFORE,
   type Weekday,
 } from '../model/types';
@@ -43,6 +48,39 @@ const kindSchema = z.enum(APPOINTMENT_KINDS).catch('in_person');
 const topicSchema = z.enum(APPOINTMENT_TOPICS).catch('other');
 const remindBeforeSchema = z.enum(REMIND_BEFORE).catch('1d');
 const statusSchema = z.enum(APPOINTMENT_STATUSES).catch('scheduled');
+
+const mealSchema = z.enum(MEALS).nullish().catch(null).transform((v) => v ?? null);
+
+const frequencySchema = z
+  .object({ every: z.coerce.number().int().positive(), unit: z.enum(FREQUENCY_UNITS) })
+  .nullish()
+  .catch(null)
+  .transform((v): MedicationFrequency | null => v ?? null);
+
+/** A malformed dose is dropped, not the whole medication. */
+const doseBlockSchema = z
+  .object({
+    time: slotSchema,
+    amount: z.coerce.number().positive().catch(1),
+    unit: z.enum(DOSE_UNITS),
+    unit_label: nullableText,
+    meal: mealSchema,
+  })
+  .transform(
+    (d): MedicationDose => ({ time: d.time, amount: d.amount, unit: d.unit, unitLabel: d.unit_label, meal: d.meal }),
+  );
+
+const dosesSchema = z
+  .array(z.unknown())
+  .catch([])
+  .transform((list) => {
+    const out: MedicationDose[] = [];
+    for (const raw of list) {
+      const r = doseBlockSchema.safeParse(raw);
+      if (r.success) out.push(r.data);
+    }
+    return out;
+  });
 
 const weekdaysSchema = z
   .array(z.unknown())
@@ -94,6 +132,8 @@ const medicationRowSchema = z.object({
   amount: z.coerce.number().positive().catch(1).default(1),
   duration: durationSchema.default('ongoing'),
   notify: z.boolean().catch(true).default(true),
+  frequency: frequencySchema,
+  doses: dosesSchema.default([]),
   starts_on: nullableText,
   ends_on: nullableText,
   is_active: z.boolean().catch(true).default(true),
@@ -116,6 +156,8 @@ export const medicationSchema = z.preprocess(
       amount: r.amount,
       duration: r.duration,
       notify: r.notify,
+      frequency: r.frequency,
+      doses: r.doses,
       startsOn: r.starts_on,
       endsOn: r.ends_on,
       isActive: r.is_active,
@@ -189,6 +231,10 @@ const doseSchema = z.object({
   form: formSchema.default('tablet'),
   slot: slotSchema,
   taken: z.boolean().catch(false).default(false),
+  amount: z.coerce.number().positive().nullish().catch(null),
+  unit: nullableText,
+  unit_label: nullableText,
+  meal: mealSchema,
 });
 
 const nextAppointmentSchema = z.object({
@@ -222,6 +268,10 @@ export const careTodaySchema = z
         form: d.form,
         slot: d.slot,
         taken: d.taken,
+        amount: d.amount ?? null,
+        unit: d.unit,
+        unitLabel: d.unit_label,
+        meal: d.meal,
       }))
       .sort((a, b) => a.slot.localeCompare(b.slot));
     const na = t.next_appointment;
@@ -283,6 +333,9 @@ export const careEnumsSchema = z
     kinds: optionList(APPOINTMENT_KINDS),
     topics: optionList(APPOINTMENT_TOPICS),
     remind_before: optionList(REMIND_BEFORE),
+    dose_units: optionList(DOSE_UNITS).optional(),
+    meals: optionList(MEALS).optional(),
+    frequency_units: optionList(FREQUENCY_UNITS).optional(),
   })
   .transform(
     (e): CareEnums => ({
@@ -292,5 +345,8 @@ export const careEnumsSchema = z
       kinds: e.kinds,
       topics: e.topics,
       remindBefore: e.remind_before,
+      doseUnits: e.dose_units ?? [],
+      meals: e.meals ?? [],
+      frequencyUnits: e.frequency_units ?? [],
     }),
   );

@@ -8,16 +8,14 @@ package plus
 // a new Plus feature adds a constant and a Definition below — nothing else in the package changes.
 type Key string
 
-// The Plus entitlements (bloom N2–N7; roadmap canvas tasks gate their AI features through the same keys).
+// The Plus entitlements (bloom N2–N7). AI features are gated by credits instead (see definitions).
 const (
-	DeepAnalysis       Key = "plus.deep_analysis"       // analysis tab: patterns, correlations, mood by phase (B-N3-07)
-	VoiceLog           Key = "plus.voice_log"           // voice logging (B-N3-05)
-	LabAI              Key = "plus.lab_ai"              // AI lab-result analysis: 10 per month, free 1 per month (B-N6, A-03)
-	AssistantUnlimited Key = "plus.assistant_unlimited" // health assistant: Plus unlimited with a fair-use cap (B-N7, A-04)
-	PDFShare           Key = "plus.pdf_share"           // doctor report PDF + 7-day share link (B-N6-04)
-	VisitDiscount      Key = "plus.visit_discount"      // discount on online doctor visits (B-N7)
-	DocAI              Key = "plus.doc_ai"              // AI reading of record documents, 20 per month (CB-REC-02)
-	AnalysisLongRange  Key = "plus.analysis_long_range" // analysis ranges of a year and more: 1y, all (T-M10-29, D-178)
+	DeepAnalysis      Key = "plus.deep_analysis"       // analysis tab: patterns, correlations, mood by phase (B-N3-07)
+	PDFShare          Key = "plus.pdf_share"           // doctor report PDF + 7-day share link (B-N6-04)
+	VisitDiscount     Key = "plus.visit_discount"      // discount on online doctor visits (B-N7)
+	AnalysisLongRange Key = "plus.analysis_long_range" // analysis ranges of a year and more: 1y, all (T-M10-29, D-178)
+	SMSReminders      Key = "plus.sms_reminders"       // medication + appointment reminders also by SMS (internal/remindersms)
+	Companion         Key = "plus.companion"           // «ریتمی همراه»: inviting a partner / spouse (POST /companions)
 )
 
 // Tier is what the user currently has.
@@ -59,30 +57,27 @@ type Definition struct {
 	Free Quota
 }
 
-// Code defaults of the admin-tunable allowances (plus_settings, settings.go; D-178).
-const (
-	// DefaultLabAIFreeLimit is the free lab-AI allowance per month (A-03: «۱ بار در ماه»).
-	DefaultLabAIFreeLimit = 1
-	// DefaultAssistantFairUse is the Plus assistant's fair-use cap per month (A-04).
-	DefaultAssistantFairUse = 300
-)
-
 // definitions is the single source of the entitlement rules, in display order (the trial sheet's usage lines).
-// Free quotas: the assistant (Plus is «نامحدود» with a fair-use cap) and the lab AI (SPEC §4.3) have a free
-// allowance; every other Plus row is locked for free users on nbl_Prem_Paywall. The lab-AI free limit and the
-// assistant's fair-use cap are the code defaults of admin settings (Service.Definition applies them).
+// Every row is unlimited on Plus and locked for free users (nbl_Prem_Paywall).
+//
+// AI features are NOT entitlements: voice logging, lab analysis, the assistant and document reading spend AI
+// credits (goose 00125, internal/ai/credits) behind internal/ai/access — a running subscription plus enough
+// credits. Their old monthly-count keys (plus.voice_log, plus.lab_ai, plus.assistant_unlimited, plus.doc_ai) are
+// retired; never add an AI feature here.
 //
 // Never add an emergency, safety-alert, medication-reminder, EPDS or core-logging feature here: those are free
-// for everyone (SPEC §4.3, internal/http/paywall_guard_int_test.go).
+// for everyone (SPEC §4.3, internal/http/paywall_guard_int_test.go). SMSReminders does not gate the reminder: the
+// notification and the in-app reminder stay free; only the extra copy by SMS (it costs money per message) is Plus
+// (owner's decision, 2026-11-11). internal/care still never imports this package; the SMS sender lives outside it.
+// Companion gates only the creation of a partner / spouse invite (owner's decision, 2026-11-11): existing links keep
+// working for both sides, a companion never needs Plus to accept or read, and a teen's parent link stays free.
 var definitions = []Definition{
 	{Key: DeepAnalysis, Plus: unlimited, Free: locked},
-	{Key: LabAI, Plus: Quota{Enabled: true, Limit: 10}, Free: Quota{Enabled: true, Limit: DefaultLabAIFreeLimit}},
-	{Key: AssistantUnlimited, Plus: Quota{Enabled: true, FairUse: DefaultAssistantFairUse}, Free: Quota{Enabled: true, Limit: 5}},
 	{Key: PDFShare, Plus: unlimited, Free: locked},
 	{Key: VisitDiscount, Plus: unlimited, Free: locked},
-	{Key: VoiceLog, Plus: unlimited, Free: locked},
-	{Key: DocAI, Plus: Quota{Enabled: true, Limit: 20}, Free: locked},
 	{Key: AnalysisLongRange, Plus: unlimited, Free: locked},
+	{Key: SMSReminders, Plus: unlimited, Free: locked},
+	{Key: Companion, Plus: unlimited, Free: locked},
 }
 
 // Definitions returns a copy of the entitlement rules in display order.

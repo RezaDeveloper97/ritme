@@ -96,7 +96,7 @@ func (h *Handlers) Week(c fiber.Ctx) error {
 	return httpx.OK(c, out)
 }
 
-// WeekState is PUT /pregnancy/v2/weeks/{n}/state: {bookmarked?, done_task_keys?}.
+// WeekState is PUT /pregnancy/v2/weeks/{n}/state: {done_task_keys?}.
 func (h *Handlers) WeekState(c fiber.Ctx) error {
 	userID, err := h.user(c)
 	if err != nil {
@@ -109,14 +109,11 @@ func (h *Handlers) WeekState(c fiber.Ctx) error {
 	locale, now := i18n.Locale(c), h.now(c)
 	body := validation.Input(c)
 	data := phpval.NewMap()
-	for _, k := range []string{"bookmarked", "done_task_keys"} {
-		if v, ok := body.Get(k); ok {
-			data.Set(k, v)
-		}
+	if v, ok := body.Get("done_task_keys"); ok {
+		data.Set("done_task_keys", v)
 	}
 	F := validation.F
 	v := validation.Make(lang.Default(), locale, data, validation.Rules{
-		F("bookmarked", "nullable", "boolean"),
 		F("done_task_keys", "nullable", "array", "max:50"),
 		F("done_task_keys.*", "required", "string", "max:64"),
 	}, validation.Now(now), validation.Attributes(attributes(locale)...))
@@ -124,10 +121,6 @@ func (h *Handlers) WeekState(c fiber.Ctx) error {
 		return failValidation(locale, v.ErrorBag())
 	}
 	var in StateInput
-	if x, _ := data.Get("bookmarked"); x != nil {
-		b := phpval.Truthy(x)
-		in.Bookmarked = &b
-	}
 	if x, ok := data.Get("done_task_keys"); ok {
 		in.DoneTaskKeys = []string{}
 		_, vals := phpval.Entries(x)

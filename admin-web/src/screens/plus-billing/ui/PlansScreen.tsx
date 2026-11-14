@@ -67,6 +67,7 @@ export function PlansScreen() {
       ),
       className: 'cell-num',
     },
+    { key: 'credits', header: t('aiCredits'), cell: (p) => n(p.ai_credits), className: 'cell-num' },
     { key: 'subs', header: t('activeSubscriptions'), cell: (p) => n(p.active_subscriptions), className: 'cell-num' },
     { key: 'status', header: tc('status'), cell: (p) => <StatusBadge status={p.is_active ? 'active' : 'inactive'} /> },
     {

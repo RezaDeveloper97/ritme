@@ -3,7 +3,7 @@
 import { useSearchParams } from 'next/navigation';
 
 import { LogDay } from '@/features/log-day';
-import { VoiceLogPanel } from '@/features/voice-log';
+import { VoiceLogGated } from '@/widgets/voice-log-slot';
 import { useRouter } from '@/shared/i18n';
 import { SkyLayer } from '@/shared/ui';
 import { BodyMap } from '@/widgets/body-map';
@@ -19,7 +19,7 @@ export function LogPage() {
     <div className="view lday-page">
       <SkyLayer />
       <div className="scroll lday-page-scroll">
-        <LogDay variant="page" initialDate={date} BodyMap={BodyMap} VoiceLog={VoiceLogPanel} onClose={() => router.push('/home')} />
+        <LogDay variant="page" initialDate={date} BodyMap={BodyMap} VoiceLog={VoiceLogGated} onClose={() => router.push('/home')} />
       </div>
     </div>
   );

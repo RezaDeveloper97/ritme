@@ -7,6 +7,7 @@ namespace App\Domain\Content\Stages;
 use App\Domain\Blog\Enums\LifeStage;
 use App\Domain\Content\Enums\StaticPage;
 use App\Domain\Content\SiteNavigation;
+use App\Domain\Content\SiteSections;
 use App\Domain\Content\Stages\Data\StageNavItemData;
 
 /**
@@ -15,24 +16,33 @@ use App\Domain\Content\Stages\Data\StageNavItemData;
  */
 final class StageNavigation
 {
-    public function __construct(private readonly SiteNavigation $navigation) {}
+    public function __construct(
+        private readonly SiteNavigation $navigation,
+        private readonly SiteSections $sections,
+    ) {}
 
     /**
      * @return list<StageNavItemData>
      */
     public function items(LifeStage $active): array
     {
-        return array_map(function (LifeStage $stage) use ($active): StageNavItemData {
+        $items = [];
+        foreach (LifeStage::cases() as $stage) {
             $page = StaticPage::from('stage.'.$stage->value);
+            if (! $this->sections->pageEnabled($page)) { // switched off in the admin «صفحه‌ها» settings
+                continue;
+            }
 
-            return new StageNavItemData(
+            $items[] = new StageNavItemData(
                 label: $page->label(),
                 url: $this->navigation->url($page),
                 icon: self::icon($stage),
                 color: $stage->value,
                 active: $stage === $active,
             );
-        }, LifeStage::cases());
+        }
+
+        return $items;
     }
 
     public static function icon(LifeStage $stage): string

@@ -38,9 +38,15 @@ export interface HeroState {
 /** Days before the predicted start that count as «نزدیک پریود». */
 export const NEAR_PERIOD_DAYS = 2;
 
+/** «پریودم تموم شد» shows from this many days before the usual period length (engine: EPL − 1). */
+export const END_PROMPT_LEAD_DAYS = 1;
+
 export function heroState(i: HeroInput): HeroState {
   if (i.inPeriod) {
-    const endPrompt = i.isToday && i.periodOpen && !i.endDismissed;
+    // Same window as the engine's `ring_action: end` (§2.43): from the day before the usual length on.
+    // An unknown cycle day keeps the prompt, so an open period can always be closed.
+    const endDue = i.cycleDay == null || i.cycleDay >= i.periodLength - END_PROMPT_LEAD_DAYS;
+    const endPrompt = i.isToday && i.periodOpen && endDue && !i.endDismissed;
     return {
       variant: 'during',
       startPrompt: false,

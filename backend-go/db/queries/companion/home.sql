@@ -21,3 +21,13 @@ WHERE is_published = 1
     OR (CAST(sqlc.arg(has_phases) AS SIGNED) = 1 AND cycle_phases IS NOT NULL AND JSON_OVERLAPS(cycle_phases, sqlc.arg(phases))))
 ORDER BY (category = 'companion') DESC, sort_order, id
 LIMIT 4;
+
+-- name: ListOwnersDaySignalEntries :many
+-- «ریتمی همراه» v2 day signals: the few health-log slots the coarse yes/no signals derive from (companionhome.Signals),
+-- for every partner of the home in one statement. Only codes and the post-partum sleep hours are read — never a note,
+-- a free-text item, a pain score or any mood row (mood is never shared, SPEC §1.7); the caller keeps only booleans.
+SELECT user_id, category, param, item, value_code, value_num FROM `health_log_entries`
+WHERE user_id IN (sqlc.slice(owner_ids)) AND log_date = sqlc.arg(log_date)
+  AND ((category = 'pain' AND param = 'location')
+    OR (category = 'appetite_energy' AND param = 'energy')
+    OR (category = 'sleep' AND param IN ('quality', 'duration', 'hours')));

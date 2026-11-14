@@ -119,8 +119,6 @@ function SetupForm() {
 
   return (
     <div className="ivfm-form">
-      <p className="ivfm-block-hint ivfc-intro">{t('setup.intro')}</p>
-
       <Card className="ivfm-card">
         <ChoiceRow
           label={t('setup.protocol')}

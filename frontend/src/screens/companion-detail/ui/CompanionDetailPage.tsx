@@ -4,9 +4,12 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import {
+  type CompanionAction,
   type CompanionAuditEntry,
+  type CompanionGoal,
   type CompanionGrants,
   type CompanionInvite,
+  type CompanionSignalScope,
   companionName,
   hoursUntil,
   type OwnerCompanion,
@@ -15,16 +18,26 @@ import {
   useCompanion,
   useCompanionAudit,
   useRenewCompanionInvite,
-  useRevokeCompanion,
   useUpdateCompanionChildren,
   useUpdateCompanionGrants,
+  useUpdateCompanionPreferences,
 } from '@/entities/companion';
-import { AccessEditor, ChildrenPicker, InviteCodeCard, sameChildIds } from '@/features/invite-companion';
+import {
+  AccessEditor,
+  ActionPicker,
+  ChildrenPicker,
+  DisconnectSheet,
+  GoalPicker,
+  InviteCodeBox,
+  sameActions,
+  sameChildIds,
+  sameSignals,
+  SignalSwitches,
+} from '@/features/invite-companion';
 import { getApiErrorMessage, getApiErrorStatus } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatLongDate, formatNumber } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
-import { AppSheet } from '@/shared/sheet';
 import {
   EmptyState,
   PrimaryButton,
@@ -49,8 +62,8 @@ function apiText(error: unknown, fallback: string): string {
  * One companion (`/companions/[id]`, B-N4-04): who they are, the per-section
  * access editor (PUT /companions/{id}/grants), a fresh code for a pending
  * invite (POST …/renew, shown once), the shared children of a spouse (PUT
- * …/children, B-N4-10b), recent activity from the audit trail and
- * «حذف همدم» behind a confirmation (DELETE /companions/{id}).
+ * …/children, B-N4-10b), «ترجیحات همراهی» (PUT …/preferences, companion-v2), recent activity from the audit trail and
+ * «قطع اشتراک» behind the v2 confirm sheet (DELETE /companions/{id}).
  */
 export function CompanionDetailPage({ id }: { id: number }) {
   const t = useTranslations('companions');
@@ -141,6 +154,8 @@ function DetailBody({ companion, onRemoved }: { companion: OwnerCompanion; onRem
 
       {companion.status === 'invited' ? <PendingInvite companion={companion} /> : null}
 
+      <PreferencesSection companion={companion} />
+
       <GrantsSection companion={companion} />
 
       {companion.type === 'spouse' ? <ChildrenSection companion={companion} /> : null}
@@ -164,7 +179,7 @@ function PendingInvite({ companion }: { companion: OwnerCompanion }) {
     <section className="cmp-sec" aria-labelledby="cmp-pending-title">
       <SectionTitle id="cmp-pending-title" title={t('detail.pendingTitle')} />
       {fresh ? (
-        <InviteCodeCard invite={fresh} lead={t('flow.invite.codeLead')} />
+        <InviteCodeBox invite={fresh} />
       ) : (
         <div className="nb-card cmp-pending">
           {companion.invite?.phone ? (
@@ -193,6 +208,95 @@ function PendingInvite({ companion }: { companion: OwnerCompanion }) {
           ) : null}
         </div>
       )}
+    </section>
+  );
+}
+
+/**
+ * «ترجیحات همراهی» (companion-v2): goal, the four signal switches (each its own consent) and the preferred
+ * support kinds — PUT /companions/{id}/preferences with only the changed fields.
+ */
+function PreferencesSection({ companion }: { companion: OwnerCompanion }) {
+  const t = useTranslations('companions');
+  const save = useUpdateCompanionPreferences(companion.id);
+  const server = companion.preferences;
+  // null = untouched: each editor shows the server's value.
+  const [goal, setGoal] = useState<CompanionGoal | null>(null);
+  const [signals, setSignals] = useState<CompanionSignalScope | null>(null);
+  const [actions, setActions] = useState<CompanionAction[] | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  const goalDirty = goal !== null && goal !== server.goal;
+  const signalsDirty = signals !== null && !sameSignals(signals, server.signals);
+  const actionsDirty = actions !== null && !sameActions(actions, server.actionPrefs);
+  const dirty = goalDirty || signalsDirty || actionsDirty;
+
+  const touch = () => setSaved(false);
+  const onSave = () => {
+    if (!dirty || save.isPending) return;
+    save.mutate(
+      {
+        ...(goalDirty && goal ? { goal } : {}),
+        ...(signalsDirty && signals ? { signals } : {}),
+        ...(actionsDirty && actions ? { actionPrefs: actions } : {}),
+      },
+      {
+        onSuccess: () => {
+          setGoal(null);
+          setSignals(null);
+          setActions(null);
+          setSaved(true);
+        },
+      },
+    );
+  };
+
+  return (
+    <section className="cmp-sec" aria-labelledby="cmp-prefs-title">
+      <SectionTitle id="cmp-prefs-title" title={t('detail.prefsTitle')} />
+      <p className="cmp-lead">{t('detail.prefsLead')}</p>
+      <h3 className="cmp2-label">{t('detail.goalTitle')}</h3>
+      <GoalPicker
+        value={goal ?? server.goal}
+        onChange={(g) => {
+          touch();
+          setGoal(g);
+        }}
+      />
+      <h3 className="cmp2-label">{t('detail.signalsTitle')}</h3>
+      <p className="cmp-lead">{t('detail.signalsLead')}</p>
+      <SignalSwitches
+        value={signals ?? server.signals}
+        disabled={save.isPending}
+        onChange={(s) => {
+          touch();
+          setSignals(s);
+        }}
+      />
+      <h3 className="cmp2-label">{t('detail.actionsTitle')}</h3>
+      <ActionPicker
+        value={actions ?? server.actionPrefs}
+        disabled={save.isPending}
+        onChange={(a) => {
+          touch();
+          setActions(a);
+        }}
+      />
+      {dirty ? (
+        <PrimaryButton loading={save.isPending} onClick={onSave}>
+          {t('detail.prefsSave')}
+        </PrimaryButton>
+      ) : null}
+      {saved && !dirty ? (
+        <p className="cmp-status" role="status">
+          {t('detail.prefsSaved')}
+        </p>
+      ) : null}
+      {save.isError ? (
+        <p className="cmp-error" role="alert">
+          {apiText(save.error, t('detail.prefsError'))}
+        </p>
+      ) : null}
     </section>
   );
 }
@@ -340,42 +444,19 @@ function Activity({ companionId }: { companionId: number }) {
 
 function RemoveCompanion({ companion, name, onRemoved }: { companion: OwnerCompanion; name: string; onRemoved: () => void }) {
   const t = useTranslations('companions');
-  const revoke = useRevokeCompanion(companion.id);
   const [open, setOpen] = useState(false);
 
   return (
     <>
       <button type="button" className="cmp-remove" onClick={() => setOpen(true)}>
-        {t('detail.remove')}
+        {companion.status === 'active' ? t('list.cut') : t('list.cancelInvite')}
       </button>
-      <AppSheet
-        open={open}
-        onClose={() => (revoke.isPending ? undefined : setOpen(false))}
-        size="half"
-        title={t('detail.removeTitle', { name })}
-        footer={
-          <div className="cmp-sheet-btns">
-            <SecondaryButton onClick={() => setOpen(false)} disabled={revoke.isPending}>
-              {t('detail.cancel')}
-            </SecondaryButton>
-            <SecondaryButton
-              variant="text"
-              className="cmp-danger-text"
-              loading={revoke.isPending}
-              onClick={() => revoke.mutate(undefined, { onSuccess: onRemoved })}
-            >
-              {t('detail.removeConfirm')}
-            </SecondaryButton>
-          </div>
-        }
-      >
-        <p className="cmp-sheet-body">{t('detail.removeBody')}</p>
-        {revoke.isError ? (
-          <p className="cmp-error" role="alert">
-            {apiText(revoke.error, t('detail.removeError'))}
-          </p>
-        ) : null}
-      </AppSheet>
+      <DisconnectSheet
+        companionId={open ? companion.id : null}
+        name={name}
+        onClose={() => setOpen(false)}
+        onDisconnected={onRemoved}
+      />
     </>
   );
 }

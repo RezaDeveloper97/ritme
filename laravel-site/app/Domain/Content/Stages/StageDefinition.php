@@ -59,6 +59,18 @@ abstract class StageDefinition
         return [];
     }
 
+    /** The Nov 2026 design spec; null keeps the stage on the classic `show` template (postpartum, menopause, teen). */
+    public function redesign(): ?RedesignSpec
+    {
+        return null;
+    }
+
+    /** @return view-string */
+    public function template(): string
+    {
+        return $this->redesign() === null ? 'pages.stages.show' : 'pages.stages.redesign';
+    }
+
     /** Sprite icon of the hero eyebrow pill. */
     public function eyebrowIcon(): string
     {

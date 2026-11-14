@@ -47,7 +47,7 @@ it('renders each stage page with its own SEO, one h1 and the design sections', f
         ->and(preg_match_all('~<div aria-hidden="true"[^>]*(?:h-165|bg-\[radial-gradient)~', $html))->toBe(1 + $splits)
         ->and($html)->toContain('کارهای کوچک، آمادگی بیشتر')
         ->and(str_contains($html, 'وقتی کمک بیشتری لازم داری'))->toBe($help)
-        ->and($html)->toContain('href="tel:115"')
+        ->and($html)->not->toContain('href="tel:115"')
         ->and($html)->toContain($faqTitle)
         ->and(substr_count($html, '<details'))->toBe(3);
 

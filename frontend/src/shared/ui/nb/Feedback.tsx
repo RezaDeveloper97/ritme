@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { clsx } from 'clsx';
 
+import { Art3d, ICON_ART } from '../Art3d';
 import { Icon, type IconName } from '../Icon';
 import { IconCircle } from './IconCircle';
 
@@ -124,8 +125,12 @@ interface EmptyStateProps {
 export function EmptyState({ icon, title, body, action, className }: EmptyStateProps) {
   return (
     <section className={clsx('nb-empty', className)}>
-      <span className="nb-empty-disc" aria-hidden>
-        <Icon name={icon} size={40} strokeWidth={1.6} />
+      <span className={clsx('nb-empty-disc', ICON_ART[icon] && 'is-art')} aria-hidden>
+        {ICON_ART[icon] ? (
+          <Art3d name={ICON_ART[icon]} size={84} />
+        ) : (
+          <Icon name={icon} size={40} strokeWidth={1.6} />
+        )}
       </span>
       <h2 className="nb-empty-title">{title}</h2>
       {body ? <p className="nb-empty-body">{body}</p> : null}

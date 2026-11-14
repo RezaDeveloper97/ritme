@@ -7,7 +7,10 @@ import type { ReactNode } from 'react';
 
 import { OnboardingCalendarSync } from '@/entities/user';
 import { AppLockGate, appLockInitScript } from '@/features/app-lock';
+import { AiGateSheet } from '@/features/ai-gate';
 import { PendingConsentsSheet, SessionRefresher } from '@/features/auth';
+import { StoreBillingSync } from '@/features/purchase-plus';
+import { NotificationSync } from '@/features/push-notifications';
 import { BackGuard } from '@/shared/back-guard';
 import {
   BUNDLED_LOCALES,
@@ -170,6 +173,8 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
             <BackGuard />
             <SessionGuard />
             <SessionRefresher />
+            <NotificationSync />
+            <StoreBillingSync />
             <OnboardingCalendarSync />
             <ViewportHeight />
             <NoZoom />
@@ -188,6 +193,8 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
                   {/* T-M10-23: the one-time sheet of the mandatory consents an
                       account made before they existed has not accepted yet. */}
                   <PendingConsentsSheet />
+                  {/* AI gate: the one sheet that explains a missing subscription / spent credits (features/ai-gate). */}
+                  <AiGateSheet />
                 </AppLockGate>
               </div>
             </div>

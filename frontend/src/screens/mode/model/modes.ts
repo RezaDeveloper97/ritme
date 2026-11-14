@@ -1,21 +1,23 @@
 import type { LifeMode } from '@/entities/user';
-import type { IconName, Tone } from '@/shared/ui';
+import type { Art3dName, IconName, Tone } from '@/shared/ui';
 
 /** One card of the mode screen (`nbl_Me_Mode`), in artboard order; copy lives under `me.mode.cards.<key>`. */
 export interface ModeCardDef {
   key: LifeMode;
   icon: IconName;
+  /** 3D illustration of the mode, shown on the card. */
+  art: Art3dName;
   /** Accent of the card: icon disc, selected border/tint, radio dot (artboard colours = these tokens). */
   tone: Tone;
 }
 
 export const MODE_CARDS: readonly ModeCardDef[] = [
-  { key: 'cycle', icon: 'drop', tone: 'period' },
-  { key: 'ttc', icon: 'target', tone: 'warm' },
-  { key: 'pregnancy', icon: 'user', tone: 'bloom' },
-  { key: 'postpartum', icon: 'heart', tone: 'data' },
-  { key: 'menopause', icon: 'moon', tone: 'brand' },
-  { key: 'teen', icon: 'sprout', tone: 'success' },
+  { key: 'cycle', icon: 'drop', art: 'cycle', tone: 'period' },
+  { key: 'ttc', icon: 'target', art: 'ttc', tone: 'warm' },
+  { key: 'pregnancy', icon: 'user', art: 'pregnancy', tone: 'bloom' },
+  { key: 'postpartum', icon: 'heart', art: 'postpartum', tone: 'data' },
+  { key: 'menopause', icon: 'moon', art: 'menopause', tone: 'brand' },
+  { key: 'teen', icon: 'sprout', art: 'teen', tone: 'success' },
 ];
 
 /**

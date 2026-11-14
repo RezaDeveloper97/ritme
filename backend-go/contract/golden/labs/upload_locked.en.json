@@ -18,12 +18,10 @@
       },
       "body": {
         "success": false,
-        "message": "This feature is part of Ritme Plus.",
-        "error_code": "plus_required",
-        "feature": "plus.lab_ai",
-        "reason": "locked",
-        "limit": null,
-        "resets_at": null
+        "message": "You need an active subscription to use smart features.",
+        "error_code": "ai_subscription_required",
+        "feature": "lab_analysis",
+        "extra_credits": 0
       }
     }
   ]

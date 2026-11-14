@@ -8,7 +8,9 @@ import { useLocalized } from '@/shared/i18n';
 import { formatDate, formatNumber, toIntOrNull, useListParams } from '@/shared/lib';
 import {
   Button,
+  type Column,
   DataTable,
+  FormDialog,
   Pagination,
   Panel,
   RowActions,
@@ -18,11 +20,9 @@ import {
   TextInput,
   toast,
   useNotifyError,
-  type Column,
 } from '@/shared/ui';
 
 import { plansApi, subscriptionsApi, type Subscription } from '../api/billing';
-import { FormDialog } from './FormDialog';
 import { StatusBadge, useCanManage, UserCell } from './parts';
 
 const STATUSES = ['all', 'active', 'canceled', 'expired', 'refunded'] as const;

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Content\Stages;
 
 use App\Domain\Blog\Enums\LifeStage;
+use App\Domain\Content\Enums\SitePhoto;
 
 /**
  * /pregnancy — «بارداری» (design/html/pregnancy.html): week by week, appointments, hospital bag / birth plan /
@@ -63,5 +64,10 @@ final class Pregnancy extends StageDefinition
     public function eyebrowIcon(): string
     {
         return 'sprout';
+    }
+
+    public function redesign(): RedesignSpec
+    {
+        return new RedesignSpec(SitePhoto::PregnancyHero, SitePhoto::PregnantWindow, 'pregnancy', ['weekly', 'tasks', 'visits', 'kicks', 'contractions', 'warnings']);
     }
 }

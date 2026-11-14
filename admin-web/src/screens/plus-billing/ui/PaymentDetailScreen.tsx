@@ -6,10 +6,18 @@ import { useState } from 'react';
 import { fieldError, isApiError } from '@/shared/api';
 import { useLocalized } from '@/shared/i18n';
 import { formatDate, formatDateTime, formatNumber } from '@/shared/lib';
-import { Button, LoadGate, PageHeader, Panel, TextArea, toast, useNotifyError } from '@/shared/ui';
+import {
+  Button,
+  FormDialog,
+  LoadGate,
+  PageHeader,
+  Panel,
+  TextArea,
+  toast,
+  useNotifyError,
+} from '@/shared/ui';
 
 import { paymentsApi, type Payment } from '../api/billing';
-import { FormDialog } from './FormDialog';
 import { StatusBadge, Toman, useCanManage, UserCell } from './parts';
 
 /** /plus/payments/:id — invoice, receipt (no card data), periods bought, admin actions, refund (B-N2-09). */

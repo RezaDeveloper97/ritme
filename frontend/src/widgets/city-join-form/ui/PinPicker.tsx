@@ -69,7 +69,6 @@ export function PinPicker({ value, onChange }: { value: MapPoint | null; onChang
       <div className="cjn-head">
         <div>
           <h3 className="cjn-label">{t('mapTitle')}</h3>
-          <p className="cjn-hint">{t('mapHint')}</p>
         </div>
         <span className="cjn-chip" data-set={value !== null}>
           <Icon name={value ? 'check' : 'mapPin'} size={14} />

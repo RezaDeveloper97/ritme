@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/ritme/backend-go/db"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
 const getUserGender = `-- name: GetUserGender :one
@@ -122,6 +123,72 @@ func (q *Queries) ListCompanionTipContents(ctx context.Context, locales []string
 	for rows.Next() {
 		var i ListCompanionTipContentsRow
 		if err := rows.Scan(&i.ItemKey, &i.Locale, &i.Payload); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listOwnersDaySignalEntries = `-- name: ListOwnersDaySignalEntries :many
+SELECT user_id, category, param, item, value_code, value_num FROM ` + "`" + `health_log_entries` + "`" + `
+WHERE user_id IN (/*SLICE:owner_ids*/?) AND log_date = ?
+  AND ((category = 'pain' AND param = 'location')
+    OR (category = 'appetite_energy' AND param = 'energy')
+    OR (category = 'sleep' AND param IN ('quality', 'duration', 'hours')))
+`
+
+type ListOwnersDaySignalEntriesParams struct {
+	OwnerIds []uint64
+	LogDate  civildate.Date
+}
+
+type ListOwnersDaySignalEntriesRow struct {
+	UserID    uint64
+	Category  string
+	Param     string
+	Item      string
+	ValueCode sql.NullString
+	ValueNum  sql.NullString
+}
+
+// «ریتمی همراه» v2 day signals: the few health-log slots the coarse yes/no signals derive from (companionhome.Signals),
+// for every partner of the home in one statement. Only codes and the post-partum sleep hours are read — never a note,
+// a free-text item, a pain score or any mood row (mood is never shared, SPEC §1.7); the caller keeps only booleans.
+func (q *Queries) ListOwnersDaySignalEntries(ctx context.Context, arg ListOwnersDaySignalEntriesParams) ([]ListOwnersDaySignalEntriesRow, error) {
+	query := listOwnersDaySignalEntries
+	var queryParams []interface{}
+	if len(arg.OwnerIds) > 0 {
+		for _, v := range arg.OwnerIds {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:owner_ids*/?", strings.Repeat(",?", len(arg.OwnerIds))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:owner_ids*/?", "NULL", 1)
+	}
+	queryParams = append(queryParams, arg.LogDate)
+	rows, err := q.db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListOwnersDaySignalEntriesRow{}
+	for rows.Next() {
+		var i ListOwnersDaySignalEntriesRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.Category,
+			&i.Param,
+			&i.Item,
+			&i.ValueCode,
+			&i.ValueNum,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

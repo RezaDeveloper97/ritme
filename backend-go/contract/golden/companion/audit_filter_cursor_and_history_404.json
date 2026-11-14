@@ -206,6 +206,8 @@
             5,
             6
           ],
+          "frequency": null,
+          "doses": [],
           "starts_on": "2026-09-23",
           "ends_on": null,
           "is_active": true
@@ -413,6 +415,8 @@
             5,
             6
           ],
+          "frequency": null,
+          "doses": [],
           "amount": 1,
           "duration": "ongoing",
           "notify": true,
@@ -478,6 +482,8 @@
             5,
             6
           ],
+          "frequency": null,
+          "doses": [],
           "amount": 1,
           "duration": "ongoing",
           "notify": true,

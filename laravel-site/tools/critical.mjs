@@ -53,12 +53,15 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
  */
 export const TEMPLATES = [
     { key: 'home', urls: ['/'], routes: ['home'] },
-    { key: 'stage', urls: ['/cycle', '/ttc', '/pregnancy', '/postpartum', '/menopause', '/teen'], routes: ['stage.*'] },
-    {
-        key: 'page',
-        urls: ['/services', '/plus', '/tools', '/about', '/social-responsibility', '/privacy', '/terms', '/faq', '/contact', '/directory/business'],
-        routes: ['services', 'plus', 'tools', 'about', 'social-responsibility', 'privacy', 'terms', 'faq', 'contact', 'directory.business'],
-    },
+    // Nov 2026 redesign: cycle/ttc/pregnancy (white template) apart from the stages still on the dark template.
+    { key: 'stage', urls: ['/cycle', '/ttc', '/pregnancy'], routes: ['stage.cycle', 'stage.ttc', 'stage.pregnancy'] },
+    { key: 'stage-legacy', urls: ['/postpartum', '/menopause', '/teen'], routes: ['stage.*'] },
+    { key: 'plus', urls: ['/plus'], routes: ['plus'] },
+    // Content pages whose hero is still the dark block (HeaderVariant::Dark) apart from the light ones.
+    { key: 'page-dark', urls: ['/about', '/social-responsibility', '/privacy'], routes: ['about', 'social-responsibility', 'privacy'] },
+    { key: 'page', urls: ['/services', '/directory/business'], routes: ['services', 'directory.business'] },
+    { key: 'tools', urls: ['/tools'], routes: ['tools'] },
+    { key: 'page-text', urls: ['/terms', '/faq', '/contact'], routes: ['terms', 'faq', 'contact'] },
     { key: 'blog', urls: ['/blog'], routes: ['blog.index', 'blog.category', 'blog.tag', 'blog.author'] },
     { key: 'post', discover: { from: '/blog', pattern: /href="(?:https?:\/\/[^/"]+)?(\/blog\/(?!category\/|tag\/|author\/|feed)[^"/?#]+)"/ }, routes: ['blog.show'] },
     { key: 'shop', urls: ['/shop'], routes: ['shop.index'] },

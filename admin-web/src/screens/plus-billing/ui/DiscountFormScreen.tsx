@@ -7,11 +7,10 @@ import { useState } from 'react';
 import { RequireSuper } from '@/features/auth';
 import { fieldError } from '@/shared/api';
 import { useLocalized } from '@/shared/i18n';
-import { isoToLocalInput, localInputToApi, toIntOrNull } from '@/shared/lib';
+import { isoToLocalInput, localInputToApi, rialsToToman, toIntOrNull, tomanToRials } from '@/shared/lib';
 import { CheckboxGrid, FormPage, LoadGate, PageHeader, Select, Switch, TextInput, toast, useNotifyError } from '@/shared/ui';
 
 import { discountsApi, plansApi, type Discount, type Plan } from '../api/billing';
-import { rialsToToman, tomanToRials } from '../lib/money';
 
 /** /plus/discount-codes/new and /plus/discount-codes/:id (super admin). */
 export function DiscountFormScreen({ id }: { id: number | null }) {

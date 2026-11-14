@@ -57,7 +57,7 @@ describe.skipIf(!existsSync(GOLDEN_DIR))('analysisSummarySchema', () => {
     expect(s.topFinding.parts[0].key).toBe('findings.not_enough_days');
     expect(s.sections.moodByPhase).toEqual({ plus: true, locked: true, ready: false, data: null });
     expect(s.sections.weight.data).toMatchObject({ ready: false, current: null, logsInWindow: 0, daysNeeded: 3 });
-    expect(s.sections.vitals.data).toEqual({ minReadings: 2, minDays: 2, bloodPressure: null, bloodSugar: null });
+    expect(s.sections.vitals.data).toEqual({ minReadings: 2, minDays: 2, bloodPressure: null, bloodSugar: null, heartRate: null });
   });
 
   it('parses the teen and irregular fixtures', () => {

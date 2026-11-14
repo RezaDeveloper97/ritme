@@ -17,6 +17,8 @@ export interface Shortcut {
   icon: IconName;
   tone: Tone;
   modes?: readonly QuickMode[];
+  /** Opens this sheet (`app/sheets/registry.tsx`) instead of navigating; `href` still names the owning module. */
+  sheet?: string;
   /** Teen only with an active parent link (IA_Nav «نوجوان»: doctor & labs ride on the mother; CB-NAV-04b). */
   teenNeedsParent?: boolean;
 }
@@ -31,7 +33,7 @@ export const SHORTCUTS: readonly Shortcut[] = [
   { id: 'courses', href: '/learn', icon: 'gradCap', tone: 'warm' },
   { id: 'checkups', href: '/checkups', icon: 'clock', tone: 'data' },
   { id: 'reminders', href: '/reminders', icon: 'bellRing', tone: 'brand' },
-  { id: 'vitals', href: '/vitals', icon: 'heartLine', tone: 'period' },
+  { id: 'vitals', href: '/vitals', sheet: 'vitals-add', icon: 'heartLine', tone: 'period' },
   { id: 'labs', href: '/labs', icon: 'flask', tone: 'period', modes: [...ADULT, 'teen'], teenNeedsParent: true },
   { id: 'analysis', href: '/analysis', icon: 'chart', tone: 'data' },
   { id: 'todo', href: '/todo', icon: 'todo', tone: 'brand' },
@@ -46,14 +48,14 @@ export const SHORTCUTS: readonly Shortcut[] = [
 /** Up to this many shortcuts (two rows of five with the «ویرایش» tile). */
 export const QUICK_ACCESS_MAX = 9;
 
-/** The board's picks first (record, doctor, pain diary, courses), then mode-specific ones, then fillers. */
+/** The board's picks first (record, doctor, vitals, pain diary, courses), then mode-specific ones, then fillers. */
 const DEFAULTS: Record<QuickMode, readonly string[]> = {
-  cycle: ['record', 'doctor', 'painDiary', 'courses', 'checkups', 'reminders', 'analysis'],
-  ttc: ['record', 'doctor', 'courses', 'checkups', 'reminders', 'analysis'],
-  ivf: ['ivfMeds', 'record', 'doctor', 'labs', 'reminders'],
-  pregnancy: ['kicks', 'record', 'doctor', 'courses', 'checkups', 'reminders'],
-  postpartum: ['children', 'record', 'doctor', 'courses', 'checkups', 'reminders'],
-  menopause: ['hotFlash', 'record', 'doctor', 'painDiary', 'checkups', 'reminders'],
+  cycle: ['record', 'doctor', 'vitals', 'painDiary', 'courses', 'checkups', 'reminders', 'analysis'],
+  ttc: ['record', 'doctor', 'vitals', 'courses', 'checkups', 'reminders', 'analysis'],
+  ivf: ['ivfMeds', 'record', 'doctor', 'vitals', 'labs', 'reminders'],
+  pregnancy: ['kicks', 'record', 'vitals', 'doctor', 'courses', 'checkups', 'reminders'],
+  postpartum: ['children', 'record', 'vitals', 'doctor', 'courses', 'checkups', 'reminders'],
+  menopause: ['hotFlash', 'record', 'vitals', 'doctor', 'painDiary', 'checkups', 'reminders'],
   teen: ['reminders', 'doctor', 'analysis', 'search'],
 };
 

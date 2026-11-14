@@ -4,13 +4,11 @@ import { useLocale, useTranslations } from 'next-intl';
 import { type TouchEvent, useRef } from 'react';
 
 import { clampV2Week, usePregnancyToday, usePregnancyWeek } from '@/entities/pregnancy';
-import { useUpdateWeekState } from '@/features/track-pregnancy';
 import { type Locale, Link, useDirection, useRouter } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate } from '@/shared/lib/date';
 import {
   Card,
   EmptyState,
-  HeaderButton,
   Icon,
   ScreenHeader,
   SecondaryButton,
@@ -39,7 +37,6 @@ export function PregnancyWeekPage({ week: requested }: Props) {
   const currentWeek = today.data ? clampV2Week(today.data.progress.week) : null;
   const week = requested != null ? clampV2Week(requested) : currentWeek;
   const query = usePregnancyWeek(week);
-  const bookmark = useUpdateWeekState();
   const touch = useRef<{ x: number; y: number } | null>(null);
   const data = query.data;
 
@@ -119,16 +116,6 @@ export function PregnancyWeekPage({ week: requested }: Props) {
           subtitle={subtitle || undefined}
           onBack={() => router.push('/pregnancy')}
           backLabel={t('common.back')}
-          action={
-            data ? (
-              <HeaderButton
-                icon="bookmark"
-                className={data.bookmarked ? 'pgn-bookmarked' : undefined}
-                label={data.bookmarked ? t('week.unbookmark') : t('week.bookmark')}
-                onClick={() => bookmark.mutate({ week: data.week, state: { bookmarked: !data.bookmarked } })}
-              />
-            ) : undefined
-          }
         />
         <div className="pgn-body">
           {week != null && <WeekTabs week={week} />}

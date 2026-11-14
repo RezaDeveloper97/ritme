@@ -3,81 +3,108 @@
 declare(strict_types=1);
 
 /*
- * Copy of /plus (pages/plus.blade.php), from design/html/plus.html. The FAQ «جواب سؤال‌هایی که حق داری بپرسی» is
- * FAQ group `plus` (admin, L3-09), not here.
- *
- * Prices (AUDIT §5.2 / open item 4 — the owner has not decided whether prices show on the site). The design only has
- * placeholders («[قیمت سالانه]», «[قیمت ماهانه]», «[قیمت هر بسته]»), never real or example values, so nothing is
- * invented: `pricing.show` is the single on/off switch, off by default, and every paid plan then reads «قیمت در اپ».
- * To publish prices set `show` => true and fill the amounts (integers, toman); an amount left null still falls back
- * to the in-app copy. No discounts, countdowns or scarcity copy (content red lines).
- * Design placeholders «[امکانات دیگر پلاس]» / «[بسته‌های دیگر]» are omitted until the owner lists them.
+ * Copy of /plus (pages/plus.blade.php), from design/Web_Pricing.html. The FAQ is FAQ group `plus` (admin), not here.
+ * Prices: the design's draft prices; `pricing.show` => false swaps every amount for «قیمت در اپ».
+ * No discounts countdowns or scarcity copy (content red lines).
  */
 
 return [
     'seo' => [
         'title' => 'ریتمی رایگان و ریتمی پلاس؛ چه چیزی همیشه رایگان است',
-        'description' => 'پیش‌بینی پریود، ثبت روزانه، ابزارهای بارداری، یادآور واکسن و خروجی داده در ریتمی همیشه رایگان است. ریتمی پلاس و بسته‌های دوره فقط عمق و تحلیل بیشتر می‌دهند.',
+        'description' => 'پیش‌بینی پریود، ثبت روزانه، ابزارهای بارداری، یادآور واکسن و خروجی داده در ریتمی همیشه رایگان است. ریتمی پلاس فقط عمق و تحلیل بیشتر می‌دهد.',
     ],
 
     'intro' => [
         'eyebrow' => 'رایگان و پلاس',
-        'title' => 'اول می‌گوییم چه چیزی همیشه رایگان است',
-        'lead' => 'ریتمی ابزار را قفل نمی‌کند؛ اگر چیزی پولی است، عمق و تحلیل بیشتر است.',
+        'title_line1' => 'ریتمی رایگان است.',
+        'title_line2' => 'پلاس، عمق بیشتر.',
+        'lead' => 'سلامت پایه‌ات هیچ‌وقت پشت پرداخت نمی‌رود. پلاس برای وقتی است که می‌خواهی بیشتر از داده‌ات بفهمی.',
+        'trial' => 'همه پلن‌ها: ۷ روز رایگان، بدون کارت بانکی',
     ],
 
+    // Single switch for the amounts: `show` false renders «قیمت در اپ» instead. Amounts are integers (toman);
+    // `per_month` is the per-month price, `total` the whole period, `saving` the percent vs. monthly (null = none).
     'pricing' => [
-        'show' => false,
-        'plus_yearly' => null,
-        'plus_monthly' => null,
-        'pack' => null,
+        'show' => true,
         'in_app' => 'قیمت در اپ',
-        'monthly' => 'ماهانه :price',
-        'yearly_suffix' => 'در سال',
-        'pack_suffix' => 'هر بسته',
+        'per_month' => 'تومان در ماه',
+        'cancel_anytime' => 'هر وقت خواستی لغو کن',
+        'saving' => ':percent٪ کمتر',
+        'total_line' => ':total تومان، :tail',
+        'plans' => [
+            ['key' => 'monthly', 'title' => 'ماهانه', 'per_month' => 129000, 'total' => 129000, 'saving' => null, 'featured' => false],
+            ['key' => 'quarterly', 'title' => '۳ ماهه', 'per_month' => 116000, 'total' => 348000, 'saving' => 10, 'featured' => false],
+            ['key' => 'semiannual', 'title' => '۶ ماهه', 'per_month' => 99000, 'total' => 594000, 'saving' => 23, 'featured' => true],
+            ['key' => 'yearly', 'title' => 'سالانه', 'per_month' => 82500, 'total' => 990000, 'saving' => 36, 'featured' => false],
+        ],
     ],
 
-    'plans' => [
-        'label' => 'مقایسه نسخه رایگان، ریتمی پلاس و بسته‌های دوره',
-        'free' => [
-            'title' => 'همیشه رایگان',
-            'price' => '۰ تومان',
-            'note' => 'بدون محدودیت زمانی',
-            'items' => [
-                'پیش‌بینی پریود و باروری',
-                'ثبت روزانه، دستی و با صدا',
-                'ابزارهای بارداری: هفته، علائم، یادآور ویزیت، علائم خطر',
-                'یادآور واکسن و نمودار رشد کودک',
-                'حالت یائسگی و یادآور چکاپ',
-                'همدم و خانواده',
-                'خروجی کامل داده و حذف حساب',
-            ],
+    'cards' => [
+        'label' => 'پلن‌های ریتمی پلاس',
+        'brand' => 'ریتمی پلاس',
+        'recommended' => 'پیشنهاد ما',
+        'choose' => 'انتخاب',
+        'why_six' => 'چرا ۶ ماهه؟ حدود شش چرخه داده، برای دیدن الگوی علائم و خوابت کافی است.',
+    ],
+
+    'includes' => [
+        'title' => 'در همه پلن‌های پلاس، همه امکانات رایگان به‌علاوه:',
+        'items' => [
+            'همراه: همسر یا مادرت کنارت باشد',
+            'ثبت با صدا',
+            'تحلیل پیشرفته: الگوی علائم، خواب و حال',
+            'یادآور پیامکی برای دارو و ویزیت',
+            'گزارش روند چندماهه برای پزشک',
+            'تفسیر دمای پایه و تست LH',
+            'کتابخانه کامل مقاله‌ها و دوره‌ها',
         ],
-        'plus' => [
-            'title' => 'ریتمی پلاس',
-            'note' => 'پرداخت سالانه یا ماهانه',
-            'items' => [
-                'تحلیل عمیق شخصی از داده خودت',
-                'کتابخانه کامل محتوا و دوره‌ها',
-                'گزارش‌های پیشرفته برای پزشک',
-            ],
+    ],
+
+    'free' => [
+        'title' => 'نسخه رایگان، برای همیشه',
+        'text' => 'پیگیری چرخه، ثبت علائم، یادآورهای داخل اپ، همه مرحله‌ها و هشدارهای سلامت.',
+        'cta' => 'دانلود رایگان',
+        'draft_note' => 'قیمت‌ها پیش‌نویس‌اند و بعد از بررسی نهایی اعلام می‌شوند.',
+    ],
+
+    'compare' => [
+        'eyebrow' => 'مقایسه',
+        'title' => 'دقیقاً چه چیزی در کدام است',
+        'caption' => 'مقایسه نسخه رایگان و ریتمی پلاس',
+        'feature' => 'قابلیت',
+        'free' => 'رایگان',
+        'plus' => 'پلاس',
+        'yes' => 'دارد',
+        'no' => 'ندارد',
+        // [label, in free, in plus]
+        'rows' => [
+            ['پیش‌بینی پریود و باروری با سطح اطمینان', true, true],
+            ['ثبت دستی علائم', true, true],
+            ['یادآورهای داخل اپ', true, true],
+            ['همه مرحله‌های زندگی', true, true],
+            ['هشدارهای سلامت', true, true],
+            ['خروجی و حذف داده', true, true],
+            ['همراه (همدم)', false, true],
+            ['ثبت با صدا', false, true],
+            ['تحلیل پیشرفته', false, true],
+            ['یادآور پیامکی', false, true],
+            ['گزارش روند برای پزشک', false, true],
+            ['تفسیر دما و LH', false, true],
         ],
-        'packs' => [
-            'title' => 'بسته‌های دوره',
-            'note' => 'پرداخت یک‌باره، بدون تعهد ادامه‌دار',
-            'items' => [
-                'آمادگی زایمان',
-                'شیردهی',
-            ],
-        ],
+    ],
+
+    'why' => [
+        'eyebrow' => 'چرا پلاس پولی است؟',
+        'title' => 'بخش‌های اصلی ریتمی همیشه رایگان می‌ماند',
+        'text' => 'هدف ما این است که آگاهی درباره سلامت زنان به همه برسد و این را مسئولیت خودمان می‌دانیم. اما نگه داشتن سرور، پردازش صدا، ارسال پیامک و نوشتن محتوای بازبینی‌شده هزینه دارد. پلاس کمک می‌کند این هزینه‌ها پوشش داده شود، بدون اینکه چیزی از نسخه رایگان کم شود.',
     ],
 
     'faq' => [
-        'eyebrow' => 'قبل از خرید',
+        'title' => 'سؤالات متداول',
     ],
 
     'app_cta' => [
-        'title' => 'با نسخه رایگان شروع کن',
-        'lead' => 'هر وقت خواستی پلاس را امتحان کن؛ یا هیچ‌وقت.',
+        'title' => 'ریتمی را رایگان نصب کن',
+        'lead' => 'بخش‌های اصلی همیشه رایگان. داده‌ات فقط مال خودت است.',
     ],
 ];

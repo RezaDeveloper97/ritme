@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useAppModules } from '@/entities/app-module';
 import { companionName, useCompanions } from '@/entities/companion';
 import { useUserMode } from '@/entities/message';
+import { formatCredits, useAiCredits } from '@/entities/ai-credit';
 import { usePlusStatus } from '@/entities/plus';
 import { primaryParentLink, useTeenToday } from '@/entities/teen';
 import { useUserProfile } from '@/entities/user';
@@ -29,6 +30,7 @@ import {
   StatusPill,
   type IconName,
   type Tone,
+  Art3d,
 } from '@/shared/ui';
 import { BottomNav, useNavMode } from '@/widgets/bottom-nav';
 
@@ -61,6 +63,8 @@ export function ProfilePage() {
   const profileQuery = useUserProfile();
   const { data: userMode } = useUserMode();
   const { data: plusStatus } = usePlusStatus();
+  const { data: credits } = useAiCredits();
+  const tc = useTranslations('aiCredit');
   const isPlus = plusStatus ? plusStatus.isPlus : Boolean(userMode?.isPremium);
   const rtl = useDirection() === 'rtl';
   const logout = useLogout();
@@ -166,6 +170,26 @@ export function ProfilePage() {
           </button>
         )}
 
+        {/* AI credits at a glance → /profile/credits; hidden wherever the Plus card is. */}
+        {teen || navMode === 'companion' ? null : (
+          <button type="button" className="me-plus me-credits" onClick={() => router.push('/profile/credits')}>
+            <Art3d name="credits" size={40} />
+            <span className="nb-row-text">
+              <span className="nb-row-title">{tc('card.title')}</span>
+              <span className="nb-row-desc">
+                {!credits
+                  ? tc('card.action')
+                  : !credits.canUse
+                    ? credits.extra.locked && credits.extra.remaining > 0
+                      ? tc('card.locked', { count: formatCredits(credits.extra.remaining, loc) })
+                      : tc('card.noSubscription')
+                    : tc('card.left', { count: formatCredits(credits.spendable, loc) })}
+              </span>
+            </span>
+            <Icon name={rtl ? 'chevronLeft' : 'chevronRight'} size={18} className="nb-row-chev" />
+          </button>
+        )}
+
         <section className="me-sec" aria-labelledby="me-g-family">
           <SectionTitle id="me-g-family" title={t('groups.family')} />
           <ListGroup>
@@ -255,14 +279,14 @@ export function ProfilePage() {
         <section className="me-sec" aria-labelledby="me-g-data">
           <SectionTitle id="me-g-data" title={t('groups.data')} />
           <ListGroup>
-            {/* B-N3-08: Me entry into the analysis hub (QUESTIONS #3); the companion has no cycle data. */}
+            {/* The services hub left the bottom nav for «تحلیل»; «من» is its entry now. */}
             {navMode !== 'companion' ? (
               <ListRow
-                icon="chart"
+                icon="grid"
                 iconTone="data"
-                title={t('rows.analysis')}
-                description={t('rows.analysisSub')}
-                onClick={() => router.push('/analysis')}
+                title={t('rows.services')}
+                description={t('rows.servicesSub')}
+                onClick={() => router.push('/services')}
               />
             ) : null}
             {/* B-N6-02: Me entry into the vitals hub (also on «خدمات»). */}

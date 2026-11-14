@@ -25,6 +25,7 @@ import (
 	"github.com/ritme/backend-go/internal/admin/content/form"
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
 	"github.com/ritme/backend-go/internal/admin/store"
+	"github.com/ritme/backend-go/internal/ai/credits"
 	"github.com/ritme/backend-go/internal/payments"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
@@ -45,7 +46,8 @@ type Handlers struct {
 	db       *sql.DB
 	q        *store.Queries
 	svc      *plus.Service
-	refunder Refunder // nil = no payment provider configured (refunds can only be marked manually)
+	credits  *credits.Service // trial_ai_credits (goose 00125)
+	refunder Refunder         // nil = no payment provider configured (refunds can only be marked manually)
 	logger   *slog.Logger
 }
 
@@ -54,7 +56,7 @@ func New(sqlDB *sql.DB, svc *plus.Service, refunder Refunder, logger *slog.Logge
 	if logger == nil {
 		logger = slog.Default()
 	}
-	return &Handlers{db: sqlDB, q: store.New(sqlDB), svc: svc, refunder: refunder, logger: logger}
+	return &Handlers{db: sqlDB, q: store.New(sqlDB), svc: svc, credits: credits.NewService(sqlDB), refunder: refunder, logger: logger}
 }
 
 // Routes mounts the module. Reads: any active admin. Writes: super admin. Static paths before :id.

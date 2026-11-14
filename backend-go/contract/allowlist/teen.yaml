@@ -29,3 +29,61 @@ entries:
     where: data.usage.features
     deviation: D-178
     reason: new entitlement row plus.analysis_long_range (8 rows instead of 7)
+  # D-208 («ریتمی همراه» v2, Go only): the /companions owner link gains goal / signals / action_prefs and the member
+  # link gains settings {goal, action_prefs} in this case's companion setup steps.
+  - case: parent_link_card
+    where: data.goal
+    deviation: D-208
+    reason: companion v2 additive field (goal)
+  - case: parent_link_card
+    where: data.signals
+    deviation: D-208
+    reason: companion v2 additive field (signals)
+  - case: parent_link_card
+    where: data.action_prefs
+    deviation: D-208
+    reason: companion v2 additive field (action_prefs)
+  - case: parent_link_card
+    where: data.companion.goal
+    deviation: D-208
+    reason: companion v2 additive field (goal)
+  - case: parent_link_card
+    where: data.companion.signals
+    deviation: D-208
+    reason: companion v2 additive field (signals)
+  - case: parent_link_card
+    where: data.companion.action_prefs
+    deviation: D-208
+    reason: companion v2 additive field (action_prefs)
+  - case: parent_link_card
+    where: data.settings
+    deviation: D-208
+    reason: companion v2 additive field (settings)
+  - case: parent_link_card
+    where: data[*].goal
+    deviation: D-208
+    reason: companion v2 additive field (goal)
+  - case: parent_link_card
+    where: data[*].signals
+    deviation: D-208
+    reason: companion v2 additive field (signals)
+  - case: parent_link_card
+    where: data[*].action_prefs
+    deviation: D-208
+    reason: companion v2 additive field (action_prefs)
+  - case: parent_link_card
+    where: data[*].settings
+    deviation: D-208
+    reason: companion v2 additive field (settings)
+  - case: "accept_after_mode_change*"
+    where: data.companion.goal
+    deviation: D-208
+    reason: companion v2 additive field (goal)
+  - case: "accept_after_mode_change*"
+    where: data.companion.signals
+    deviation: D-208
+    reason: companion v2 additive field (signals)
+  - case: "accept_after_mode_change*"
+    where: data.companion.action_prefs
+    deviation: D-208
+    reason: companion v2 additive field (action_prefs)

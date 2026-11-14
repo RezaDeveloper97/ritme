@@ -21,11 +21,15 @@ type Querier interface {
 	DecrementUsage(ctx context.Context, arg DecrementUsageParams) (int64, error)
 	// Clears an override so the code / env default applies again.
 	DeleteSetting(ctx context.Context, key string) error
+	GetActiveCreditPack(ctx context.Context, id uint64) (AiCreditPack, error)
 	GetActivePlan(ctx context.Context, id uint64) (PlusPlan, error)
+	GetCreditPack(ctx context.Context, id uint64) (AiCreditPack, error)
 	GetInvoiceReceipt(ctx context.Context, arg GetInvoiceReceiptParams) (PlusReceipt, error)
 	GetPlan(ctx context.Context, id uint64) (PlusPlan, error)
 	// Admin-editable Plus settings (key/value; code defaults when a row is missing).
 	GetSetting(ctx context.Context, key string) (string, error)
+	// Store in-app billing (Café Bazaar / Myket): the SKU map and the claimed purchase tokens (00124).
+	GetStoreProduct(ctx context.Context, arg GetStoreProductParams) (PlusStoreProduct, error)
 	// Trials and subscription periods. Every query is scoped by user_id (IDOR).
 	GetTrial(ctx context.Context, userID uint64) (PlusTrial, error)
 	GetUserInvoiceByReference(ctx context.Context, arg GetUserInvoiceByReferenceParams) (PlusInvoice, error)
@@ -35,18 +39,28 @@ type Querier interface {
 	// Quota features: count only while used < limit, atomically (1 = inserted, 2 = incremented, 0 = quota reached).
 	// updated_at is assigned first because MariaDB evaluates the SET list left to right with the new values.
 	IncrementUsageWithin(ctx context.Context, arg IncrementUsageWithinParams) (int64, error)
+	// The credits of a paid pack invoice. UNIQUE(invoice_id): a replayed settle can never grant twice.
+	InsertExtraCreditGrant(ctx context.Context, arg InsertExtraCreditGrantParams) error
 	// A free period (challenge reward, B-N9-07): no plan, no invoice, auto-renew off.
 	InsertGrantedSubscription(ctx context.Context, arg InsertGrantedSubscriptionParams) (int64, error)
 	InsertInvoice(ctx context.Context, arg InsertInvoiceParams) (int64, error)
+	// A credit pack checkout (goose 00125): no plan, no period; `credits` is the snapshot the paid invoice grants.
+	InsertPackInvoice(ctx context.Context, arg InsertPackInvoiceParams) (int64, error)
 	// UNIQUE(gateway, ref_id): a bank reference pays one invoice only (replay guard).
 	InsertReceipt(ctx context.Context, arg InsertReceiptParams) error
+	// UNIQUE(store, purchase_token): a token belongs to the first account that claims it.
+	InsertStorePurchase(ctx context.Context, arg InsertStorePurchaseParams) error
 	InsertSubscription(ctx context.Context, arg InsertSubscriptionParams) (int64, error)
 	// UNIQUE(user_id) makes a second (or concurrent) start fail with 1062.
 	InsertTrial(ctx context.Context, arg InsertTrialParams) error
 	// Where a new purchase starts: the last still-valid period ending after now (current or queued).
 	LatestValidSubscription(ctx context.Context, arg LatestValidSubscriptionParams) (PlusSubscription, error)
+	ListActiveCreditPacks(ctx context.Context) ([]AiCreditPack, error)
 	// Ritme Plus plans (admin data; B-N2-09 owns the CRUD).
 	ListActivePlans(ctx context.Context) ([]PlusPlan, error)
+	// Every user on Plus right now: a period that covers `now`, or a running trial (the reminder SMS sender's set).
+	ListPlusUserIDs(ctx context.Context, arg ListPlusUserIDsParams) ([]uint64, error)
+	ListStoreProducts(ctx context.Context) ([]PlusStoreProduct, error)
 	// Monthly feature usage counters (quotas + the trial sheet's usage lines).
 	ListUsage(ctx context.Context, arg ListUsageParams) ([]ListUsageRow, error)
 	ListUserInvoices(ctx context.Context, userID uint64) ([]ListUserInvoicesRow, error)
@@ -55,15 +69,19 @@ type Querier interface {
 	// Checkout invoices and receipts. Every user-facing read is scoped by user_id (IDOR).
 	// Serialises concurrent checkouts on one code so the redemption limits cannot be overrun.
 	LockDiscountCode(ctx context.Context, code string) (PlusDiscountCode, error)
+	// Serialises concurrent verifies of one token.
+	LockStorePurchase(ctx context.Context, arg LockStorePurchaseParams) (PlusStorePurchase, error)
 	LockUserInvoiceByReference(ctx context.Context, arg LockUserInvoiceByReferenceParams) (PlusInvoice, error)
 	MarkInvoiceFailed(ctx context.Context, arg MarkInvoiceFailedParams) error
 	MarkInvoicePaid(ctx context.Context, arg MarkInvoicePaidParams) error
 	// A 100 % discount: nothing to charge, paid at checkout.
 	MarkInvoicePaidFree(ctx context.Context, arg MarkInvoicePaidFreeParams) error
+	ReceiptExists(ctx context.Context, arg ReceiptExistsParams) (bool, error)
 	SetInvoiceAuthority(ctx context.Context, arg SetInvoiceAuthorityParams) error
 	// The trial sheet's «این روزها از پلاس استفاده کردی» lines: uses per feature over every quota month from `since`
 	// (the first day of the trial's start month) on — a 7-day trial can straddle two months.
 	SumUsageSince(ctx context.Context, arg SumUsageSinceParams) ([]SumUsageSinceRow, error)
+	TouchStorePurchase(ctx context.Context, arg TouchStorePurchaseParams) error
 	UpsertSetting(ctx context.Context, arg UpsertSettingParams) error
 }
 

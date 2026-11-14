@@ -3,10 +3,10 @@
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
+import type { AiGateHooks } from '@/entities/ai-credit';
 import type { LogCategory, LogDayValues, LogParamValue } from '@/entities/health-log';
 import { getApiErrorMessage } from '@/shared/api';
 import { EmptyState, type IconName, SecondaryButton, type Tone } from '@/shared/ui';
-import { plusDenialOf } from '@/shared/ui/plus-gate';
 
 import { useVoiceCommit, useVoiceLog, type VoiceResult, type VoiceSuggestion } from '../api/voice';
 import { mergeSuggestions, paramKey } from '../model/merge';
@@ -32,6 +32,8 @@ import { VoiceSaved } from './VoiceSaved';
  * (declared here too: a feature can't import another feature; the screen wires the two).
  */
 export interface VoiceLogPanelProps {
+  /** `useAiGate('voice_log')`, wired by `widgets/voice-log-slot` (a feature can't import the ai-gate feature). */
+  ai: AiGateHooks;
   date: string;
   mode: string | null;
   categories: readonly LogCategory[];
@@ -65,6 +67,7 @@ function isBlocking(status: RecorderStatus): status is Blocking {
  * nightly reminder. Nothing is saved without that tap; the recording lives only in memory for the upload.
  */
 export function VoiceLogPanel({
+  ai,
   date,
   mode,
   categories,
@@ -96,9 +99,13 @@ export function VoiceLogPanel({
     setResult(r);
     setItems(reviewItems(r, categories));
   };
+  const onUploaded = (r: VoiceResult) => {
+    ai.refresh();
+    onResult(r);
+  };
   const recorder = useVoiceRecorder((audio, durationMs) => {
     setResult(null);
-    upload.mutate({ audio, durationMs }, { onSuccess: onResult });
+    upload.mutate({ audio, durationMs }, { onSuccess: onUploaded, onError: ai.handleError });
   });
 
   // Another day picked in the strip: the review belonged to the previous one.
@@ -157,11 +164,11 @@ export function VoiceLogPanel({
     setItems([]);
     setError(null);
     upload.reset();
-    recorder.start();
+    if (ai.guard()) recorder.start();
   };
 
   const retryUpload = () => {
-    if (upload.variables) upload.mutate(upload.variables, { onSuccess: onResult });
+    if (upload.variables) upload.mutate(upload.variables, { onSuccess: onUploaded, onError: ai.handleError });
   };
 
   const onConfirm = () => {
@@ -293,20 +300,17 @@ export function VoiceLogPanel({
       </section>
     );
   } else if (upload.isError) {
-    const denial = plusDenialOf(upload.error);
     notice = (
       <section className="nb-card vlog-card">
         <EmptyState
           icon="warning"
           title={t('error.uploadTitle')}
-          body={denial?.message ?? getApiErrorMessage(upload.error) ?? t('error.uploadBody')}
+          body={getApiErrorMessage(upload.error) ?? t('error.uploadBody')}
           action={
             <div className="vlog-actions">
-              {denial ? null : (
-                <SecondaryButton block={false} onClick={retryUpload}>
-                  {t('error.retry')}
-                </SecondaryButton>
-              )}
+              <SecondaryButton block={false} onClick={retryUpload}>
+                {t('error.retry')}
+              </SecondaryButton>
               <SecondaryButton block={false} variant="text" onClick={onManual}>
                 {t('manual')}
               </SecondaryButton>

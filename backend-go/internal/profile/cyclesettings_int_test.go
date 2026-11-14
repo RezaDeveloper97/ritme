@@ -39,7 +39,7 @@ func TestCycleSettings_DefaultsFromEngineMedians(t *testing.T) {
 	r := e.do(t, "GET", "/api/v1/profile/cycle-settings", tok, "")
 	require.Equal(t, 200, r.status, r.raw)
 	l := csData(t, r)["lengths"].(map[string]any)
-	assert.Equal(t, true, l["auto"])
+	assert.Equal(t, false, l["auto"]) // no saved row = manual; without a profile value the median still fills in
 	assert.EqualValues(t, 29, l["cycle_length"])
 	assert.EqualValues(t, 5, l["period_length"])
 	calc := l["calculated"].(map[string]any)
@@ -102,7 +102,7 @@ func TestCycleSettings_UpdateRoundTripAndIsolation(t *testing.T) {
 	// Bob sees only defaults.
 	r = e.do(t, "GET", "/api/v1/profile/cycle-settings", bob, "")
 	require.Equal(t, 200, r.status, r.raw)
-	assert.Equal(t, true, csData(t, r)["lengths"].(map[string]any)["auto"])
+	assert.Equal(t, false, csData(t, r)["lengths"].(map[string]any)["auto"])
 	assert.Equal(t, "09:00", csReminder(t, r, "before_period")["time"])
 	assert.Equal(t, false, csReminder(t, r, "pill")["enabled"])
 }

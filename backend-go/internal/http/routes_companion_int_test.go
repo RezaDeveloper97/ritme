@@ -43,6 +43,7 @@ type companionEnv struct {
 	app *fiber.App
 	iss *passport.Issuer
 	ids map[string]uint64
+	uid map[string]uint64 // bearer token → user id (plus)
 	mr  *miniredis.Miniredis
 }
 
@@ -81,7 +82,7 @@ func newCompanionEnvWithLogger(t *testing.T, logger *slog.Logger) *companionEnv 
 		Cache:  cache.NewFromClient(rdb, "ritme-go-b4n2:"),
 		Logger: logger,
 	})
-	return &companionEnv{t: t, db: db, app: app, iss: passport.NewIssuer(keys.Private, authstore.New(db), clock.Real{}, 365), ids: map[string]uint64{}, mr: mr}
+	return &companionEnv{t: t, db: db, app: app, iss: passport.NewIssuer(keys.Private, authstore.New(db), clock.Real{}, 365), ids: map[string]uint64{}, uid: map[string]uint64{}, mr: mr}
 }
 
 // user creates an account and returns its bearer token.
@@ -94,7 +95,21 @@ func (e *companionEnv) user(name, mobile string) string {
 	e.ids[name] = uint64(id)                                              //nolint:gosec // test ids
 	tok, err := e.iss.Issue(context.Background(), uint64(id), time.Now()) //nolint:gosec // test ids
 	require.NoError(e.t, err)
+	e.uid[tok.AccessToken] = uint64(id) //nolint:gosec // test ids
 	return tok.AccessToken
+}
+
+// plus makes the accounts Ritme Plus subscribers: a partner / spouse invite needs plus.companion.
+func (e *companionEnv) plus(tokens ...string) {
+	e.t.Helper()
+	for _, tok := range tokens {
+		id, ok := e.uid[tok]
+		require.True(e.t, ok, "plus: unknown token")
+		_, err := e.db.Exec(`INSERT INTO plus_subscriptions (user_id, status, source, starts_at, ends_at, created_at, updated_at)
+			SELECT ?, 'active', 'purchase', '2026-01-01 00:00:00', '2030-01-01 00:00:00', NOW(), NOW() FROM DUAL
+			WHERE NOT EXISTS (SELECT 1 FROM plus_subscriptions WHERE user_id = ?)`, id, id)
+		require.NoError(e.t, err)
+	}
 }
 
 type reply struct {
@@ -155,9 +170,13 @@ func idOf(v any) uint64 {
 	return uint64(f)
 }
 
-// invite creates an invite as token and returns (link id, code).
+// invite creates an invite as token and returns (link id, code). The owner of a partner / spouse invite is made a
+// Plus subscriber first (plus.companion); a teen's parent invite is free.
 func (e *companionEnv) invite(token string, body map[string]any) (uint64, string) {
 	e.t.Helper()
+	if body["type"] != "parent" {
+		e.plus(token)
+	}
 	r := e.do(fiber.MethodPost, "/api/v1/companions", token, body)
 	require.Equal(e.t, fiber.StatusCreated, r.Status, r.Raw)
 	comp, _ := r.data()["companion"].(map[string]any)
@@ -200,6 +219,13 @@ func TestCompanionRoutes_LifecycleAndIDOR(t *testing.T) {
 	r = e.do(fiber.MethodPost, "/api/v1/companions", sara, map[string]any{"type": "spouse", "child_ids": []int{7}})
 	assert.Equal(t, fiber.StatusUnprocessableEntity, r.Status, "children are not verifiable before B-N5-02")
 	assert.Contains(t, r.Raw, `"child_ids"`)
+	// A well-formed invite without Ritme Plus → 402 plus_required (plus.companion), nothing created.
+	r = e.do(fiber.MethodPost, "/api/v1/companions", sara, map[string]any{"type": "partner"})
+	assert.Equal(t, fiber.StatusPaymentRequired, r.Status, r.Raw)
+	assert.Equal(t, "plus_required", r.Body["error_code"])
+	assert.Equal(t, "plus.companion", r.Body["feature"])
+	assert.Equal(t, 0, e.count(`SELECT COUNT(*) FROM companions`))
+	e.plus(sara)
 	r = e.do(fiber.MethodPost, "/api/v1/companions", sara, map[string]any{"type": "partner", "phone": "09120002001"})
 	assert.Equal(t, fiber.StatusUnprocessableEntity, r.Status, "own number")
 
@@ -447,6 +473,7 @@ func TestCompanionRoutes_InviteSMSLimits(t *testing.T) {
 	e := newCompanionEnv(t)
 	const target = "09120007100"
 	o1 := e.user("O1", "09120007001")
+	e.plus(o1)
 	r := e.do(fiber.MethodPost, "/api/v1/companions", o1, map[string]any{"type": "partner", "phone": target})
 	require.Equal(t, fiber.StatusCreated, r.Status, r.Raw)
 	assert.True(t, smsSent(t, r))
@@ -461,9 +488,11 @@ func TestCompanionRoutes_InviteSMSLimits(t *testing.T) {
 	e.mr.FastForward(companion.SMSResendAfter + time.Second)                                          // Redis TTLs run on Redis time, not X-Test-Now
 	assert.True(t, smsSent(t, renew("2026-09-23T10:03:00+03:30", map[string]any{})), "after the gap") // target: 2
 	o2 := e.user("O2", "09120007002")
+	e.plus(o2)
 	r = e.do(fiber.MethodPost, "/api/v1/companions", o2, map[string]any{"type": "partner", "phone": target})
 	assert.True(t, smsSent(t, r)) // target: 3
 	o3 := e.user("O3", "09120007003")
+	e.plus(o3)
 	r = e.do(fiber.MethodPost, "/api/v1/companions", o3, map[string]any{"type": "partner", "phone": target})
 	require.Equal(t, fiber.StatusCreated, r.Status)
 	assert.False(t, smsSent(t, r), "per-recipient daily cap")
@@ -473,6 +502,7 @@ func TestCompanionRoutes_InviteSMSLimits(t *testing.T) {
 
 	// Per-owner daily cap: O4 reaches SMSPerOwnerPerDay distinct numbers, the next is not sent.
 	o4 := e.user("O4", "09120007004")
+	e.plus(o4)
 	for i := range companion.SMSPerOwnerPerDay {
 		r := e.do(fiber.MethodPost, "/api/v1/companions", o4, map[string]any{"type": "partner", "phone": fmt.Sprintf("091200072%02d", i)})
 		require.Equal(t, fiber.StatusCreated, r.Status, r.Raw)

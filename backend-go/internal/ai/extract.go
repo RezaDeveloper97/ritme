@@ -143,7 +143,15 @@ func validateSchema(s ExtractSchema) error {
 
 // Extract reads req.Document for feature. The document is not wiped here (the caller owns it).
 func (c *Client) Extract(ctx context.Context, feature Feature, req ExtractRequest) (Extraction, error) {
-	if c == nil || c.extractor == nil {
+	if c == nil {
+		return Extraction{}, ErrUnavailable
+	}
+	cands, err := c.candidates(ctx, feature)
+	if err != nil {
+		return Extraction{}, err
+	}
+	cands = slices.DeleteFunc(cands, func(cd candidate) bool { return cd.a.extractor == nil })
+	if len(cands) == 0 {
 		return Extraction{}, ErrUnavailable
 	}
 	// L3: the bytes must be the type claimed (SniffDocument, sniff.go): image/jpeg | png | webp | application/pdf.
@@ -158,11 +166,18 @@ func (c *Client) Extract(ctx context.Context, feature Feature, req ExtractReques
 		return Extraction{}, err
 	}
 	req.Hint = redactCtx(ctx, req.Hint)
-	start := c.now()
 	size := len(req.Document.Data)
-	out, u, err := c.extractor.Extract(ctx, req)
-	u.Feature, u.Op, u.ImageBytes, u.OK = feature, OpExtract, size, err == nil
-	c.record(ctx, u, start)
+	var out Extraction
+	for i, cd := range cands {
+		start := c.now()
+		var u Usage
+		out, u, err = cd.a.extractor.Extract(cd.ctx, req)
+		u.Feature, u.Op, u.ImageBytes, u.OK = feature, OpExtract, size, err == nil
+		c.record(cd.ctx, u, start)
+		if !tryNext(err, i, len(cands)) {
+			break
+		}
+	}
 	if err != nil {
 		return Extraction{}, err
 	}

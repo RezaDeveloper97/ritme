@@ -3,7 +3,7 @@ entries:
   # D-204 (T-M11-05): family.Grants.Apply writes a grants_changed activity row at invite and at accept; the owner's
   # /companions/audit trail has two more rows and the ids shift by two.
   - case: linked_granted_then_revoked
-    step: 5
+    step: 6
     where: body
     deviation: D-204
     reason: two extra grants_changed rows (invite + accept) from family.Grants.Apply; ids shift by two
@@ -26,3 +26,33 @@ entries:
     where: data.partners[*].symptoms
     deviation: D-194
     reason: the symptoms card is removed (F-03)
+  # D-208 («ریتمی همراه» v2, Go only): the member link and each partner card gain settings {goal, action_prefs}; each
+  # partner card gains signals (null per signal unless the owner shares it; a coarse today yes/no otherwise).
+  - case: "*"
+    where: data.settings
+    deviation: D-208
+    reason: accept link gains settings (companion v2)
+  - case: "*"
+    where: data.partners[*].link.settings
+    deviation: D-208
+    reason: the home link view gains settings (companion v2)
+  - case: "*"
+    where: data.partners[*].settings
+    deviation: D-208
+    reason: partner card gains settings (companion v2)
+  - case: "*"
+    where: data.partners[*].signals
+    deviation: D-208
+    reason: partner card gains day signals (companion v2)
+  - case: "*"
+    where: data.companion.goal
+    deviation: D-208
+    reason: POST /companions companion gains goal (companion v2)
+  - case: "*"
+    where: data.companion.signals
+    deviation: D-208
+    reason: POST /companions companion gains signal consents (companion v2)
+  - case: "*"
+    where: data.companion.action_prefs
+    deviation: D-208
+    reason: POST /companions companion gains action_prefs (companion v2)

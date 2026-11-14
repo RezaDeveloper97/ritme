@@ -20,6 +20,7 @@ type VitalReading struct {
 	Date                civildate.Date
 	Systolic, Diastolic float64 // BP (0 = not a BP reading)
 	Glucose             float64 // mg/dL (0 = not a glucose reading)
+	HeartRate           float64 // bpm of a heart-rate reading (0 = not one; a BP pulse stays out)
 	Context             string  // glucose context (vitals.Context*)
 	Timed               bool    // a vital_readings row (false = a log-sheet day value)
 	Class               string  // the vitals classifier's class ("" = unclassified)
@@ -32,7 +33,7 @@ func (r VitalReading) SummaryGlucose() bool {
 	return !r.Timed || r.Context == vitals.ContextFasting
 }
 
-// VitalReadingsOf maps merged readings (BP and glucose; heart rate is not read by the analysis).
+// VitalReadingsOf maps merged readings (BP, glucose and heart rate).
 func VitalReadingsOf(rs []vitals.Reading) []VitalReading {
 	out := make([]VitalReading, 0, len(rs))
 	for _, r := range rs {
@@ -42,6 +43,8 @@ func VitalReadingsOf(rs []vitals.Reading) []VitalReading {
 			v.Systolic, v.Diastolic = r.Systolic, r.Diastolic
 		case vitals.TypeGlucose:
 			v.Glucose = r.MgDl
+		case vitals.TypeHR:
+			v.HeartRate = r.Pulse
 		default:
 			continue
 		}

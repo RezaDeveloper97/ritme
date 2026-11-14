@@ -302,7 +302,7 @@ export function CustomizeLog({ lookOf, onExit, mode }: CustomizeLogProps) {
 
   return (
     <div className="lcz">
-      <ScreenHeader title={t('title')} subtitle={t('subtitle')} onBack={back} backLabel={t('back')} />
+      <ScreenHeader title={t('title')} onBack={back} backLabel={t('back')} />
       {body}
       <p className="sr-only" role="status" aria-live="polite">
         {status}

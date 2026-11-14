@@ -3,6 +3,7 @@ package plus
 import (
 	"context"
 	"errors"
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -14,6 +15,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
+	"github.com/ritme/backend-go/internal/platform/validation/phpval"
 )
 
 // ErrorCodeTeenCommercialBlocked is the 403 of a trial start / checkout by a teen-mode account (CB-TEEN-01).
@@ -99,6 +101,8 @@ func fail(err error, locale string) error {
 		return discountInvalid(locale, de.Reason)
 	case errors.Is(err, ErrPlanNotFound):
 		return planInvalid(locale)
+	case errors.Is(err, ErrPackNotFound):
+		return failValidation(locale, jsonx.Obj("pack_id", []string{T("errors.pack_invalid", locale)}))
 	case errors.Is(err, ErrTrialUsed):
 		return code(fiber.StatusUnprocessableEntity, "trial_used", "trial_used")
 	case errors.Is(err, ErrTrialUnavailable):
@@ -117,6 +121,12 @@ func fail(err error, locale string) error {
 		return code(fiber.StatusUnprocessableEntity, "amount_mismatch", "amount_mismatch")
 	case errors.Is(err, ErrPaymentUnavailable):
 		return code(fiber.StatusServiceUnavailable, "payment_unavailable", "payment_unavailable")
+	case errors.Is(err, ErrStoreSignature), errors.Is(err, ErrStorePurchaseBad):
+		return code(fiber.StatusUnprocessableEntity, "store_purchase_invalid", "store_purchase_invalid")
+	case errors.Is(err, ErrStoreProduct):
+		return code(fiber.StatusUnprocessableEntity, "store_product_unknown", "store_product_unknown")
+	case errors.Is(err, ErrStorePayload):
+		return code(fiber.StatusConflict, "store_purchase_owned", "store_purchase_owned")
 	}
 	return err
 }
@@ -148,6 +158,21 @@ func (h *Handlers) Plans(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	skus, trialSKU, err := h.svc.StoreProducts(c)
+	if err != nil {
+		return err
+	}
+	for i := range plans {
+		for st, byPlan := range skus {
+			if sku, ok := byPlan[plans[i].ID]; ok {
+				if plans[i].StoreSKUs == nil {
+					plans[i].StoreSKUs = map[string]string{}
+				}
+				plans[i].StoreSKUs[st] = sku
+			}
+		}
+	}
+	cfg.StoreChannels, cfg.StoreTrialSKU = h.svc.StoreChannels(), trialSKU
 	return httpx.OK(c, PlansJSON(plans, cfg, localizer(c)))
 }
 
@@ -232,6 +257,59 @@ func (h *Handlers) Checkout(c fiber.Ctx) error {
 	), msg)
 }
 
+// Packs is GET /plus/credit-packs (public): the purchasable packs of extra AI credits.
+func (h *Handlers) Packs(c fiber.Ctx) error {
+	packs, err := h.svc.Packs(c)
+	if err != nil {
+		return err
+	}
+	vat, err := h.svc.VATRateBps(c)
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, PacksJSON(packs, vat, localizer(c)))
+}
+
+// CheckoutPack is POST /plus/credit-packs/checkout {pack_id, preview?}: the checkout of a credit pack. The answer
+// has the shape of POST /plus/checkout ({quote} for a preview, else {invoice, payment}); the payment is settled by
+// POST /plus/verify like any other invoice, which then grants the credits.
+func (h *Handlers) CheckoutPack(c fiber.Ctx) error {
+	userID, err := h.user(c)
+	if err != nil {
+		return err
+	}
+	if err := h.refuseBlocked(c, userID); err != nil {
+		return err
+	}
+	locale, now := i18n.Locale(c), h.now(c)
+	F := validation.F
+	data, err := validate(validation.Input(c), []string{"pack_id", "preview"}, validation.Rules{
+		F("pack_id", "required", "integer", "min:1"),
+		F("preview", "nullable", "boolean"),
+	}, locale, now)
+	if err != nil {
+		return err
+	}
+	packID, _ := strconv.ParseUint(str(data, "pack_id"), 10, 64)
+	preview, _ := data.Get("preview")
+	l := localizer(c)
+	if phpval.Truthy(preview) {
+		q, err := h.svc.PreviewPack(c, packID)
+		if err != nil {
+			return fail(err, locale)
+		}
+		return httpx.OK(c, jsonx.Obj("quote", PackQuoteJSON(q, l)))
+	}
+	out, err := h.svc.CheckoutPack(c, userID, packID, now)
+	if err != nil {
+		return fail(err, locale)
+	}
+	return httpx.OK(c, jsonx.Obj(
+		"invoice", PackInvoiceJSON(out.Invoice, nil, out.Pack, nil, l),
+		"payment", PaymentJSON(out.Payment, out.Invoice.Gateway.String),
+	), T("messages.checkout_created", locale))
+}
+
 // Verify is POST /plus/verify {reference, authority, status?}: settles the user's invoice with the gateway.
 // Idempotent — a replay of a verified invoice answers 200 with the same invoice and adds no time.
 func (h *Handlers) Verify(c fiber.Ctx) error {
@@ -265,12 +343,19 @@ func (h *Handlers) Verify(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	pack, err := h.svc.Pack(c, res.Invoice.CreditPackID)
+	if err != nil {
+		return err
+	}
 	msg := T("messages.payment_verified", locale)
+	if res.Invoice.Kind == KindCreditPack {
+		msg = T("messages.credits_added", locale)
+	}
 	if res.AlreadyPaid {
 		msg = T("messages.payment_already_verified", locale)
 	}
 	return httpx.OK(c, jsonx.Obj(
-		"invoice", InvoiceJSON(res.Invoice, plan, receipt, l),
+		"invoice", PackInvoiceJSON(res.Invoice, plan, pack, receipt, l),
 		"already_verified", res.AlreadyPaid,
 		"status", StatusJSON(st, l),
 	), msg)
@@ -343,4 +428,120 @@ func (h *Handlers) TrialSheet(c fiber.Ctx) error {
 		sh.Offer, sh.State.Offer = nil, nil // no trial offer (or offer prices) for a teen-mode account
 	}
 	return httpx.OK(c, TrialSheetJSON(sh, localizer(c)))
+}
+
+// StoreIntent is POST /plus/store/intent {store, sku}: checks the SKU is sellable to the user on that store and
+// returns the developer payload the app passes to the store's purchase call.
+func (h *Handlers) StoreIntent(c fiber.Ctx) error {
+	userID, err := h.user(c)
+	if err != nil {
+		return err
+	}
+	if err := h.refuseBlocked(c, userID); err != nil {
+		return err
+	}
+	locale, now := i18n.Locale(c), h.now(c)
+	in, err := validateStoreIntent(validation.Input(c), locale, now)
+	if err != nil {
+		return err
+	}
+	it, err := h.svc.Intent(c, userID, in.Store, in.SKU, now)
+	if err != nil {
+		return fail(err, locale)
+	}
+	return httpx.OK(c, jsonx.Obj("store", it.Store, "sku", it.SKU, "kind", it.Kind, "payload", it.Payload))
+}
+
+// StoreVerify is POST /plus/store/verify {store, signed_data, signature}: redeems one store purchase (a plan period
+// or the trial), then the status. Idempotent: a replay answers 200 with already_verified true and adds no time.
+func (h *Handlers) StoreVerify(c fiber.Ctx) error {
+	userID, err := h.user(c)
+	if err != nil {
+		return err
+	}
+	if err := h.refuseBlocked(c, userID); err != nil {
+		return err
+	}
+	locale, now := i18n.Locale(c), h.now(c)
+	in, err := validateStoreVerify(validation.Input(c), locale, now)
+	if err != nil {
+		return err
+	}
+	p := in.Purchases[0]
+	res, err := h.svc.StoreVerify(c, userID, in.Store, p.SignedData, p.Signature, now)
+	if err != nil {
+		return fail(err, locale)
+	}
+	l := localizer(c)
+	var invoice any
+	if res.Invoice != nil {
+		plan, err := h.svc.Plan(c, res.Invoice.PlanID)
+		if err != nil {
+			return err
+		}
+		receipt, err := h.svc.receipt(c, *res.Invoice, userID)
+		if err != nil {
+			return err
+		}
+		invoice = InvoiceJSON(*res.Invoice, plan, receipt, l)
+	}
+	st, err := h.svc.Status(c, userID, now)
+	if err != nil {
+		return err
+	}
+	msg := T("messages.payment_verified", locale)
+	switch {
+	case res.AlreadyDone:
+		msg = T("messages.payment_already_verified", locale)
+	case res.Kind == StoreKindTrial:
+		msg = T("messages.trial_started", locale)
+	}
+	return httpx.OK(c, jsonx.Obj(
+		"kind", res.Kind,
+		"sku", res.SKU,
+		"invoice", invoice,
+		"already_verified", res.AlreadyDone,
+		"status", StatusJSON(st, l),
+	), msg)
+}
+
+// StoreSync is POST /plus/store/sync {store, purchases: [{signed_data, signature}]}: the app's active store
+// purchases on open (restore after reinstall, subscription renewals). Each purchase is redeemed like StoreVerify;
+// rejected ones are skipped (counted), never fail the call. Then the status.
+func (h *Handlers) StoreSync(c fiber.Ctx) error {
+	userID, err := h.user(c)
+	if err != nil {
+		return err
+	}
+	locale, now := i18n.Locale(c), h.now(c)
+	in, err := validateStoreSync(validation.Input(c), locale, now)
+	if err != nil {
+		return err
+	}
+	if len(in.Purchases) > 0 && !h.svc.storeConfigured(in.Store) {
+		return fail(ErrPaymentUnavailable, locale)
+	}
+	restored, rejected := 0, 0
+	for _, p := range in.Purchases {
+		res, err := h.svc.StoreVerify(c, userID, in.Store, p.SignedData, p.Signature, now)
+		switch {
+		case err == nil && !res.AlreadyDone:
+			restored++
+		case err == nil:
+		case errors.Is(err, ErrStoreSignature), errors.Is(err, ErrStoreProduct), errors.Is(err, ErrStorePayload),
+			errors.Is(err, ErrStorePurchaseBad), errors.Is(err, ErrTrialUsed), errors.Is(err, ErrTrialUnavailable):
+			rejected++
+		default:
+			return err
+		}
+	}
+	st, err := h.svc.Status(c, userID, now)
+	if err != nil {
+		return err
+	}
+	msg := T("messages.restored", locale)
+	if restored == 0 {
+		msg = T("messages.nothing_to_restore", locale)
+	}
+	return httpx.OK(c, jsonx.Obj("restored", restored, "rejected", rejected, "status", StatusJSON(st, localizer(c))), msg)
 }

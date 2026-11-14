@@ -19,6 +19,31 @@ export type AccessLevel = (typeof ACCESS_LEVELS)[number];
 
 export type CompanionGrants = Record<CompanionSection, AccessLevel>;
 
+/*
+ * «ریتمی همراه» v2 (companion-v2 design): what the owner wants from the
+ * companionship, which coarse daily signals she shares (each with its own
+ * consent, all off by default) and which kinds of support she prefers.
+ */
+
+/** «دوست داری همراهت بیشتر در چه چیزی کنارت باشد؟» — shapes copy and cards only, never a diagnosis. */
+export const COMPANION_GOALS = ['cycle', 'support', 'low_energy', 'quality_time', 'info', 'unknown'] as const;
+export type CompanionGoal = (typeof COMPANION_GOALS)[number];
+
+/** Coarse today-only flags («وقتی درد دارم» …); a bare yes/no, never the logged detail. */
+export const COMPANION_SIGNALS = ['pain', 'mood', 'energy', 'sleep'] as const;
+export type CompanionSignal = (typeof COMPANION_SIGNALS)[number];
+export type CompanionSignalScope = Record<CompanionSignal, boolean>;
+
+/** Support categories the owner likes («اقدام‌های ترجیحی»); the companion sees these first. */
+export const COMPANION_ACTIONS = ['food', 'gift', 'time', 'calm', 'help'] as const;
+export type CompanionAction = (typeof COMPANION_ACTIONS)[number];
+
+export interface CompanionPreferences {
+  goal: CompanionGoal;
+  signals: CompanionSignalScope;
+  actionPrefs: CompanionAction[];
+}
+
 export interface CompanionFamily {
   id: number;
   sharedChildIds: number[];
@@ -39,6 +64,8 @@ export interface OwnerCompanion {
   /** The open invite of a pending link (masked phone). */
   invite: { expiresAt: string; phone: string | null } | null;
   family: CompanionFamily | null;
+  /** v2 preferences; a server without them answers the defaults (goal `unknown`, nothing shared, no prefs). */
+  preferences: CompanionPreferences;
 }
 
 /**
@@ -76,4 +103,9 @@ export interface CreateCompanionInput {
   phone?: string;
   grants: CompanionGrants;
   childIds?: number[];
+  /** v2: goal, signal scope and preferred actions (optional — the server defaults them). */
+  preferences?: Partial<CompanionPreferences>;
 }
+
+/** PUT /companions/{id}/preferences body — every field optional, only the sent ones change. */
+export type UpdateCompanionPreferencesInput = Partial<CompanionPreferences>;

@@ -34,7 +34,6 @@ export function QuickTiles({ tiles, categories, values, labels, openCategory, on
         <h3 id="lday-quick-title" className="lday-sec-title">
           {t('quick.title')}
         </h3>
-        <span className="lday-sec-hint">{t('quick.hint')}</span>
       </div>
       <div className="lday-tiles">
         {tiles.map((key) => {

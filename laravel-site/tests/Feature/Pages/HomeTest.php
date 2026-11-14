@@ -24,22 +24,19 @@ it('renders the home page with one h1 and the design sections', function (): voi
     $html = $this->get('/')->assertOk()->getContent();
 
     expect(substr_count($html, '<h1'))->toBe(1)
-        ->and($html)->toContain('کنار تو')
+        ->and($html)->toContain('ریتم بدنت را بشناس')
         ->toContain('id="stages"')
-        ->toContain('id="how"')
+        ->toContain('id="features"')
         ->toContain('id="download"')
         ->toContain('مرحله‌ات را انتخاب کن')
-        ->toContain('یک اپ، پنج بخش ساده')
-        ->toContain('وقتی داده کم است، می‌گوییم «هنوز مطمئن نیستیم»')
-        ->toContain('خانواده‌ات هم می‌تواند کنارت باشد')
-        ->toContain('وقتی به کمک بیشتری نیاز داری')
-        ->toContain('داده‌ات مال خودت است')
-        ->toContain('بدون نصب هم می‌توانی شروع کنی')
-        ->toContain('آگاهی، حق همه زنان ایران است')
+        ->toContain('چرخه‌ات را بهتر بشناس، مراقبت از خودت را ساده‌تر کن')
+        ->toContain('وقتی مسیرت تغییر می‌کند')
+        ->toContain('کمتر از یک دقیقه تا اولین ثبت')
+        ->toContain('لازم نیست هر ماه توضیح بدهی')
+        ->toContain('مال خودت است')
+        ->toContain('ریتمی را رایگان نصب کن')
         ->toContain(route('stage.teen'))
-        ->toContain(route('tools').'#due-date')
-        ->not->toContain('style="')
-        ->not->toContain('loading="lazy"');
+        ->not->toContain('style="');
 });
 
 it('has the design title, description, canonical and the app in the JSON-LD graph', function (): void {
@@ -54,29 +51,26 @@ it('has the design title, description, canonical and the app in the JSON-LD grap
         ->not->toContain('BreadcrumbList', 'FAQPage');
 });
 
-it('hides the readings block while the magazine is empty and shows the newest posts', function (): void {
-    expect($this->get('/')->getContent())->not->toContain('خواندنی‌های این هفته');
+it('hides the readings block while the magazine is empty and shows the six newest posts', function (): void {
+    expect($this->get('/')->getContent())->not->toContain('تازه‌ترین مقاله‌ها');
 
     Post::factory()->published(now()->subDays(3))->create(['title' => 'مقاله قدیمی‌تر']);
-    $newest = Post::factory()->published(now()->subHour())->count(3)->create();
+    $newest = Post::factory()->published(now()->subHour())->count(6)->create();
 
     $html = $this->get('/')->getContent();
-    expect($html)->toContain('خواندنی‌های این هفته')
+    expect($html)->toContain('تازه‌ترین مقاله‌ها')
         ->toContain('همه مقاله‌ها')
         ->toContain(e($newest[0]->title))
+        ->toContain(e($newest[5]->title))
         ->not->toContain('مقاله قدیمی‌تر');
 });
 
-it('leaves the FAQ to L3-09 and renders no hard-coded questions', function (): void {
-    expect($this->get('/')->getContent())->not->toContain('ریتمی رایگان است؟')->not->toContain('قبل از نصب');
-});
-
-it('renders store badges and the QR only from settings', function (): void {
-    expect($this->get('/')->getContent())->not->toContain('کافه‌بازار');
+it('renders hero store buttons only for links set in settings', function (): void {
+    expect($this->get('/')->getContent())->not->toContain('https://cafebazaar.ir/app/ritme');
 
     app(SettingsRepository::class)->put(SettingGroup::AppLinks, ['bazaar' => 'https://cafebazaar.ir/app/ritme']);
 
-    expect($this->get('/')->getContent())->toContain('https://cafebazaar.ir/app/ritme')->toContain('کد QR');
+    expect($this->get('/')->getContent())->toContain('https://cafebazaar.ir/app/ritme');
 });
 
 it('keeps the copy inside the content red lines', function (): void {

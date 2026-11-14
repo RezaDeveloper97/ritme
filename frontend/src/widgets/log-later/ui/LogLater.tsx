@@ -6,15 +6,17 @@ import { useModuleEnabled } from '@/entities/app-module';
 import { useChildren } from '@/entities/child';
 import { useDirection, useRouter } from '@/shared/i18n';
 import { openSheet } from '@/shared/sheet';
-import { Icon } from '@/shared/ui';
+import { Icon, IconCircle } from '@/shared/ui';
 
 /** M3 appointment form (`/reminders/appointment/new`) — «نوبت یا ویزیت» plans one for later. */
 const APPOINTMENT_NEW = '/reminders/appointment/new';
 /** B-N6-08 to-do add sheet (`app/sheets/registry.tsx`). */
 const TODO_ADD_SHEET = 'todo-add';
+/** Vitals chooser sheet (`screens/vitals-chooser`): BP / heart rate / glucose add forms + the hub. */
+const VITALS_SHEET = 'vitals-add';
 
 /**
- * Bottom of the + sheet (CB-NAV-03, nbd_Nav_Plus): «برای بعد» — an appointment (→ the M3 form) or a new task
+ * Bottom of the + sheet (CB-NAV-03, nbd_Nav_Plus): «علائم حیاتی» (→ the vitals chooser sheet), «برای بعد» — an appointment (→ the M3 form) or a new task
  * (→ the B-N6-08 to-do sheet, stacked over this one) — and «ثبت برای <child>» (feeding / sleep / diapers,
  * B-N5-07) for her first own child when she has children. The postpartum preset already lists the baby rows,
  * so `childRow={false}` there.
@@ -32,6 +34,20 @@ export function LogLater({ childRow = true }: { childRow?: boolean }) {
   const go = (href: string) => router.push(href);
 
   return (
+    <>
+    <section className="llt" aria-labelledby="llt-vitals-title">
+      <h3 id="llt-vitals-title" className="lday-sec-title">
+        {t('vitalsTitle')}
+      </h3>
+      <button type="button" className="llt-row" onClick={() => openSheet(VITALS_SHEET)}>
+        <IconCircle icon="heartLine" tone="bloom" size="md" />
+        <span className="llt-row-text">
+          <span className="llt-row-title">{t('vitals')}</span>
+          <span className="llt-row-sub">{t('vitalsSub')}</span>
+        </span>
+        <Icon name={rtl ? 'chevronLeft' : 'chevronRight'} size={18} className="llt-chev" />
+      </button>
+    </section>
     <section className="llt" aria-labelledby="llt-title">
       <h3 id="llt-title" className="lday-sec-title">
         {t('title')}
@@ -59,5 +75,6 @@ export function LogLater({ childRow = true }: { childRow?: boolean }) {
         </button>
       ) : null}
     </section>
+    </>
   );
 }

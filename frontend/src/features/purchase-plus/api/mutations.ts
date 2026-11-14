@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
+import { aiCreditKeys } from '@/entities/ai-credit';
 import {
   checkoutSchema,
   plusKeys,
@@ -48,6 +49,23 @@ export function goToGateway(url: string): boolean {
   return true;
 }
 
+/**
+ * POST /plus/credit-packs/checkout — a pending pack invoice plus the gateway redirect (same shape as a plan
+ * checkout). The server prices it; no discount code for packs.
+ */
+export async function startPackCheckout(packId: number): Promise<PlusCheckout> {
+  const { data } = await apiClient.post<ApiEnvelope<unknown>>('/plus/credit-packs/checkout', { pack_id: packId });
+  return checkoutSchema.parse(data.data);
+}
+
+export function useCreditPackCheckout() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: startPackCheckout,
+    onSuccess: (result) => (result.payment ? undefined : void queryClient.invalidateQueries({ queryKey: aiCreditKeys.all })),
+  });
+}
+
 function useInvalidatePlus() {
   const queryClient = useQueryClient();
   return () => queryClient.invalidateQueries({ queryKey: plusKeys.all });
@@ -76,6 +94,8 @@ export function useVerifyPayment() {
         track({ name: 'plus_purchase', props: { plan_months: Math.min(12, Math.max(1, result.invoice.durationMonths)) } });
       }
       void queryClient.invalidateQueries({ queryKey: plusKeys.history() });
+      // A paid plan renews the period's credits and a paid pack adds extra ones: the balance changed either way.
+      if (result.invoice.status === 'paid') void queryClient.invalidateQueries({ queryKey: aiCreditKeys.all });
     },
   });
 }

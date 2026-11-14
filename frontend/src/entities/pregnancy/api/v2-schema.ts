@@ -449,7 +449,6 @@ export const pregnancyWeekSchema = obj.transform((r, ctx): PregnancyWeek => {
     relation: relationSchema.parse(r.relation) ?? 'future',
     range: rangeOrNull.parse(r.range ?? r.date_range),
     rangeLabel: textOrNull.parse(r.range_label),
-    bookmarked: bool.parse(r.bookmarked),
     details,
     tasks,
     tip: orNull(tipSchema).parse(r.tip),
@@ -462,7 +461,7 @@ export const weekStateSchema = obj.transform((r, ctx): WeekState => {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'state needs week' });
     return z.NEVER;
   }
-  return { week, bookmarked: bool.parse(r.bookmarked), doneTaskKeys: stringList.parse(r.done_task_keys) };
+  return { week, doneTaskKeys: stringList.parse(r.done_task_keys) };
 });
 
 // ── Alerts ─────────────────────────────────────────────────────

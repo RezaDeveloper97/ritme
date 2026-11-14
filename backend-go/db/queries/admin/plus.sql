@@ -28,17 +28,18 @@ SELECT EXISTS(SELECT 1 FROM plus_plans WHERE code = sqlc.arg(code) AND id <> sql
 SELECT CAST(COALESCE(MAX(sort_order), 0) + 1 AS UNSIGNED) AS next_sort FROM plus_plans;
 
 -- name: AdminCreatePlusPlan :execlastid
-INSERT INTO plus_plans (code, title, badge, duration_months, price_rials, monthly_display_rials, is_highlighted,
-  is_active, sort_order, created_at, updated_at)
+INSERT INTO plus_plans (code, title, badge, duration_months, price_rials, monthly_display_rials, ai_credits,
+  is_highlighted, is_active, sort_order, created_at, updated_at)
 VALUES (sqlc.arg(code), sqlc.arg(title), sqlc.narg(badge), sqlc.arg(duration_months), sqlc.arg(price_rials),
-  sqlc.narg(monthly_display_rials), sqlc.arg(is_highlighted), sqlc.arg(is_active), sqlc.arg(sort_order),
-  sqlc.arg(now), sqlc.arg(now));
+  sqlc.narg(monthly_display_rials), sqlc.arg(ai_credits), sqlc.arg(is_highlighted), sqlc.arg(is_active),
+  sqlc.arg(sort_order), sqlc.arg(now), sqlc.arg(now));
 
 -- name: AdminUpdatePlusPlan :exec
 UPDATE plus_plans
 SET title = sqlc.arg(title), badge = sqlc.narg(badge), duration_months = sqlc.arg(duration_months),
     price_rials = sqlc.arg(price_rials), monthly_display_rials = sqlc.narg(monthly_display_rials),
-    is_highlighted = sqlc.arg(is_highlighted), is_active = sqlc.arg(is_active), sort_order = sqlc.arg(sort_order),
+    ai_credits = sqlc.arg(ai_credits), is_highlighted = sqlc.arg(is_highlighted), is_active = sqlc.arg(is_active),
+    sort_order = sqlc.arg(sort_order),
     updated_at = sqlc.arg(now)
 WHERE id = sqlc.arg(id);
 
@@ -235,6 +236,13 @@ SELECT id, status, source, starts_at, ends_at FROM plus_subscriptions WHERE invo
 
 -- name: AdminPlusGateways :many
 SELECT DISTINCT gateway FROM plus_invoices WHERE gateway IS NOT NULL ORDER BY gateway;
+
+-- ---------------------------------------------------------------------------
+-- Settings
+
+-- name: AdminUpsertPlusSetting :exec
+INSERT INTO plus_settings (`key`, `value`, created_at, updated_at) VALUES (sqlc.arg(setting_key), sqlc.arg(setting_value), sqlc.arg(now), sqlc.arg(now))
+ON DUPLICATE KEY UPDATE `value` = VALUES(`value`), updated_at = VALUES(updated_at);
 
 -- ---------------------------------------------------------------------------
 -- Ledger

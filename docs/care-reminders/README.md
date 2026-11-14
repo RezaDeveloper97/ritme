@@ -192,3 +192,74 @@ Through the shared proxy: `GET https://stage.ritmeapp.ir/api/v1/care/enums` (no 
 **Open (human):** light/dark screenshots of /reminders, medication form, appointment detail and the home card were
 not taken — the browser recipe needs the staging Basic-auth password, which the agent was not permitted to read.
 Click through the same checklist on a phone in both themes.
+
+## Interval schedule and dose-time notifications (2026-11-10)
+
+The medication form follows a reference flow: start date, frequency («هر N روز» / «هر N ساعت»), one or more doses
+(amount + unit, time, before / after a meal). The meta stays `v: 1` and only gains two keys, so every reader of
+`times` / `weekdays` / `amount` keeps working:
+
+```json
+{"v":1,"form":"tablet","times":["08:00","20:00"],"weekdays":[0,1,2,3,4,5,6],"amount":1,"duration":"ongoing","notify":true,
+ "frequency":{"every":1,"unit":"day"},
+ "doses":[{"time":"08:00","amount":1,"unit":"pill","meal":"after"},{"time":"20:00","amount":2,"unit":"pill","meal":null}]}
+```
+
+- `frequency.unit = day`: every 1–30 days counted from `starts_on` (`Covers`). `hour`: every 1, 2, 3, 4, 6, 8 or 12 h
+  (divisors of 24, so the slots are the same every day), around the clock from each dose's `time`; on the start date
+  the chain begins at the first dose time (`SlotsOn`).
+- `times` is derived (`TimesOf`), `weekdays` is all seven, `form` comes from the first dose's unit when not sent.
+- Request: `frequency` + `doses` (1–6, distinct times, amount 1–99, unit `pill|capsule|drop|ml|spoon|puff|injection`,
+  meal `before|after|null`). A PUT with `times` and no `doses` (an older client) turns the medication back into a
+  weekday schedule. Resource and member projection return `frequency` (null for a weekday schedule) and `doses`.
+- `/care/today` doses carry `amount`, `unit`, `unit_label`, `meal`.
+
+Notifications at the dose time (`internal/care/push.go`), both channels gated by `notifications.Decide` / `Render`
+(category «داروها», quiet hours → the dose is dropped, not announced late; «متن خنثی» → neutral text), ticked doses
+skipped:
+
+| Channel | How |
+|---|---|
+| Web Push (browser, installed PWA) | `GET /push/config` (VAPID public key), `POST/DELETE /push/subscriptions`; `Pusher.Loop` every 30 s pushes doses due in the last 10 min, each claimed once in `reminder_pushes` (goose 00121). Needs `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` (`api vapid-keys`). Endpoints are limited to known push services (no SSRF). |
+| Android shell (WebView has no Push API) | The page hands `GET /care/upcoming?hours=168` to `window.RitmeNative.scheduleReminders(json)`; the shell arms local alarms (`android-shell/…/Reminders.kt`), re-armed on boot. The device schedule is as fresh as the last sync. |
+
+## Reminders by SMS for Ritme Plus (2026-11-11)
+
+Owner's decision: Plus subscribers (and running trials) also get their reminders by SMS, automatically. The reminder
+itself stays free (in-app, Web Push, shell alarm) — SPEC §4.3 still holds; only the SMS copy is the Plus extra
+(entitlement `plus.sms_reminders`). `internal/care` still never imports `internal/plus`: the sender is
+`internal/remindersms`, wired in `routes_care.go` with `plus.Service.PlusUsers` as its audience.
+
+- What is texted: every due dose of an active medication with `notify` on (not yet ticked), and every active,
+  scheduled appointment at `scheduled_at − remind_before`.
+- Gate, per SMS: the user's `sms_reminders` switch (notification settings, default on) → the category switch
+  («داروها» / «نوبت پزشک») and quiet hours (`notifications.Decide`; a reminder in quiet hours is dropped) → the
+  per-day cap (`REMINDER_SMS_DAILY_CAP`, default 8) → «متن خنثی»: the neutral gateway template, and no SMS at all
+  when `KAVENEGAR_TEMPLATE_REMINDER_NEUTRAL` is unset.
+- Dedupe: `reminder_sms` (goose 00122 + Laravel twin), one row per reminder occurrence, claimed with INSERT IGNORE.
+- Off by default: `REMINDER_SMS_PROVIDER=none`. `gateway` uses Kavenegar verify/lookup with the OTP credentials and
+  three templates (see `.env.example`); `fake` only logs.
+- Web: the «یادآور پیامکی» card on the notification-settings screen (switch for Plus, a Plus link for free users)
+  and a row in the paywall's feature table.
+
+## Web Push for the whole inbox + appointment alarms in the shell (2026-11-11)
+
+One VAPID backend, one `push_subscriptions` row per browser — no per-vendor code. What goes out on it now:
+
+- **Medication doses** — unchanged (`Pusher.Tick`).
+- **Every in-app notification** (`user_notifications`, the bell: companion / family notices, an opened course, the
+  message engine's push slot, postpartum visits) — `Pusher.TickNotices` (`internal/care/push_notices.go`). The
+  writers know nothing about push: the sender polls rows with `pushed_at IS NULL` (goose 00123 + Laravel twin; rows
+  that existed at migration time are marked handled) and claims each row before sending. A row is pushed once when
+  it is unread, at most 12 h old, the user has a subscription and `notifications.DecideNotice` allows it: types
+  `companion` / `family` follow the «همراه» switch, `learning` the «آموزش» switch, other types have no switch. Inside
+  quiet hours the row waits for the end of the window (it is not dropped). «متن خنثی» (on by default) replaces the
+  text with «اعلان تازه» (`RenderNotice`); a tap opens `/<lang><action_url>` (or `/<lang>/home`).
+- **Android shell** — event-driven inbox rows cannot be armed ahead as local alarms, so the shell still gets only
+  what is predictable: `GET /care/upcoming` now also lists appointment reminders (`kind: appointment`, the visit −
+  `remind_before`, gated by «نوبت پزشک»). The bridge payload is unchanged, so the current APK arms them as is; the
+  channel label «یادآورها» ships with the next APK.
+
+Install paths: Android = the shell (local alarms) or any browser with the Push API; iPhone = the PWA added to the
+home screen (the device row on the notification-settings screen says «نیاز به نصب» in a plain Safari tab).
+Appointments are not sent by Web Push yet.

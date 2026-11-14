@@ -37,7 +37,7 @@ import {
 } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 import { ForToday } from '@/widgets/for-today';
-import { ModeChip } from '@/widgets/mode-chip';
+import { HeaderActions } from '@/widgets/notification-bell';
 import { QuickAccess } from '@/widgets/quick-access';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
@@ -72,19 +72,13 @@ function Header({ cycle, t }: { cycle: IvfCycle | null; t: T }) {
   return (
     <HubHeader
       className="ivf-hub"
-      date={
-        <>
-          {/* CB-NAV-03 (nbd_Nav_Today / IA_Nav IVF): mode chip → /profile/mode. */}
-          <ModeChip className="is-stacked" />
-          {t('home.eyebrow')}
-        </>
-      }
+      date={t('home.eyebrow')}
       greeting={
         cycle
           ? t('home.title', { cycle: t('home.cycle', { n: cycle.number, num: formatNumber(cycle.number, locale) }) })
           : t('home.titleBare')
       }
-      actions={<IconCircle icon="drop" tone="bloom" size="lg" />}
+      actions={<HeaderActions className="nb-hbtn is-soft" />}
     />
   );
 }

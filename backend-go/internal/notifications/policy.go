@@ -121,3 +121,32 @@ func SMSTemplate(discreet bool, template, neutral string) (string, bool) {
 	}
 	return neutral, neutral != ""
 }
+
+// noticeCategories maps an inbox row's kind (user_notifications.type) to the switch that silences its push. Kinds
+// that are not listed have no switch of their own: only quiet hours hold them back.
+var noticeCategories = map[string]Category{
+	"companion": Companion,
+	"family":    Companion,
+	"learning":  Learning,
+}
+
+// DecideNotice is Decide for the push of an inbox row of kind typ: its category must be on (when it has one) and
+// now must be outside quiet hours (deferred to the window's end). The inbox row itself is written either way.
+func DecideNotice(p Preferences, typ string, now time.Time) Decision {
+	if c, ok := noticeCategories[typ]; ok {
+		return Decide(p, c, now, time.Time{})
+	}
+	if p.InQuietHours(now) {
+		return Decision{Reason: ReasonQuietHours, DeferUntil: p.QuietEndsAt(now)}
+	}
+	return Decision{Send: true}
+}
+
+// RenderNotice is Render for an inbox row: with «متن خنثی» on — or when the row has no title in any language — the
+// push only says that there is something new in the app; the inbox shows the real text after the tap.
+func RenderNotice(p Preferences, m Message, locale string) Push {
+	if !p.NeutralCopy && m.Title != "" {
+		return Push{Title: m.Title, Body: m.Body, URL: m.URL}
+	}
+	return Push{Title: T("push.notice_title", locale), Body: T("push.notice_body", locale), URL: m.URL}
+}

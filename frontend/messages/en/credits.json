@@ -1,0 +1,81 @@
+{
+  "back": "Back",
+  "loading": "Loading…",
+  "retry": "Try again",
+  "error": {
+    "title": "Couldn't load your credits",
+    "body": "Check your connection and try again."
+  },
+  "usage": {
+    "title": "Credit usage",
+    "hero": {
+      "caption": "Credits left",
+      "of": "of {total}",
+      "until": "Yours until {date}",
+      "spoken": "{remaining} of {total} credits left"
+    },
+    "extra": {
+      "title": "Extra credits",
+      "value": "{count} credits",
+      "never": "Never expire",
+      "usedAfter": "Used after your subscription credits"
+    },
+    "noSubscription": {
+      "title": "No active subscription",
+      "body": "The assistant and the smart tools need a subscription.",
+      "locked": "Your extra credits are kept; they work again with a subscription",
+      "cta": "See subscriptions"
+    },
+    "exhausted": {
+      "title": "This period's credits are used up",
+      "body": "Buy credits to carry on right away."
+    },
+    "costs": {
+      "title": "What does each thing cost?",
+      "value": "{count} credits"
+    },
+    "last30": {
+      "title": "Last 30 days",
+      "total": "{count} credits used",
+      "byFeature": "By feature",
+      "byDay": "By day",
+      "uses": "{count} times",
+      "chart": "Daily credit use chart"
+    },
+    "history": {
+      "title": "History",
+      "credits": "−{count} credits",
+      "more": "Show more",
+      "empty": "You haven't used any credits yet.",
+      "emptyBody": "Each time you use the assistant or a smart tool, it shows up here."
+    },
+    "buy": "Buy credits"
+  },
+  "buy": {
+    "title": "Buy credits",
+    "lead": "Extra credits never expire and are used after your subscription credits.",
+    "groupLabel": "Credit packs",
+    "credits": "{count} credits",
+    "price": "{price} toman",
+    "cta": "Continue · {pack}",
+    "noSubscription": "Your credits are kept, but you need a subscription to use them.",
+    "noSubscriptionCta": "See subscriptions",
+    "empty": "There are no packs to buy right now. Please check back soon.",
+    "storeTitle": "Buying credits isn't available here",
+    "storeBody": "You can't buy credits from inside this version. Please check back soon."
+  },
+  "checkout": {
+    "summary": "{pack} pack",
+    "credits": "Credits",
+    "creditsValue": "{count} credits",
+    "note": "Extra credits never expire.",
+    "secure": "Secure payment · through the bank gateway"
+  },
+  "success": {
+    "title": "Credits added",
+    "body": "{count} credits were added to your account and never expire.",
+    "bodyLocked": "{count} credits were added. You need a subscription to use them.",
+    "usage": "See credit usage",
+    "home": "Let's go"
+  }
+}

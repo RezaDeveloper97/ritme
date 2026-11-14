@@ -5,6 +5,7 @@ import { clsx } from 'clsx';
 
 import { useDirection } from '@/shared/i18n';
 
+import { Art3d, type Art3dName } from '../Art3d';
 import { Icon, type IconName } from '../Icon';
 import { IconCircle } from './IconCircle';
 import type { Tone } from './tone';
@@ -14,6 +15,8 @@ interface ListRowProps {
   description?: ReactNode;
   icon?: IconName;
   iconTone?: Tone;
+  /** 3D illustration shown instead of the icon disc (rows that open a feature). */
+  art?: Art3dName;
   /** Ring around the icon disc (settings rows). */
   iconOutlined?: boolean;
   /** Short value at the end («فارسی», «۲ روز قبل»). */
@@ -33,6 +36,7 @@ export function ListRow({
   description,
   icon,
   iconTone = 'brand',
+  art,
   iconOutlined,
   value,
   trailing,
@@ -43,7 +47,11 @@ export function ListRow({
   const rtl = useDirection() === 'rtl';
   const content = (
     <>
-      {icon ? <IconCircle icon={icon} tone={iconTone} outlined={iconOutlined} /> : null}
+      {art ? (
+        <Art3d name={art} size={44} />
+      ) : icon ? (
+        <IconCircle icon={icon} tone={iconTone} outlined={iconOutlined} />
+      ) : null}
       <span className="nb-row-text">
         <span id={id ? `${id}-title` : undefined} className="nb-row-title">
           {title}

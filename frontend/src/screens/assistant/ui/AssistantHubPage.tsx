@@ -1,6 +1,5 @@
 'use client';
 
-import { clsx } from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
@@ -16,6 +15,7 @@ import {
   useHub,
   useStartConversation,
 } from '@/entities/assistant';
+import { CreditMeter, useAiCredits } from '@/entities/ai-credit';
 import { Link, useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { Card, EmptyState, Icon, IconCircle, ScreenHeader, SectionTitle, SkyLayer, UrgentCard } from '@/shared/ui';
@@ -31,6 +31,7 @@ export function AssistantHubPage() {
   const router = useRouter();
   const errText = useAssistantError();
   const hub = useHub();
+  const credits = useAiCredits();
   const start = useStartConversation();
   const [text, setText] = useState('');
 
@@ -52,8 +53,6 @@ export function AssistantHubPage() {
   else {
     const h = hub.data;
     const shared = h.profile.items.filter((i) => i.shared);
-    const q = h.quota;
-    const spent = q && !q.unlimited && (!q.allowed || q.remaining === 0);
     body = (
       <div className="as-body">
         <div>
@@ -65,16 +64,18 @@ export function AssistantHubPage() {
           {start.isError ? <p className="as-error" role="alert">{errText(start.error)}</p> : null}
         </div>
 
-        {q && !q.unlimited ? (
-          <Link href="/plus" className={clsx('as-quota', spent && 'is-spent')}>
-            <Icon name="crown" size={18} />
-            <span>
-              {spent
-                ? t('hub.quotaSpent')
-                : t('hub.quota', { remaining: q.remaining ?? 0, limit: q.limit ?? 0 })}
-            </span>
-            <span className="as-link">{t('hub.plus')}</span>
-          </Link>
+        {credits.data ? (
+          credits.data.canUse ? (
+            <Link href="/profile/credits" className="as-quota is-credits" aria-label={t('hub.credits')}>
+              <CreditMeter credits={credits.data} />
+            </Link>
+          ) : (
+            <Link href="/plus" className="as-quota is-spent">
+              <Icon name="crown" size={18} />
+              <span>{t('hub.noSubscription')}</span>
+              <span className="as-link">{t('hub.plus')}</span>
+            </Link>
+          )
         ) : null}
 
         <Card className="as-know">

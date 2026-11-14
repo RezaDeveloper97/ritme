@@ -4,14 +4,13 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState, type FormEvent } from 'react';
 
 import { fieldError } from '@/shared/api';
-import { formatNumber, toIntOrNull } from '@/shared/lib';
+import { bpsToPercentText, formatNumber, percentToBps, toIntOrNull } from '@/shared/lib';
 import { Badge, Button, LoadGate, PageHeader, Panel, TextInput, toast, useNotifyError } from '@/shared/ui';
 
 import { useSaveSettings, useSettings, type PlusSettings } from '../api/billing';
-import { bpsToPercentText, percentToBps } from '../lib/money';
 import { useCanManage } from './parts';
 
-/** /plus/settings — trial-offer percent and the VAT override (B-N2-09). */
+/** /plus/settings — trial-offer percent, the VAT override (B-N2-09) and the trial's AI credits. */
 export function SettingsScreen() {
   const t = useTranslations('plus.settings');
   const query = useSettings();
@@ -30,6 +29,7 @@ function SettingsForm({ settings }: { settings: PlusSettings }) {
   const notifyError = useNotifyError();
   const save = useSaveSettings();
   const [percent, setPercent] = useState(String(settings.trial_offer_percent));
+  const [trialCredits, setTrialCredits] = useState(String(settings.trial_ai_credits));
   const [vat, setVat] = useState(settings.vat_override_bps === null ? '' : bpsToPercentText(settings.vat_override_bps));
   const err = (name: string) => fieldError(save.error, name);
   const pct = (bps: number) => formatNumber(bps / 100, locale);
@@ -38,7 +38,11 @@ function SettingsForm({ settings }: { settings: PlusSettings }) {
     e.preventDefault();
     if (!canManage || save.isPending) return;
     save.mutate(
-      { trial_offer_percent: toIntOrNull(percent) ?? -1, vat_rate_bps: vat.trim() === '' ? null : (percentToBps(vat) ?? -1) },
+      {
+        trial_offer_percent: toIntOrNull(percent) ?? -1,
+        vat_rate_bps: vat.trim() === '' ? null : (percentToBps(vat) ?? -1),
+        trial_ai_credits: toIntOrNull(trialCredits) ?? -1,
+      },
       { onSuccess: () => toast.success(tc('saved')), onError: notifyError },
     );
   };
@@ -79,6 +83,18 @@ function SettingsForm({ settings }: { settings: PlusSettings }) {
                 onChange={(e) => setVat(e.target.value)}
                 readOnly={!canManage}
                 error={err('vat_rate_bps')}
+              />
+              <TextInput
+                label={t('trialAiCredits')}
+                hint={t('trialAiCreditsHint', { days: formatNumber(settings.trial_days, locale) })}
+                type="number"
+                min={0}
+                max={settings.max_trial_ai_credits}
+                value={trialCredits}
+                onChange={(e) => setTrialCredits(e.target.value)}
+                readOnly={!canManage}
+                required
+                error={err('trial_ai_credits')}
               />
             </div>
             <p className="m-0 text-sm text-ink-3">{t('snapshotNote')}</p>

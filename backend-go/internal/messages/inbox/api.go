@@ -303,15 +303,15 @@ func (s *Service) texts(ctx context.Context, comp *compiled.Compiled, r *Row, ru
 	}
 	ren := feed.RendererOf(ctx, s.q, comp)
 	vars := varsOf(r.Evidence)
-	v, _ := rules.RenderVariant(ren.Text(rule, rule.Assign(r.UserID), locale), vars)
+	v := feed.RenderTexts(rule.RuleKey, ren.Text(rule, rule.Assign(r.UserID), locale), vars, locale)
 	ev := ren.Evidence(rule, locale)
 	t := rowTexts{title: v.Title, body: v.Body}
 	if v.CTALabel != "" && v.CTATarget != "" {
 		t.ctaText, t.ctaLink = v.CTALabel, v.CTATarget
 	}
-	t.seen, _ = rules.Render(ev.Seen, vars)
-	t.confidence, _ = rules.Render(ev.Confidence, vars)
-	t.contact, _ = rules.Render(ev.Contact, vars)
+	t.seen = feed.RenderText(rule.RuleKey, ev.Seen, vars, locale)
+	t.confidence = feed.RenderText(rule.RuleKey, ev.Confidence, vars, locale)
+	t.contact = feed.RenderText(rule.RuleKey, ev.Contact, vars, locale)
 	return t
 }
 

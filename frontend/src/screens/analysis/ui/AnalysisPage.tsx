@@ -1,19 +1,22 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 import { useRouter } from '@/shared/i18n';
 import { useMounted } from '@/shared/lib/use-mounted';
-import { EmptyState, PrimaryButton, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
+import { EmptyState, PrimaryButton, SegmentedTabs, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 import { BottomNav, useNavMode } from '@/widgets/bottom-nav';
 
 import { hubVariant } from '../model/hub';
+import type { AnalysisTab } from '../model/tab';
 import { AnalysisHub } from './AnalysisHub';
 
+
 /**
- * `/analysis` (B-N3-08). No nav tab of its own: it lives under the mode tab,
- * which the bottom nav lights here (docs/night-bloom/nav.md). The life-stage
+ * `/analysis` (B-N3-08): the «تحلیل» bottom-nav tab. Two tabs on top —
+ * «تحلیل» (the hub) and «تاریخچه» (`historyPanel`, the cycle history from
+ * screens/cycle, composed in by the route; `/cycle` redirects here). The life-stage
  * mode picks the hub — see {@link hubVariant}. `ttcHub` is the TTC hub
  * (screens/analysis-ttc, B-N3-11), composed in by the route so the two screen
  * slices never import each other. `pregnancyHub` is the pregnancy hub
@@ -24,15 +27,35 @@ export function AnalysisPage({
   ttcHub,
   pregnancyHub,
   postpartumHub,
-}: { ttcHub?: ReactNode; pregnancyHub?: ReactNode; postpartumHub?: ReactNode } = {}) {
+  historyPanel,
+  initialTab = 'analysis',
+}: {
+  ttcHub?: ReactNode;
+  pregnancyHub?: ReactNode;
+  postpartumHub?: ReactNode;
+  historyPanel?: ReactNode;
+  initialTab?: AnalysisTab;
+} = {}) {
   const t = useTranslations('analysis.hub');
+  const tTabs = useTranslations('analysis.tabs');
+  const [tab, setTab] = useState<AnalysisTab>(historyPanel ? initialTab : 'analysis');
+  const changeTab = (next: AnalysisTab) => {
+    setTab(next);
+    // Keep the URL shareable / back-safe without a server round-trip.
+    const url = new URL(window.location.href);
+    if (next === 'history') url.searchParams.set('tab', 'history');
+    else url.searchParams.delete('tab');
+    window.history.replaceState(window.history.state, '', url);
+  };
   const router = useRouter();
   const mounted = useMounted();
   const { mode, pending } = useNavMode();
   const variant = hubVariant(mode);
 
   let content;
-  if (!mounted || pending) {
+  if (tab === 'history' && historyPanel) {
+    content = historyPanel;
+  } else if (!mounted || pending) {
     content = (
       <SkeletonGroup label={t('loading')} className="an-skel">
         <Skeleton shape="block" className="an-skel-finding" />
@@ -69,7 +92,21 @@ export function AnalysisPage({
   return (
     <div className="view an-page">
       <SkyLayer />
-      <div className="scroll an-scroll">{content}</div>
+      <div className="scroll an-scroll">
+        {historyPanel ? (
+          <SegmentedTabs
+            label={tTabs('label')}
+            value={tab}
+            tabs={[
+              { value: 'analysis', label: tTabs('analysis') },
+              { value: 'history', label: tTabs('history') },
+            ]}
+            onChange={changeTab}
+            className="an-tabs"
+          />
+        ) : null}
+        {content}
+      </div>
       <BottomNav />
     </div>
   );

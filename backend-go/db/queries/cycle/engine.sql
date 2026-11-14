@@ -25,9 +25,10 @@ SELECT EXISTS (SELECT 1 FROM `recommendations`) AS present;
 
 -- name: GetEngineProfileByUserID :one
 -- GetProfileByUserID plus B-N1-09 «خودکار از داده‌ها» (goose 00013) in the same round trip: no
--- cycle_preferences row = automatic (1); 0 = the engine prefers the profile lengths. B-N2-11b: plus the
+-- cycle_preferences row = manual (0): the profile lengths win and the history median is only a suggestion the
+-- user confirms; 1 = the user switched automatic on herself. B-N2-11b: plus the
 -- stored life-stage mode (NULL = none) so teen / menopause day copy never talks about fertility.
-SELECT sqlc.embed(p), COALESCE(cp.lengths_auto, 1) AS lengths_auto, lp.life_mode
+SELECT sqlc.embed(p), COALESCE(cp.lengths_auto, 0) AS lengths_auto, lp.life_mode
 FROM `user_profiles` p
 LEFT JOIN `cycle_preferences` cp ON cp.user_id = p.user_id
 LEFT JOIN `user_life_profiles` lp ON lp.user_id = p.user_id

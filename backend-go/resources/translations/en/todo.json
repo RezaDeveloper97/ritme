@@ -42,8 +42,6 @@
   "newTask": "New task",
   "empty": {
     "allDoneTitle": "All tasks done",
-    "allDoneBody": "Your “{category}” list is empty today. Add a new task or take a break.",
-    "allDoneBodyAll": "Today's tasks are done. Add a new task or take a break.",
     "freshTitle": "No tasks yet",
     "freshBody": "Write down your tasks and shopping here; near your period Ritme also reminds you to buy pads."
   },

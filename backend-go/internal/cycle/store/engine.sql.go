@@ -25,7 +25,7 @@ func (q *Queries) AnyRecommendationExists(ctx context.Context) (bool, error) {
 }
 
 const getEngineProfileByUserID = `-- name: GetEngineProfileByUserID :one
-SELECT p.id, p.user_id, p.birthday, p.weight, p.height, p.period_duration, p.cycle_duration, p.last_period_start, p.user_goal, p.pregnancy_intention, p.chronic_conditions, p.subscription_type, p.calculation_status, p.calculation_started_at, p.calculation_completed_at, p.calculation_version, p.created_at, p.updated_at, p.onboarding_last_period_start, p.timezone, COALESCE(cp.lengths_auto, 1) AS lengths_auto, lp.life_mode
+SELECT p.id, p.user_id, p.birthday, p.weight, p.height, p.period_duration, p.cycle_duration, p.last_period_start, p.user_goal, p.pregnancy_intention, p.chronic_conditions, p.subscription_type, p.calculation_status, p.calculation_started_at, p.calculation_completed_at, p.calculation_version, p.created_at, p.updated_at, p.onboarding_last_period_start, p.timezone, COALESCE(cp.lengths_auto, 0) AS lengths_auto, lp.life_mode
 FROM ` + "`" + `user_profiles` + "`" + ` p
 LEFT JOIN ` + "`" + `cycle_preferences` + "`" + ` cp ON cp.user_id = p.user_id
 LEFT JOIN ` + "`" + `user_life_profiles` + "`" + ` lp ON lp.user_id = p.user_id
@@ -41,7 +41,8 @@ type GetEngineProfileByUserIDRow struct {
 }
 
 // GetProfileByUserID plus B-N1-09 «خودکار از داده‌ها» (goose 00013) in the same round trip: no
-// cycle_preferences row = automatic (1); 0 = the engine prefers the profile lengths. B-N2-11b: plus the
+// cycle_preferences row = manual (0): the profile lengths win and the history median is only a suggestion the
+// user confirms; 1 = the user switched automatic on herself. B-N2-11b: plus the
 // stored life-stage mode (NULL = none) so teen / menopause day copy never talks about fertility.
 func (q *Queries) GetEngineProfileByUserID(ctx context.Context, userID uint64) (GetEngineProfileByUserIDRow, error) {
 	row := q.db.QueryRowContext(ctx, getEngineProfileByUserID, userID)

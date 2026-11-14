@@ -2,8 +2,9 @@
 
 import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
+import { useEffect, useState } from 'react';
 
-import { useMedications } from '@/entities/care-reminder';
+import { nextDoseAt, relativeDose, useMedications } from '@/entities/care-reminder';
 import { useToggleMedicationActive } from '@/features/manage-medication';
 import { Link, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
@@ -14,9 +15,36 @@ import { SectionHead } from './SectionHead';
 
 type T = ReturnType<typeof useTranslations<'care'>>;
 
+/** `Date.now()` as a Date, refreshed about once a minute while the page is visible. */
+function useMinuteNow(): Date {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const tick = () => {
+      if (document.visibilityState === 'visible') setNow(new Date());
+    };
+    const id = window.setInterval(tick, 60_000);
+    document.addEventListener('visibilitychange', tick);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener('visibilitychange', tick);
+    };
+  }, []);
+  return now;
+}
+
+function relativeText(at: Date, now: Date, t: T, locale: Locale): string {
+  const r = relativeDose(at, now);
+  return r.kind === 'now' ? t('medications.in.now') : t(`medications.in.${r.kind}`, { n: formatNumber(r.n, locale) });
+}
+
 function rowMeta(row: MedicationRowState, t: T, locale: Locale): string {
-  const schedule =
-    row.schedule.kind === 'everyDay'
+  const schedule = row.frequency
+    ? row.frequency.kind === 'everyDay'
+      ? t('frequencySummary.day')
+      : row.frequency.kind === 'everyDays'
+        ? t('frequencySummary.days', { n: formatNumber(row.frequency.count, locale) })
+        : t('frequencySummary.hours', { n: formatNumber(row.frequency.count, locale) })
+    : row.schedule.kind === 'everyDay'
       ? t('medications.everyDay')
       : row.schedule.kind === 'everyOtherDay'
         ? t('medications.everyOtherDay')
@@ -29,6 +57,17 @@ function rowMeta(row: MedicationRowState, t: T, locale: Locale): string {
       t('slotWithPeriod', { time: formatNumber(s.clock, locale), period: t(`slotPeriod.${s.period}`) }),
     )
     .join(t('listSeparator'));
+  if (row.doseLine) {
+    const base = t('medications.rowMetaSimple', {
+      schedule,
+      time,
+      dose: t('doseLine', {
+        amount: formatNumber(row.doseLine.amount, locale),
+        unit: t(`doseUnits.${row.doseLine.unit}`),
+      }),
+    });
+    return row.doseLine.meal ? `${base}${t('listSeparator')}${t(`meals.${row.doseLine.meal}`)}` : base;
+  }
   return t('medications.rowMeta', {
     schedule,
     time,
@@ -48,6 +87,7 @@ export function MedicationSection() {
   const query = useMedications();
   const toggle = useToggleMedicationActive();
   const status = sectionStatus(query);
+  const now = useMinuteNow();
 
   return (
     <section className="rmd-sec" aria-labelledby="rmd-meds-title">
@@ -76,7 +116,9 @@ export function MedicationSection() {
         )}
         {status === 'empty' && <p className="rmd-empty rmd-state">{t('medications.empty')}</p>}
         {status === 'ready' &&
-          sortMedications(query.data ?? []).map(medicationRowState).map((row) => {
+          sortMedications(query.data ?? []).map((med) => {
+            const row = medicationRowState(med);
+            const next = row.isActive ? nextDoseAt(med, now) : null;
             const name = row.dose
               ? t('medications.nameWithDose', { title: row.title, dose: row.dose })
               : row.title;
@@ -84,7 +126,7 @@ export function MedicationSection() {
             const pending = toggle.isPending && toggle.variables?.id === row.id;
             const on = pending && toggle.variables ? toggle.variables.isActive : row.isActive;
             return (
-              <div key={row.id} className="rmd-row">
+              <div key={row.id} className={clsx('rmd-row', !on && 'is-off')}>
                 <Link href={`/reminders/medication/${row.id}`} className="rmd-row-link">
                   <span className={clsx('rmd-tile', `is-${row.tone}`)} aria-hidden>
                     <Icon name={row.icon} size={20} strokeWidth={1.8} />
@@ -92,16 +134,33 @@ export function MedicationSection() {
                   <span className="rmd-row-body">
                     <span className="rmd-row-title">{name}</span>
                     <span className="rmd-row-meta">{rowMeta(row, t, locale)}</span>
+                    {!on ? (
+                      <span className="rmd-row-next is-paused">{t('medications.paused')}</span>
+                    ) : next ? (
+                      <span className="rmd-row-next">
+                        <Icon name="clock" size={13} strokeWidth={2} />
+                        {t('medications.nextDose', { when: relativeText(next, now, t, locale) })}
+                      </span>
+                    ) : null}
                   </span>
                 </Link>
-                <Switch
-                  compact
-                  className="rmd-hit"
-                  checked={on}
-                  label={t('medications.toggle', { title: row.title })}
-                  disabled={pending}
-                  onCheckedChange={(next) => toggle.mutate({ id: row.id, isActive: next })}
-                />
+                <div className="rmd-row-end">
+                  <Switch
+                    compact
+                    className="rmd-hit"
+                    checked={on}
+                    label={t('medications.toggle', { title: row.title })}
+                    disabled={pending}
+                    onCheckedChange={(checked) => toggle.mutate({ id: row.id, isActive: checked })}
+                  />
+                  <Link
+                    href={`/reminders/medication/${row.id}`}
+                    className="rmd-row-edit"
+                    aria-label={t('medications.editLabel', { title: row.title })}
+                  >
+                    {t('medications.edit')}
+                  </Link>
+                </div>
               </div>
             );
           })}

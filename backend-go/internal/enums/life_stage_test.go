@@ -72,7 +72,7 @@ func TestOnboardingEnumValues(t *testing.T) {
 	for _, g := range OnboardingGoalValues() {
 		assert.True(t, LifeMode(g).IsValid(), g)
 	}
-	assert.Equal(t, []string{"female", "male"}, GenderValues())
+	assert.Equal(t, []string{"female", "male", "unspecified"}, GenderValues())
 	assert.Equal(t, []string{"peri", "meno", "post", "unsure"}, MenopauseStageValues())
 	assert.Len(t, ChronicIllnessValues(), 7)
 	assert.Len(t, GynConditionValues(), 5)
@@ -85,6 +85,7 @@ func TestResolveAccountMode(t *testing.T) {
 	assert.Equal(t, LifeModeCompanion, ResolveAccountMode("male", "", false, ""))
 	// Women and never-asked accounts resolve exactly as ResolveLifeMode.
 	assert.Equal(t, LifeModePregnancy, ResolveAccountMode("female", "", true, ""))
+	assert.Equal(t, LifeModePregnancy, ResolveAccountMode("unspecified", "", true, "")) // like female (companion v2)
 	assert.Equal(t, LifeModeTTC, ResolveAccountMode("", "", false, "ttc"))
 	assert.Equal(t, LifeModeCycle, ResolveAccountMode("", "", false, "non_ttc"))
 	// Never selectable, no cycle, no fertility copy.

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Domain\Content\Enums\StaticPage;
-use App\Domain\Content\SiteNavigation;
 use App\Domain\Seo\Schema\SchemaGraph;
 use App\Domain\Seo\SeoManager;
 use App\Domain\Seo\StaticPages\StaticPageSeo;
@@ -15,20 +14,18 @@ use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Contracts\View\View;
 
 /**
- * /plus (design/html/plus.html) — pages/plus.blade.php: intro, three plan cards (always free · Ritme Plus · course
- * packs), FAQ group `plus` as a 2-column grid (`$faq` + its FAQPage JSON-LD come from the FaqServiceProvider view
- * composer), #download CTA. Copy: lang/fa/plus.php.
+ * /plus (design/Web_Pricing.html) — pages/plus.blade.php: intro, four plan cards (monthly · 3 · 6 · 12 months),
+ * what Plus adds, comparison table, FAQ group `plus` (`$faq` + its FAQPage JSON-LD come from the FaqServiceProvider
+ * view composer), «why paid» text, #download band. Copy: lang/fa/plus.php.
  *
- * Prices: `plus.pricing.show` (lang) is the single switch. The design has only placeholders, so it is off and paid
- * plans read «قیمت در اپ»; when on, each filled amount (toman) is shown instead. JSON-LD stays a plain WebPage (+
- * FAQPage) — no Product/Offer until prices are real and published.
+ * Prices: `plus.pricing.show` (lang) is the single switch; off, each card reads «قیمت در اپ». JSON-LD stays a plain
+ * WebPage (+ FAQPage) — no Product/Offer, the prices are drafts per the design's own note.
  */
 final class PlusController
 {
     public function __construct(
         private readonly StaticPageSeo $staticSeo,
         private readonly SettingsRepository $settings,
-        private readonly SiteNavigation $navigation,
         private readonly ViewFactory $views,
     ) {}
 
@@ -42,55 +39,64 @@ final class PlusController
 
         return $this->views->make('pages.plus', [
             'plans' => self::plans(),
+            'showPrices' => self::showPrices(),
             'appLinks' => $appLinks,
-            'qrUrl' => $appLinks->webApp ?? $this->navigation->url(StaticPage::Plus, 'download', absolute: true),
+            // No checkout on the site: «انتخاب» goes to the web app when configured, else to the download band.
+            'chooseUrl' => $appLinks->webApp ?? '#download',
         ]);
     }
 
     /**
-     * The three plan cards in design order.
+     * The four plan cards in design order.
      *
-     * @return list<array{key: string, title: string, price: string, note: string, items: list<string>, featured: bool}>
+     * @return list<array{key: string, title: string, price: string, unit: string, note: string, featured: bool}>
      */
     public static function plans(): array
     {
         // Read as one array: the translator turns non-string leaves (bool flag, int amounts) into the key string.
         $pricing = __('plus.pricing');
         $pricing = is_array($pricing) ? $pricing : [];
-        $show = ($pricing['show'] ?? false) === true;
-        $inApp = self::text('plus.pricing.in_app');
+        $show = self::showPrices();
+        $cancel = self::str($pricing['cancel_anytime'] ?? null);
 
-        $yearly = $show ? self::amount($pricing['plus_yearly'] ?? null) : null;
-        $monthly = $show ? self::amount($pricing['plus_monthly'] ?? null) : null;
-        $pack = $show ? self::amount($pricing['pack'] ?? null) : null;
+        $plans = [];
+        foreach (is_array($pricing['plans'] ?? null) ? $pricing['plans'] : [] as $plan) {
+            if (! is_array($plan)) {
+                continue;
+            }
 
-        $plusNote = self::text('plus.plans.plus.note');
-        if ($monthly !== null) {
-            $plusNote .= ' · '.str_replace(':price', Toman::withUnit($monthly), self::text('plus.pricing.monthly'));
+            $perMonth = self::amount($plan['per_month'] ?? null);
+            $total = self::amount($plan['total'] ?? null);
+            $saving = self::amount($plan['saving'] ?? null);
+            $priced = $show && $perMonth !== null;
+
+            $tail = $saving !== null
+                ? str_replace(':percent', fa_digits((string) $saving), self::str($pricing['saving'] ?? null))
+                : $cancel;
+            $note = match (true) {
+                $priced && $total !== null => str_replace([':total', ':tail'], [Toman::format($total, false), $tail], self::str($pricing['total_line'] ?? null)),
+                $saving === null => $cancel,
+                default => '',
+            };
+
+            $plans[] = [
+                'key' => self::str($plan['key'] ?? null),
+                'title' => self::str($plan['title'] ?? null),
+                'price' => $priced ? Toman::format($perMonth, false) : self::str($pricing['in_app'] ?? null),
+                'unit' => $priced ? self::str($pricing['per_month'] ?? null) : '',
+                'note' => $note,
+                'featured' => ($plan['featured'] ?? false) === true,
+            ];
         }
 
-        return [
-            self::plan('free', self::text('plus.plans.free.price'), self::text('plus.plans.free.note')),
-            self::plan('plus', $yearly !== null ? Toman::withUnit($yearly).' '.self::text('plus.pricing.yearly_suffix') : $inApp, $plusNote, featured: true),
-            self::plan('packs', $pack !== null ? Toman::withUnit($pack).' '.self::text('plus.pricing.pack_suffix') : $inApp, self::text('plus.plans.packs.note')),
-        ];
+        return $plans;
     }
 
-    /**
-     * @return array{key: string, title: string, price: string, note: string, items: list<string>, featured: bool}
-     */
-    private static function plan(string $key, string $price, string $note, bool $featured = false): array
+    private static function showPrices(): bool
     {
-        $items = __("plus.plans.{$key}.items");
+        $pricing = __('plus.pricing');
 
-        return [
-            'key' => $key,
-            'title' => self::text("plus.plans.{$key}.title"),
-            'price' => $price,
-            'note' => $note,
-            'items' => array_values(array_filter(is_array($items) ? $items : [], is_string(...))),
-            'featured' => $featured,
-        ];
+        return is_array($pricing) && ($pricing['show'] ?? false) === true;
     }
 
     private static function amount(mixed $value): ?int
@@ -98,10 +104,8 @@ final class PlusController
         return is_int($value) && $value > 0 ? $value : null;
     }
 
-    private static function text(string $key): string
+    private static function str(mixed $value): string
     {
-        $text = __($key);
-
-        return is_string($text) ? $text : '';
+        return is_string($value) ? $value : '';
     }
 }

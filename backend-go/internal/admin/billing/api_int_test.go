@@ -153,7 +153,7 @@ func TestPlansCRUD(t *testing.T) {
 
 	r := c.Get("/plus/plans")
 	require.Equal(t, 200, r.Status, r.Body)
-	require.Len(t, r.Items(), 3, "the three seeded plans")
+	require.Len(t, r.Items(), 4, "the three seeded plans + the mtest developer plan (00124)")
 	first := r.Items()[0].(map[string]any)
 	assert.Equal(t, "plus_1m", first["code"])
 	assert.EqualValues(t, 990000, first["monthly_price_rials"])
@@ -172,7 +172,7 @@ func TestPlansCRUD(t *testing.T) {
 	p := r.Obj("plan")
 	assert.Equal(t, false, p["is_active"])
 	assert.EqualValues(t, 575000, p["monthly_price_rials"])
-	assert.EqualValues(t, 4, p["sort_order"], "appended after the seeds")
+	assert.EqualValues(t, 5, p["sort_order"], "appended after the seeds (incl. mtest)")
 	newID := uint64(p["id"].(float64))
 	assert.Equal(t, 1, e.actions("plan.create"))
 
@@ -188,7 +188,7 @@ func TestPlansCRUD(t *testing.T) {
 	// The public plan list (checkout side) sees the new active plan.
 	plans, err := e.svc.Plans(t.Context())
 	require.NoError(t, err)
-	assert.Len(t, plans, 4)
+	assert.Len(t, plans, 5)
 
 	r = c.JSON(fiber.MethodDelete, "/plus/plans/"+id(newID), nil)
 	require.Equal(t, 200, r.Status, r.Body)

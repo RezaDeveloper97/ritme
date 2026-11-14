@@ -3,10 +3,10 @@ id: T-M11-08
 title: Invites v6: roles and templates, preview, accept or decline, mutual request, phone auto-bind, owner confirmation, share requests
 milestone: M11
 type: backend
-status: todo
+status: in_progress
 depends_on: [T-M11-05]
 parallel_group: M11-C
-touches: [backend-go/internal/family/invites, backend-go/internal/family/sharerequests, backend-go/internal/companion, backend-go/internal/http/routes_family.go, backend-go/internal/http/routes_companion.go, backend-go/internal/http/routes_auth.go, backend-go/internal/http/companion_guards.go, backend-go/internal/platform/config/config.go, backend-go/db/queries/companion, backend-go/api/openapi.yaml, backend-go/contract/allowlist, docs/engine-v6/jobs.md]
+touches: [backend-go/internal/family/invites, backend-go/internal/family/sharerequests, backend-go/internal/companion, backend-go/internal/http/routes_family.go, backend-go/internal/http/routes_companion.go, backend-go/internal/http/routes_auth.go, backend-go/internal/http/companion_guards.go, backend-go/internal/http/routes_family_invites_int_test.go, backend-go/internal/platform/config/config.go, backend-go/db/queries/companion, backend-go/api/openapi.yaml, backend-go/contract/allowlist, docs/engine-v6/jobs.md, backend-go/internal/http/*_int_test.go, backend-go/contract/cases/companion.yaml, docs/go-migration/deviations.md]
 skills: [new-endpoint]
 verify: cd backend-go && make sqlc && go vet ./... && go test ./internal/family/... ./internal/companion/... && make test-int PKG="./internal/family/... ./internal/companion/... ./internal/http/..." && make contract ROUTES=companion,auth
 ---

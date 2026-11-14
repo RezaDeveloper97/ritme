@@ -198,7 +198,6 @@ describe('pregnancyWeekSchema', () => {
     relation: 'current',
     range: { from: '2026-09-19', to: '2026-09-25' },
     range_label: '۲۸ شهریور تا ۳ مهر',
-    bookmarked: false,
     details: {
       size_label: 'تمشک',
       illustration_key: 'raspberry',
@@ -233,7 +232,6 @@ describe('pregnancyWeekSchema', () => {
       relation: 'current',
       range: { from: '2026-09-19', to: '2026-09-25' },
       rangeLabel: '۲۸ شهریور تا ۳ مهر',
-      bookmarked: false,
       tip: null,
     });
     expect(parsed.tasks).toEqual([
@@ -285,9 +283,8 @@ describe('pregnancyWeekSchema', () => {
 
 describe('weekStateSchema', () => {
   it('maps the PUT response', () => {
-    expect(weekStateSchema.parse({ week: 8, bookmarked: true, done_task_keys: ['folic', 7] })).toEqual({
+    expect(weekStateSchema.parse({ week: 8, done_task_keys: ['folic', 7] })).toEqual({
       week: 8,
-      bookmarked: true,
       doneTaskKeys: ['folic'],
     });
   });

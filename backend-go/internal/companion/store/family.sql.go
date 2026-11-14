@@ -841,12 +841,13 @@ const getFamilyShareRequest = `-- name: GetFamilyShareRequest :one
 SELECT id, from_user_id, to_user_id, link_id, domains,
   status, CAST(status = 'pending' AND expires_at <= ? AS SIGNED) AS expired,
   expires_at, decided_at, created_at
-FROM ` + "`" + `family_share_requests` + "`" + ` WHERE id = ? LIMIT 1
+FROM ` + "`" + `family_share_requests` + "`" + ` WHERE id = ? AND to_user_id = ? LIMIT 1
 `
 
 type GetFamilyShareRequestParams struct {
-	Now time.Time
-	ID  uint64
+	Now      time.Time
+	ID       uint64
+	ToUserID uint64
 }
 
 type GetFamilyShareRequestRow struct {
@@ -862,9 +863,10 @@ type GetFamilyShareRequestRow struct {
 	CreatedAt  sql.NullTime
 }
 
-// One request; expired = 1 for a pending row past expires_at (lazy expiry).
+// One request asked of to_user_id (the data owner: approve / decline path, IDOR-scoped in the query); expired = 1 for
+// a pending row past expires_at (lazy expiry).
 func (q *Queries) GetFamilyShareRequest(ctx context.Context, arg GetFamilyShareRequestParams) (GetFamilyShareRequestRow, error) {
-	row := q.db.QueryRowContext(ctx, getFamilyShareRequest, arg.Now, arg.ID)
+	row := q.db.QueryRowContext(ctx, getFamilyShareRequest, arg.Now, arg.ID, arg.ToUserID)
 	var i GetFamilyShareRequestRow
 	err := row.Scan(
 		&i.ID,

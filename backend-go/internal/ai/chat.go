@@ -2,6 +2,7 @@ package ai
 
 import (
 	"context"
+	"slices"
 	"time"
 	"unicode/utf8"
 )
@@ -196,11 +197,19 @@ func chatUsage(reported Usage, inputEstimate, deliveredRunes int, done bool) Usa
 // Chat streams a completion for feature. The request is validated, the budgets checked and every text redacted
 // before the provider sees it; the usage is recorded once when the stream ends (see the comment at the top).
 func (c *Client) Chat(ctx context.Context, feature Feature, req ChatRequest) (*ChatStream, error) {
-	if c == nil || c.chatter == nil {
+	if c == nil {
 		return nil, ErrUnavailable
 	}
 	if err := validateChat(req); err != nil {
 		return nil, err
+	}
+	cands, err := c.candidates(ctx, feature)
+	if err != nil {
+		return nil, err
+	}
+	cands = slices.DeleteFunc(cands, func(cd candidate) bool { return cd.a.chatter == nil })
+	if len(cands) == 0 {
+		return nil, ErrUnavailable
 	}
 	if err := c.allow(ctx); err != nil {
 		return nil, err
@@ -224,14 +233,26 @@ func (c *Client) Chat(ctx context.Context, feature Feature, req ChatRequest) (*C
 		maxDur = MaxChatDuration
 	}
 	// The stream's own context: the caller's values (Subject, test clock), its cancellation, plus our bound.
-	sctx, cancel := context.WithTimeout(ctx, maxDur)
-	start := c.now()
-	chunks, err := c.chatter.ChatStream(sctx, out)
-	if err != nil {
+	// A provider that refuses before streaming (bad status, blocked) generated nothing: the next candidate may answer.
+	var (
+		sctx   context.Context
+		cancel context.CancelFunc
+		chunks <-chan ChatChunk
+		start  time.Time
+	)
+	for i, cd := range cands {
+		sctx, cancel = context.WithTimeout(cd.ctx, maxDur)
+		start = c.now()
+		chunks, err = cd.a.chatter.ChatStream(sctx, out)
+		if err == nil {
+			ctx = cd.ctx // the route of the stream that runs: its usage is priced and labelled with it
+			break
+		}
 		cancel()
-		// The provider refused the request (bad status, blocked before streaming): nothing was generated.
-		c.record(ctx, Usage{Feature: feature, Op: OpChat, ImageBytes: imageBytes}, start)
-		return nil, err
+		c.record(cd.ctx, Usage{Feature: feature, Op: OpChat, ImageBytes: imageBytes}, start)
+		if !tryNext(err, i, len(cands)) {
+			return nil, err
+		}
 	}
 	events := make(chan ChatEvent)
 	stream := &ChatStream{Events: events, cancel: cancel, done: make(chan struct{})}

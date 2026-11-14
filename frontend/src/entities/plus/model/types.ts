@@ -22,6 +22,12 @@ export interface PlusPlan {
   monthlyPrice: number;
   savingsPercent: number;
   isHighlighted: boolean;
+  /** Set on short developer test plans (minutes instead of months), else null. */
+  durationMinutes: number | null;
+  /** Credits the plan's period carries (`ai_credits`), 0 when none. */
+  aiCredits: number;
+  /** The store product id per store the plan can be bought through. */
+  storeSkus: { bazaar?: string; myket?: string };
 }
 
 export interface PlusCatalog {
@@ -29,6 +35,10 @@ export interface PlusCatalog {
   vatRateBps: number;
   trialDays: number;
   plans: PlusPlan[];
+  /** Stores configured on the server (`bazaar` | `myket`). */
+  storeChannels: string[];
+  /** The store SKU of the free trial, null when the trial is not sold through stores. */
+  storeTrialSku: string | null;
 }
 
 /** The short plan object on subscriptions, quotes and invoices (null when the plan was deleted). */
@@ -149,6 +159,9 @@ export interface PlusInvoice {
   reference: string;
   /** `pending` | `paid` | `failed` | `expired` … (server-owned). */
   status: string;
+  /** `credit_pack` invoices grant extra credits instead of a subscription period. */
+  kind: 'plan' | 'credit_pack';
+  credits: number | null;
   plan: PlusPlanRef | null;
   durationMonths: number;
   currency: string;
@@ -186,5 +199,30 @@ export interface PlusVerification {
 
 export interface PlusRestore {
   restored: number;
+  status: PlusStatus;
+}
+
+/** POST /plus/store/intent — what to buy and the developer payload to pass to the store. */
+export interface PlusStoreIntent {
+  store: string;
+  sku: string;
+  kind: 'plan' | 'trial';
+  payload: string;
+}
+
+/** POST /plus/store/verify */
+export interface PlusStoreVerification {
+  kind: 'plan' | 'trial';
+  sku: string;
+  invoice: PlusInvoice | null;
+  alreadyVerified: boolean;
+  status: PlusStatus;
+  message: string | null;
+}
+
+/** POST /plus/store/sync */
+export interface PlusStoreSync {
+  restored: number;
+  rejected: number;
   status: PlusStatus;
 }

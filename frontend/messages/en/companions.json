@@ -5,10 +5,6 @@
     "partner": "Partner",
     "spouse": "Spouse"
   },
-  "typeDesc": {
-    "partner": "Sees what you choose and, if you allow it, logs things for you.",
-    "spouse": "Like a partner, plus your children are shared and you become one family."
-  },
   "status": {
     "invited": "Waiting to accept",
     "active": "Active"
@@ -40,6 +36,77 @@
   "chip": "{section}: {level}",
   "listSeparator": ", ",
   "nothingShared": "Nothing shared yet",
+  "access": {
+    "levelLabel": "Access to {section}"
+  },
+  "goalLabel": "Companionship goal",
+  "goals": {
+    "cycle": {
+      "title": "Understand my cycle",
+      "desc": "Just know which phase I'm in and what it means."
+    },
+    "support": {
+      "title": "Emotional support",
+      "desc": "Be there for me on the harder days."
+    },
+    "low_energy": {
+      "title": "Help on low-energy days",
+      "desc": "Make things a little lighter."
+    },
+    "quality_time": {
+      "title": "Quality time together",
+      "desc": "Plan time to be together."
+    },
+    "info": {
+      "title": "Just the basics",
+      "desc": "Without many suggestions."
+    },
+    "unknown": {
+      "title": "Not sure yet",
+      "desc": "I'll decide later."
+    }
+  },
+  "signals": {
+    "pain": {
+      "title": "When I'm in pain",
+      "desc": "A general hint, no details."
+    },
+    "mood": {
+      "title": "When I'm not feeling great",
+      "desc": "No judgement, never blamed on the period."
+    },
+    "energy": {
+      "title": "When my energy is low",
+      "desc": "So things can be a little lighter."
+    },
+    "sleep": {
+      "title": "When my sleep has been off",
+      "desc": "Just a gentle reminder."
+    }
+  },
+  "actionsLabel": "Preferred support",
+  "actions": {
+    "food": {
+      "title": "Food & drinks",
+      "desc": "A warm drink or a favourite snack."
+    },
+    "gift": {
+      "title": "Attention & small gifts",
+      "desc": "A kind message or a small gift."
+    },
+    "time": {
+      "title": "Time together",
+      "desc": "Time for two, a film or a walk."
+    },
+    "calm": {
+      "title": "Closeness & calm",
+      "desc": "Listening without judgement, or giving some space."
+    },
+    "help": {
+      "title": "Practical help",
+      "desc": "Lightening everyday chores."
+    }
+  },
   "family": {
     "title": "Your family",
     "you": "You",
@@ -47,35 +114,70 @@
     "childrenShared": "{names} {count, plural, one {is your shared child} other {are your shared children}} and {count, plural, one {appears} other {appear}} in both panels.",
     "childrenNone": "No child is shared yet. You can pick shared children on your spouse's page."
   },
+  "banner": {
+    "title": "Invite your companion to Ritme",
+    "body": "Let someone who matters to you support you better.",
+    "dismiss": "Dismiss the companion invite"
+  },
   "list": {
-    "title": "Companions",
-    "heading": "The people beside you",
-    "lead": "Each companion only sees what you have allowed.",
-    "add": "Add a companion",
+    "title": "My companions",
+    "active": "Companions",
+    "add": "Add a new companion",
     "loading": "Loading companions",
     "emptyTitle": "No companions yet",
-    "emptyBody": "Invite your spouse or partner. They only see what you allow, and you can remove them any time.",
+    "emptyBody": "Invite your spouse, a friend or a family member. They only see what you choose, and you can disconnect any time.",
     "errorTitle": "Couldn't load companions",
     "errorBody": "Check your connection and try again.",
     "retry": "Try again",
+    "meta": "{status} · {when}",
+    "since": "{days, plural, =0 {since today} =1 {since yesterday} other {for {n} days}}",
+    "sinceDate": "since {date}",
     "expiresIn": "Invite valid for {hours} more hours",
-    "expired": "Invite expired · make a new code"
+    "expired": "Invite expired",
+    "cut": "Stop sharing",
+    "cancelInvite": "Cancel invite",
+    "note": "Each companion is linked only to you and can see who they're linked to. Either of you can disconnect."
   },
   "flow": {
-    "title": "Add a companion",
-    "step": "Step {current} of {total}",
-    "stepSpouse": "Step {current} of {total} · spouse only",
-    "steps": "Steps to add a companion",
+    "back": "Back",
     "next": "Continue",
-    "type": {
-      "question": "Who is this companion?",
-      "label": "Relationship"
+    "header": {
+      "intro": "Ritme Companion",
+      "goal": "Companionship goal",
+      "children": "Shared children",
+      "scope": "What can they see?",
+      "actions": "Preferred support",
+      "generating": "Ritme Companion",
+      "code": "Ritme Companion",
+      "preview": "Ritme Companion"
     },
-    "access": {
-      "question": "What should they have access to?",
-      "lead": "Pick one for each item. Change it whenever you like.",
-      "note": "With «view & edit» for medications or appointments, your companion can choose to log for themselves or for you.",
-      "levelLabel": "Access to {section}"
+    "intro": {
+      "title": "A gentle way to stay close",
+      "lead": "Share your cycle phase with a spouse, friend or family member who also uses Ritme.",
+      "howTitle": "How it works",
+      "how": {
+        "choose": {
+          "title": "They only see what you choose",
+          "body": "In the next steps you decide exactly what is shown."
+        },
+        "code": {
+          "title": "The invite code is valid for 24 hours",
+          "body": "It works once, and you can cancel it before it's used."
+        },
+        "control": {
+          "title": "Disconnect whenever you like",
+          "body": "You're always fully in control."
+        }
+      },
+      "consent": "I agree to share the cycle information I choose with the companion I invite."
+    },
+    "goal": {
+      "title": "What would you most like your companion to be there for?",
+      "lead": "This only shapes the content and suggestions; it's never a medical diagnosis or prediction, and you can change it any time.",
+      "spouse": {
+        "title": "They're my spouse",
+        "desc": "You form a family and can pick shared children in the next step."
+      }
     },
     "children": {
       "question": "Which child is shared?",
@@ -85,57 +187,83 @@
       "emptyBody": "Add your child in the «Child» section; then you can share them from your spouse's page. For now, continue without it.",
       "errorBody": "Couldn't load your children.",
       "retry": "Try again",
-      "add": "Add a child",
-      "partnerNote": "If your companion is a partner, this step is skipped."
+      "add": "Add a child"
     },
-    "invite": {
-      "title": "Invite a companion",
-      "heading": "Invite them",
-      "lead": "Send an invite to their mobile number or give them the companion code. They see nothing until they accept.",
+    "access": {
+      "title": "Which sections can your companion access?",
+      "lead": "Pick one for each section: hidden, view only, or view and edit. You can change it any time.",
+      "hidden": "A section left on «hidden» is never shown to your companion.",
+      "note": "With «view and edit» on medications or appointments, your companion can choose to log for themselves or for you."
+    },
+    "actions": {
+      "title": "What kind of support feels best to you?",
+      "lead": "We'll suggest these to your companion more often. None is required, and your companion can tone suggestions down too.",
+      "cta": "Create invite code"
+    },
+    "contact": {
+      "toggle": "Name and number (optional)",
+      "hint": "So you recognise them in your list, or so we can text them the code.",
       "name": "Their name",
       "namePlaceholder": "The name you'll see in Ritme",
-      "phone": "Mobile number",
+      "phone": "Their mobile number",
       "phonePlaceholder": "09xx xxx xxxx",
-      "phoneInvalid": "The mobile number must start with 09 and have 11 digits.",
-      "or": "or",
-      "codeTitle": "Companion code",
-      "codeLead": "Give this code to your companion to enter when signing up to Ritme.",
-      "codeHidden": "The code appears here once the invite is created.",
-      "makeCode": "Just make a code",
-      "summary": "Summary",
-      "edit": "Edit",
-      "relation": "Relationship",
-      "children": "Shared child",
-      "none": "None",
-      "send": "Send invite",
-      "smsSent": "Invite SMS sent to <ltr>{phone}</ltr>.",
-      "smsNotSent": "The SMS wasn't sent — send them the code yourself.",
-      "codeOnly": "Code created — send it to your companion.",
-      "finish": "Continue",
-      "error": "Couldn't create the invite. Try again."
+      "phoneHint": "If you add a number, the code is also sent to them by SMS.",
+      "phoneInvalid": "The mobile number must start with 09 and have 11 digits."
     },
-    "done": {
-      "titleSent": "Invite sent to {name}",
-      "titleSentUnnamed": "Invite sent",
-      "titleCode": "{name}'s invite code is ready",
-      "titleCodeUnnamed": "Invite code is ready",
-      "leadSpouse": "Once they accept, your family is created.",
-      "leadPartner": "Once they accept, they only see what you allowed.",
-      "note": "Change access or remove the companion any time from the companions page.",
-      "back": "Back to companions"
+    "generating": {
+      "title": "Creating your code",
+      "lead": "Your companion gets a link to install Ritme, then connects your profiles with this code.",
+      "wait": "Stay on this screen until the code is ready.",
+      "privacy": "Your data matters — only share it with someone you trust.",
+      "error": "Couldn't create the invite code. Try again.",
+      "retry": "Try again",
+      "edit": "Go back and edit"
+    },
+    "code": {
+      "ready": "Your invite code is ready",
+      "title": "Send the code to your companion",
+      "smsSent": "The code was also texted to <ltr>{phone}</ltr>.",
+      "smsNotSent": "The SMS wasn't sent — send them the code yourself.",
+      "preview": "See what your companion sees"
+    },
+    "preview": {
+      "title": "This is what your companion sees",
+      "lead": "A read-only view based on exactly what you chose.",
+      "cardLabel": "Sample of the companion screen",
+      "cycleOf": "{name}'s cycle",
+      "cycleOfYou": "Your cycle",
+      "meta": "Today · view only",
+      "phaseLabel": "Current phase",
+      "phase": {
+        "menstrual": "Probably period days",
+        "follicular": "Probably the follicular phase",
+        "fertile": "Probably mid-cycle",
+        "luteal": "Probably the luteal phase",
+        "period_expected": "Probably close to the period",
+        "unknown": "Phase not clear yet"
+      },
+      "loading": "Preparing the sample…",
+      "estimate": "Based on current data, the next period is estimated in about {days} days.",
+      "noEstimate": "No estimate of the next period is shown.",
+      "hiddenTitle": "What they don't see:",
+      "hiddenSections": "{sections}.",
+      "done": "Got it"
     }
   },
   "code": {
+    "title": "Invite code",
     "label": "Invite code {code}",
     "copy": "Copy code",
     "copied": "Copied",
-    "share": "Send",
-    "shared": "Sent",
-    "shareTitle": "Ritme companion invite",
-    "shareText": "My Ritme companion code: {code}",
+    "share": "Share code",
+    "shared": "Shared",
+    "shareTitle": "Ritme Companion invite",
+    "shareText": "My Ritme companion code: {code}\nInstall Ritme here: {url}",
     "failed": "Couldn't copy — write the code down from the screen.",
-    "validity": "Single use · valid for {hours} hours",
-    "once": "This code is shown only now."
+    "validity": "Valid for {hours} more hours",
+    "expired": "This code has expired",
+    "once": "This code is shown only now.",
+    "accessNote": "This code works once; your companion only gets access to the sections you chose."
   },
   "detail": {
     "title": "Companion",
@@ -157,6 +285,15 @@
     "renew": "Make a new code",
     "renewNote": "A new code stops the previous one from working.",
     "renewError": "Couldn't make a new code. Try again.",
+    "prefsTitle": "Companionship preferences",
+    "prefsLead": "The goal, the states they see and the kind of support you like. Change them whenever you want.",
+    "goalTitle": "Companionship goal",
+    "signalsTitle": "What can they see?",
+    "signalsLead": "Each one is a separate consent. Your general cycle phase comes from the access section.",
+    "actionsTitle": "Preferred support",
+    "prefsSave": "Save preferences",
+    "prefsSaved": "Preferences saved.",
+    "prefsError": "Couldn't save. Try again.",
     "childrenTitle": "Shared child",
     "childrenLead": "The children you pick show up in your spouse's panel, view only.",
     "childrenSave": "Save shared children",
@@ -173,13 +310,20 @@
       "grants_changed": "Access changed"
     },
     "activityLine": "{action} · {section}",
-    "byYou": "by you",
-    "remove": "Remove companion",
-    "removeTitle": "Remove {name}?",
-    "removeBody": "Their access ends right now and they won't see anything of yours. To add them back you'll need to invite them again.",
-    "removeConfirm": "Yes, remove",
-    "cancel": "Cancel",
-    "removeError": "Couldn't remove. Try again."
+    "byYou": "by you"
+  },
+  "disconnect": {
+    "title": "What happens when you disconnect?",
+    "noData": "{name} will no longer see your information.",
+    "noAlerts": "Their companion notifications stop.",
+    "again": "You can invite them again whenever you like.",
+    "confirm": "Yes, disconnect",
+    "keep": "I want to keep sharing",
+    "error": "Couldn't disconnect. Try again.",
+    "close": "Close",
+    "doneTitle": "Sharing stopped",
+    "doneBody": "{name} no longer sees any of your data. You can invite them again whenever you like.",
+    "doneBack": "Back to companions"
   },
   "privacy": {
     "manage": "Manage companions",

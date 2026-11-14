@@ -47,6 +47,7 @@ final readonly class StagePageData
         public AppLinksSettings $appLinks,
         public ?string $qrUrl,
         public array $copy,
+        public ?StageRedesignData $redesign = null,
     ) {}
 
     /**

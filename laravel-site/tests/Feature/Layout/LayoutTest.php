@@ -72,15 +72,14 @@ it('marks the active nav item and uses the dark block on dark pages', function (
 it('renders footer columns as labelled navs with the corrected links', function (): void {
     $html = $this->get('/_preview/layout/light')->getContent();
 
-    foreach (['مرحله‌ها', 'خدمات', 'ابزارها', 'ریتمی', 'اعتماد'] as $title) {
+    foreach (['مرحله‌ها', 'ریتمی', 'اعتماد'] as $title) {
         expect($html)->toContain('<nav aria-label="'.$title.'"');
     }
-    expect($html)->toContain('href="/tools#due-date"')
-        ->toContain('href="/tools#fertility"')
-        ->toContain('href="/tools#hospital-bag"')
-        ->toContain('href="/tools#sisemoni"')
+    expect($html)->not->toContain('<nav aria-label="خدمات"')
+        ->toContain('href="/plus"')
+        ->toContain('href="/contact"')
         ->toContain('href="/terms"')
-        ->toContain('href="tel:115"');
+        ->not->toContain('href="tel:115"');
 });
 
 it('registers breadcrumbs before the head renders, so the JSON-LD has the BreadcrumbList', function (): void {
@@ -137,19 +136,19 @@ it('caches the footer fragment until the settings namespace version changes', fu
 });
 
 it('keys the header fragment by variant and active route', function (): void {
-    $faq = Blade::render('<x-layout.header variant="light" route="faq"/>');
+    $contact = Blade::render('<x-layout.header variant="light" route="contact"/>');
     $home = Blade::render('<x-layout.header variant="dark" route="home"/>');
 
-    expect($faq)->toContain('border-b border-line bg-surface')->not->toContain('aria-current="page"')
-        ->and($home)->not->toContain('bg-surface')->toContain('aria-current="page"');
+    expect($contact)->toContain('border-b border-line bg-surface')->not->toContain('aria-current="page"')
+        ->and($home)->not->toContain('border-b border-line bg-surface')->toContain('aria-current="page"');
 });
 
 it('updates the cached shell when settings change through the model (observer bump)', function (): void {
     Blade::render('<x-layout.footer/>');
 
-    app(SettingsRepository::class)->put(SettingGroup::AppLinks, ['bazaar' => 'https://cafebazaar.ir/app/ir.ritmeapp.ritme']);
+    app(SettingsRepository::class)->put(SettingGroup::Social, ['telegram' => 'https://t.me/ritme']);
 
-    expect(Blade::render('<x-layout.footer/>'))->toContain('href="https://cafebazaar.ir/app/ir.ritmeapp.ritme"')->toContain('کافه‌بازار');
+    expect(Blade::render('<x-layout.footer/>'))->toContain('href="https://t.me/ritme"')->toContain('تلگرام');
 });
 
 it('reduces admin enamad HTML to allowed tags in the footer', function (): void {
@@ -162,4 +161,25 @@ it('reduces admin enamad HTML to allowed tags in the footer', function (): void 
         ->not->toContain('trustseal.enamad.ir/logo.png')
         ->not->toContain('<script')
         ->not->toContain('onclick');
+});
+
+it('shows the official enamad seal image in the footer when the admin input has id and Code', function (): void {
+    rawSetting(SettingGroup::Legal, 'enamad_html', '<a target="_blank" href="https://trustseal.enamad.ir/?id=7913549&amp;Code=ndNb0Esw0otBNJ0rj6PN"><img src="https://trustseal.enamad.ir/logo.aspx?id=7913549&amp;Code=ndNb0Esw0otBNJ0rj6PN"></a>');
+    app(NamespaceVersions::class)->bump('settings');
+
+    $html = Blade::render('<x-layout.footer/>');
+
+    expect($html)->toContain('href="https://trustseal.enamad.ir/?id=7913549&amp;Code=ndNb0Esw0otBNJ0rj6PN"')
+        ->toContain('src="https://trustseal.enamad.ir/logo.aspx?id=7913549&amp;Code=ndNb0Esw0otBNJ0rj6PN"')
+        ->toContain('referrerpolicy="origin"')
+        ->toContain('alt="نماد اعتماد الکترونیکی"');
+
+    expect((string) $this->get('/about')->headers->get('Content-Security-Policy'))
+        ->toContain("img-src 'self' data: https://trustseal.enamad.ir");
+});
+
+it('shows the Ritme wordmark logo in the header and footer', function (): void {
+    $html = (string) $this->get('/about')->assertOk()->getContent();
+
+    expect(preg_match_all('~<img src="/icons/logo-wordmark\.webp\?v=[0-9a-f]{8}" width="106" height="40" alt="ریتمی"~', $html))->toBe(2);
 });

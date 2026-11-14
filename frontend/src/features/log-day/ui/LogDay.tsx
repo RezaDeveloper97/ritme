@@ -3,7 +3,6 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 
-import { usePlusLocked } from '@/entities/plus';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { toApiDate, today } from '@/shared/lib/date';
 import {
@@ -16,13 +15,13 @@ import {
   SegmentedTabs,
   Skeleton,
   SkeletonGroup,
+  StatusPill,
 } from '@/shared/ui';
-import { PlusBadge } from '@/shared/ui/plus-gate';
 
 import { matchesSearch } from '../model/draft';
 import { isMenopausePreset } from '../model/menopause-preset';
 import { modePresetOf } from '../model/mode-presets';
-import { voiceTabHidden } from '../model/voice-tab';
+import { VOICE_LOG_ENABLED, voiceTabHidden } from '../model/voice-tab';
 import { categoryLook, type PanelKind } from '../model/presentation';
 import { useLogDayStore } from '../model/store';
 import { useLogDayHeading } from '../model/use-heading';
@@ -38,7 +37,7 @@ import { MenopausePreset } from './presets/MenopausePreset';
 import { ModePreset } from './presets/ModePreset';
 import { QuickTiles } from './QuickTiles';
 import { SummaryFooter } from './SummaryFooter';
-import { VOICE_FEATURE, VoiceTab, type VoiceLogSlot } from './VoiceTab';
+import { VoiceTab, type VoiceLogSlot } from './VoiceTab';
 
 /**
  * Where the gear opens the log customisation screen (B-N3-04). `null` until that screen exists — the
@@ -88,9 +87,11 @@ export interface LogDayProps {
   extra?: ReactNode;
   /**
    * Deep link (T-M9-42b): opens the measurement panel on arrival — where the LH / pregnancy test chips are
-   * (the overdue banner's «ثبت تست بارداری»). Applied once; ignored when the mode has no such panel.
+   * (the overdue banner's «ثبت تست بارداری»). Any other value is a category code (home «ثبت امروز» rows:
+   * `bleeding`, `symptoms`, `mood`): the sheet scrolls to that section and opens it. Applied once; ignored
+   * when the mode has no such panel or category.
    */
-  focus?: 'pregnancy_test';
+  focus?: string;
 }
 
 function validDate(value: string | null | undefined): string {
@@ -134,7 +135,6 @@ export function LogDay({
   const sectionRefs = useRef(new Map<string, HTMLDivElement>());
   const searchRef = useRef<HTMLDivElement>(null);
   const tabsId = useId();
-  const voiceLocked = usePlusLocked(VOICE_FEATURE);
   // A voice «ذخیره» merges suggestions with setParam and saves in the same event: the save runs on the
   // next render, once the merged draft is in the controller.
   const [saveQueued, setSaveQueued] = useState<{ onDone?: () => void } | null>(null);
@@ -146,8 +146,8 @@ export function LogDay({
   const menopause = preset && !c.loading && !c.error && isMenopausePreset(c.mode);
   // B-N3-06: pregnancy / postpartum days open on the board's grouped cards under the quick tiles.
   const modePreset = preset && !c.loading && !c.error ? modePresetOf(c.mode) : null;
-  const noVoice = !c.loading && voiceTabHidden(c.mode, voiceLocked);
-  const shownTab: Tab = noVoice ? 'manual' : tab;
+  const noVoice = !c.loading && voiceTabHidden(c.mode);
+  const shownTab: Tab = noVoice || !VOICE_LOG_ENABLED ? 'manual' : tab;
 
   useEffect(() => {
     if (!saveQueued) return;
@@ -207,6 +207,13 @@ export function LogDay({
     focusApplied.current = true;
     setPanel('measure');
   }, [focus, hasMeasure]);
+  // Deep link to a category: scroll to its section and open it once the taxonomy has loaded.
+  const focusCategory = focus && focus !== 'pregnancy_test' && !c.loading ? category(focus) : undefined;
+  useEffect(() => {
+    if (!focusCategory || focusApplied.current) return;
+    focusApplied.current = true;
+    openSection(focusCategory.code);
+  }, [focusCategory]);
 
   const header =
     variant === 'page' && pageHeader ? (
@@ -274,8 +281,8 @@ export function LogDay({
             categories={c.categories}
             values={c.values}
             setParam={c.setParam}
-            onVoice={() => setTab('voice')}
-            voiceLocked={voiceLocked}
+            onVoice={VOICE_LOG_ENABLED ? () => setTab('voice') : undefined}
+            soonLabel={t('voice.soon')}
             onBleedingHelp={() => (c.dirty ? c.save(() => router.push(MENOPAUSE_ALERT_HREF)) : router.push(MENOPAUSE_ALERT_HREF))}
           />
         ) : modePreset === 'pregnancy' ? (
@@ -361,15 +368,20 @@ export function LogDay({
             {
               value: 'voice',
               icon: 'mic',
+              disabled: !VOICE_LOG_ENABLED,
               label: (
                 <>
                   {t('tabs.voice')}
-                  {voiceLocked ? <PlusBadge label={t('tabs.plus')} className="lday-tab-plus" /> : null}
+                  {!VOICE_LOG_ENABLED ? (
+                    <StatusPill tone="neutral" className="lday-tab-plus">
+                      {t('voice.soon')}
+                    </StatusPill>
+                  ) : null}
                 </>
               ),
             },
           ]}
-          value={tab}
+          value={shownTab}
           onChange={setTab}
           label={t('tabs.label')}
           panelId={(v) => `${tabsId}-${v}`}

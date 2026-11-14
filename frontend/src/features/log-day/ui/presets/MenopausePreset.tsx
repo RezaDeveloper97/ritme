@@ -3,8 +3,7 @@
 import { useTranslations } from 'next-intl';
 
 import type { LogCategory, LogDayValues, LogParamValue } from '@/entities/health-log';
-import { Card, ChipGroup, Icon, IconCircle, PillChip, SeverityScale, type Tone } from '@/shared/ui';
-import { PlusBadge } from '@/shared/ui/plus-gate';
+import { Card, ChipGroup, Icon, IconCircle, PillChip, SeverityScale, StatusPill, type Tone } from '@/shared/ui';
 
 import {
   acceptsNo,
@@ -30,9 +29,9 @@ interface MenopausePresetProps {
   values: LogDayValues;
   setParam: (category: string, param: string, value: LogParamValue | null) => void;
   /** «با صدا بگو» → the sheet's voice tab (B-N3-05). */
-  onVoice: () => void;
-  /** Voice logging is a Plus feature (`plus.voice_log`): the card carries the badge when locked. */
-  voiceLocked: boolean;
+  /** Omitted while voice logging is paused: the card renders disabled with `soonLabel`. */
+  onVoice?: () => void;
+  soonLabel?: string;
   /** «بیشتر بدان» under a logged bleeding → `/menopause/alert` (saves first). */
   onBleedingHelp: () => void;
 }
@@ -42,18 +41,22 @@ interface MenopausePresetProps {
  * groups as `SeverityScale` rows, the bleeding choice with the post-menopause note and the trigger chips.
  * Edits the sheet's draft like every other section — the sheet's footer saves the day in one PUT.
  */
-export function MenopausePreset({ categories, values, setParam, onVoice, voiceLocked, onBleedingHelp }: MenopausePresetProps) {
+export function MenopausePreset({ categories, values, setParam, onVoice, soonLabel, onBleedingHelp }: MenopausePresetProps) {
   const t = useTranslations('logSheet.presets.menopause');
   return (
     <div className="mlog">
-      <button type="button" className="mlog-voice" onClick={onVoice}>
+      <button type="button" className="mlog-voice" onClick={onVoice} disabled={!onVoice}>
         <span className="mlog-voice-mic" aria-hidden>
           <Icon name="mic" size={22} strokeWidth={1.9} />
         </span>
         <span className="mlog-voice-text">
           <span className="mlog-voice-title">
             {t('voice.title')}
-            {voiceLocked ? <PlusBadge label={t('voice.plus')} className="mlog-voice-plus" /> : null}
+            {!onVoice ? (
+              <StatusPill tone="neutral" className="mlog-voice-plus">
+                {soonLabel}
+              </StatusPill>
+            ) : null}
           </span>
           <span className="mlog-voice-body">{t('voice.body')}</span>
         </span>

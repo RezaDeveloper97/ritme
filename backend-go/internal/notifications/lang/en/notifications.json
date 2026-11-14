@@ -5,7 +5,9 @@
     },
     "push": {
         "neutral_title": "Today's reminder",
-        "neutral_body": "You have a reminder for today."
+        "neutral_body": "You have a reminder for today.",
+        "notice_title": "New notification",
+        "notice_body": "You have a new notification in Ritme."
     },
     "attributes": {
         "categories": "categories",
@@ -24,6 +26,7 @@
         "quiet_hours.enabled": "quiet hours",
         "quiet_hours.start": "quiet hours start",
         "quiet_hours.end": "quiet hours end",
-        "neutral_copy": "neutral text"
+        "neutral_copy": "neutral text",
+        "sms_reminders": "SMS reminders"
     }
 }

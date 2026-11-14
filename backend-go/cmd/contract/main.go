@@ -2,6 +2,7 @@
 //
 //	contract record [--routes <groups|all>] [--case <glob>]   record Laravel goldens
 //	contract diff   [--routes <groups|all>] [--case <glob>]   diff a fresh Go server against them
+//	contract diff   --record-go --routes <groups> [--case <glob>]  (re)write the goldens of Go-only routes from Go
 //	contract v6     [--routes cycle] [--case <glob>] [--update] Go-native CYCLE_ENGINE=v6 goldens (v6.go, T-M9-32)
 //
 // Cases: contract/cases/<group>.yaml. Goldens: contract/golden/<group>/<case>.json.
@@ -41,13 +42,14 @@ func run() int {
 	verbose := fs.Bool("v", false, "print passing cases too")
 	reseed := fs.Bool("reseed", false, "record: re-run contract-reset and re-export dump.sql (implied by --routes all)")
 	update := fs.Bool("update", false, "v6: rewrite contract/golden-v6 from the Go server instead of diffing")
+	recordGo := fs.Bool("record-go", false, "diff: write contract/golden from the Go server (Go-only routes; review by hand)")
 	_ = fs.Parse(os.Args[2:])
 
 	paths, err := findPaths()
 	if err != nil {
 		return fail(err)
 	}
-	opts := options{routes: *routes, caseGlob: *caseGlob, verbose: *verbose, reseed: *reseed}
+	opts := options{routes: *routes, caseGlob: *caseGlob, verbose: *verbose, reseed: *reseed, recordGo: *recordGo}
 	switch os.Args[1] {
 	case "record":
 		err = record(ctx, paths, opts)
@@ -70,6 +72,9 @@ type options struct {
 	caseGlob string
 	verbose  bool
 	reseed   bool
+	// recordGo: diff writes the goldens from the Go server instead of comparing — for routes that exist only in Go
+	// (no Laravel to record from; new-endpoint skill step 8). The written goldens are reviewed by hand.
+	recordGo bool
 }
 
 func usage() {
@@ -252,7 +257,7 @@ func diff(ctx context.Context, paths Paths, opts options) error {
 		}
 		allow[s.group] = al
 		for _, c := range s.cases {
-			if !fileExists(goldenPath(paths.Contract, c)) {
+			if !opts.recordGo && !fileExists(goldenPath(paths.Contract, c)) {
 				return fmt.Errorf("no golden for %s/%s (run make contract-record ROUTES=%s)", c.Group, c.ID, c.Group)
 			}
 		}
@@ -271,6 +276,33 @@ func diff(ctx context.Context, paths Paths, opts options) error {
 	var failed, passed, allowed int
 	for _, s := range sel {
 		for _, c := range s.cases {
+			if opts.recordGo {
+				results, runErr := runner.Run(ctx, c)
+				if runErr != nil {
+					failed++
+					fmt.Printf("FAIL %s/%s\n    error: %v\n", c.Group, c.ID, runErr)
+					continue
+				}
+				for i := range results {
+					// Captured values (invoice references, gateway authorities) are random: keep the {{var}} form.
+					u := strings.NewReplacer("%7B%7B", "{{", "%7D%7D", "}}").Replace(c.Steps[i].URL(nil))
+					if strings.Contains(u, "{{") {
+						results[i].URL = u
+					}
+				}
+				doc, probs := BuildGolden(c, results)
+				for _, p := range probs {
+					fmt.Printf("PROBLEM %s/%s: %s\n", c.Group, c.ID, strings.Replace(p, "Laravel answered", "Go answered", 1))
+				}
+				if len(probs) > 0 {
+					failed++
+				}
+				if err := writeIfChanged(goldenPath(paths.Contract, c), doc); err != nil {
+					return err
+				}
+				passed++
+				continue
+			}
 			golden, err := LoadGolden(goldenPath(paths.Contract, c))
 			if err != nil {
 				return err

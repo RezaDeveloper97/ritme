@@ -33,12 +33,12 @@ describe('resolveNavMode', () => {
 });
 
 describe('navConfig (nav.md per-mode table)', () => {
-  it('orders امروز · mode tab · FAB · خدمات · من', () => {
-    expect(keys('cycle')).toEqual(['today:/home', 'calendar:/calendar', 'FAB', 'services', 'me']);
-    expect(keys('teen')).toEqual(['today:/home', 'calendar:/calendar', 'FAB', 'services', 'me']);
-    expect(keys('ttc')).toEqual(['today:/home', 'fertility:/calendar', 'FAB', 'services', 'me']);
-    expect(keys('pregnancy')).toEqual(['today:/pregnancy', 'pregnancy:/pregnancy/weeks', 'FAB', 'services', 'me']);
-    expect(keys('menopause')).toEqual(['today:/home', 'symptoms:/menopause/score', 'FAB', 'services', 'me']);
+  it('orders امروز · mode tab · FAB · تحلیل · من', () => {
+    expect(keys('cycle')).toEqual(['today:/home', 'calendar:/calendar', 'FAB', 'analysis', 'me']);
+    expect(keys('teen')).toEqual(['today:/home', 'calendar:/calendar', 'FAB', 'analysis', 'me']);
+    expect(keys('ttc')).toEqual(['today:/home', 'fertility:/calendar', 'FAB', 'analysis', 'me']);
+    expect(keys('pregnancy')).toEqual(['today:/pregnancy', 'pregnancy:/pregnancy/weeks', 'FAB', 'analysis', 'me']);
+    expect(keys('menopause')).toEqual(['today:/home', 'symptoms:/menopause/score', 'FAB', 'analysis', 'me']);
   });
 
   it('postpartum «کودک» targets the only child, else the list (gaps.md #15)', () => {
@@ -52,15 +52,15 @@ describe('navConfig (nav.md per-mode table)', () => {
       'today:/home',
       'calendar:/calendar',
       'FAB',
-      'services',
+      'analysis',
       'me',
     ]);
     // B-N5-05: /children is live — «کودک» opens the only child, else the list.
-    expect(keys('postpartum', ['7'], {})).toEqual(['today:/postpartum', 'child:/children/7', 'FAB', 'services', 'me']);
-    // CB-MENO-08: «علائم» always opens the monthly score; the symptom report keeps the tab lit.
+    expect(keys('postpartum', ['7'], {})).toEqual(['today:/postpartum', 'child:/children/7', 'FAB', 'analysis', 'me']);
+    // CB-MENO-08: «علائم» always opens the monthly score; the symptom report lives under «تحلیل».
     expect(keys('menopause', undefined, { analysis: false })[1]).toBe('symptoms:/menopause/score');
     expect(activeTabKey(navConfig('menopause'), '/menopause/score')).toBe('symptoms');
-    expect(activeTabKey(navConfig('menopause'), '/analysis/symptoms')).toBe('symptoms');
+    expect(activeTabKey(navConfig('menopause'), '/analysis/symptoms')).toBe('analysis');
   });
 
   it('IVF sub-mode (CB-IVF-02): ttc + ivf → امروز /ivf and «درمان»; off → plain ttc', () => {
@@ -68,12 +68,12 @@ describe('navConfig (nav.md per-mode table)', () => {
     expect([...ivf.before, ...ivf.after].map((t) => `${t.key}:${t.href}`)).toEqual([
       'today:/ivf',
       'treatment:/ivf/meds', // CB-IVF-03 flipped NAV_READY.ivfMeds
-      'services:/services',
+      'analysis:/analysis',
       'me:/profile',
     ]);
     expect(ivf.before[1]?.icon).toBe('treatment');
     expect(navConfig('ttc', { ivf: true, ready: { ivfMeds: false } }).before[1]?.href).toBe('/ivf#ivf-doses');
-    expect(keys('ttc')).toEqual(['today:/home', 'fertility:/calendar', 'FAB', 'services', 'me']);
+    expect(keys('ttc')).toEqual(['today:/home', 'fertility:/calendar', 'FAB', 'analysis', 'me']);
     // The flag only means something for ttc.
     expect(navConfig('cycle', { ivf: true }).before.map((t) => t.key)).toEqual(['today', 'calendar']);
     expect(activeTabKey(ivf, '/ivf')).toBe('today');
@@ -81,18 +81,32 @@ describe('navConfig (nav.md per-mode table)', () => {
     expect(activeTabKey(ivf, '/ivf/scan')).toBe('treatment');
   });
 
-  it('companion has no mode tab and no FAB', () => {
-    expect(keys('companion')).toEqual(['today:/companion', 'services', 'me']);
+  it('companion v2: امروز · یادگیری · اقدام‌ها · پروفایل, no FAB', () => {
+    const c = navConfig('companion');
+    expect([...c.before, ...c.after].map((tab) => `${tab.key}:${tab.href}`)).toEqual([
+      'today:/companion',
+      'learn:/companion/learn',
+      'actions:/companion/actions',
+      'profile:/profile',
+    ]);
+    expect(c.fab).toBe(false);
+    expect(activeTabKey(c, '/companion/learn')).toBe('learn');
+    expect(activeTabKey(c, '/companion/actions')).toBe('actions');
+    expect(activeTabKey(c, '/profile')).toBe('profile');
   });
 });
 
 describe('activeTabKey', () => {
-  it('lights the exact tab, services sub-hubs and the mode tab for history/analysis', () => {
+  it('lights the exact tab, «من» for services, «تحلیل» for analysis and history', () => {
     expect(activeTabKey(navConfig('cycle'), '/home')).toBe('today');
-    expect(activeTabKey(navConfig('cycle'), '/services')).toBe('services');
-    expect(activeTabKey(navConfig('cycle'), '/services/doctors')).toBe('services');
+    expect(activeTabKey(navConfig('cycle'), '/services')).toBe('me');
+    expect(activeTabKey(navConfig('cycle'), '/services/doctors')).toBe('me');
+    expect(activeTabKey(navConfig('cycle'), '/vitals')).toBe('me');
     expect(activeTabKey(navConfig('cycle'), '/profile')).toBe('me');
-    expect(activeTabKey(navConfig('cycle'), '/cycle')).toBe('calendar');
+    expect(activeTabKey(navConfig('cycle'), '/analysis')).toBe('analysis');
+    expect(activeTabKey(navConfig('ttc'), '/analysis/fertility')).toBe('analysis');
+    expect(activeTabKey(navConfig('pregnancy'), '/analysis')).toBe('analysis');
+    expect(activeTabKey(navConfig('cycle'), '/cycle')).toBe('analysis');
     expect(activeTabKey(navConfig('ttc'), '/calendar')).toBe('fertility');
     expect(activeTabKey(navConfig('pregnancy'), '/pregnancy/weeks/12')).toBe('pregnancy');
     expect(activeTabKey(navConfig('pregnancy'), '/pregnancy')).toBe('today');
@@ -125,7 +139,7 @@ describe('CB-NAV-03 IA_Nav rules', () => {
     expect(isRootRetap(cal, '/calendar')).toBe(true);
     expect(isRootRetap(cal, '/calendar/')).toBe(true);
     expect(isRootRetap(cal, '/analysis/symptoms')).toBe(false);
-    expect(activeTabKey(navConfig('cycle'), '/analysis/symptoms')).toBe('calendar');
+    expect(activeTabKey(navConfig('cycle'), '/analysis/symptoms')).toBe('analysis');
     expect(cal.href).toBe('/calendar');
   });
 

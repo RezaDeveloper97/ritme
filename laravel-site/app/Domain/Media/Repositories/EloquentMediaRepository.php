@@ -33,4 +33,11 @@ final class EloquentMediaRepository implements MediaRepository
 
         return $result;
     }
+
+    public function findByHash(string $hash): ?MediaData
+    {
+        $media = Media::query()->where('hash', $hash)->first();
+
+        return $media === null ? null : $this->factory->make($media);
+    }
 }

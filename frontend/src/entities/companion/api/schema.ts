@@ -2,8 +2,14 @@ import { z } from 'zod';
 
 import {
   ACCESS_LEVELS,
+  COMPANION_ACTIONS,
+  COMPANION_GOALS,
   COMPANION_SECTIONS,
+  COMPANION_SIGNALS,
+  type CompanionAction,
   type CompanionAuditEntry,
+  type CompanionPreferences,
+  type CompanionSignalScope,
   type CompanionGrants,
   type CompanionInvite,
   type CreatedCompanion,
@@ -27,7 +33,40 @@ const grantsSchema = z
     return out;
   });
 
+/*
+ * v2 preferences (goal / signals / action_prefs). Lenient on purpose: a Laravel
+ * production server or an older Go build sends none of them, and the most
+ * private reading (nothing shared, no prefs) is the default.
+ */
+const goalSchema = z.enum(COMPANION_GOALS).catch('unknown');
+export const signalScopeSchema = z
+  .record(z.string(), z.unknown())
+  .nullable()
+  .catch(null)
+  .optional()
+  .transform((raw): CompanionSignalScope => {
+    const out = {} as CompanionSignalScope;
+    for (const s of COMPANION_SIGNALS) out[s] = raw?.[s] === true;
+    return out;
+  });
+export const actionPrefsSchema = z
+  .array(z.unknown())
+  .nullable()
+  .catch(null)
+  .optional()
+  .transform((raw): CompanionAction[] =>
+    (raw ?? []).filter((a): a is CompanionAction => (COMPANION_ACTIONS as readonly unknown[]).includes(a)),
+  );
+export const preferencesSchema = z
+  .object({ goal: z.unknown().optional(), signals: signalScopeSchema, action_prefs: actionPrefsSchema })
+  .transform(
+    (p): CompanionPreferences => ({ goal: goalSchema.parse(p.goal), signals: p.signals, actionPrefs: p.action_prefs }),
+  );
+
 const ownerLinkShape = z.object({
+  goal: z.unknown().optional(),
+  signals: signalScopeSchema,
+  action_prefs: actionPrefsSchema,
   id: z.number(),
   type: z.enum(['partner', 'spouse']),
   status: z.enum(['invited', 'active']),
@@ -58,6 +97,7 @@ export const ownerCompanionSchema = ownerLinkShape.transform(
     grants: l.grants,
     invite: l.invite ? { expiresAt: l.invite.expires_at, phone: l.invite.phone ?? null } : null,
     family: l.family ? { id: l.family.id, sharedChildIds: l.family.shared_child_ids ?? [] } : null,
+    preferences: { goal: goalSchema.parse(l.goal), signals: l.signals, actionPrefs: l.action_prefs },
   }),
 );
 

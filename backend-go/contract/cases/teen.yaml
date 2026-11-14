@@ -199,6 +199,9 @@ cases:
     doc: A partner invite made before switching to teen mode can no longer be accepted → 422 invite_not_allowed
     locales: [none, en]
     steps:
+      - method: POST  # «ریتمی همراه» is Ritme Plus (plus.companion): the owner starts her trial first
+        path: /api/v1/plus/trial/start
+        status: 200
       - method: POST
         path: /api/v1/companions
         body: {type: partner, phone: "09900000001", grants: {cycle: view}}

@@ -66,6 +66,8 @@
     "cycleSettingsSub": "Cycle, period length and reminders",
     "analysis": "Analysis & reports",
     "analysisSub": "Cycle, symptoms, mood and body",
+    "services": "Services",
+    "servicesSub": "Doctors, shop, insurance and care programs",
     "healthRecord": "My health record",
     "healthRecordSub": "Basics, medicines, vitals and tests",
     "vitals": "Vitals",
@@ -208,6 +210,11 @@
     "empty": {
       "title": "Nothing to set up",
       "body": "No notification categories are active for your account yet."
+    },
+    "sms": {
+      "title": "SMS reminders",
+      "body": "We also text you about medications and doctor visits.",
+      "plus": "Plus"
     }
   },
   "privacy": {
@@ -344,7 +351,6 @@
   },
   "cycleSettings": {
     "title": "Cycle settings",
-    "subtitle": "Predictions and reminders",
     "back": "Back",
     "loading": "Loading cycle settings",
     "yourCycle": "Your cycle",
@@ -550,7 +556,6 @@
   "insurance": {
     "title": "Insurance",
     "back": "Services",
-    "intro": "What your insurance covers, how to file a claim and which documents you need, in one place.",
     "loading": "Loading insurance information",
     "error": "Couldn't load the insurance information.",
     "retry": "Try again",

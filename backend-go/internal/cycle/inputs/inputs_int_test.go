@@ -175,7 +175,8 @@ func TestLoad_EveryInput(t *testing.T) {
 	teenIn, err := inputs.Load(context.Background(), q, teen, today)
 	require.NoError(t, err)
 	assert.Equal(t, engine.Input{
-		Declared:     engine.Declared{LastPeriodStart: engine.Some(day("2026-09-20")), PeriodLength: engine.Some(6)},
+		// No cycle_preferences row = manual: a history median is only a suggestion until she confirms it.
+		Declared:     engine.Declared{LastPeriodStart: engine.Some(day("2026-09-20")), PeriodLength: engine.Some(6), Manual: true},
 		TeenBandOnly: true, Mode: engine.ModeTeen, Hormonal: true,
 	}, teenIn)
 
@@ -184,11 +185,12 @@ func TestLoad_EveryInput(t *testing.T) {
 	assert.Equal(t, engine.ModePregnancy, pregIn.Mode)
 	assert.Equal(t, []engine.PregnancyTest{{Date: day("2026-10-05"), Positive: true}}, pregIn.PregnancyTests)
 
-	for _, uid := range []uint64{bare, 999_999} { // no profile row / no user at all
-		in, err := inputs.Load(context.Background(), q, uid, today)
-		require.NoError(t, err)
-		assert.Equal(t, engine.Input{}, in, uid)
-	}
+	bareIn, err := inputs.Load(context.Background(), q, bare, today) // no profile row: nothing declared, manual default
+	require.NoError(t, err)
+	assert.Equal(t, engine.Input{Declared: engine.Declared{Manual: true}}, bareIn)
+	noneIn, err := inputs.Load(context.Background(), q, 999_999, today) // no user at all
+	require.NoError(t, err)
+	assert.Equal(t, engine.Input{}, noneIn)
 
 	// LoadMany of three users = three Loads, in the same four queries.
 	ids := []uint64{full, teen, pregnant}

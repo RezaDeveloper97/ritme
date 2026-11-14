@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -19,7 +20,7 @@ import (
 // medicationFields are the request keys a medication accepts (anything else is ignored).
 var medicationFields = []string{
 	"title", "dose", "unit", "form", "times", "weekdays", "amount", "duration",
-	"starts_on", "ends_on", "notify", "notes", "is_active",
+	"starts_on", "ends_on", "notify", "notes", "is_active", "frequency", "doses",
 }
 
 // medicationRules validate the full medication (a POST body, or a PUT body merged over
@@ -30,8 +31,8 @@ func medicationRules() validation.Rules {
 		F("title", "required", "string", "max:255"),
 		F("dose", "nullable", "string", "max:50"),
 		F("unit", "nullable", "string", "max:50"),
-		F("form", "required", validation.In(Forms...)),
-		F("times", "required", "array", "min:1", "max:4"),
+		F("form", "required_without:doses", validation.In(Forms...)),
+		F("times", "required_without:doses", "array", "min:1", "max:4"),
 		F("times.*", "required", "date_format:H:i"),
 		F("weekdays", "sometimes", "array", "min:1", "max:7"),
 		F("weekdays.*", "integer", "min:0", "max:6"),
@@ -42,6 +43,15 @@ func medicationRules() validation.Rules {
 		F("notify", "sometimes", "boolean"),
 		F("notes", "nullable", "string", "max:2000"),
 		F("is_active", "sometimes", "boolean"),
+		// The interval schedule: with `doses` the server derives times / weekdays / amount (and form when not sent).
+		F("frequency", "nullable", "array"),
+		F("frequency.every", "sometimes", "integer", "min:1", "max:"+strconv.Itoa(MaxDayInterval)),
+		F("frequency.unit", "sometimes", validation.In(FrequencyUnits...)),
+		F("doses", "nullable", "array", "min:1", "max:"+strconv.Itoa(MaxDoses)),
+		F("doses.*.time", "required", "date_format:H:i"),
+		F("doses.*.amount", "required", "integer", "min:1", "max:99"),
+		F("doses.*.unit", "required", validation.In(DoseUnits...)),
+		F("doses.*.meal", "nullable", validation.In(Meals...)),
 	}
 }
 
@@ -58,6 +68,14 @@ type medicationInput struct {
 // pickMedication copies the known medication keys of in over base (a POST: an empty base;
 // a PUT: the stored medication). Numeric doses/units are taken as their string form.
 func pickMedication(base, in phpval.Map) phpval.Map {
+	// A client that only knows the weekday form sends `times` without `doses`: its edit replaces an interval
+	// schedule instead of being silently overridden by the stored doses.
+	if _, times := in.Get("times"); times {
+		if _, doses := in.Get("doses"); !doses {
+			base.Set("doses", nil)
+			base.Set("frequency", nil)
+		}
+	}
 	for _, k := range medicationFields {
 		v, ok := in.Get(k)
 		if !ok {
@@ -105,6 +123,26 @@ func storedMedication(m Medication) phpval.Map {
 	data.Set("notify", m.Meta.Notify)
 	data.Set("notes", nullString(m.Row.Notes))
 	data.Set("is_active", m.Row.IsActive)
+	if f := m.Meta.Frequency; f != nil {
+		freq := phpval.NewMap()
+		freq.Set("every", int64(f.Every))
+		freq.Set("unit", f.Unit)
+		data.Set("frequency", freq)
+		doses := make([]any, 0, len(m.Meta.Doses))
+		for _, d := range m.Meta.Doses {
+			dm := phpval.NewMap()
+			dm.Set("time", d.Time)
+			dm.Set("amount", int64(d.Amount))
+			dm.Set("unit", d.Unit)
+			if d.Meal != nil {
+				dm.Set("meal", *d.Meal)
+			} else {
+				dm.Set("meal", nil)
+			}
+			doses = append(doses, dm)
+		}
+		data.Set("doses", doses)
+	}
 	return data
 }
 
@@ -143,6 +181,14 @@ func ptrValue(s *string) any {
 
 // validateMedication runs the rules over data and builds the input.
 func validateMedication(locale string, data phpval.Map, now time.Time) (medicationInput, error) {
+	interval := false
+	if d, _ := data.Get("doses"); d != nil {
+		interval = true
+		// Derived from the doses below; whatever came with them is not validated.
+		data.Delete("times")
+		data.Delete("weekdays")
+		data.Delete("amount")
+	}
 	v := validation.Make(lang.Default(), locale, data, medicationRules(),
 		validation.Now(now),
 		validation.Attributes(attributes(locale)...),
@@ -170,8 +216,16 @@ func validateMedication(locale string, data phpval.Map, now time.Time) (medicati
 	}
 	form, _ := get("form")
 	in.Meta.Form = phpval.ToString(form)
+	if interval {
+		if err := intervalSchedule(locale, data, &in.Meta); err != nil {
+			return medicationInput{}, err
+		}
+	}
 
 	times, _ := get("times")
+	if interval {
+		times = nil
+	}
 	_, tv := phpval.Entries(times)
 	for _, t := range tv {
 		s := phpval.ToString(t)
@@ -180,6 +234,9 @@ func validateMedication(locale string, data phpval.Map, now time.Time) (medicati
 		}
 	}
 	slices.Sort(in.Meta.Times)
+	if interval {
+		in.Meta.Times = TimesOf(*in.Meta.Frequency, in.Meta.Doses)
+	}
 
 	in.Meta.Weekdays = slices.Clone(AllWeekdays)
 	if w, ok := get("weekdays"); ok {
@@ -195,6 +252,9 @@ func validateMedication(locale string, data phpval.Map, now time.Time) (medicati
 	}
 	if a, ok := get("amount"); ok {
 		in.Meta.Amount = int(phpval.ToFloat(a))
+	}
+	if interval {
+		in.Meta.Amount = min(in.Meta.Doses[0].Amount, 10) // the older per-intake count, for readers of `amount`
 	}
 	if d, ok := get("duration"); ok {
 		in.Meta.Duration = phpval.ToString(d)
@@ -219,6 +279,53 @@ func validateMedication(locale string, data phpval.Map, now time.Time) (medicati
 		in.EndsOn = &d
 	}
 	return in, nil
+}
+
+// intervalSchedule reads the validated frequency + doses into meta (frequency defaults to every day), checks what
+// the rules cannot — an hourly interval that divides the day, distinct dose times — and derives the form from the
+// first dose's unit when none was sent. Doses are stored sorted by time.
+func intervalSchedule(locale string, data phpval.Map, meta *MedicationMeta) error {
+	f := Frequency{Every: 1, Unit: FrequencyDay}
+	if raw, _ := data.Get("frequency"); raw != nil {
+		if e, ok := phpval.Get(raw, "every"); ok && e != nil {
+			f.Every = int(phpval.ToFloat(e))
+		}
+		if u, ok := phpval.Get(raw, "unit"); ok && u != nil {
+			f.Unit = phpval.ToString(u)
+		}
+	}
+	if f.Unit == FrequencyHour && !slices.Contains(HourIntervals, f.Every) {
+		return fieldError(locale, "frequency.every", T("validation.frequency_hour_interval", locale))
+	}
+	raw, _ := data.Get("doses")
+	_, items := phpval.Entries(raw)
+	doses := make([]DoseSpec, 0, len(items))
+	for i, item := range items {
+		var d DoseSpec
+		if x, ok := phpval.Get(item, "time"); ok {
+			d.Time = phpval.ToString(x)
+		}
+		if x, ok := phpval.Get(item, "amount"); ok {
+			d.Amount = int(phpval.ToFloat(x))
+		}
+		if x, ok := phpval.Get(item, "unit"); ok {
+			d.Unit = phpval.ToString(x)
+		}
+		if x, ok := phpval.Get(item, "meal"); ok && x != nil && phpval.ToString(x) != "" {
+			meal := phpval.ToString(x)
+			d.Meal = &meal
+		}
+		if slices.ContainsFunc(doses, func(o DoseSpec) bool { return o.Time == d.Time }) {
+			return fieldError(locale, "doses."+strconv.Itoa(i)+".time", T("validation.doses_time_distinct", locale))
+		}
+		doses = append(doses, d)
+	}
+	slices.SortStableFunc(doses, func(a, b DoseSpec) int { return strings.Compare(a.Time, b.Time) })
+	meta.Frequency, meta.Doses = &f, doses
+	if meta.Form == "" {
+		meta.Form = FormOfDoseUnit(doses[0].Unit)
+	}
+	return nil
 }
 
 // intakeRules validate an intake body {date, slot}; ticking a future day is refused.

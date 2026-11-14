@@ -229,3 +229,44 @@ func (q *Queries) LatestValidSubscription(ctx context.Context, arg LatestValidSu
 	)
 	return i, err
 }
+
+const listPlusUserIDs = `-- name: ListPlusUserIDs :many
+SELECT s.user_id FROM plus_subscriptions s
+WHERE s.status IN ('active', 'canceled') AND s.starts_at <= ? AND s.ends_at > ?
+UNION
+SELECT t.user_id FROM plus_trials t
+WHERE t.started_at <= ? AND t.ends_at > ?
+`
+
+type ListPlusUserIDsParams struct {
+	Now time.Time
+}
+
+// Every user on Plus right now: a period that covers `now`, or a running trial (the reminder SMS sender's set).
+func (q *Queries) ListPlusUserIDs(ctx context.Context, arg ListPlusUserIDsParams) ([]uint64, error) {
+	rows, err := q.db.QueryContext(ctx, listPlusUserIDs,
+		arg.Now,
+		arg.Now,
+		arg.Now,
+		arg.Now,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uint64{}
+	for rows.Next() {
+		var user_id uint64
+		if err := rows.Scan(&user_id); err != nil {
+			return nil, err
+		}
+		items = append(items, user_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

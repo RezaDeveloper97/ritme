@@ -8,7 +8,7 @@ interface Props {
   params: Promise<{ locale: string }>;
 }
 
-/** `/companion` — companion panel home (B-N4-05, nbl_Hamdam_Home), male accounts. */
+/** `/companion` — «ریتمی همراه» v2 member home (compHome, or compPersonal without a link), male accounts. */
 export default async function CompanionRoute({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);

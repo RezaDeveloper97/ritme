@@ -28,17 +28,22 @@
         </ul>
     </x-ui.section>
 
+    {{-- Directory / shop cards, minus sections switched off in the admin «صفحه‌ها» settings. --}}
+    @php
+        $promoItems = [];
+        if (\Illuminate\Support\Facades\Blade::check('siteSection', 'directory')) {
+            $promoItems[] = ['href' => route('directory.index'), 'tone' => 'lavender', 'icon' => 'map', 'title' => __('services.directory.title'), 'text' => __('services.directory.text'), 'cta' => __('services.directory.cta')];
+        }
+        if (\Illuminate\Support\Facades\Blade::check('siteSection', 'shop')) {
+            $promoItems[] = ['href' => route('shop.index'), 'tone' => 'dashed', 'icon' => 'store', 'title' => __('services.shop.title'), 'text' => __('services.shop.text'), 'cta' => __('services.shop.cta')];
+        }
+    @endphp
+    @if ($promoItems !== [])
     <x-ui.section bg="surface" as="div" class="flex flex-col gap-10">
         {{-- The design keeps the cards' 36px padding on phones; promo-split drops it to 24px (kit), so restore it here. --}}
-        <x-ui.promo-split class="max-sm:[&>a]:p-9" :items="[
-            ['href' => route('directory.index'), 'tone' => 'lavender', 'icon' => 'map', 'title' => __('services.directory.title'), 'text' => __('services.directory.text'), 'cta' => __('services.directory.cta')],
-            ['href' => route('shop.index'), 'tone' => 'dashed', 'icon' => 'store', 'title' => __('services.shop.title'), 'text' => __('services.shop.text'), 'cta' => __('services.shop.cta')],
-        ]"/>
+        <x-ui.promo-split class="max-sm:[&>a]:p-9" :items="$promoItems"/>
     </x-ui.section>
-
-    <x-ui.section pad="none" as="div" class="flex flex-col gap-10 pt-16 pb-24 max-lg:pt-[35.2px] max-lg:pb-[52.8px]">
-        <x-ui.alert-emergency :number="$emergencyNumber">{{ __('services.emergency', ['number' => fa_digits($emergencyNumber)]) }}</x-ui.alert-emergency>
-    </x-ui.section>
+    @endif
 
     <x-ui.app-cta :title="__('services.app_cta.title')" :lead="__('services.app_cta.lead')" :links="$appLinks" :qr-url="$qrUrl"/>
 @endsection

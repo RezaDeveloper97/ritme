@@ -9,6 +9,7 @@ use App\Domain\Settings\Data\ContactSettings;
 use App\Domain\Settings\Data\GeneralSettings;
 use App\Domain\Settings\Data\LegalSettings;
 use App\Domain\Settings\Data\OrganizationSettings;
+use App\Domain\Settings\Data\PagesSettings;
 use App\Domain\Settings\Data\PwaSettings;
 use App\Domain\Settings\Data\SeoDefaults;
 use App\Domain\Settings\Data\SettingsGroupData;
@@ -30,6 +31,7 @@ enum SettingGroup: string
     case Legal = 'legal';
     case Pwa = 'pwa';
     case Shop = 'shop';
+    case Pages = 'pages';
 
     public static function fromName(string $group): self
     {
@@ -51,6 +53,7 @@ enum SettingGroup: string
             self::Legal => LegalSettings::class,
             self::Pwa => PwaSettings::class,
             self::Shop => ShopSettings::class,
+            self::Pages => PagesSettings::class,
         };
     }
 

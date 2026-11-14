@@ -4,7 +4,9 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useId, useState } from 'react';
 
 import { isFertilitySuppressed, useCycleToday } from '@/entities/cycle';
-import { type Locale, useRouter } from '@/shared/i18n';
+import { findEntitlement, usePlusStatus } from '@/entities/plus';
+import { DeviceNotificationsRow } from '@/features/push-notifications';
+import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import {
   EmptyState,
@@ -18,6 +20,7 @@ import {
   SkyLayer,
   Switch,
 } from '@/shared/ui';
+import { PlusBadge } from '@/shared/ui/plus-gate';
 
 import { useNotificationSettings, usePmsReminderDay, useUpdateNotificationSettings } from '../api/settings';
 import { type CategoryCode, displayClock, isClock, type NotificationSettings, type SettingsPatch } from '../model/settings';
@@ -66,6 +69,8 @@ function SettingsBody({ settings, save }: BodyProps) {
   // §2.40: while fertility is suppressed (hormonal contraception, postpartum) there is no fertile window to remind about.
   // The server-side sender still needs to skip it too (follow-up); here the switch just isn't offered.
   const suppressed = isFertilitySuppressed(useCycleToday().data?.cycleView ?? null);
+  // Plus upsell: shown once the entitlement is known (no row yet = status loading/unsupported).
+  const sms = findEntitlement(usePlusStatus().data, 'plus.sms_reminders');
   const editorId = useId();
   const { quietHours: quiet } = settings;
 
@@ -76,6 +81,7 @@ function SettingsBody({ settings, save }: BodyProps) {
 
   return (
     <>
+      <DeviceNotificationsRow />
       {settings.groups.map((group) => (
         <section key={group.code} className="ntf-sec" aria-labelledby={`ntf-g-${group.code}`}>
           <h2 id={`ntf-g-${group.code}`} className="ntf-label">
@@ -168,6 +174,37 @@ function SettingsBody({ settings, save }: BodyProps) {
           ) : null}
         </ListGroup>
       </section>
+
+      {sms ? (
+        sms.allowed ? (
+          <aside className="nb-card ntf-neutral" aria-labelledby="ntf-sms-title">
+            <Icon name="chat" size={18} className="ntf-neutral-icon" />
+            <div className="ntf-neutral-text">
+              <span id="ntf-sms-title" className="ntf-neutral-title">
+                {t('sms.title')}
+              </span>
+              <p id="ntf-sms-desc" className="ntf-neutral-body">
+                {t('sms.body')}
+              </p>
+            </div>
+            <Switch
+              checked={settings.smsReminders}
+              labelledBy="ntf-sms-title"
+              describedBy="ntf-sms-desc"
+              onCheckedChange={(next) => save({ sms_reminders: next })}
+            />
+          </aside>
+        ) : (
+          <Link href="/plus" className="nb-card ntf-neutral ntf-sms-locked">
+            <Icon name="chat" size={18} className="ntf-neutral-icon" />
+            <span className="ntf-neutral-text">
+              <span className="ntf-neutral-title">{t('sms.title')}</span>
+              <span className="ntf-neutral-body">{t('sms.body')}</span>
+            </span>
+            <PlusBadge label={t('sms.plus')} />
+          </Link>
+        )
+      ) : null}
 
       <aside className="nb-card ntf-neutral" aria-labelledby="ntf-neutral-title">
         <Icon name="lock" size={18} className="ntf-neutral-icon" />

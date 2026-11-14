@@ -18,4 +18,7 @@ interface MediaRepository
      * @return array<int, MediaData> keyed by id, missing ids omitted
      */
     public function findMany(array $ids): array;
+
+    /** The media whose stored file has this sha256 content hash (StoreMedia's dedupe key), if any. */
+    public function findByHash(string $hash): ?MediaData;
 }

@@ -69,3 +69,20 @@ func New(d Deps) *Gateway {
 	}
 	return NewGateway(p, base, NewAllowList(returns), d.Logger)
 }
+
+// NewStoreVerifiers builds the configured Android store verifiers (Café Bazaar, Myket). A store without an RSA key
+// is left out; a key that does not parse is logged and left out (store verify then answers 503).
+func NewStoreVerifiers(cfg config.Payment, logger *slog.Logger) StoreVerifiers {
+	out := StoreVerifiers{}
+	for name, sb := range map[string]config.StoreBilling{StoreBazaar: cfg.Bazaar, StoreMyket: cfg.Myket} {
+		v, err := NewStoreVerifier(name, sb.PackageName, sb.RSAPublicKey)
+		if err != nil {
+			logger.Error("payments: store billing key invalid; store billing unavailable", "store", name, "error", err.Error())
+			continue
+		}
+		if v != nil {
+			out[name] = v
+		}
+	}
+	return out
+}

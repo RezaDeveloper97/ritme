@@ -5,11 +5,13 @@ import (
 	"errors"
 	"log/slog"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/family/invites"
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/i18n/lang"
 	"github.com/ritme/backend-go/internal/notifications"
@@ -84,6 +86,9 @@ type HandlerOptions struct {
 	SendGate SendGate
 	// Breaker is the global failed-accept circuit breaker (CMP-M3); nil = none (tests).
 	Breaker AcceptBreaker
+	// InviteGate runs on invite creation once the body is valid, before the invite is made: a non-nil error is the
+	// response (Ritme Plus: 402 plus_required for a partner / spouse invite without plus.companion). nil = no gate.
+	InviteGate func(c fiber.Ctx, t Type) error
 }
 
 // Handlers are the /api/v1/companions actions. Mount them behind the locale middleware and auth RequireUser.
@@ -182,15 +187,17 @@ func (h *Handlers) Store(c fiber.Ctx) error {
 		return unavailable(locale)
 	}
 	body := validation.Input(c)
-	v := validation.Make(lang.Default(), locale, body, validation.Rules{
+	v := validation.Make(lang.Default(), locale, body, append(validation.Rules{
 		validation.F("type", "required", "string", validation.In(typeStrings()...)),
 		validation.F("display_name", "nullable", "string", "max:100"),
 		validation.F("phone", "nullable", "string", "max:20"),
 		validation.F("grants", "nullable", "array"),
 		validation.F("child_ids", "nullable", "array", "max:20"),
 		validation.F("child_ids.*", "integer", "min:1"),
-	}, validation.Now(h.now(c)),
-		validation.Messages("type.in", T("validation.type_invalid", locale)))
+	}, preferenceRules()...), validation.Now(h.now(c)),
+		validation.Messages("type.in", T("validation.type_invalid", locale),
+			"goal.in", T("validation.goal_invalid", locale),
+			"action_prefs.*.in", T("validation.action_prefs_invalid", locale)))
 	if v.Fails() {
 		return failValidation(locale, v.ErrorBag())
 	}
@@ -198,8 +205,21 @@ func (h *Handlers) Store(c fiber.Ctx) error {
 	if in.Grants, err = parseGrants(locale, body, in.Type); err != nil {
 		return err
 	}
+	patch, err := parsePreferences(locale, body)
+	if err != nil {
+		return err
+	}
+	if in.Preferences, err = DefaultPreferences().Apply(patch); err != nil {
+		return mapError(locale, err)
+	}
 	if in.ChildIDs, err = h.childIDs(c, ownerID, body); err != nil {
 		return err
+	}
+	// After the whole body is valid: a malformed request is told what is wrong (422), only a well-formed one 402.
+	if h.opt.InviteGate != nil {
+		if err := h.opt.InviteGate(c, in.Type); err != nil {
+			return err
+		}
 	}
 	svc := h.svc(c)
 	created, err := svc.CreateInvite(c.Context(), ownerID, in)
@@ -448,7 +468,22 @@ func (h *Handlers) Accept(c fiber.Ctx) error {
 		}
 		return err
 	}
-	if err := svc.NotifyOwner(c.Context(), link, NoticeAccepted, i18n.LanguagesOf(c).Codes()); err != nil {
+	langs := i18n.LanguagesOf(c).Codes()
+	if link.Status == StatusAwaitingOwner {
+		// Nothing is shared yet: the owner is asked to confirm (awaiting_owner notice), and the member gets neither the
+		// owner's account id nor her full name before that (L1).
+		if err := svc.Invites().NotifyOwner(c.Context(), invites.Accepted{LinkID: link.ID, OwnerID: link.OwnerID,
+			Status: invites.StatusAwaitingOwner, DisplayName: link.DisplayName}, langs); err != nil {
+			h.logger.ErrorContext(c.Context(), "companion accept notice failed", slog.Uint64("companion_id", link.ID),
+				slog.String("error", err.Error()))
+		}
+		names, err := svc.Names(c.Context(), link.OwnerID)
+		if err != nil {
+			return err
+		}
+		return httpx.OK(c, awaitingLinkJSON(link, names), T("messages.accepted", locale))
+	}
+	if err := svc.NotifyOwner(c.Context(), link, NoticeAccepted, langs); err != nil {
 		// The link is active and audited; the owner's inbox notice is best effort.
 		h.logger.ErrorContext(c.Context(), "companion accept notice failed", slog.Uint64("companion_id", link.ID),
 			slog.String("error", err.Error()))
@@ -605,6 +640,12 @@ func (h *Handlers) sendInvite(c fiber.Ctx, inv CreatedInvite) bool {
 	return true
 }
 
+// SendInviteCode texts an invite code issued outside /companions (POST /family/members, internal/family/invites) with
+// the same adapter, CB-PRIV-01 wording and per-link / per-recipient / per-owner gates; it reports whether it went out.
+func (h *Handlers) SendInviteCode(c fiber.Ctx, ownerID, linkID uint64, phone, code string) bool {
+	return h.sendInvite(c, CreatedInvite{Link: Link{ID: linkID, OwnerID: ownerID}, Code: code, Phone: phone})
+}
+
 func (h *Handlers) childIDs(c fiber.Ctx, ownerID uint64, body phpval.Map) ([]uint64, error) {
 	locale := i18n.Locale(c)
 	raw, _ := body.Get("child_ids")
@@ -686,6 +727,12 @@ func mapError(locale string, err error) error {
 		return fieldError(locale, "display_name", T("validation.name_too_long", locale))
 	case errors.Is(err, ErrInvalidSection), errors.Is(err, ErrInvalidLevel):
 		return fieldError(locale, "grants", T("validation.grants_invalid", locale))
+	case errors.Is(err, ErrInvalidGoal):
+		return fieldError(locale, "goal", T("validation.goal_invalid", locale))
+	case errors.Is(err, ErrInvalidSignal):
+		return fieldError(locale, "signals", T("validation.signal_invalid", locale))
+	case errors.Is(err, ErrInvalidActions):
+		return fieldError(locale, "action_prefs", T("validation.action_prefs_invalid", locale))
 	case errors.Is(err, ErrChildrenNoSpouse):
 		return fieldError(locale, "child_ids", T("messages.children_no_spouse", locale))
 	case errors.Is(err, ErrSelfInvite):
@@ -813,6 +860,9 @@ func ownerLinkJSON(l Link, names map[uint64]string) *jsonx.OrderedMap {
 		"grants", grantsJSON(l.Grants, l.Type),
 		"invite", invite,
 		"family", family,
+		"goal", string(l.Preferences.Goal.orUnknown()),
+		"signals", signalsScopeJSON(l.Preferences.Signals),
+		"action_prefs", actionsJSON(l.Preferences.Actions),
 	)
 }
 
@@ -852,7 +902,23 @@ func companionLinkJSON(l Link, names map[uint64]string) *jsonx.OrderedMap {
 		"grants", effectiveGrantsJSON(l.Grants, l.Type),
 		"can_record_for", recordFor,
 		"family", family,
+		"settings", SettingsJSON(l.Preferences),
 	)
+}
+
+// awaitingLinkJSON is companionLinkJSON for a link waiting for the owner's confirmation: the owner is named by her
+// first name only, without her account id; no grants, no record rights, no family yet.
+func awaitingLinkJSON(l Link, names map[uint64]string) *jsonx.OrderedMap {
+	first := strings.TrimSpace(names[l.OwnerID])
+	if i := strings.IndexAny(first, " \t"); i > 0 {
+		first = first[:i]
+	}
+	l.Grants, l.FamilyID, l.SharedChildIDs = Grants{}, 0, nil
+	l.Preferences = DefaultPreferences() // the owner's settings reach the member only once she confirms
+	out := companionLinkJSON(l, nil)
+	out.Set("owner", jsonx.Obj("id", nil, "name", nullable(first)))
+	out.Set("status", string(l.Status))
+	return out
 }
 
 func inviteJSON(inv CreatedInvite, sent bool) *jsonx.OrderedMap {

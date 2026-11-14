@@ -10,6 +10,10 @@ const dose = (over: Partial<TodayDose> = {}): TodayDose => ({
   form: 'tablet',
   slot: '08:00',
   taken: false,
+  amount: null,
+  unit: null,
+  unitLabel: null,
+  meal: null,
   ...over,
 });
 

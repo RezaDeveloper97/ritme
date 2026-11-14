@@ -107,8 +107,9 @@ describe('upload error mapping', () => {
     new ApiError('x', { response: { status, data, headers: {} }, sentToken: null });
 
   it('maps the AI gate refusals', () => {
-    expect(uploadErrorOf(err(402, { error_code: 'plus_required', reason: 'locked', feature: 'plus.lab_ai' })).kind).toBe('plus');
-    expect(uploadErrorOf(err(429, { error_code: 'plus_quota_exceeded', feature: 'plus.lab_ai', limit: 10 })).denial?.kind).toBe('exhausted');
+    expect(uploadErrorOf(err(402, { error_code: 'ai_subscription_required', feature: 'lab_analysis', extra_credits: 0 })).kind).toBe('gate');
+    expect(uploadErrorOf(err(402, { error_code: 'ai_credits_exhausted', required: 5, balance: 1 })).denial?.kind).toBe('credits');
+    expect(uploadErrorOf(err(403, { error_code: 'ai_feature_disabled' })).kind).toBe('gate');
     expect(uploadErrorOf(err(403, { error_code: 'consent_required', consent: 'ai_lab_analysis', version: 1 })).kind).toBe('consent');
     expect(uploadErrorOf(err(429, { error_code: 'ai_busy', message: 'busy' }))).toMatchObject({ kind: 'busy', message: 'busy' });
     expect(uploadErrorOf(err(503, { error_code: 'lab_busy' })).kind).toBe('unavailable');

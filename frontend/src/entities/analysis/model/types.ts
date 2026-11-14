@@ -235,6 +235,8 @@ export interface HubVitals {
   minDays: number;
   bloodPressure: BloodPressureStats | null;
   bloodSugar: BloodSugarStats | null;
+  /** Heart-rate readings (bpm); null with none in the range. */
+  heartRate: BloodSugarStats | null;
 }
 
 /** `GET /analysis/summary` — the hub (An_Hub). */

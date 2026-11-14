@@ -8,7 +8,9 @@ use App\Domain\Content\Data\LinkData;
 use App\Domain\Content\Enums\StaticPage;
 use App\Domain\Content\SiteNavigation;
 use App\Domain\Content\Support\AllowedHtml;
+use App\Domain\Pwa\Support\PwaIconFiles;
 use App\Domain\Settings\Contracts\SettingsRepository;
+use App\Domain\Settings\Data\EnamadSeal;
 use App\Domain\Settings\Data\SiteSettings;
 use App\Support\Cache\CacheAside;
 use App\Support\Cache\CacheKey;
@@ -21,7 +23,8 @@ use Illuminate\View\Component;
 
 /**
  * <x-layout.footer /> — brand + store badges, five `<nav>` link columns from the StaticPage registry, the enamad
- * trust seal (admin HTML reduced to the allowed tags), the emergency note and socials (empty settings are hidden).
+ * trust seal (enamad's own image when the admin input carries id + Code, else the admin HTML reduced to the allowed
+ * tags), the emergency note and socials (empty settings are hidden).
  *
  * Cached as a `menu` fragment keyed by the `settings` version, the Jalali year and the build hash.
  */
@@ -52,10 +55,12 @@ final class Footer extends Component
             return view('components.layout.footer', [
                 'homeUrl' => $navigation->url(StaticPage::Home),
                 'siteName' => $settings->general->siteName,
+                'logoUrl' => PwaIconFiles::publicUrl(PwaIconFiles::SITE_LOGO),
                 'tagline' => self::tagline($settings),
                 'columns' => $navigation->footer(),
                 'stores' => self::links($settings->appLinks->toArray(), self::STORES),
                 'socials' => self::links($settings->social->toArray(), self::SOCIALS),
+                'enamadSeal' => EnamadSeal::fromSettings($settings->legal),
                 'enamadHtml' => AllowedHtml::clean($settings->legal->enamadHtml, $settings->legal->enamadAllowedTags, 'نماد اعتماد الکترونیکی'),
                 'enamadCode' => $settings->legal->enamadCode,
                 'year' => PersianDigits::toPersian($year),

@@ -53,7 +53,7 @@ export function SuccessView({ status, refId }: SuccessViewProps) {
         </div>
 
         <ListGroup title={t('success.startHere')} className="plus-start">
-          <ListRow icon="chart" iconTone="brand" title={t('success.rows.analysis')} onClick={() => router.push('/cycle')} />
+          <ListRow icon="chart" iconTone="brand" title={t('success.rows.analysis')} onClick={() => router.push('/analysis?tab=history')} />
           <ListRow icon="note" iconTone="data" title={t('success.rows.report')} trailing={soon} />
           <ListRow icon="sparkle" iconTone="bloom" title={t('success.rows.assistant')} trailing={soon} />
         </ListGroup>

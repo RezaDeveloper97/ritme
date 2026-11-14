@@ -9,6 +9,7 @@ import (
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/auth/activity"
 	"github.com/ritme/backend-go/internal/consent"
+	"github.com/ritme/backend-go/internal/family/invites"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 )
@@ -25,6 +26,10 @@ func init() {
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
 		h, guard := m.Handlers, m.Guard.RequireUser
 		h.OnSignup(learningSignupHook(d)) // B-N8-01: pending course grants of the new number become active
+		// T-M11-08 (F-11): open phone invites of the new number bind to the account as pending acceptances.
+		if d.DB != nil {
+			h.OnSignup(invites.NewService(d.DB, nil, invites.Options{Pepper: []byte(d.Config.Companion.CodePepper)}).SignupHook())
+		}
 		// T-M10-32 (A-09): the admin reference code of a new account (no secret outside local/testing = no code).
 		if rc, err := users.NewRefCoder(d.DB, d.Config.App.Env, os.Getenv(users.RefSecretEnv), d.Logger); err == nil {
 			h.OnSignup(rc.SignupHook())

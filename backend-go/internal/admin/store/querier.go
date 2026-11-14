@@ -15,6 +15,17 @@ import (
 type Querier interface {
 	// The admin's live grant for this user (approved and not expired), newest first.
 	ActiveHealthAccess(ctx context.Context, arg ActiveHealthAccessParams) (ActiveHealthAccessRow, error)
+	AdminAiCreditPackCodeTaken(ctx context.Context, arg AdminAiCreditPackCodeTakenParams) (bool, error)
+	AdminAiCreditPackRefs(ctx context.Context, arg AdminAiCreditPackRefsParams) (AdminAiCreditPackRefsRow, error)
+	// ---------------------------------------------------------------------------
+	// A user's credits (read only)
+	AdminAiCreditUserExists(ctx context.Context, id uint64) (bool, error)
+	AdminAiModelCodeTaken(ctx context.Context, arg AdminAiModelCodeTakenParams) (bool, error)
+	AdminAiModelCodes(ctx context.Context) ([]string, error)
+	// The feature slots that point at the model (as primary or fallback).
+	AdminAiModelSlots(ctx context.Context, arg AdminAiModelSlotsParams) ([]string, error)
+	AdminAiModelUpstreamTaken(ctx context.Context, arg AdminAiModelUpstreamTakenParams) (bool, error)
+	AdminAiModelUpstreams(ctx context.Context, provider string) ([]string, error)
 	// ---------------------------------------------------------------------------
 	// Discount codes
 	AdminCountPlusDiscounts(ctx context.Context, arg AdminCountPlusDiscountsParams) (int64, error)
@@ -27,18 +38,42 @@ type Querier interface {
 	// Status filter (resolved in Go): status_a / status_b are the stored statuses to match, ends_after < ends_at <=
 	// ends_until the window ("active" = stored active and ends_at > now; "expired" = active|canceled with ends_at <= now).
 	AdminCountPlusSubscriptions(ctx context.Context, arg AdminCountPlusSubscriptionsParams) (int64, error)
+	AdminCreateAiCreditPack(ctx context.Context, arg AdminCreateAiCreditPackParams) (int64, error)
+	AdminCreateAiModel(ctx context.Context, arg AdminCreateAiModelParams) (int64, error)
 	AdminCreatePlusDiscount(ctx context.Context, arg AdminCreatePlusDiscountParams) (int64, error)
 	AdminCreatePlusPlan(ctx context.Context, arg AdminCreatePlusPlanParams) (int64, error)
+	AdminDeactivateAiCreditPack(ctx context.Context, arg AdminDeactivateAiCreditPackParams) error
 	AdminDeactivatePlusDiscount(ctx context.Context, arg AdminDeactivatePlusDiscountParams) error
 	AdminDeactivatePlusPlan(ctx context.Context, arg AdminDeactivatePlusPlanParams) error
+	// Deletes only while no invoice references the pack (invoices keep credit_pack_id for the history).
+	AdminDeleteUnusedAiCreditPack(ctx context.Context, id uint64) (int64, error)
+	// Deletes only while no feature slot points at the model.
+	AdminDeleteUnusedAiModel(ctx context.Context, id uint64) (int64, error)
 	AdminDeleteUnusedPlusDiscount(ctx context.Context, id uint64) (int64, error)
 	// Deletes only while nothing references the plan (invoices / subscriptions keep plan_id for the history).
 	AdminDeleteUnusedPlusPlan(ctx context.Context, id uint64) (int64, error)
 	// unique:admins,email (->ignore($admin) when except_id > 0).
 	AdminEmailTaken(ctx context.Context, arg AdminEmailTakenParams) (bool, error)
+	AdminGetAiCreditPack(ctx context.Context, id uint64) (AiCreditPack, error)
+	AdminGetAiFeature(ctx context.Context, id uint64) (AiFeature, error)
+	AdminGetAiModel(ctx context.Context, id uint64) (AiModel, error)
 	AdminGetPlusDiscount(ctx context.Context, id uint64) (PlusDiscountCode, error)
 	AdminGetPlusInvoice(ctx context.Context, id uint64) (AdminGetPlusInvoiceRow, error)
 	AdminGetPlusPlan(ctx context.Context, id uint64) (PlusPlan, error)
+	// The gateway sync: a model the catalogue does not know yet, inactive until the admin prices it.
+	AdminInsertAiModelIfMissing(ctx context.Context, arg AdminInsertAiModelIfMissingParams) (int64, error)
+	// ---------------------------------------------------------------------------
+	// Credit packs
+	AdminListAiCreditPacks(ctx context.Context) ([]AdminListAiCreditPacksRow, error)
+	// ---------------------------------------------------------------------------
+	// Feature slots
+	AdminListAiFeatures(ctx context.Context) ([]AiFeature, error)
+	// Admin «اعتبار هوش مصنوعی» module (goose 00125, docs/ai-credits.md, admin-api.md §29): the model catalogue
+	// (ai_models), the feature slots (ai_features), the credit packs (ai_credit_packs) and a user's credits (read only —
+	// every credit write goes through internal/ai/credits.Service). Admin-only: nothing here is reachable from /api/v1.
+	// ---------------------------------------------------------------------------
+	// Models
+	AdminListAiModels(ctx context.Context) ([]AdminListAiModelsRow, error)
 	AdminListPlusDiscounts(ctx context.Context, arg AdminListPlusDiscountsParams) ([]AdminListPlusDiscountsRow, error)
 	AdminListPlusInvoices(ctx context.Context, arg AdminListPlusInvoicesParams) ([]AdminListPlusInvoicesRow, error)
 	// Admin «اشتراک‌ها و پرداخت» module (B-N2-09): plans, discount codes, subscriptions, the payment log, refunds,
@@ -51,6 +86,7 @@ type Querier interface {
 	AdminLockPlusInvoice(ctx context.Context, id uint64) (PlusInvoice, error)
 	AdminLockPlusSubscription(ctx context.Context, id uint64) (PlusSubscription, error)
 	AdminMarkPlusInvoiceRefunded(ctx context.Context, arg AdminMarkPlusInvoiceRefundedParams) (int64, error)
+	AdminNextAiCreditPackSortOrder(ctx context.Context) (int64, error)
 	AdminNextPlusPlanSortOrder(ctx context.Context) (int64, error)
 	AdminPlusDiscountCodeTaken(ctx context.Context, arg AdminPlusDiscountCodeTakenParams) (bool, error)
 	AdminPlusDiscountUses(ctx context.Context, arg AdminPlusDiscountUsesParams) (AdminPlusDiscountUsesRow, error)
@@ -67,8 +103,18 @@ type Querier interface {
 	// An extension pushes the user's queued periods (starting at or after the extended period's old end) back by the
 	// same number of days, so periods never overlap.
 	AdminShiftQueuedPlusSubscriptions(ctx context.Context, arg AdminShiftQueuedPlusSubscriptionsParams) (int64, error)
+	AdminUpdateAiCreditPack(ctx context.Context, arg AdminUpdateAiCreditPackParams) error
+	AdminUpdateAiFeature(ctx context.Context, arg AdminUpdateAiFeatureParams) error
+	AdminUpdateAiModel(ctx context.Context, arg AdminUpdateAiModelParams) error
 	AdminUpdatePlusDiscount(ctx context.Context, arg AdminUpdatePlusDiscountParams) error
 	AdminUpdatePlusPlan(ctx context.Context, arg AdminUpdatePlusPlanParams) error
+	// ---------------------------------------------------------------------------
+	// Settings
+	AdminUpsertPlusSetting(ctx context.Context, arg AdminUpsertPlusSettingParams) error
+	AdminUserAiCreditAdjustments(ctx context.Context, userID sql.NullInt64) ([]AdminUserAiCreditAdjustmentsRow, error)
+	// Every bucket of the user, newest first, with the period that bounds a plan / trial bucket.
+	AdminUserAiCreditGrants(ctx context.Context, userID uint64) ([]AdminUserAiCreditGrantsRow, error)
+	AdminUserAiCreditSpends(ctx context.Context, userID uint64) ([]AdminUserAiCreditSpendsRow, error)
 	AnyDefaultLanguage(ctx context.Context) (bool, error)
 	ApproveLearningInstructor(ctx context.Context, arg ApproveLearningInstructorParams) error
 	// unique:articles,slug (->ignore($article) when except_id > 0).

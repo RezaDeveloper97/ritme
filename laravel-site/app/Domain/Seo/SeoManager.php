@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Seo;
 
+use App\Domain\Content\Enums\SiteSection;
 use App\Domain\Seo\Contracts\OgImageResolver;
 use App\Domain\Seo\Contracts\SeoMetaRepository;
 use App\Domain\Seo\Data\PageContext;
@@ -307,7 +308,7 @@ final class SeoManager
             }
         }
 
-        $feeds = $this->router->has(self::FEED_ROUTE)
+        $feeds = $this->router->has(self::FEED_ROUTE) && $site->pages->enabled(SiteSection::Blog)
             ? [['href' => $this->url->route(self::FEED_ROUTE), 'title' => 'مجله '.$site->general->siteName]]
             : [];
 

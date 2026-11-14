@@ -14,7 +14,6 @@ import (
 	"github.com/ritme/backend-go/internal/labs/files"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/queue"
-	"github.com/ritme/backend-go/internal/plus"
 )
 
 // Lab analysis «تحلیل آزمایش» (bloom B-N6-06, internal/labs, D-61), Go only — no Laravel route. All auth:api,
@@ -30,8 +29,7 @@ func init() {
 		languages := i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger)
 		locale := i18n.Middleware(languages)
 		writes := writeThrottle(d)
-		plusSvc := plus.NewService(d.DB, d.Config.Plus, nil, d.Logger) // entitlements, counters, refunds
-		platform := newAIPlatform(d, plus.NewGate(plusSvc, clock.Real{}), plusSvc, nil)
+		platform := newAIPlatform(d, nil)
 
 		disabled := d.Config.LabFiles.Missing(d.Config.App)
 		if disabled {
@@ -46,7 +44,7 @@ func init() {
 			Files:    box,
 			AI:       platform.client,
 			Consents: consent.NewService(d.DB),
-			Plus:     plusSvc,
+			Credits:  platform.credits,
 			Catalog:  catalog.NewReader(catalogstore.New(d.DB), d.Cache, 0, d.Logger),
 			Logger:   d.Logger,
 			Cycle:    engineStates(r, d),

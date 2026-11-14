@@ -3,6 +3,7 @@ module github.com/ritme/backend-go
 go 1.25.0
 
 require (
+	github.com/SherClockHolmes/webpush-go v1.4.0
 	github.com/alicebob/miniredis/v2 v2.39.0
 	github.com/andybalholm/brotli v1.2.3
 	github.com/gen2brain/webp v0.6.4

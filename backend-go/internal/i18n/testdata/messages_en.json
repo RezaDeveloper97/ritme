@@ -38,9 +38,52 @@
     }
    }
   },
+  "ai-credit": {
+   "unit": "{count, plural, one {# credit} other {# credits}}",
+   "meter": {
+    "label": "This period's credits",
+    "of": "{remaining} of {total}",
+    "spoken": "{remaining} of {total} credits left",
+    "renews": "Yours until {date}"
+   },
+   "card": {
+    "title": "Smart credits",
+    "left": "{count} credits left",
+    "noSubscription": "A subscription is needed for the smart features",
+    "locked": "{count} extra credits are kept for you",
+    "action": "Credit usage"
+   }
+  },
+  "ai-gate": {
+   "later": "Not now",
+   "subscription": {
+    "title": "A subscription is needed",
+    "body": "The assistant and the smart tools need an active subscription.",
+    "kept": "Your {count} extra credits are kept and work again with a subscription.",
+    "cta": "See subscriptions"
+   },
+   "credits": {
+    "title": "You're out of credits",
+    "need": "This needs {required} credits and you have {balance}.",
+    "renews": "Your current subscription runs until {date}; your next one comes with fresh credits.",
+    "cta": "Buy credits",
+    "plans": "See subscriptions"
+   },
+   "disabled": {
+    "title": "Not available right now",
+    "body": "This isn't available at the moment. Please try again a bit later.",
+    "close": "OK"
+   },
+   "locked": {
+    "subscription": "This needs a subscription.",
+    "credits": "You don't have enough credits for this.",
+    "disabled": "This isn't available right now.",
+    "cost": "({cost} credits)",
+    "button": "Why?"
+   }
+  },
   "alerts": {
    "title": "Alerts & messages",
-   "subtitle": "Everything Ritme has noticed in your own logs, in one place.",
    "back": "Back",
    "settings": "Reminder settings",
    "loading": "Loading…",
@@ -72,7 +115,9 @@
     "visitNote": "Add to visit note",
     "visitNoteDone": "Added to your visit note",
     "dismiss": "Close",
-    "call": "Call {contact}"
+    "call": "Call {contact}",
+    "markRead": "Mark as read",
+    "read": "Read"
    },
    "bell": {
     "open": "Alerts: {count, number} open",
@@ -274,12 +319,13 @@
      "notReadyLogs": "Log your weight {n} more times in these two weeks to see the trend."
     },
     "vitals": {
-     "title": "Blood pressure & sugar",
+     "title": "Vital signs",
      "bp": "Pressure (average)",
      "sugar": "Fasting sugar",
+     "hr": "Heart rate",
      "none": "—",
-     "notReady": "Log your blood pressure or sugar to see the average here.",
-     "notReadyMin": "Log your blood pressure or sugar at least {readings} times on {days} different days to see a summary.",
+     "notReady": "Log your blood pressure, sugar or heart rate to see the average here.",
+     "notReadyMin": "Log your blood pressure, sugar or heart rate at least {readings} times on {days} different days to see a summary.",
      "range": "{min} to {max}"
     },
     "labs": {
@@ -291,6 +337,11 @@
      "body": "Weight, blood pressure and baby movement trends during pregnancy will appear here soon.",
      "cta": "Go to pregnancy"
     }
+   },
+   "tabs": {
+    "label": "Analysis or history",
+    "analysis": "Analysis",
+    "history": "History"
    },
    "detail": {
     "back": "Back to analysis",
@@ -997,7 +1048,6 @@
   "articles": {
    "title": "Articles",
    "back": "Back",
-   "subtitle": "Educational reads about your cycle, body and health",
    "searchPlaceholder": "Search articles",
    "clearSearch": "Clear search",
    "allCategories": "All",
@@ -1054,8 +1104,6 @@
     "subtitle": "Smart guidance · no medical diagnosis",
     "greeting": "Hi, how can I help today?",
     "placeholder": "e.g. “the spots on my face got darker after pregnancy”",
-    "quota": "{remaining, number} of {limit, number} free chats left this month",
-    "quotaSpent": "This month's free chats are used up; go unlimited with Plus",
     "plus": "Ritme Plus",
     "knows": "The assistant uses your profile",
     "knowsNone": "The assistant knows nothing from your profile for now; turn sharing on whenever you like.",
@@ -1065,7 +1113,9 @@
     "all": "All",
     "emptyTitle": "No chats yet",
     "emptyBody": "Pick a department or type your question.",
-    "urgent": "Is it an emergency?"
+    "urgent": "Is it an emergency?",
+    "noSubscription": "The assistant needs a subscription",
+    "credits": "Credit usage"
    },
    "emergency": {
     "title": "This may be an emergency",
@@ -1121,11 +1171,6 @@
     "storage_unavailable": "Photos cannot be stored right now. Please try again later.",
     "photo_type": "Only JPG, PNG or WebP photos are accepted.",
     "photo_too_large": "The photo must be smaller than 5 MB."
-   },
-   "paywall": {
-    "locked": "This opens with Ritme Plus.",
-    "quota": "This month's free chats ({limit}) are used up. Ask without limits with Ritme Plus.",
-    "cta": "See Ritme Plus"
    },
    "consent": {
     "accept": "I agree, continue"
@@ -1337,8 +1382,6 @@
     "todayPump": "pump {ml} ml",
     "todayNone": "No feeds logged yet",
     "finish": "Finish and save",
-    "hintBreast": "Tap a side to start.",
-    "hintTimer": "Tap “Start timer” to begin.",
     "discard": "Cancel this feed"
    },
    "manual": {
@@ -1416,7 +1459,6 @@
   },
   "calendar": {
    "title": "Calendar",
-   "subtitle": "See your cycle days and predictions here.",
    "soon": "This section is coming soon.",
    "fullMonth": "Full month",
    "weekView": "Week",
@@ -1477,8 +1519,7 @@
     "title": "This day's log",
     "count": "{count, plural, one {# entry logged} other {# entries logged}}",
     "edit": "Edit",
-    "emptyTitle": "Nothing logged for this day",
-    "emptySubtitle": "Log symptoms, mood and more for {date}."
+    "emptyTitle": "Nothing logged for this day"
    },
    "smartTip": {
     "title": "Smart tip",
@@ -1534,6 +1575,10 @@
     "emptyBody": "Log your first period and the calendar will predict period days, the fertile window and PMS.",
     "analysis": "Analysis",
     "history": "History"
+   },
+   "dayVitals": {
+    "title": "This day's vital signs",
+    "open": "All"
    }
   },
   "care": {
@@ -1592,7 +1637,18 @@
     "confirmDelete": "Delete this reminder?",
     "nameWithDose": "{title} {dose}",
     "add": "Add a medication or supplement",
-    "daysPerWeekCount": "{count, plural, one {{days} day} other {{days} days}} a week"
+    "daysPerWeekCount": "{count, plural, one {{days} day} other {{days} days}} a week",
+    "rowMetaSimple": "{schedule} · {time} · {dose}",
+    "nextDose": "Next: {when}",
+    "paused": "Paused",
+    "edit": "Edit",
+    "editLabel": "Edit reminder {title}",
+    "in": {
+     "now": "right now",
+     "minutes": "in {n} min",
+     "hours": "in {n} hrs",
+     "days": "in {n} days"
+    }
    },
    "appointments": {
     "title": "Appointments & consultations",
@@ -1626,12 +1682,8 @@
    "medicationForm": {
     "title": "Add medication",
     "editTitle": "Edit medication",
-    "subtitle": "Dose reminder",
     "name": "Medication or supplement name",
     "namePlaceholder": "e.g. Folic acid",
-    "dose": "Dose",
-    "unit": "Unit",
-    "form": "Form",
     "forms": {
      "tablet": "Tablet",
      "capsule": "Capsule",
@@ -1639,34 +1691,9 @@
      "injection": "Injection",
      "drops": "Drops"
     },
-    "units": {
-     "mg": "mg",
-     "mcg": "mcg",
-     "ml": "ml",
-     "iu": "IU",
-     "drop": "drop"
-    },
-    "timesPerDay": "How many times a day?",
-    "timesOption": "{count}×",
-    "slotTimes": "Dose times",
-    "slotLabel": "Dose {n}",
-    "weekdays": "Days of the week",
-    "weekdayShort": [
-     "Sa",
-     "Su",
-     "Mo",
-     "Tu",
-     "We",
-     "Th",
-     "Fr"
-    ],
-    "everyDay": "Every day",
-    "amount": "Amount per dose",
-    "decrease": "Less",
-    "increase": "More",
-    "startsOn": "Starting",
+    "startsOn": "Start date",
     "todayWithDate": "Today · {date}",
-    "pickDate": "Pick a date",
+    "pickDate": "Select a date",
     "duration": "Duration",
     "durations": {
      "ongoing": "No end date",
@@ -1679,16 +1706,12 @@
     "notifyHint": "At each dose time",
     "notes": "Note",
     "notesPlaceholder": "e.g. after meals",
-    "save": "Save reminder",
     "saving": "Saving…",
     "pickTime": "Pick a time",
     "hour": "Hour",
     "minute": "Minute",
     "done": "Done",
     "cancel": "Cancel",
-    "daysPerWeek": "{count, plural, one {# day} other {# days}} a week",
-    "noDays": "No days selected",
-    "amountValue": "{amount} {form}",
     "untilDate": "Until {date}",
     "delete": "Delete",
     "deleteTitle": "Delete this reminder?",
@@ -1700,13 +1723,39 @@
      "titleRequired": "Enter the medication name.",
      "tooLong": "This text is too long.",
      "timesDuplicate": "Two doses have the same time.",
-     "timesInvalid": "The dose times are not valid.",
-     "weekdaysRequired": "Pick at least one day.",
-     "amountRange": "Amount must be between 1 and 10.",
+     "timesInvalid": "Pick the dose time.",
+     "amountRange": "Pick the dose amount (1 to 99).",
      "dateInvalid": "The date is not valid.",
      "endsOnRequired": "Pick an end date.",
-     "endsOnBeforeStart": "The end date can't be before the start."
-    }
+     "endsOnBeforeStart": "The end date can't be before the start.",
+     "doseRequired": "Add at least one complete dose.",
+     "frequencyInvalid": "The frequency is not valid.",
+     "dosesRange": "You can add up to 6 doses."
+    },
+    "sectionInfo": "Medication",
+    "sectionSchedule": "Schedule",
+    "sectionDose": "Dose",
+    "sectionMore": "More options",
+    "frequency": "Frequency",
+    "frequencyPlaceholder": "Select frequency",
+    "frequencyEvery": "Every",
+    "frequencyUnits": {
+     "day": "day",
+     "hour": "hour"
+    },
+    "dose": "Dose amount",
+    "dosePlaceholder": "Select amount",
+    "time": "Time",
+    "firstDose": "First dose",
+    "timePlaceholder": "Select time",
+    "doseBlock": "Dose {n}",
+    "removeDose": "Remove dose {n}",
+    "addDose": "+ Add another dose",
+    "maxDoses": "Up to 6 doses",
+    "mealGroup": "Relation to meals",
+    "create": "Create reminder",
+    "saveChanges": "Save changes",
+    "saveChoice": "Save"
    },
    "appointmentForm": {
     "title": "Add appointment",
@@ -1802,7 +1851,26 @@
     "descriptionWith": "With {with}"
    },
    "notificationSettings": "Notification settings",
-   "listSeparator": ", "
+   "listSeparator": ", ",
+   "doseUnits": {
+    "pill": "pill",
+    "capsule": "capsule",
+    "drop": "drop",
+    "ml": "ml",
+    "spoon": "spoon",
+    "puff": "puff",
+    "injection": "injection"
+   },
+   "meals": {
+    "before": "Before meals",
+    "after": "After meals"
+   },
+   "frequencySummary": {
+    "day": "Every day",
+    "days": "Every {n} days",
+    "hours": "Every {n} hours"
+   },
+   "doseLine": "{amount} × {unit}"
   },
   "challenge": {
    "title": "Today's challenge",
@@ -1815,8 +1883,7 @@
    },
    "listTitle": "Today's challenges",
    "progress": "{done} of {total}",
-   "progressLabel": "Today's challenge progress",
-   "footer": "A few small things each day, matched to your cycle phase."
+   "progressLabel": "Today's challenge progress"
   },
   "checkups": {
    "title": "Periodic checkups",
@@ -1917,7 +1984,6 @@
    },
    "markDone": {
     "title": "I did my {title}",
-    "subtitle": "Log the details so the next due date can be worked out",
     "editTitle": "Edit {title}",
     "date": "Date done",
     "result": "Result",
@@ -2403,7 +2469,6 @@
    },
    "place": {
     "mapTitle": "Location on the map",
-    "mapHint": "Where mothers should come",
     "mapDrag": "Move the map so the entrance is in view, then tap the button.",
     "setPin": "Pin the entrance here",
     "pinSet": "Pin set",
@@ -3000,131 +3065,279 @@
    }
   },
   "companion-home": {
-   "greeting": "Hi {name}",
-   "greetingNoName": "Hi",
-   "companionOf": "{name}'s companion",
    "someone": "your partner",
-   "partners": "Partners",
-   "loading": "Loading the companion panel",
+   "partners": "People you support",
+   "loading": "Loading…",
+   "companionOfLabel": "Supporting",
    "error": {
-    "title": "Couldn't load the companion panel",
+    "title": "This page didn't load",
     "body": "Check your connection and try again.",
     "retry": "Try again"
    },
-   "cycle": {
-    "overline": "{name}'s cycle · today",
-    "day": "Day {day} of {length}",
-    "dayOnly": "Day {day}",
-    "phase": "{phase} phase",
-    "nextPeriod": "Next period in about {days, plural, =0 {today} one {# day} other {# days}}",
-    "noData": "{name} hasn't logged a cycle in Ritme yet.",
-    "bar": {
-     "period": "Period",
-     "fertile": "Fertile",
-     "luteal": "Luteal"
+   "about": {
+    "open": "About being a companion",
+    "title": "About being a companion",
+    "sees": "You only see what {name} chose to share — never her cycle history, private notes or the details of what she logs.",
+    "words": "Everything is written in probabilistic words, because everyone's experience is different. The best way to know how she feels is to ask her.",
+    "control": "{name} can change what you see or end the link at any time."
+   },
+   "status": {
+    "label": "Today, in general",
+    "menstrual": {
+     "main": "She's probably on her period these days.",
+     "sub": "Her body may want more rest and calm, but everyone's experience is different."
     },
-    "barLabel": "Day {day} of a {length}-day cycle"
+    "follicular": {
+     "main": "She's probably in the first half of her cycle.",
+     "sub": "For many people these days feel a little lighter, but everyone's experience is different."
+    },
+    "fertile": {
+     "main": "She's probably in the middle of her cycle.",
+     "sub": "Like any other day, it's different for everyone — asking beats guessing."
+    },
+    "luteal": {
+     "main": "She's probably in the second half of her cycle.",
+     "sub": "She may feel a bit more tired or want more rest these days, but everyone's experience is different."
+    },
+    "pregnancy": {
+     "main": "She's pregnant.",
+     "sub": "Every day of a pregnancy can feel different — the best way to know is to ask her."
+    },
+    "general": {
+     "main": "Nothing about her cycle is shared today.",
+     "sub": "No need to guess — a kind question is enough."
+    },
+    "signals": {
+     "pain": "She may be feeling some discomfort or pain today.",
+     "energy": "Her energy may be lower today.",
+     "sleep": "She may not have slept well last night.",
+     "mood": "She may want a calmer space today."
+    }
    },
-   "pregnancy": {
-    "overline": "{name}'s pregnancy",
-    "week": "Week {week}",
-    "trimester": "Trimester {n}"
+   "help": {
+    "title": "How could you help today?",
+    "menstrual": {
+     "a": "If you have a moment, kindly ask how she's doing.",
+     "b": "If she'd like, make her a warm drink.",
+     "c": "If she's tired, take on part of today's chores."
+    },
+    "follicular": {
+     "a": "A short, kind message during the day can brighten it.",
+     "b": "If she'd like, plan something small together.",
+     "c": "Ask about her day and just listen."
+    },
+    "fertile": {
+     "a": "Kindly ask what would make today better for her.",
+     "b": "Something small, like making a drink, can help.",
+     "c": "You don't have to fix anything — sometimes listening is enough."
+    },
+    "luteal": {
+     "a": "If you have a moment, kindly ask how she's doing.",
+     "b": "Something small, like making a drink, can help.",
+     "c": "You don't have to fix anything — sometimes listening is enough."
+    },
+    "pregnancy": {
+     "a": "Ask what would make today easier for her.",
+     "b": "If she'd like, prepare a snack or a drink.",
+     "c": "Share the everyday tasks without waiting to be asked."
+    },
+    "general": {
+     "a": "If you have a moment, kindly ask how she's doing.",
+     "b": "Something small, like making a drink, can help.",
+     "c": "You don't have to fix anything — sometimes listening is enough."
+    }
    },
-   "phases": {
-    "menstrual": "Period",
-    "follicular": "Follicular",
-    "fertile": "Fertile",
-    "luteal": "Luteal",
-    "pregnancy": "Pregnancy",
-    "general": "Companion"
+   "actions": {
+    "homeTitle": "Ideas for today",
+    "all": "All",
+    "title": "Ways to support",
+    "back": "Back",
+    "mute": "Mute suggestions",
+    "note": "These are ideas, not tasks. You can mute suggestions whenever you like.",
+    "mutedStatus": "Suggestions on your Today page are muted. Tap the bell above to turn them back on.",
+    "mutedNote": "Suggestions are muted · Manage",
+    "categories": {
+     "calm": "Closeness & calm",
+     "food": "Food & drinks",
+     "help": "Practical help",
+     "gift": "Attention & small gifts",
+     "time": "Time together"
+    },
+    "cards": {
+     "listen": {
+      "title": "Listen without judging",
+      "desc": "If she wants to talk, just be there and listen."
+     },
+     "askSpace": {
+      "title": "Ask, don't push",
+      "desc": "“Would you like me close, or a bit of space?”"
+     },
+     "hug": {
+      "title": "A simple hug",
+      "desc": "If she's up for it, a calm hug."
+     },
+     "warmDrink": {
+      "title": "A warm drink",
+      "desc": "If you like, a tea or her favourite drink."
+     },
+     "snack": {
+      "title": "A snack",
+      "desc": "Something simple she enjoys."
+     },
+     "chores": {
+      "title": "Lighten the load",
+      "desc": "Take on part of the everyday chores."
+     },
+     "errands": {
+      "title": "Daily shopping",
+      "desc": "If needed, do the shopping or errands."
+     },
+     "quiet": {
+      "title": "A quiet space",
+      "desc": "If she's tired, make room for some quiet and rest."
+     },
+     "smallGesture": {
+      "title": "A kind gesture",
+      "desc": "If you like, something small and unexpected — no need to buy anything."
+     },
+     "note": {
+      "title": "A kind message",
+      "desc": "A short note or text."
+     },
+     "walk": {
+      "title": "A short walk",
+      "desc": "If she feels like it, a slow walk together."
+     },
+     "calmEvening": {
+      "title": "Time for two",
+      "desc": "Something calm and short."
+     }
+    }
    },
-   "generalOverline": "Today",
+   "learn": {
+    "homeTitle": "Learn a little more",
+    "title": "Learn",
+    "back": "Back",
+    "heading": "Better support, with a little knowledge",
+    "sub": "Short, simple reads — no medical or definitive language.",
+    "disclaimer": "These notes are general and educational and don't replace advice from a professional.",
+    "myths": {
+     "title": "Common myths about periods and mood",
+     "body": "Not every change in how someone feels is “because of her period”; pinning a person's behaviour on her cycle is neither accurate nor respectful. Her feelings are as real as anyone else's. Everyone's experience is their own."
+    },
+    "topics": {
+     "cycle": {
+      "short": "The cycle, simply",
+      "long": "The menstrual cycle, simply",
+      "body": "The menstrual cycle is a natural, repeating process that usually lasts a few weeks and has several phases. Its length, and how each phase feels, varies from person to person and even month to month. Ritme only shows a general, probabilistic picture of the phase, never a certain prediction. The best source on how she feels is her."
+     },
+     "support": {
+      "short": "Support without judging",
+      "long": "How to support without judging",
+      "body": "Supporting someone means being there without shrinking or inflating what they feel. Lines like “it must be your period” don't help and can hurt. Instead of guessing, ask what would help and respect the answer. Sometimes knowing you're there is enough."
+     },
+     "space": {
+      "short": "Ask or give space?",
+      "long": "When to ask, when to give space",
+      "body": "Nobody wants to talk all the time, and that's completely normal. A simple “Would you like to talk, or have some time alone?” lets her choose. If she wants space, stepping back gently is support too. Check in again later, without pushing."
+     },
+     "empathy": {
+      "short": "Empathy or solutions?",
+      "long": "Empathy vs. offering solutions",
+      "body": "When someone shares something hard, they often want to be heard first, not handed a fix. Empathy is saying “that sounds hard” and letting them finish. If you're unsure, ask: “Do you want me to just listen, or think it through together?” Solutions help when she asks for them."
+     }
+    }
+   },
+   "personal": {
+    "hello": "Hi {name} 👋",
+    "helloNoName": "Hi 👋",
+    "sub": "Let's learn something new about being a good companion today.",
+    "bannerTitle": "Have a companion code?",
+    "bannerSub": "If someone close to you invited you, connect here.",
+    "forYou": "For you",
+    "tipLabel": "Today's tip:",
+    "tips": {
+     "listen": "You don't always have to “fix” things — sometimes simply listening is the best support.",
+     "ask": "Ask instead of guessing; a kind question beats any assumption.",
+     "small": "Small, steady gestures often mean more than one big one.",
+     "space": "Sometimes support means giving space; respecting “not now” is care too.",
+     "notice": "Notice the small things that lift the people close to you, and remember them.",
+     "together": "A simple shared plan, even a short one, can lift you both.",
+     "patience": "Every day is different from the last; be patient with yourself and others."
+    }
+   },
    "shared": {
-    "title": "{name} shares with you",
+    "title": "What {name} shares with you",
     "meds": "{name}'s medications",
     "appointments": "{name}'s appointments",
-    "cycle": "Period & cycle",
-    "pregnancy": "Pregnancy",
-    "aboveCard": "The card above",
-    "nothingYet": "Nothing to show right now",
-    "symptoms": "Symptoms & daily mood",
-    "symptomDays": "{days, plural, =0 {Nothing logged this week} one {# day logged this week} other {# days logged this week}}",
     "noMeds": "No active medication",
     "noAppointments": "No upcoming appointment",
     "line": "{title} · {when}",
     "more": "{title} and {count, plural, one {# more} other {# more}}",
     "view": "View only",
-    "edit": "Can edit",
-    "notShared": "{items} not shared with you.",
-    "nothing": "{name} hasn't shared anything with you yet. She can grant access from her companions screen whenever she wants.",
-    "sections": {
-     "cycle": "Cycle",
-     "symptoms": "Symptoms & daily mood",
-     "meds": "Medications",
-     "appointments": "Appointments",
-     "pregnancy": "Pregnancy"
-    },
+    "edit": "Edit",
     "addMed": "Add a medication for {name}",
     "addAppointment": "Add an appointment for {name}"
    },
-   "tips": {
-    "title": "What can you do today?",
-    "done": "Done",
-    "doneOn": "Done"
-   },
-   "articles": {
-    "title": "To read",
-    "all": "All",
-    "readTime": "Article · {minutes, plural, one {# min} other {# min}}",
-    "article": "Article"
-   },
-   "child": {
-    "title": "Child",
-    "soon": "Child profile coming soon",
-    "soonSub": "When a child profile is created and shared with you, you'll see it here."
-   },
-   "empty": {
-    "title": "You are not connected to anyone yet",
-    "body": "Enter the companion code you were sent to see what she shares with you.",
-    "action": "Enter the companion code"
-   },
    "code": {
     "label": "6-character companion code",
-    "hint": "Your partner sends you the 6-character code from the \"Invite a companion\" screen.",
+    "hint": "The person who invited you sends you the 6-character code.",
     "connect": "Connect",
-    "connecting": "Connecting…",
-    "success": "You're connected to {name}.",
-    "successNoName": "You're connected.",
+    "connecting": "Checking…",
     "errors": {
-     "invalid": "This code is not valid or has expired. Ask your partner for a new code.",
+     "invalid": "This code isn't right or has expired. Ask for a new one.",
      "throttled": "Too many tries in a row. Please try again in a little while.",
-     "generic": "Could not connect. Please try again."
+     "generic": "Couldn't connect. Please try again."
+    }
+   },
+   "join": {
+    "title": "Enter your code",
+    "sub": "Type the code you were sent so you can support her better.",
+    "fieldLabel": "Invite code",
+    "validity": "An invite code is valid for 24 hours after it is created.",
+    "confirm": {
+     "title": "You're joining {name}'s cycle",
+     "titleNoName": "You're joining your partner's cycle",
+     "sub": "She has decided to share part of her experience with you.",
+     "seesTitle": "What you'll see",
+     "sees": "Only what {name} chose — in probabilistic, not definitive, words.",
+     "seesNoName": "Only what she chose — in probabilistic, not definitive, words.",
+     "boundaryTitle": "Respecting her boundaries",
+     "boundary": "You can't log or change anything about her cycle, and she can remove your access at any time.",
+     "start": "Start supporting"
     }
    },
    "links": {
-    "title": "Companion code",
-    "subtitle": "Enter the code your partner sent you from the \"Invite a companion\" screen to connect.",
+    "title": "Add a companion",
     "back": "Back",
     "linkedTitle": "You're connected to",
     "since": "Since {date}",
     "leave": "Leave",
-    "leaveLabel": "Stop being {name}'s companion",
-    "leaveConfirmTitle": "Stop being {name}'s companion?",
-    "leaveConfirmBody": "You won't see anything from {name} any more. To connect again you'll need a new code.",
+    "leaveLabel": "Stop supporting {name}",
+    "leaveConfirmTitle": "Stop supporting {name}?",
+    "leaveConfirmBody": "You won't see anything from {name} anymore. You'll need a new code to connect again.",
     "leaveConfirm": "Leave",
     "cancel": "Cancel",
-    "leaveError": "Could not leave. Please try again.",
-    "none": "You are not connected to anyone yet.",
+    "leaveError": "Couldn't leave. Please try again.",
+    "none": "You aren't connected to anyone yet.",
     "loadError": "Couldn't load your connections.",
     "retry": "Try again",
-    "toHome": "Go to the companion panel"
+    "toHome": "Go to Today"
    },
    "invite": {
-    "title": "My partner doesn't have Ritme yet",
-    "sub": "Send them an invite link",
+    "title": "She doesn't have Ritme yet?",
+    "sub": "Send her an invite link",
     "shareTitle": "Ritme",
-    "shareText": "I installed Ritme. Install it too and send me a companion code from the \"Invite a companion\" screen: {url}",
+    "shareText": "I've installed Ritme. Install it too and send me a companion code from “Companions”: {url}",
     "copied": "Invite link copied."
+   },
+   "onboardingPartner": {
+    "title": "If someone close to you uses Ritme",
+    "sub": "Enter a companion code to turn on the companion experience and be there for her better. This step is completely optional — Ritme has content and value for you on its own.",
+    "forAllTitle": "Learning content for everyone",
+    "forAll": "About the cycle, support without judging, and being a better companion.",
+    "enterCode": "Enter a companion code",
+    "skip": "Skip for now"
    }
   },
   "companions": {
@@ -3133,10 +3346,6 @@
    "types": {
     "partner": "Partner",
     "spouse": "Spouse"
-   },
-   "typeDesc": {
-    "partner": "Sees what you choose and, if you allow it, logs things for you.",
-    "spouse": "Like a partner, plus your children are shared and you become one family."
    },
    "status": {
     "invited": "Waiting to accept",
@@ -3169,6 +3378,77 @@
    "chip": "{section}: {level}",
    "listSeparator": ", ",
    "nothingShared": "Nothing shared yet",
+   "access": {
+    "levelLabel": "Access to {section}"
+   },
+   "goalLabel": "Companionship goal",
+   "goals": {
+    "cycle": {
+     "title": "Understand my cycle",
+     "desc": "Just know which phase I'm in and what it means."
+    },
+    "support": {
+     "title": "Emotional support",
+     "desc": "Be there for me on the harder days."
+    },
+    "low_energy": {
+     "title": "Help on low-energy days",
+     "desc": "Make things a little lighter."
+    },
+    "quality_time": {
+     "title": "Quality time together",
+     "desc": "Plan time to be together."
+    },
+    "info": {
+     "title": "Just the basics",
+     "desc": "Without many suggestions."
+    },
+    "unknown": {
+     "title": "Not sure yet",
+     "desc": "I'll decide later."
+    }
+   },
+   "signals": {
+    "pain": {
+     "title": "When I'm in pain",
+     "desc": "A general hint, no details."
+    },
+    "mood": {
+     "title": "When I'm not feeling great",
+     "desc": "No judgement, never blamed on the period."
+    },
+    "energy": {
+     "title": "When my energy is low",
+     "desc": "So things can be a little lighter."
+    },
+    "sleep": {
+     "title": "When my sleep has been off",
+     "desc": "Just a gentle reminder."
+    }
+   },
+   "actionsLabel": "Preferred support",
+   "actions": {
+    "food": {
+     "title": "Food & drinks",
+     "desc": "A warm drink or a favourite snack."
+    },
+    "gift": {
+     "title": "Attention & small gifts",
+     "desc": "A kind message or a small gift."
+    },
+    "time": {
+     "title": "Time together",
+     "desc": "Time for two, a film or a walk."
+    },
+    "calm": {
+     "title": "Closeness & calm",
+     "desc": "Listening without judgement, or giving some space."
+    },
+    "help": {
+     "title": "Practical help",
+     "desc": "Lightening everyday chores."
+    }
+   },
    "family": {
     "title": "Your family",
     "you": "You",
@@ -3176,35 +3456,70 @@
     "childrenShared": "{names} {count, plural, one {is your shared child} other {are your shared children}} and {count, plural, one {appears} other {appear}} in both panels.",
     "childrenNone": "No child is shared yet. You can pick shared children on your spouse's page."
    },
+   "banner": {
+    "title": "Invite your companion to Ritme",
+    "body": "Let someone who matters to you support you better.",
+    "dismiss": "Dismiss the companion invite"
+   },
    "list": {
-    "title": "Companions",
-    "heading": "The people beside you",
-    "lead": "Each companion only sees what you have allowed.",
-    "add": "Add a companion",
+    "title": "My companions",
+    "active": "Companions",
+    "add": "Add a new companion",
     "loading": "Loading companions",
     "emptyTitle": "No companions yet",
-    "emptyBody": "Invite your spouse or partner. They only see what you allow, and you can remove them any time.",
+    "emptyBody": "Invite your spouse, a friend or a family member. They only see what you choose, and you can disconnect any time.",
     "errorTitle": "Couldn't load companions",
     "errorBody": "Check your connection and try again.",
     "retry": "Try again",
+    "meta": "{status} · {when}",
+    "since": "{days, plural, =0 {since today} =1 {since yesterday} other {for {n} days}}",
+    "sinceDate": "since {date}",
     "expiresIn": "Invite valid for {hours} more hours",
-    "expired": "Invite expired · make a new code"
+    "expired": "Invite expired",
+    "cut": "Stop sharing",
+    "cancelInvite": "Cancel invite",
+    "note": "Each companion is linked only to you and can see who they're linked to. Either of you can disconnect."
    },
    "flow": {
-    "title": "Add a companion",
-    "step": "Step {current} of {total}",
-    "stepSpouse": "Step {current} of {total} · spouse only",
-    "steps": "Steps to add a companion",
+    "back": "Back",
     "next": "Continue",
-    "type": {
-     "question": "Who is this companion?",
-     "label": "Relationship"
+    "header": {
+     "intro": "Ritme Companion",
+     "goal": "Companionship goal",
+     "children": "Shared children",
+     "scope": "What can they see?",
+     "actions": "Preferred support",
+     "generating": "Ritme Companion",
+     "code": "Ritme Companion",
+     "preview": "Ritme Companion"
     },
-    "access": {
-     "question": "What should they have access to?",
-     "lead": "Pick one for each item. Change it whenever you like.",
-     "note": "With «view & edit» for medications or appointments, your companion can choose to log for themselves or for you.",
-     "levelLabel": "Access to {section}"
+    "intro": {
+     "title": "A gentle way to stay close",
+     "lead": "Share your cycle phase with a spouse, friend or family member who also uses Ritme.",
+     "howTitle": "How it works",
+     "how": {
+      "choose": {
+       "title": "They only see what you choose",
+       "body": "In the next steps you decide exactly what is shown."
+      },
+      "code": {
+       "title": "The invite code is valid for 24 hours",
+       "body": "It works once, and you can cancel it before it's used."
+      },
+      "control": {
+       "title": "Disconnect whenever you like",
+       "body": "You're always fully in control."
+      }
+     },
+     "consent": "I agree to share the cycle information I choose with the companion I invite."
+    },
+    "goal": {
+     "title": "What would you most like your companion to be there for?",
+     "lead": "This only shapes the content and suggestions; it's never a medical diagnosis or prediction, and you can change it any time.",
+     "spouse": {
+      "title": "They're my spouse",
+      "desc": "You form a family and can pick shared children in the next step."
+     }
     },
     "children": {
      "question": "Which child is shared?",
@@ -3214,57 +3529,83 @@
      "emptyBody": "Add your child in the «Child» section; then you can share them from your spouse's page. For now, continue without it.",
      "errorBody": "Couldn't load your children.",
      "retry": "Try again",
-     "add": "Add a child",
-     "partnerNote": "If your companion is a partner, this step is skipped."
+     "add": "Add a child"
     },
-    "invite": {
-     "title": "Invite a companion",
-     "heading": "Invite them",
-     "lead": "Send an invite to their mobile number or give them the companion code. They see nothing until they accept.",
+    "access": {
+     "title": "Which sections can your companion access?",
+     "lead": "Pick one for each section: hidden, view only, or view and edit. You can change it any time.",
+     "hidden": "A section left on «hidden» is never shown to your companion.",
+     "note": "With «view and edit» on medications or appointments, your companion can choose to log for themselves or for you."
+    },
+    "actions": {
+     "title": "What kind of support feels best to you?",
+     "lead": "We'll suggest these to your companion more often. None is required, and your companion can tone suggestions down too.",
+     "cta": "Create invite code"
+    },
+    "contact": {
+     "toggle": "Name and number (optional)",
+     "hint": "So you recognise them in your list, or so we can text them the code.",
      "name": "Their name",
      "namePlaceholder": "The name you'll see in Ritme",
-     "phone": "Mobile number",
+     "phone": "Their mobile number",
      "phonePlaceholder": "09xx xxx xxxx",
-     "phoneInvalid": "The mobile number must start with 09 and have 11 digits.",
-     "or": "or",
-     "codeTitle": "Companion code",
-     "codeLead": "Give this code to your companion to enter when signing up to Ritme.",
-     "codeHidden": "The code appears here once the invite is created.",
-     "makeCode": "Just make a code",
-     "summary": "Summary",
-     "edit": "Edit",
-     "relation": "Relationship",
-     "children": "Shared child",
-     "none": "None",
-     "send": "Send invite",
-     "smsSent": "Invite SMS sent to <ltr>{phone}</ltr>.",
-     "smsNotSent": "The SMS wasn't sent — send them the code yourself.",
-     "codeOnly": "Code created — send it to your companion.",
-     "finish": "Continue",
-     "error": "Couldn't create the invite. Try again."
+     "phoneHint": "If you add a number, the code is also sent to them by SMS.",
+     "phoneInvalid": "The mobile number must start with 09 and have 11 digits."
     },
-    "done": {
-     "titleSent": "Invite sent to {name}",
-     "titleSentUnnamed": "Invite sent",
-     "titleCode": "{name}'s invite code is ready",
-     "titleCodeUnnamed": "Invite code is ready",
-     "leadSpouse": "Once they accept, your family is created.",
-     "leadPartner": "Once they accept, they only see what you allowed.",
-     "note": "Change access or remove the companion any time from the companions page.",
-     "back": "Back to companions"
+    "generating": {
+     "title": "Creating your code",
+     "lead": "Your companion gets a link to install Ritme, then connects your profiles with this code.",
+     "wait": "Stay on this screen until the code is ready.",
+     "privacy": "Your data matters — only share it with someone you trust.",
+     "error": "Couldn't create the invite code. Try again.",
+     "retry": "Try again",
+     "edit": "Go back and edit"
+    },
+    "code": {
+     "ready": "Your invite code is ready",
+     "title": "Send the code to your companion",
+     "smsSent": "The code was also texted to <ltr>{phone}</ltr>.",
+     "smsNotSent": "The SMS wasn't sent — send them the code yourself.",
+     "preview": "See what your companion sees"
+    },
+    "preview": {
+     "title": "This is what your companion sees",
+     "lead": "A read-only view based on exactly what you chose.",
+     "cardLabel": "Sample of the companion screen",
+     "cycleOf": "{name}'s cycle",
+     "cycleOfYou": "Your cycle",
+     "meta": "Today · view only",
+     "phaseLabel": "Current phase",
+     "phase": {
+      "menstrual": "Probably period days",
+      "follicular": "Probably the follicular phase",
+      "fertile": "Probably mid-cycle",
+      "luteal": "Probably the luteal phase",
+      "period_expected": "Probably close to the period",
+      "unknown": "Phase not clear yet"
+     },
+     "loading": "Preparing the sample…",
+     "estimate": "Based on current data, the next period is estimated in about {days} days.",
+     "noEstimate": "No estimate of the next period is shown.",
+     "hiddenTitle": "What they don't see:",
+     "hiddenSections": "{sections}.",
+     "done": "Got it"
     }
    },
    "code": {
+    "title": "Invite code",
     "label": "Invite code {code}",
     "copy": "Copy code",
     "copied": "Copied",
-    "share": "Send",
-    "shared": "Sent",
-    "shareTitle": "Ritme companion invite",
-    "shareText": "My Ritme companion code: {code}",
+    "share": "Share code",
+    "shared": "Shared",
+    "shareTitle": "Ritme Companion invite",
+    "shareText": "My Ritme companion code: {code}\nInstall Ritme here: {url}",
     "failed": "Couldn't copy — write the code down from the screen.",
-    "validity": "Single use · valid for {hours} hours",
-    "once": "This code is shown only now."
+    "validity": "Valid for {hours} more hours",
+    "expired": "This code has expired",
+    "once": "This code is shown only now.",
+    "accessNote": "This code works once; your companion only gets access to the sections you chose."
    },
    "detail": {
     "title": "Companion",
@@ -3286,6 +3627,15 @@
     "renew": "Make a new code",
     "renewNote": "A new code stops the previous one from working.",
     "renewError": "Couldn't make a new code. Try again.",
+    "prefsTitle": "Companionship preferences",
+    "prefsLead": "The goal, the states they see and the kind of support you like. Change them whenever you want.",
+    "goalTitle": "Companionship goal",
+    "signalsTitle": "What can they see?",
+    "signalsLead": "Each one is a separate consent. Your general cycle phase comes from the access section.",
+    "actionsTitle": "Preferred support",
+    "prefsSave": "Save preferences",
+    "prefsSaved": "Preferences saved.",
+    "prefsError": "Couldn't save. Try again.",
     "childrenTitle": "Shared child",
     "childrenLead": "The children you pick show up in your spouse's panel, view only.",
     "childrenSave": "Save shared children",
@@ -3302,13 +3652,20 @@
      "grants_changed": "Access changed"
     },
     "activityLine": "{action} · {section}",
-    "byYou": "by you",
-    "remove": "Remove companion",
-    "removeTitle": "Remove {name}?",
-    "removeBody": "Their access ends right now and they won't see anything of yours. To add them back you'll need to invite them again.",
-    "removeConfirm": "Yes, remove",
-    "cancel": "Cancel",
-    "removeError": "Couldn't remove. Try again."
+    "byYou": "by you"
+   },
+   "disconnect": {
+    "title": "What happens when you disconnect?",
+    "noData": "{name} will no longer see your information.",
+    "noAlerts": "Their companion notifications stop.",
+    "again": "You can invite them again whenever you like.",
+    "confirm": "Yes, disconnect",
+    "keep": "I want to keep sharing",
+    "error": "Couldn't disconnect. Try again.",
+    "close": "Close",
+    "doneTitle": "Sharing stopped",
+    "doneBody": "{name} no longer sees any of your data. You can invite them again whenever you like.",
+    "doneBack": "Back to companions"
    },
    "privacy": {
     "manage": "Manage companions",
@@ -3635,7 +3992,6 @@
     "current": "Your current method",
     "change": "Change method",
     "reminders": "Method reminders",
-    "remindersSub": "Dates and reminders for this method",
     "title": "Contraception reminders",
     "back": "Back",
     "loading": "Loading your method reminders",
@@ -3713,6 +4069,87 @@
      "title": "The guide is not available right now",
      "body": "If in doubt, talk to a doctor or pharmacist."
     }
+   }
+  },
+  "credits": {
+   "back": "Back",
+   "loading": "Loading…",
+   "retry": "Try again",
+   "error": {
+    "title": "Couldn't load your credits",
+    "body": "Check your connection and try again."
+   },
+   "usage": {
+    "title": "Credit usage",
+    "hero": {
+     "caption": "Credits left",
+     "of": "of {total}",
+     "until": "Yours until {date}",
+     "spoken": "{remaining} of {total} credits left"
+    },
+    "extra": {
+     "title": "Extra credits",
+     "value": "{count} credits",
+     "never": "Never expire",
+     "usedAfter": "Used after your subscription credits"
+    },
+    "noSubscription": {
+     "title": "No active subscription",
+     "body": "The assistant and the smart tools need a subscription.",
+     "locked": "Your extra credits are kept; they work again with a subscription",
+     "cta": "See subscriptions"
+    },
+    "exhausted": {
+     "title": "This period's credits are used up",
+     "body": "Buy credits to carry on right away."
+    },
+    "costs": {
+     "title": "What does each thing cost?",
+     "value": "{count} credits"
+    },
+    "last30": {
+     "title": "Last 30 days",
+     "total": "{count} credits used",
+     "byFeature": "By feature",
+     "byDay": "By day",
+     "uses": "{count} times",
+     "chart": "Daily credit use chart"
+    },
+    "history": {
+     "title": "History",
+     "credits": "−{count} credits",
+     "more": "Show more",
+     "empty": "You haven't used any credits yet.",
+     "emptyBody": "Each time you use the assistant or a smart tool, it shows up here."
+    },
+    "buy": "Buy credits"
+   },
+   "buy": {
+    "title": "Buy credits",
+    "lead": "Extra credits never expire and are used after your subscription credits.",
+    "groupLabel": "Credit packs",
+    "credits": "{count} credits",
+    "price": "{price} toman",
+    "cta": "Continue · {pack}",
+    "noSubscription": "Your credits are kept, but you need a subscription to use them.",
+    "noSubscriptionCta": "See subscriptions",
+    "empty": "There are no packs to buy right now. Please check back soon.",
+    "storeTitle": "Buying credits isn't available here",
+    "storeBody": "You can't buy credits from inside this version. Please check back soon."
+   },
+   "checkout": {
+    "summary": "{pack} pack",
+    "credits": "Credits",
+    "creditsValue": "{count} credits",
+    "note": "Extra credits never expire.",
+    "secure": "Secure payment · through the bank gateway"
+   },
+   "success": {
+    "title": "Credits added",
+    "body": "{count} credits were added to your account and never expire.",
+    "bodyLocked": "{count} credits were added. You need a subscription to use them.",
+    "usage": "See credit usage",
+    "home": "Let's go"
    }
   },
   "cycle": {
@@ -3850,7 +4287,6 @@
   },
   "day-tasks": {
    "title": "Tasks & reminders for this day",
-   "subtitle": "Add a medication, a doctor visit, or anything you need to do on this day.",
    "types": {
     "custom": "Task",
     "doctor": "Doctor",
@@ -4692,7 +5128,18 @@
     "noData": "No period yet",
     "logPeriod": "Log period",
     "noPrediction": "Forecast",
-    "noPredictionValue": "Not yet"
+    "noPredictionValue": "Not yet",
+    "thisDay": "This day",
+    "milestoneIn": {
+     "fertile": "Fertile window in",
+     "ovulation": "Ovulation in",
+     "pms": "PMS in"
+    },
+    "milestoneOn": {
+     "fertile": "Fertile window",
+     "ovulation": "Ovulation",
+     "pms": "PMS"
+    }
    },
    "phaseCard": {
     "title": {
@@ -5025,7 +5472,6 @@
      "status": "Request status"
     },
     "needsAction": "{count, plural, one {A claim is missing documents} other {# claims are missing documents}}",
-    "needsActionHint": "Complete the claim's documents to carry on.",
     "remainingTitle": "Coverage left this year",
     "details": "Details",
     "left": "{left} of {total} left",
@@ -5275,7 +5721,6 @@
     },
     "record": {
      "title": "Note a step",
-     "hint": "Note any step your insurer told you about, right here.",
      "step": "Which step?",
      "date": "Date",
      "save": "Save",
@@ -5845,7 +6290,6 @@
     },
     "setup": {
      "title": "Start a treatment cycle",
-     "intro": "A few short details are enough — you can change them any time.",
      "protocol": "Treatment protocol",
      "protocolHint": "Leave it empty if you're not sure.",
      "where": "Where are you in treatment now?",
@@ -6324,7 +6768,6 @@
   },
   "log": {
    "title": "Daily log",
-   "subtitle": "Record what you felt today so Ritme gets to know you better.",
    "today": "Today",
    "prevDay": "Previous day",
    "nextDay": "Next day",
@@ -6334,7 +6777,6 @@
    "saved": "Saved",
    "autoSaved": "Saved automatically",
    "saveError": "Couldn't save; please try again.",
-   "sheetHint": "Pick whatever applies to you.",
    "done": "Done",
    "submit": "Submit",
    "close": "Close",
@@ -6357,21 +6799,6 @@
     "weight": "Weight",
     "temperature": "Temperature",
     "notes": "Notes"
-   },
-   "categoryHint": {
-    "bleeding": "Intensity, color and character of bleeding",
-    "pain": "Intensity of pains and physical symptoms",
-    "digestion": "Appetite, energy and how your body felt",
-    "mood": "How you feel today",
-    "sleep": "Sleep duration and quality",
-    "exercise": "Type, duration and intensity of activity",
-    "body": "Skin and hair",
-    "discharge": "Texture, amount, color and smell",
-    "intimate": "Urinary and vaginal symptoms",
-    "sexual": "Desire, intercourse and how it felt",
-    "weight": "Your weight measurement",
-    "temperature": "Basal body temperature measurement",
-    "notes": "Anything else you want to remember"
    },
    "fields": {
     "bleeding_intensity": "Bleeding intensity",
@@ -6548,7 +6975,6 @@
   },
   "log-customize": {
    "title": "Customize logging",
-   "subtitle": "Order and visibility of categories",
    "back": "Back",
    "hint": "= in quick log (up to {max}) · drag to reorder.",
    "pinCount": "Quick log: {count} of {max}",
@@ -6663,7 +7089,6 @@
     "open": "Edit period date",
     "titleStart": "Did your period start?",
     "titleEdit": "Edit period",
-    "subtitle": "Select the days you bled",
     "start": "Start",
     "estimatedEnd": "Estimated end",
     "end": "End",
@@ -6704,7 +7129,6 @@
    },
    "quick": {
     "title": "Quick log",
-    "hint": "Tap one and it opens right below",
     "open": "open"
    },
    "tiles": {
@@ -7743,6 +8167,8 @@
     "cycleSettingsSub": "Cycle, period length and reminders",
     "analysis": "Analysis & reports",
     "analysisSub": "Cycle, symptoms, mood and body",
+    "services": "Services",
+    "servicesSub": "Doctors, shop, insurance and care programs",
     "healthRecord": "My health record",
     "healthRecordSub": "Basics, medicines, vitals and tests",
     "vitals": "Vitals",
@@ -7885,6 +8311,11 @@
     "empty": {
      "title": "Nothing to set up",
      "body": "No notification categories are active for your account yet."
+    },
+    "sms": {
+     "title": "SMS reminders",
+     "body": "We also text you about medications and doctor visits.",
+     "plus": "Plus"
     }
    },
    "privacy": {
@@ -8021,7 +8452,6 @@
    },
    "cycleSettings": {
     "title": "Cycle settings",
-    "subtitle": "Predictions and reminders",
     "back": "Back",
     "loading": "Loading cycle settings",
     "yourCycle": "Your cycle",
@@ -8227,7 +8657,6 @@
    "insurance": {
     "title": "Insurance",
     "back": "Services",
-    "intro": "What your insurance covers, how to file a claim and which documents you need, in one place.",
     "loading": "Loading insurance information",
     "error": "Couldn't load the insurance information.",
     "retry": "Try again",
@@ -8689,7 +9118,10 @@
    "treatment": "Treatment",
    "child": "Child",
    "symptoms": "Symptoms",
+   "analysis": "Analysis",
    "services": "Services",
+   "learn": "Learn",
+   "actions": "Actions",
    "me": "Me",
    "badgeNew": "New",
    "badgeCount": "{count, plural, one {# new item} other {# new items}}",
@@ -8781,7 +9213,29 @@
     "appointment": "Appointment or visit",
     "task": "New task",
     "child": "Log for {name}",
-    "childSub": "Feeding, sleep, diapers"
+    "childSub": "Feeding, sleep, diapers",
+    "vitalsTitle": "Vital signs",
+    "vitals": "Blood pressure, heart rate or sugar",
+    "vitalsSub": "Log a new reading"
+   },
+   "vitalsChooser": {
+    "title": "Log a vital sign",
+    "bp": {
+     "title": "Blood pressure",
+     "sub": "Systolic, diastolic and pulse"
+    },
+    "hr": {
+     "title": "Heart rate",
+     "sub": "Beats per minute"
+    },
+    "glucose": {
+     "title": "Blood sugar",
+     "sub": "Fasting, after a meal or random"
+    },
+    "hub": {
+     "title": "Reports and history",
+     "sub": "All your readings and their trend"
+    }
    }
   },
   "notifications": {
@@ -8796,13 +9250,23 @@
     "today": "Today",
     "yesterday": "Yesterday",
     "daysAgo": "{days, plural, one {# day ago} other {# days ago}}"
+   },
+   "bell": {
+    "count": "Notifications: {count, number} new",
+    "urgent": "Notifications: {count, number} new, {urgent, number} urgent"
+   },
+   "sections": {
+    "alerts": "Health alerts",
+    "notifications": "Notifications",
+    "history": "Past alerts"
    }
   },
   "onboarding": {
    "enums": {
     "gender": {
      "female": "Female",
-     "male": "Male"
+     "male": "Male",
+     "unspecified": "Prefer not to say"
     },
     "goal": {
      "cycle": "Track my cycle",
@@ -8872,9 +9336,14 @@
      "hint": "You can change it later in settings."
     },
     "gender": {
-     "title": "What's your gender?",
-     "subtitle": "We'll set up the right path for you based on your answer.",
-     "maleNote": "If you're a man, Ritme Companion helps you stand by your partner."
+     "title": "Which do you identify with most?",
+     "subtitle": "This helps us shape Ritme around you.",
+     "desc": {
+      "female": "Cycle tracking, insights and managing companions",
+      "male": "Learning content and the companion experience",
+      "unspecified": "The full experience, no limits"
+     },
+     "note": "This only sets the path of your experience, not what content you can reach."
     },
     "goal": {
      "title": "Why did you install Ritme?",
@@ -9178,16 +9647,18 @@
     "features": {
      "analysis": "Deep cycle and symptom-pattern analysis",
      "prediction": "Sharper predictions with BBT and LH",
-     "assistant": "Unlimited health assistant",
      "pdf": "PDF report for your doctor",
      "tracking": "Period tracking and reminders",
-     "todo": "To-do list"
+     "todo": "To-do list",
+     "sms": "SMS reminders for medications and doctor visits",
+     "credits": "Monthly credits for the assistant and smart analysis"
     },
     "cta": "Choose a plan",
     "manage": "Manage subscription",
     "active": "Ritme Plus is active for you",
     "trial": "{days} days free on your first subscription",
-    "trialFailed": "Couldn't start the free trial. Try again."
+    "trialFailed": "Couldn't start the free trial. Try again.",
+    "creditsLabel": "Credits per plan"
    },
    "plans": {
     "title": "Choose your plan",
@@ -9203,7 +9674,13 @@
      "devices": "Your subscription works on all your devices"
     },
     "cta": "Continue · {plan}",
-    "empty": "No plans are available right now. Check back a little later."
+    "empty": "No plans are available right now. Check back a little later.",
+    "minutes": "{minutes, plural, one {# minute} other {# minutes}}",
+    "months": "{months, plural, one {# month} other {# months}}",
+    "minutesPrice": "{price} toman · {minutes, plural, one {# minute} other {# minutes}}",
+    "storeUnavailableTitle": "Payment isn't available in this version",
+    "storeUnavailableBody": "You can't subscribe from inside this version right now. Check back a little later.",
+    "credits": "{count} credits"
    },
    "checkout": {
     "title": "Review and pay",
@@ -9227,7 +9704,15 @@
     "secure": "Secure payment · auto-renew can be turned off",
     "pay": "Pay and activate",
     "payFailed": "Couldn't reach the payment gateway. Try again.",
-    "unavailable": "Payments aren't available right now. Try again a little later."
+    "unavailable": "Payments aren't available right now. Try again a little later.",
+    "duration": "Duration",
+    "storeSub": "Paid through your store account",
+    "storeSecure": "Secure payment · through the store",
+    "storeFailed": "The purchase didn't go through. Try again.",
+    "store": {
+     "bazaar": "Cafe Bazaar",
+     "myket": "Myket"
+    }
    },
    "return": {
     "verifying": "Confirming your payment…",
@@ -9290,7 +9775,10 @@
     "cancelFailed": "Couldn't cancel. Try again.",
     "noneTitle": "You have no active subscription",
     "noneBody": "Get full analysis, a health assistant and doctor reports with Ritme Plus.",
-    "noneCta": "See plans"
+    "noneCta": "See plans",
+    "credits": "Smart credits",
+    "creditsSub": "Credit usage and details",
+    "creditsValue": "{count} credits"
    },
    "trialBanner": {
     "title": "Ritme Plus is open for you",
@@ -9316,17 +9804,6 @@
       "sub": "Symptom patterns, correlations, mood by phase",
       "used": "Viewed {count}×"
      },
-     "labAi": {
-      "title": "AI lab-result analysis",
-      "sub": "Up to {limit} analyses a month",
-      "subUnlimited": "AI analysis of your lab results",
-      "used": "{count} used"
-     },
-     "assistant": {
-      "title": "Unlimited health assistant",
-      "sub": "Ask without limits",
-      "used": "{count} messages"
-     },
      "pdfShare": {
       "title": "PDF report for your doctor",
       "sub": "With a 7-day share link",
@@ -9335,6 +9812,11 @@
      "visitDiscount": {
       "title": "Online visit discount",
       "sub": "On every doctor visit"
+     },
+     "credits": {
+      "title": "Smart credits",
+      "sub": "For the assistant, lab analysis and document reading",
+      "value": "{remaining} of {total} left"
      }
     },
     "notYet": "Not yet",
@@ -9381,17 +9863,22 @@
      "basis": "{n, plural, one {The last cycle} other {Your last # cycles}} shaped this estimate",
      "noBasis": "Not enough finished cycles yet",
      "reasons": "{n, plural, one {# thing shaped how sure we are} other {# things shaped how sure we are}}"
-    },
-    "lab": {
-     "available": "{remaining} of {limit} free analyses left this month. Renews on {date}.",
-     "spent": "You have used this month's free analysis ({limit}). It renews on {date}, or go unlimited with Plus.",
-     "plusAvailable": "{remaining} of {limit} analyses left this month.",
-     "spentCta": "See Ritme Plus"
-    },
-    "assistant": {
-     "fairUse": "You have reached this month's fair-use limit for the assistant. It opens up again on {date}. If something feels urgent, please talk to a doctor or call 115.",
-     "fairUseReply": "You have reached this month's fair-use limit for the assistant. It opens up again when the next month starts. If something feels urgent, please talk to a doctor or call 115."
     }
+   },
+   "requiredSheet": {
+    "companion": {
+     "title": "Ritme Companion is part of Ritme Plus",
+     "lead": "Inviting a companion isn't included in the free plan; it opens with a Ritme Plus subscription."
+    },
+    "trialTitle": "{days} days of Ritme Plus, free",
+    "trialPill": "Free",
+    "trialBody": "Try every Plus feature for {days} days without paying; you can create your invite code right away.",
+    "trialCta": "Start {days} free days",
+    "savings": "Save {percent}%",
+    "perMonth": "About {amount} thousand toman a month",
+    "buy": "Get the {plan} plan",
+    "allPlans": "See all plans",
+    "see": "See Ritme Plus"
    }
   },
   "postpartum": {
@@ -9757,7 +10244,6 @@
    },
    "log": {
     "title": "Daily pregnancy log",
-    "subtitle": "Record today's symptoms so Ritme can care for you better.",
     "tabs": {
      "symptoms": "Daily symptoms",
      "weekly": "Weekly checkup",
@@ -10037,7 +10523,10 @@
     "submitError": "Setup didn't go through. Please try again in a bit.",
     "fillRequired": "Please complete the calculation basis first.",
     "calculating": "Calculating…",
-    "stepOf": "Step {step} of {total}"
+    "stepOf": "Step {step} of {total}",
+    "ageSheetTitle": "Pregnancy age",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
    },
    "today": {
     "alerts": "Alerts",
@@ -10084,8 +10573,6 @@
     "calendarLink": "Calendar"
    },
    "week": {
-    "bookmark": "Save to bookmarks",
-    "unbookmark": "Remove from bookmarks",
     "stripLabel": "Pregnancy weeks",
     "chipWeek": "Week",
     "legend": {
@@ -10176,7 +10663,6 @@
     "saving": "Saving…",
     "saved": "Saved",
     "offlineNote": "Saves even without internet and syncs later.",
-    "editNote": "You can edit any entry later.",
     "alertsRaised": "{count, plural, one {This log created a new message} other {This log created # new messages}}",
     "seeAlerts": "See alerts",
     "queued": "Saved offline — it will be sent when you're back online",
@@ -10489,7 +10975,35 @@
    "iosSignInNote": "The installed app asks you to sign in once; after that you stay signed in.",
    "inAppTitle": "Open Ritme in your browser",
    "inAppBody": "This page is open inside another app's browser. Use its ⋯ menu to open it in Safari or Chrome, so you can install Ritme and stay signed in.",
-   "dismiss": "Dismiss"
+   "dismiss": "Dismiss",
+   "push": {
+    "sheet": {
+     "title": "Turn on notifications?",
+     "body": "To remind you at dose time, Ritme needs to be able to send notifications to this device. You can turn them off whenever you like.",
+     "enable": "Turn on notifications",
+     "later": "Not now"
+    },
+    "device": {
+     "title": "Notifications on this device",
+     "state": {
+      "on": "On",
+      "off": "Off",
+      "blocked": "Blocked",
+      "install": "Install needed",
+      "unsupported": "Not supported"
+     },
+     "onHint": "Your reminders and new notifications reach this device.",
+     "onHintShell": "Medication and appointment reminders reach this device on time.",
+     "offHint": "Turn it on so your reminders and new notifications reach this device.",
+     "offHintShell": "Turn it on so medication and appointment reminders reach this device on time.",
+     "enable": "Turn on notifications",
+     "blockedHint": "Notifications are blocked for Ritme. Allow them in your browser's site settings, then come back to this page.",
+     "blockedHintShell": "Notifications are blocked for Ritme. Allow them in your phone's settings under Ritme's notifications, then come back here.",
+     "installHint": "To get notifications, first add Ritme to your home screen, then turn them on from here.",
+     "unsupportedHint": "This device doesn't support notifications.",
+     "failed": "Couldn't turn them on. Try again in a moment."
+    }
+   }
   },
   "record": {
    "kinds": {
@@ -10610,7 +11124,6 @@
     "more": "More",
     "empty": "No documents here yet",
     "emptyBody": "Add a photo or PDF of a visit, prescription or ultrasound.",
-    "note": "Every document you add lands here at its own date and can be picked for a claim or a doctor.",
     "noDate": "No date",
     "markers": "{n} markers",
     "allNormal": "All normal",
@@ -10696,15 +11209,11 @@
       "frequency": "How often",
       "duration": "For how long"
      },
-     "plusTitle": "Automatic reading is part of Ritme Plus",
-     "plusBody": "Without Plus you can still enter every detail yourself.",
-     "plusCta": "See Ritme Plus",
      "busy": "Reading isn't available right now. Try again a little later.",
      "noFiles": "Add the document's file first to read it automatically.",
      "error": "That didn't work. Try again.",
      "invalid": "Some values aren't valid. Please check.",
      "stalled": "Reading is taking longer than usual",
-     "stalledBody": "You can check its status again.",
      "recheck": "Check again"
     },
     "consent": {
@@ -11272,9 +11781,8 @@
     "note": "The shop is separate from your health data and its suggestions are not based on what you log."
    },
    "sos": {
-    "title": "Is it an emergency?",
-    "body": "Ritme is not a substitute for emergency care",
-    "call": "Call {phone}"
+    "title": "Ritme doesn't replace your doctor",
+    "body": "If you notice anything that worries you, talk to a doctor."
    }
   },
   "shop": {
@@ -11947,8 +12455,6 @@
    "newTask": "New task",
    "empty": {
     "allDoneTitle": "All tasks done",
-    "allDoneBody": "Your “{category}” list is empty today. Add a new task or take a break.",
-    "allDoneBodyAll": "Today's tasks are done. Add a new task or take a break.",
     "freshTitle": "No tasks yet",
     "freshBody": "Write down your tasks and shopping here; near your period Ritme also reminds you to buy pads."
    },

@@ -1,0 +1,66 @@
+{
+  "case": "ai-credits/balance_new_user.en",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/ai/credits",
+        "persona": "no_profile",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "can_use": false,
+          "period": null,
+          "period_ends_at": null,
+          "plan": {
+            "total": 0,
+            "used": 0,
+            "remaining": 0
+          },
+          "extra": {
+            "remaining": 0,
+            "locked": false
+          },
+          "spendable": 0,
+          "features": [
+            {
+              "key": "assistant",
+              "title": "Health assistant",
+              "credit_cost": 1,
+              "available": true,
+              "affordable": false
+            },
+            {
+              "key": "voice_log",
+              "title": "Voice logging",
+              "credit_cost": 1,
+              "available": true,
+              "affordable": false
+            },
+            {
+              "key": "lab_analysis",
+              "title": "Lab analysis",
+              "credit_cost": 5,
+              "available": true,
+              "affordable": false
+            },
+            {
+              "key": "doc_extract",
+              "title": "Document reading",
+              "credit_cost": 3,
+              "available": true,
+              "affordable": false
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

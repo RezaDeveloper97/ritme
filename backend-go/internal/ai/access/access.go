@@ -1,11 +1,18 @@
-// Package access is the HTTP gate every AI feature route passes before its handler runs (B-N6-05, hardened in
-// B-N6-05b):
+// Package access is the HTTP gate every AI feature route passes before its handler runs. It is the ONLY way an
+// endpoint may reach an AI model (backend-go/CLAUDE.md → «AI gate»):
 //
 //	route: locale → auth RequireUser → Guard.Chain(feature)… → handler
-//	Chain: per-user throttles → [plus.Gate.Require(key)] → Require(feature) → [reserve one Plus use]
+//	Chain: per-user throttles → entitled (feature on, subscription, enough credits) → Require(feature) → reserve credits
 //
-// The throttles come right after auth (L2), so a locked or consent-less client hammering a feature is cut off
-// before any database work. Require checks, in order:
+// The throttles come right after auth, so a locked or consent-less client hammering a feature is cut off before
+// any database work. entitled answers early, without spending anything (goose 00125, internal/ai/credits):
+//
+//   - the feature slot is switched off or has no usable model → 403 ai_feature_disabled,
+//   - no subscription period or trial covers now → 402 ai_subscription_required (with the extra credits the user
+//     keeps: they are locked, never lost),
+//   - the period's and the extra credits together do not cover the feature's cost → 402 ai_credits_exhausted.
+//
+// Require then checks, in order:
 //
 //  1. the AI client exists (AI_PROVIDER none / no key → 503 ai_unavailable; no consent prompt for a feature that
 //     cannot run),
@@ -22,13 +29,13 @@
 // then puts the ai.Subject (user id for the usage log and the per-user cap, the user's name for PII redaction) on
 // the request context (c.Context()), which handlers pass to the ai.Client.
 //
-// Plus quota is reserve-first (M3): the Plus gate answers 402/429 early without counting, then — after every
-// other check passed — one use is counted atomically (plus.Service.Consume) before the handler runs, so parallel
-// requests can never exceed the quota. The use is given back (Reservation.Refund) when the handler returns an
-// error or an error status — the provider failed, the upload was invalid, a budget ran out — and kept otherwise,
-// also for a silent recording or an empty answer (the provider was paid either way). A streaming handler that
-// has already returned refunds explicitly: ReservationFrom(ctx).Refund() when the stream failed before its first
-// delta.
+// Credits are reserve-first: after every other check passed, the feature's cost is taken atomically
+// (credits.Service.Reserve — the period's credits first, then the extra ones) before the handler runs, so parallel
+// requests can never overspend. The use is given back (Reservation.Refund) when the handler returns an error or an
+// error status — the provider failed, the upload was invalid, a budget ran out — and kept otherwise, also for a
+// silent recording or an empty answer (the provider was paid either way). A streaming handler that has already
+// returned refunds explicitly: ReservationFrom(ctx).Refund() when the stream failed before its first delta. A
+// feature whose work runs after the request keeps Reservation.At() and refunds with credits.Service.RefundAt.
 package access
 
 import (
@@ -46,6 +53,7 @@ import (
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/ai"
+	"github.com/ritme/backend-go/internal/ai/credits"
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/consent"
 	"github.com/ritme/backend-go/internal/i18n"
@@ -53,7 +61,6 @@ import (
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/ratelimit"
-	"github.com/ritme/backend-go/internal/plus"
 )
 
 // Policy is what a feature needs before it may call a provider.
@@ -62,7 +69,6 @@ type Policy struct {
 	Consent string // consent code (internal/consent)
 	// ExternalOnly: the consent is required only while calls leave the server (a real provider).
 	ExternalOnly bool
-	Plus         plus.Key // "" = not Plus-gated here (the feature gates itself)
 	// Throttles are the per-user request limits Chain mounts first (B-N6-05b, M2 / L2).
 	Throttles []Throttle
 }
@@ -85,17 +91,17 @@ const MaxConcurrentPerUser = 2
 
 // policies is the single source of the feature → consent / Plus / throttle mapping.
 var policies = []Policy{
-	{Feature: ai.FeatureVoiceLog, Consent: consent.AIVoiceLog, ExternalOnly: true, Plus: plus.VoiceLog, Throttles: []Throttle{
+	{Feature: ai.FeatureVoiceLog, Consent: consent.AIVoiceLog, ExternalOnly: true, Throttles: []Throttle{
 		{Name: "voice-burst", Max: VoiceBurstMax, Window: time.Minute}, {Name: "voice-hourly", Max: VoiceHourlyMax, Window: time.Hour},
 	}},
-	{Feature: ai.FeatureLabAnalysis, Consent: consent.AILabAnalysis, Plus: plus.LabAI, Throttles: []Throttle{
+	{Feature: ai.FeatureLabAnalysis, Consent: consent.AILabAnalysis, Throttles: []Throttle{
 		{Name: "ai-lab-burst", Max: 4, Window: time.Minute}, {Name: "ai-lab-hourly", Max: 20, Window: time.Hour},
 	}},
-	{Feature: ai.FeatureAssistant, Consent: consent.AIAssistant, Plus: plus.AssistantUnlimited, Throttles: []Throttle{
+	{Feature: ai.FeatureAssistant, Consent: consent.AIAssistant, Throttles: []Throttle{
 		{Name: "ai-assistant-burst", Max: 10, Window: time.Minute}, {Name: "ai-assistant-hourly", Max: 120, Window: time.Hour},
 	}},
-	// CB-REC-02: record document extraction (plus.doc_ai, 20 / month; free users fill the fields in by hand).
-	{Feature: ai.FeatureDocExtract, Consent: consent.AIDocuments, Plus: plus.DocAI, Throttles: []Throttle{
+	// CB-REC-02: record document extraction (without credits users fill the fields in by hand).
+	{Feature: ai.FeatureDocExtract, Consent: consent.AIDocuments, Throttles: []Throttle{
 		{Name: "ai-doc-burst", Max: 4, Window: time.Minute}, {Name: "ai-doc-hourly", Max: 20, Window: time.Hour},
 	}},
 }
@@ -123,6 +129,10 @@ const (
 	CodeUserBudgetExhausted = "ai_user_budget_exhausted"
 	CodeBusy                = "ai_busy"
 	CodeTooMany             = "too_many_requests"
+	// AI credits (goose 00125). The clients' AI gate (frontend features/ai-gate) handles exactly these.
+	CodeSubscriptionRequired = "ai_subscription_required"
+	CodeCreditsExhausted     = "ai_credits_exhausted" //nolint:gosec // G101: an error code, not a credential
+	CodeFeatureDisabled      = "ai_feature_disabled"
 )
 
 // Guard builds the AI gate.
@@ -130,8 +140,8 @@ type Guard struct {
 	client   *ai.Client
 	consents *consent.Service
 	budget   ai.Limiter
-	gate     *plus.Gate
-	plus     *plus.Service
+	credits  *credits.Service
+	catalog  *credits.Catalog
 	limiter  *ratelimit.Limiter
 	rejects  map[ai.Feature]ratelimit.Reject
 	clock    clock.Clock
@@ -146,8 +156,10 @@ type Options struct {
 	// Budget is the global cap (and, when it implements ai.UserLimiter, the per-user one). nil = no cap (tests);
 	// production passes the usage.Budget the client uses too.
 	Budget ai.Limiter
-	Gate   *plus.Gate    // Chain: the early Plus check (402/429 without counting)
-	Plus   *plus.Service // Chain: reserve-first quota (nil = the handler counts its use itself)
+	// Credits + Catalog are the credit gate: subscription, the feature's cost, reserve-first spending. Both nil =
+	// no credit gate (tests of the other checks only); production always passes them.
+	Credits *credits.Service
+	Catalog *credits.Catalog
 	// Limiter mounts the policies' throttles (nil = no throttles: no cache configured).
 	Limiter *ratelimit.Limiter
 	// Throttled overrides the 429 of a feature's throttles (voice keeps its own copy); default Throttled.
@@ -169,21 +181,21 @@ func NewGuard(o Options) *Guard {
 	if o.MaxConcurrent <= 0 {
 		o.MaxConcurrent = MaxConcurrentPerUser
 	}
-	return &Guard{client: o.Client, consents: o.Consents, budget: o.Budget, gate: o.Gate, plus: o.Plus,
+	return &Guard{client: o.Client, consents: o.Consents, budget: o.Budget, credits: o.Credits, catalog: o.Catalog,
 		limiter: o.Limiter, rejects: o.Throttled, clock: o.Clock, logger: o.Logger,
 		inflight: &inflight{max: o.MaxConcurrent, n: map[uint64]int{}}}
 }
 
-// Chain is the feature's middleware after auth: its throttles, the Plus check (when the policy has a key and a
-// gate is wired), Require(feature) and the Plus reservation (when a plus.Service is wired).
+// Chain is the feature's middleware after auth: its throttles, the early credit check (entitled), Require(feature)
+// and the credit reservation.
 func (g *Guard) Chain(feature ai.Feature) []any {
 	p := mustPolicy(feature)
 	out := g.throttles(p)
-	if p.Plus != "" && g.gate != nil {
-		out = append(out, g.gate.Require(p.Plus))
+	if g.credits != nil {
+		out = append(out, g.entitled(p, true))
 	}
 	out = append(out, g.Require(feature))
-	if p.Plus != "" && g.plus != nil {
+	if g.credits != nil {
 		out = append(out, g.reserve(p))
 	}
 	return out
@@ -203,11 +215,14 @@ func (g *Guard) throttles(p Policy) []any {
 	return out
 }
 
-// Gate is Chain without the Plus check and reservation: the feature's throttles and Require. For calls that do not
-// count against the quota but must not run unbounded (assistant summaries, B-N7-06b M2).
+// Gate is Chain without the cost: the feature's throttles, the subscription check and Require — nothing is spent.
+// For calls that belong to an already paid use but must not run unbounded (assistant summaries, B-N7-06b M2).
 func (g *Guard) Gate(feature ai.Feature) []any {
 	p := mustPolicy(feature)
 	out := g.throttles(p)
+	if g.credits != nil {
+		out = append(out, g.entitled(p, false))
+	}
 	return append(out, g.Require(feature))
 }
 
@@ -272,12 +287,10 @@ func DetachRelease(ctx context.Context) func() {
 	return s.release
 }
 
-// Reservation is one Plus use counted before the provider ran (reserve-first). Refund gives it back once.
+// Reservation is the credits of one use, taken before the provider ran (reserve-first). Refund gives them back once.
 type Reservation struct {
-	svc    *plus.Service
-	userID uint64
-	key    plus.Key
-	at     time.Time
+	svc    *credits.Service
+	res    *credits.Reservation
 	clock  clock.Clock
 	logger *slog.Logger
 	once   sync.Once
@@ -291,7 +304,16 @@ func ReservationFrom(ctx context.Context) *Reservation {
 	return r
 }
 
-// Refund gives the reserved use back (idempotent; safe on a nil reservation). A failed refund is logged and
+// At is when the use was counted. A feature whose work runs after the request stores it and refunds a failed job
+// with credits.Service.RefundAt. Zero on a nil reservation.
+func (r *Reservation) At() time.Time {
+	if r == nil {
+		return time.Time{}
+	}
+	return r.res.At
+}
+
+// Refund gives the reserved credits back (idempotent; safe on a nil reservation). A failed refund is logged and
 // leaves the use counted — the safe side.
 func (r *Reservation) Refund(ctx context.Context) {
 	if r == nil {
@@ -299,29 +321,78 @@ func (r *Reservation) Refund(ctx context.Context) {
 	}
 	r.once.Do(func() {
 		ctx = context.WithoutCancel(ctx)
-		if err := r.svc.Refund(ctx, r.userID, r.key, r.at, r.clock.Now()); err != nil {
-			r.logger.LogAttrs(ctx, slog.LevelError, "ai: plus refund failed", slog.String("feature", string(r.key)),
+		if err := r.svc.Refund(ctx, r.res, tehranNow(r.clock)); err != nil {
+			r.logger.LogAttrs(ctx, slog.LevelError, "ai: credit refund failed", slog.String("feature", r.res.Feature),
 				slog.String("error", err.Error()))
 		}
 	})
 }
 
-// reserve counts one use of p.Plus before the handler and refunds it when the handler failed.
+func tehranNow(c clock.Clock) time.Time { return c.Now().In(civildate.Tehran).Truncate(time.Second) }
+
+// usable reports whether the slot can run: switched on and — while calls leave the server — with a model. The
+// in-process fake answers for every slot, so a dev database without a configured model still works.
+func (g *Guard) usable(f credits.Feature, ok bool) bool {
+	if !ok || !f.Active {
+		return false
+	}
+	return len(f.Models) > 0 || !g.client.External()
+}
+
+// entitled is the early credit check: it answers 403 / 402 without spending anything. withCost false checks the
+// subscription only (Gate).
+func (g *Guard) entitled(p Policy, withCost bool) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		userID, ok := auth.CurrentUserID(c)
+		if !ok {
+			return &auth.UnauthenticatedError{Code: auth.CodeUnauthenticated}
+		}
+		locale := i18n.Locale(c)
+		f, found, err := g.catalog.Feature(c, p.Feature)
+		if err != nil {
+			return err
+		}
+		if !g.usable(f, found) {
+			return Denied(credits.ErrFeatureDisabled, p.Feature, 0, credits.Balance{}, locale)
+		}
+		b, err := g.credits.Balance(c, userID, tehranNow(clock.FromContext(c, g.clock)))
+		if err != nil {
+			return err
+		}
+		switch {
+		case !b.Active:
+			return Denied(credits.ErrNoSubscription, p.Feature, f.Cost, b, locale)
+		case withCost && b.Spendable() < f.Cost:
+			return Denied(credits.ErrInsufficient, p.Feature, f.Cost, b, locale)
+		}
+		return c.Next()
+	}
+}
+
+// reserve takes the feature's credits before the handler and gives them back when the handler failed.
 func (g *Guard) reserve(p Policy) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		userID, ok := auth.CurrentUserID(c)
 		if !ok {
 			return &auth.UnauthenticatedError{Code: auth.CodeUnauthenticated}
 		}
-		now := clock.FromContext(c, g.clock).Now().In(civildate.Tehran).Truncate(time.Second)
-		e, err := g.plus.Consume(c, userID, p.Plus, now)
+		locale := i18n.Locale(c)
+		f, found, err := g.catalog.Feature(c, p.Feature)
 		if err != nil {
-			if g.gate != nil {
-				return g.gate.GateError(c, err, e)
+			return err
+		}
+		if !g.usable(f, found) {
+			return Denied(credits.ErrFeatureDisabled, p.Feature, 0, credits.Balance{}, locale)
+		}
+		ck := clock.FromContext(c, g.clock)
+		r, err := g.credits.Reserve(c, userID, string(p.Feature), f.Cost, tehranNow(ck))
+		if err != nil {
+			if r != nil {
+				return Denied(err, p.Feature, f.Cost, r.Balance, locale)
 			}
 			return err
 		}
-		res := &Reservation{svc: g.plus, userID: userID, key: p.Plus, at: now, clock: clock.FromContext(c, g.clock), logger: g.logger}
+		res := &Reservation{svc: g.credits, res: r, clock: ck, logger: g.logger}
 		c.SetContext(context.WithValue(c.Context(), reservationKey{}, res))
 		err = c.Next()
 		if err != nil || c.Response().StatusCode() >= fiber.StatusBadRequest {
@@ -329,6 +400,34 @@ func (g *Guard) reserve(p Policy) fiber.Handler {
 		}
 		return err
 	}
+}
+
+// Denied is the response of a credit refusal (other errors pass through unchanged):
+//
+//	credits.ErrFeatureDisabled → 403 ai_feature_disabled      {feature}
+//	credits.ErrNoSubscription  → 402 ai_subscription_required {feature, extra_credits}
+//	credits.ErrInsufficient    → 402 ai_credits_exhausted     {feature, required, balance, plan_remaining,
+//	                                                           extra_credits, period_ends_at}
+//
+// Never 401: the clients wipe the session on a 401.
+func Denied(err error, feature ai.Feature, cost uint32, b credits.Balance, locale string) error {
+	switch {
+	case errors.Is(err, credits.ErrFeatureDisabled):
+		return httpx.Fail(fiber.StatusForbidden, T(CodeFeatureDisabled, locale), "error_code", CodeFeatureDisabled,
+			"feature", string(feature))
+	case errors.Is(err, credits.ErrNoSubscription):
+		return httpx.Fail(fiber.StatusPaymentRequired, T(CodeSubscriptionRequired, locale), "error_code", CodeSubscriptionRequired,
+			"feature", string(feature), "extra_credits", b.Extra)
+	case errors.Is(err, credits.ErrInsufficient):
+		var ends any
+		if !b.PeriodEndsAt.IsZero() {
+			ends = b.PeriodEndsAt.Format(time.RFC3339)
+		}
+		return httpx.Fail(fiber.StatusPaymentRequired, T(CodeCreditsExhausted, locale), "error_code", CodeCreditsExhausted,
+			"feature", string(feature), "required", cost, "balance", b.Spendable(), "plan_remaining", b.PlanRemaining,
+			"extra_credits", b.Extra, "period_ends_at", ends)
+	}
+	return err
 }
 
 func mustPolicy(feature ai.Feature) Policy {

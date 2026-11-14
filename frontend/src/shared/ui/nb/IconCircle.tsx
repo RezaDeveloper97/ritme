@@ -1,5 +1,6 @@
 import { clsx } from 'clsx';
 
+import { Art3d, ICON_ART } from '../Art3d';
 import { Icon, type IconName } from '../Icon';
 import { toneClass, type Tone } from './tone';
 
@@ -17,8 +18,24 @@ interface IconCircleProps {
   className?: string;
 }
 
-/** Tone-tinted icon disc (13% fill, optional 33% ring). */
+/**
+ * Icon disc. A glyph with a 3D twin ({@link ICON_ART}) shows the picture on its own, in the disc's box; the rest
+ * keep the tone-tinted disc (13% fill, optional 33% ring) around the line glyph.
+ */
 export function IconCircle({ icon, tone = 'brand', size = 'md', outlined, label, className }: IconCircleProps) {
+  const art = ICON_ART[icon];
+  if (art) {
+    return (
+      <span
+        className={clsx('nb-icircle', 'is-art', `is-${size}`, className)}
+        role={label ? 'img' : undefined}
+        aria-label={label}
+        aria-hidden={label ? undefined : true}
+      >
+        <Art3d name={art} size={PX[size]} />
+      </span>
+    );
+  }
   return (
     <span
       className={clsx('nb-icircle', `is-${size}`, toneClass(tone), outlined && 'is-outlined', className)}

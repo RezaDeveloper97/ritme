@@ -15,7 +15,7 @@ export default async function NewMedicationRoute({ params, searchParams }: Props
   const { from, for: forParam } = await searchParams;
   setRequestLocale(locale);
   return (
-    <RouteMessages route="reminderForm">
+    <RouteMessages route="reminderMedForm">
       <MedicationFormPage from={from} forParam={forParam} />
     </RouteMessages>
   );

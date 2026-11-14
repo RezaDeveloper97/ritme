@@ -55,7 +55,7 @@ function LevelPicker({ section, value, onChange, disabled }: LevelPickerProps) {
   return (
     <div
       role="radiogroup"
-      aria-label={t('flow.access.levelLabel', { section: t(`sections.${section}`) })}
+      aria-label={t('access.levelLabel', { section: t(`sections.${section}`) })}
       className="cmp-levels"
     >
       {ACCESS_LEVELS.map((level, index) => (

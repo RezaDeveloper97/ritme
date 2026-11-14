@@ -50,6 +50,54 @@ func (q *Queries) CountUserDiscountRedemptions(ctx context.Context, arg CountUse
 	return count, err
 }
 
+const getActiveCreditPack = `-- name: GetActiveCreditPack :one
+SELECT id, code, title, badge, credits, price_rials, is_highlighted, is_active, sort_order, created_at, updated_at FROM ai_credit_packs
+WHERE id = ? AND is_active = 1
+`
+
+func (q *Queries) GetActiveCreditPack(ctx context.Context, id uint64) (AiCreditPack, error) {
+	row := q.db.QueryRowContext(ctx, getActiveCreditPack, id)
+	var i AiCreditPack
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.Title,
+		&i.Badge,
+		&i.Credits,
+		&i.PriceRials,
+		&i.IsHighlighted,
+		&i.IsActive,
+		&i.SortOrder,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getCreditPack = `-- name: GetCreditPack :one
+SELECT id, code, title, badge, credits, price_rials, is_highlighted, is_active, sort_order, created_at, updated_at FROM ai_credit_packs
+WHERE id = ?
+`
+
+func (q *Queries) GetCreditPack(ctx context.Context, id uint64) (AiCreditPack, error) {
+	row := q.db.QueryRowContext(ctx, getCreditPack, id)
+	var i AiCreditPack
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.Title,
+		&i.Badge,
+		&i.Credits,
+		&i.PriceRials,
+		&i.IsHighlighted,
+		&i.IsActive,
+		&i.SortOrder,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const getInvoiceReceipt = `-- name: GetInvoiceReceipt :one
 SELECT id, invoice_id, user_id, gateway, ref_id, card_pan, amount_rials, paid_at, created_at, updated_at FROM plus_receipts
 WHERE invoice_id = ? AND user_id = ?
@@ -79,7 +127,7 @@ func (q *Queries) GetInvoiceReceipt(ctx context.Context, arg GetInvoiceReceiptPa
 }
 
 const getUserInvoiceByReference = `-- name: GetUserInvoiceByReference :one
-SELECT id, reference, user_id, plan_id, duration_months, status, currency, subtotal_rials, discount_rials, vat_rate_bps, vat_rials, total_rials, discount_code_id, discount_code, gateway, authority, expires_at, paid_at, created_at, updated_at FROM plus_invoices
+SELECT id, reference, user_id, plan_id, duration_months, status, currency, subtotal_rials, discount_rials, vat_rate_bps, vat_rials, total_rials, discount_code_id, discount_code, gateway, authority, expires_at, paid_at, created_at, updated_at, duration_minutes, kind, credit_pack_id, credits FROM plus_invoices
 WHERE reference = ? AND user_id = ?
 `
 
@@ -112,32 +160,63 @@ func (q *Queries) GetUserInvoiceByReference(ctx context.Context, arg GetUserInvo
 		&i.PaidAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DurationMinutes,
+		&i.Kind,
+		&i.CreditPackID,
+		&i.Credits,
 	)
 	return i, err
 }
 
+const insertExtraCreditGrant = `-- name: InsertExtraCreditGrant :exec
+INSERT INTO ai_credit_grants (user_id, kind, invoice_id, amount, remaining, created_at, updated_at)
+VALUES (?, 'extra', ?, ?, ?, ?, ?)
+`
+
+type InsertExtraCreditGrantParams struct {
+	UserID    uint64
+	InvoiceID sql.NullInt64
+	Amount    uint32
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+// The credits of a paid pack invoice. UNIQUE(invoice_id): a replayed settle can never grant twice.
+func (q *Queries) InsertExtraCreditGrant(ctx context.Context, arg InsertExtraCreditGrantParams) error {
+	_, err := q.db.ExecContext(ctx, insertExtraCreditGrant,
+		arg.UserID,
+		arg.InvoiceID,
+		arg.Amount,
+		arg.Amount,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
+	return err
+}
+
 const insertInvoice = `-- name: InsertInvoice :execlastid
-INSERT INTO plus_invoices (reference, user_id, plan_id, duration_months, status, currency, subtotal_rials, discount_rials,
+INSERT INTO plus_invoices (reference, user_id, plan_id, duration_months, duration_minutes, status, currency, subtotal_rials, discount_rials,
   vat_rate_bps, vat_rials, total_rials, discount_code_id, discount_code, gateway, expires_at, created_at, updated_at)
-VALUES (?, ?, ?, ?, 'pending', 'IRR', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, 'pending', 'IRR', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type InsertInvoiceParams struct {
-	Reference      string
-	UserID         uint64
-	PlanID         sql.NullInt64
-	DurationMonths uint16
-	SubtotalRials  uint64
-	DiscountRials  uint64
-	VatRateBps     uint32
-	VatRials       uint64
-	TotalRials     uint64
-	DiscountCodeID sql.NullInt64
-	DiscountCode   sql.NullString
-	Gateway        sql.NullString
-	ExpiresAt      time.Time
-	CreatedAt      sql.NullTime
-	UpdatedAt      sql.NullTime
+	Reference       string
+	UserID          uint64
+	PlanID          sql.NullInt64
+	DurationMonths  uint16
+	DurationMinutes sql.NullInt32
+	SubtotalRials   uint64
+	DiscountRials   uint64
+	VatRateBps      uint32
+	VatRials        uint64
+	TotalRials      uint64
+	DiscountCodeID  sql.NullInt64
+	DiscountCode    sql.NullString
+	Gateway         sql.NullString
+	ExpiresAt       time.Time
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
 }
 
 func (q *Queries) InsertInvoice(ctx context.Context, arg InsertInvoiceParams) (int64, error) {
@@ -146,6 +225,7 @@ func (q *Queries) InsertInvoice(ctx context.Context, arg InsertInvoiceParams) (i
 		arg.UserID,
 		arg.PlanID,
 		arg.DurationMonths,
+		arg.DurationMinutes,
 		arg.SubtotalRials,
 		arg.DiscountRials,
 		arg.VatRateBps,
@@ -153,6 +233,49 @@ func (q *Queries) InsertInvoice(ctx context.Context, arg InsertInvoiceParams) (i
 		arg.TotalRials,
 		arg.DiscountCodeID,
 		arg.DiscountCode,
+		arg.Gateway,
+		arg.ExpiresAt,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
+}
+
+const insertPackInvoice = `-- name: InsertPackInvoice :execlastid
+INSERT INTO plus_invoices (reference, user_id, plan_id, kind, credit_pack_id, credits, duration_months, status, currency,
+  subtotal_rials, discount_rials, vat_rate_bps, vat_rials, total_rials, gateway, expires_at, created_at, updated_at)
+VALUES (?, ?, NULL, 'credit_pack', ?, ?, 0, 'pending', 'IRR', ?, 0, ?, ?, ?, ?, ?, ?, ?)
+`
+
+type InsertPackInvoiceParams struct {
+	Reference     string
+	UserID        uint64
+	CreditPackID  sql.NullInt64
+	Credits       sql.NullInt32
+	SubtotalRials uint64
+	VatRateBps    uint32
+	VatRials      uint64
+	TotalRials    uint64
+	Gateway       sql.NullString
+	ExpiresAt     time.Time
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+}
+
+// A credit pack checkout (goose 00125): no plan, no period; `credits` is the snapshot the paid invoice grants.
+func (q *Queries) InsertPackInvoice(ctx context.Context, arg InsertPackInvoiceParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, insertPackInvoice,
+		arg.Reference,
+		arg.UserID,
+		arg.CreditPackID,
+		arg.Credits,
+		arg.SubtotalRials,
+		arg.VatRateBps,
+		arg.VatRials,
+		arg.TotalRials,
 		arg.Gateway,
 		arg.ExpiresAt,
 		arg.CreatedAt,
@@ -197,8 +320,49 @@ func (q *Queries) InsertReceipt(ctx context.Context, arg InsertReceiptParams) er
 	return err
 }
 
+const listActiveCreditPacks = `-- name: ListActiveCreditPacks :many
+SELECT id, code, title, badge, credits, price_rials, is_highlighted, is_active, sort_order, created_at, updated_at FROM ai_credit_packs
+WHERE is_active = 1
+ORDER BY sort_order, id
+`
+
+func (q *Queries) ListActiveCreditPacks(ctx context.Context) ([]AiCreditPack, error) {
+	rows, err := q.db.QueryContext(ctx, listActiveCreditPacks)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AiCreditPack{}
+	for rows.Next() {
+		var i AiCreditPack
+		if err := rows.Scan(
+			&i.ID,
+			&i.Code,
+			&i.Title,
+			&i.Badge,
+			&i.Credits,
+			&i.PriceRials,
+			&i.IsHighlighted,
+			&i.IsActive,
+			&i.SortOrder,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUserInvoices = `-- name: ListUserInvoices :many
-SELECT plus_invoices.id, plus_invoices.reference, plus_invoices.user_id, plus_invoices.plan_id, plus_invoices.duration_months, plus_invoices.status, plus_invoices.currency, plus_invoices.subtotal_rials, plus_invoices.discount_rials, plus_invoices.vat_rate_bps, plus_invoices.vat_rials, plus_invoices.total_rials, plus_invoices.discount_code_id, plus_invoices.discount_code, plus_invoices.gateway, plus_invoices.authority, plus_invoices.expires_at, plus_invoices.paid_at, plus_invoices.created_at, plus_invoices.updated_at,
+SELECT plus_invoices.id, plus_invoices.reference, plus_invoices.user_id, plus_invoices.plan_id, plus_invoices.duration_months, plus_invoices.status, plus_invoices.currency, plus_invoices.subtotal_rials, plus_invoices.discount_rials, plus_invoices.vat_rate_bps, plus_invoices.vat_rials, plus_invoices.total_rials, plus_invoices.discount_code_id, plus_invoices.discount_code, plus_invoices.gateway, plus_invoices.authority, plus_invoices.expires_at, plus_invoices.paid_at, plus_invoices.created_at, plus_invoices.updated_at, plus_invoices.duration_minutes, plus_invoices.kind, plus_invoices.credit_pack_id, plus_invoices.credits,
        r.ref_id AS receipt_ref_id, r.card_pan AS receipt_card_pan, r.amount_rials AS receipt_amount_rials,
        r.paid_at AS receipt_paid_at
 FROM plus_invoices
@@ -246,6 +410,10 @@ func (q *Queries) ListUserInvoices(ctx context.Context, userID uint64) ([]ListUs
 			&i.PlusInvoice.PaidAt,
 			&i.PlusInvoice.CreatedAt,
 			&i.PlusInvoice.UpdatedAt,
+			&i.PlusInvoice.DurationMinutes,
+			&i.PlusInvoice.Kind,
+			&i.PlusInvoice.CreditPackID,
+			&i.PlusInvoice.Credits,
 			&i.ReceiptRefID,
 			&i.ReceiptCardPan,
 			&i.ReceiptAmountRials,
@@ -265,7 +433,7 @@ func (q *Queries) ListUserInvoices(ctx context.Context, userID uint64) ([]ListUs
 }
 
 const listUserPendingInvoices = `-- name: ListUserPendingInvoices :many
-SELECT id, reference, user_id, plan_id, duration_months, status, currency, subtotal_rials, discount_rials, vat_rate_bps, vat_rials, total_rials, discount_code_id, discount_code, gateway, authority, expires_at, paid_at, created_at, updated_at FROM plus_invoices
+SELECT id, reference, user_id, plan_id, duration_months, status, currency, subtotal_rials, discount_rials, vat_rate_bps, vat_rials, total_rials, discount_code_id, discount_code, gateway, authority, expires_at, paid_at, created_at, updated_at, duration_minutes, kind, credit_pack_id, credits FROM plus_invoices
 WHERE user_id = ? AND status = 'pending' AND authority IS NOT NULL
 ORDER BY id DESC
 LIMIT 10
@@ -302,6 +470,10 @@ func (q *Queries) ListUserPendingInvoices(ctx context.Context, userID uint64) ([
 			&i.PaidAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.DurationMinutes,
+			&i.Kind,
+			&i.CreditPackID,
+			&i.Credits,
 		); err != nil {
 			return nil, err
 		}
@@ -346,7 +518,7 @@ func (q *Queries) LockDiscountCode(ctx context.Context, code string) (PlusDiscou
 }
 
 const lockUserInvoiceByReference = `-- name: LockUserInvoiceByReference :one
-SELECT id, reference, user_id, plan_id, duration_months, status, currency, subtotal_rials, discount_rials, vat_rate_bps, vat_rials, total_rials, discount_code_id, discount_code, gateway, authority, expires_at, paid_at, created_at, updated_at FROM plus_invoices
+SELECT id, reference, user_id, plan_id, duration_months, status, currency, subtotal_rials, discount_rials, vat_rate_bps, vat_rials, total_rials, discount_code_id, discount_code, gateway, authority, expires_at, paid_at, created_at, updated_at, duration_minutes, kind, credit_pack_id, credits FROM plus_invoices
 WHERE reference = ? AND user_id = ?
 FOR UPDATE
 `
@@ -380,6 +552,10 @@ func (q *Queries) LockUserInvoiceByReference(ctx context.Context, arg LockUserIn
 		&i.PaidAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DurationMinutes,
+		&i.Kind,
+		&i.CreditPackID,
+		&i.Credits,
 	)
 	return i, err
 }

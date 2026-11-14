@@ -35,13 +35,13 @@ func TestVitalsAlertPlaceholdersMigration(t *testing.T) {
 
 	_, err = p.UpByOne(ctx)
 	require.NoError(t, err)
-	assert.Equal(t, "فشار {value} ثبت کردی؛ عدد بالاتر از {systolic}/{diastolic} اورژانسی حساب می‌شود.",
+	assert.Equal(t, "فشار {value} ثبت کردی؛ عدد بالاتر از {systolic}/{diastolic} اورژانسی حساب می\u200cشود.",
 		field("bp_crisis", "fa", "$.what_we_saw"))
 	assert.Contains(t, field("bp_crisis", "fa", "$.advice"), "اگر باز هم بالاتر از {systolic}/{diastolic} بود")
 	assert.Equal(t, "You logged {value}; a reading above {systolic}/{diastolic} counts as an emergency.",
 		field("bp_crisis", "en", "$.what_we_saw"))
 	assert.Contains(t, field("bp_crisis", "en", "$.advice"), "If it is still above {systolic}/{diastolic},")
-	assert.Equal(t, "قند {value} ثبت کردی؛ کمتر از {mgdl} mg/dL ({mmol_l} mmol/L) افت قند شدید حساب می‌شود.",
+	assert.Equal(t, "قند {value} ثبت کردی؛ کمتر از {mgdl} mg/dL ({mmol_l} mmol/L) افت قند شدید حساب می\u200cشود.",
 		field("glucose_low", "fa", "$.what_we_saw"))
 	assert.Equal(t, custom, field("glucose_low", "en", "$.what_we_saw"), "admin edit kept")
 	assert.Equal(t, "115", field("bp_crisis", "fa", "$.actions[0].phone"), "the emergency number is not a threshold")

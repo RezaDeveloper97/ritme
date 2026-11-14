@@ -25,6 +25,9 @@ import enLogCustomize from '../../../messages/en/log-customize.json';
 import enLogSheet from '../../../messages/en/log-sheet.json';
 import enAlerts from '../../../messages/en/alerts.json';
 import enVoiceLog from '../../../messages/en/voice-log.json';
+import enAiCredit from '../../../messages/en/ai-credit.json';
+import enAiGate from '../../../messages/en/ai-gate.json';
+import enCredits from '../../../messages/en/credits.json';
 import enVitals from '../../../messages/en/vitals.json'; // B-N6-02
 import enTodo from '../../../messages/en/todo.json'; // B-N6-08
 import enLearn from '../../../messages/en/learn.json'; // B-N8-03
@@ -96,6 +99,9 @@ import faLogCustomize from '../../../messages/fa/log-customize.json';
 import faLogSheet from '../../../messages/fa/log-sheet.json';
 import faAlerts from '../../../messages/fa/alerts.json';
 import faVoiceLog from '../../../messages/fa/voice-log.json';
+import faAiCredit from '../../../messages/fa/ai-credit.json';
+import faAiGate from '../../../messages/fa/ai-gate.json';
+import faCredits from '../../../messages/fa/credits.json';
 import faVitals from '../../../messages/fa/vitals.json'; // B-N6-02
 import faTodo from '../../../messages/fa/todo.json'; // B-N6-08
 import faLearn from '../../../messages/fa/learn.json'; // B-N8-03
@@ -229,6 +235,9 @@ const bundled = {
     logCustomize: faLogCustomize,
     logSheet: faLogSheet,
     voiceLog: faVoiceLog,
+    aiCredit: faAiCredit,
+    aiGate: faAiGate,
+    credits: faCredits,
     alerts: faAlerts, // T-M10-15 /alerts
     vitals: faVitals,
     todo: faTodo, // B-N6-08 /todo
@@ -302,6 +311,9 @@ const bundled = {
     logCustomize: enLogCustomize,
     logSheet: enLogSheet,
     voiceLog: enVoiceLog,
+    aiCredit: enAiCredit,
+    aiGate: enAiGate,
+    credits: enCredits,
     alerts: enAlerts, // T-M10-15 /alerts
     vitals: enVitals,
     todo: enTodo, // B-N6-08 /todo

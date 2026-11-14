@@ -1,38 +1,35 @@
 {{--
     Footer markup, rendered (and fragment-cached) by App\View\Components\Layout\Footer — use <x-layout.footer/>.
-    Data: $homeUrl, $siteName, $tagline, $columns (list<FooterColumnData>), $stores / $socials (list<LinkData>,
-    empty settings already dropped), $enamadHtml (sanitised) / $enamadCode, $year, $emergency, $emergencyLabel.
+    Data: $homeUrl, $siteName, $logoUrl, $tagline, $columns (list<FooterColumnData>), $stores / $socials (list<LinkData>,
+    empty settings already dropped), $enamadSeal (?EnamadSeal: official seal image) else $enamadHtml (sanitised) / $enamadCode, $year, $emergency, $emergencyLabel.
+    Nov 2026 redesign: ink background, brand + tagline, three link columns (مرحله‌ها · ریتمی · اعتماد); store links
+    live in each page's #download band, so they are not repeated here.
 --}}
-<footer class="col-start-1 row-start-5 flex flex-col gap-10 bg-night px-30 pt-16 pb-8 text-on-night max-lg:px-5 max-lg:pt-[35.2px]">
-    <div class="grid grid-cols-[1.3fr_repeat(5,minmax(0,1fr))] gap-7 max-lg:grid-cols-3 max-sm:grid-cols-1">
-        <div class="flex min-w-0 flex-col gap-3.5 max-lg:col-span-full">
-            <a href="{{ $homeUrl }}" class="flex items-center gap-2.5 text-on-night hover:text-on-night">
-                <span class="flex size-10 items-center justify-center rounded-full bg-lilac"><x-icon name="drop" class="size-5 text-white"/></span>
-                <span class="font-display text-[30px] leading-none">{{ $siteName }}</span>
+<footer class="bleed col-start-1 row-start-5 flex flex-col gap-10 bg-ink px-30 pt-16 pb-8 text-white max-xl:px-6 max-lg:px-5 max-lg:pt-12">
+    <div class="grid grid-cols-[1.6fr_repeat(3,minmax(0,1fr))] gap-8 max-lg:grid-cols-3 max-sm:grid-cols-2">
+        <div class="flex max-w-80 min-w-0 flex-col gap-3.5 max-lg:col-span-full">
+            <a href="{{ $homeUrl }}" class="flex items-center gap-2 text-white hover:text-white">
+                <img src="{{ $logoUrl }}" width="106" height="40" alt="{{ $siteName }}" class="h-10 w-auto shrink-0" decoding="async">
             </a>
             @if ($tagline !== '')
-                <p class="m-0 text-base leading-loose text-on-night-muted">{{ $tagline }}</p>
-            @endif
-            @if ($stores !== [])
-                <ul class="flex origin-top-right scale-85 flex-wrap gap-2.5 text-base max-sm:scale-none" aria-label="دریافت اپ">
-                    @foreach ($stores as $store)
-                        <li><a href="{{ $store->url }}" rel="noopener" class="box-content flex h-13 items-center gap-2.5 rounded-lg border border-night-line bg-night-card px-4.5 text-base font-extrabold text-on-night hover:text-on-night">
-                            <x-icon name="download" class="size-4.5"/>
-                            <span class="flex flex-col leading-snug"><span class="text-2xs font-semibold opacity-75">دریافت از</span>{{ $store->label }}</span>
-                        </a></li>
-                    @endforeach
-                </ul>
+                <p class="m-0 text-base leading-loose text-on-ink-muted">{{ $tagline }}</p>
             @endif
         </div>
         @foreach ($columns as $column)
             <nav aria-label="{{ $column->title }}" class="flex min-w-0 flex-col gap-3">
-                <p class="m-0 text-md font-bold text-on-night">{{ $column->title }}</p>
+                <p class="m-0 text-md font-bold text-white">{{ $column->title }}</p>
                 <ul class="flex flex-col gap-3 text-base">
                     @foreach ($column->links as $link)
-                        <li><a href="{{ $link->url }}" class="font-semibold text-on-night-muted hover:text-on-night">{{ $link->label }}</a></li>
+                        <li><a href="{{ $link->url }}" class="font-semibold text-on-ink-muted hover:text-white">{{ $link->label }}</a></li>
                     @endforeach
-                    @if ($loop->last && ($enamadHtml !== '' || $enamadCode !== null))
-                        <li class="text-base font-semibold text-on-night-muted [&_a]:text-on-night-muted [&_a:hover]:text-on-night">
+                    @if ($loop->last && $enamadSeal !== null)
+                        <li class="mt-1">
+                            <a href="{{ $enamadSeal->linkUrl() }}" target="_blank" rel="noopener nofollow" referrerpolicy="origin" class="inline-flex rounded-xl bg-white p-1.5" aria-label="نماد اعتماد الکترونیکی">
+                                <img src="{{ $enamadSeal->imageUrl() }}" width="{{ $enamadSeal::WIDTH }}" height="{{ $enamadSeal::HEIGHT }}" alt="نماد اعتماد الکترونیکی" referrerpolicy="origin" loading="lazy" decoding="async" class="h-22 w-auto">
+                            </a>
+                        </li>
+                    @elseif ($loop->last && ($enamadHtml !== '' || $enamadCode !== null))
+                        <li class="text-base font-semibold text-on-ink-muted [&_a]:text-on-ink-muted [&_a:hover]:text-white">
                             @if ($enamadHtml !== '')
                                 {!! $enamadHtml !!}
                             @else
@@ -44,12 +41,12 @@
             </nav>
         @endforeach
     </div>
-    <div class="flex items-center justify-between border-t border-night-line pt-6 text-sm text-on-night-muted max-lg:flex-wrap max-sm:flex-col max-sm:items-start max-sm:gap-3">
-        <p class="m-0">© {{ $year }} {{ $siteName }} · {{ $siteName }} جایگزین اورژانس نیست؛ در شرایط اضطراری با <a href="tel:{{ $emergency }}" class="text-on-night-muted underline-offset-2 hover:text-on-night hover:underline">{{ $emergencyLabel }}</a> تماس بگیر.</p>
+    <div class="flex items-center justify-between gap-4 border-t border-night-line pt-6 text-sm leading-relaxed text-on-ink-muted max-sm:flex-col max-sm:items-start">
+        <p class="m-0">© {{ $year }} {{ $siteName }}</p>
         @if ($socials !== [])
             <ul class="flex gap-4.5 text-sm" aria-label="شبکه‌های اجتماعی">
                 @foreach ($socials as $social)
-                    <li><a href="{{ $social->url }}" rel="me noopener" class="text-on-night-muted hover:text-on-night">{{ $social->label }}</a></li>
+                    <li><a href="{{ $social->url }}" rel="me noopener" class="text-on-ink-muted hover:text-white">{{ $social->label }}</a></li>
                 @endforeach
             </ul>
         @endif

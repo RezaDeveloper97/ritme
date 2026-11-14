@@ -6,8 +6,11 @@ namespace App\Http\Controllers;
 
 use App\Domain\Blog\Contracts\PostRepository;
 use App\Domain\Blog\Data\PostCardData;
+use App\Domain\Content\Enums\SitePhoto;
 use App\Domain\Content\Enums\StaticPage;
 use App\Domain\Content\SiteNavigation;
+use App\Domain\Content\SitePhotos;
+use App\Domain\Media\Data\MediaData;
 use App\Domain\Seo\Schema\Nodes\MobileApplicationNode;
 use App\Domain\Seo\Schema\SchemaGraph;
 use App\Domain\Seo\Schema\SchemaIds;
@@ -34,7 +37,7 @@ use Illuminate\Support\HtmlString;
 final class HomeController
 {
     /** «خواندنی‌های این هفته»: newest posts shown. */
-    public const READINGS = 3;
+    public const READINGS = 6;
 
     public function __construct(
         private readonly StaticPageSeo $staticSeo,
@@ -45,6 +48,7 @@ final class HomeController
         private readonly ViewFactory $views,
         private readonly Vite $vite,
         private readonly Config $config,
+        private readonly SitePhotos $photos,
     ) {}
 
     /** SeoManager and SchemaGraph are request-scoped: injected per call, not into the (route-cached) controller. */
@@ -53,7 +57,11 @@ final class HomeController
         $settings = $this->settings->all();
         $this->describe($seo, $graph, $settings);
 
+        $hero = $this->photos->get(SitePhoto::HomeHero);
+
         return $this->views->make('pages.home', [
+            'heroPhoto' => $hero,
+            'heroAlt' => SitePhoto::HomeHero->alt(),
             'staticSections' => $this->staticSections(),
             'readings' => $this->readings(),
             'appLinks' => $settings->appLinks,
@@ -83,16 +91,21 @@ final class HomeController
     }
 
     /**
-     * Stage cards, «یک اپ، پنج بخش», the two feature splits, help, privacy and tools: copy + routes only, so the
+     * Stages, #features, steps, partner and privacy: copy + routes + static site photos only, so the
      * rendered HTML is cached until the `pages` namespace is bumped, the asset build changes (sprite URL) or a
      * template is edited.
      */
     private function staticSections(): HtmlString
     {
-        $key = CacheKey::make('pages', 'home', 'static', $this->templateVersion());
+        $photos = [];
+        foreach (SitePhoto::cases() as $photo) {
+            $photos[$photo->value] = $this->photos->get($photo);
+        }
+        $ids = md5(implode(',', array_map(static fn (?MediaData $media): string => (string) $media?->id, $photos)));
+        $key = CacheKey::make('pages', 'home', 'static', $this->templateVersion().'-'.$ids);
 
         /** @var string $html */
-        $html = $this->cache->remember($key, null, fn (): string => $this->views->make('pages.home.static')->render());
+        $html = $this->cache->remember($key, null, fn (): string => $this->views->make('pages.home.static', ['photos' => $photos])->render());
 
         return new HtmlString($html);
     }
@@ -104,7 +117,6 @@ final class HomeController
             glob(resource_path('views/pages/home/*.blade.php')) ?: [],
             glob(resource_path('views/pages/home/*/*.blade.php')) ?: [],
             glob(resource_path('views/components/*/*.blade.php')) ?: [],
-            glob(resource_path('views/pages/stages/mock/screens/*.blade.php')) ?: [], // shared phone screens
             [lang_path('fa/home.php')],
         );
         $mtime = max(array_map(static fn (string $file): int => is_file($file) ? (int) filemtime($file) : 0, $files));

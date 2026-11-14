@@ -54,8 +54,7 @@
     "note": "The shop is separate from your health data and its suggestions are not based on what you log."
   },
   "sos": {
-    "title": "Is it an emergency?",
-    "body": "Ritme is not a substitute for emergency care",
-    "call": "Call {phone}"
+    "title": "Ritme doesn't replace your doctor",
+    "body": "If you notice anything that worries you, talk to a doctor."
   }
 }

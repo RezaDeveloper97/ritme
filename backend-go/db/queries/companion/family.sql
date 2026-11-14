@@ -206,11 +206,12 @@ VALUES (sqlc.arg(from_user_id), sqlc.arg(to_user_id), sqlc.arg(link_id), sqlc.ar
   sqlc.arg(expires_at), sqlc.arg(now));
 
 -- name: GetFamilyShareRequest :one
--- One request; expired = 1 for a pending row past expires_at (lazy expiry).
+-- One request asked of to_user_id (the data owner: approve / decline path, IDOR-scoped in the query); expired = 1 for
+-- a pending row past expires_at (lazy expiry).
 SELECT id, from_user_id, to_user_id, link_id, domains,
   status, CAST(status = 'pending' AND expires_at <= sqlc.arg(now) AS SIGNED) AS expired,
   expires_at, decided_at, created_at
-FROM `family_share_requests` WHERE id = sqlc.arg(id) LIMIT 1;
+FROM `family_share_requests` WHERE id = sqlc.arg(id) AND to_user_id = sqlc.arg(to_user_id) LIMIT 1;
 
 -- name: ListPendingFamilyShareRequestsForOwner :many
 -- The owner's inbox of live requests, newest first. Index (to_user_id, status, created_at).

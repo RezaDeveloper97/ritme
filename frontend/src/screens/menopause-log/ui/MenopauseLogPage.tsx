@@ -4,7 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { LogDay } from '@/features/log-day';
-import { VoiceLogPanel } from '@/features/voice-log';
+import { VoiceLogGated } from '@/widgets/voice-log-slot';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import { SkyLayer } from '@/shared/ui';
@@ -35,7 +35,7 @@ export function MenopauseLogPage() {
           dateStrip={false}
           pageHeader={{ title: t('title'), subtitle: date === todayKey ? t('today', { date: dayText }) : dayText }}
           BodyMap={BodyMap}
-          VoiceLog={VoiceLogPanel}
+          VoiceLog={VoiceLogGated}
           onClose={goHome}
           onSaved={goHome}
         />

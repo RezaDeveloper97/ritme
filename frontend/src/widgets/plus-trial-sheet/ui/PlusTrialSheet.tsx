@@ -4,6 +4,7 @@ import { clsx } from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 
+import { formatCredits, useAiCredits } from '@/entities/ai-credit';
 import {
   formatTomanThousands,
   usePlusTrial,
@@ -33,11 +34,9 @@ type T = ReturnType<typeof useTranslations<'plus'>>;
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
-/** The usage lines in the artboard's order; keys the design has no row for (voice log) are left out. */
-const ROWS: Record<string, { slug: 'deepAnalysis' | 'labAi' | 'assistant' | 'pdfShare' | 'visitDiscount'; icon: IconName; tone: Tone }> = {
+/** The usage lines in the artboard's order; keys the design has no row for are left out (AI use is one «اعتبار» line, {@link CreditsRow}). */
+const ROWS: Record<string, { slug: 'deepAnalysis' | 'pdfShare' | 'visitDiscount'; icon: IconName; tone: Tone }> = {
   'plus.deep_analysis': { slug: 'deepAnalysis', icon: 'chart', tone: 'brand' },
-  'plus.lab_ai': { slug: 'labAi', icon: 'flask', tone: 'data' },
-  'plus.assistant_unlimited': { slug: 'assistant', icon: 'sparkle', tone: 'warm' },
   'plus.pdf_share': { slug: 'pdfShare', icon: 'note', tone: 'bloom' },
   'plus.visit_discount': { slug: 'visitDiscount', icon: 'stetho', tone: 'danger' },
 };
@@ -53,14 +52,7 @@ function UsageRow({ t, loc, usage }: { t: T; loc: Locale; usage: PlusTrialUsage 
   const row = ROWS[usage.key];
   if (!row) return null;
   const base = `trialSheet.features.${row.slug}` as const;
-  let sub: string;
-  if (row.slug === 'labAi') {
-    sub = usage.plusLimit
-      ? t('trialSheet.features.labAi.sub', { limit: formatNumber(usage.plusLimit, loc) })
-      : t('trialSheet.features.labAi.subUnlimited');
-  } else {
-    sub = t(`${base}.sub`);
-  }
+  const sub = t(`${base}.sub`);
   let value: ReactNode;
   if (row.slug === 'visitDiscount') {
     // Visits arrive with B-N7; until then the line has nothing to count.
@@ -83,6 +75,29 @@ function UsageRow({ t, loc, usage }: { t: T; loc: Locale; usage: PlusTrialUsage 
         <span>{sub}</span>
       </span>
       <span className={clsx('plus-tsheet-row-value', `nb-tone-${row.tone}`)}>{value}</span>
+    </li>
+  );
+}
+
+/** The one «اعتبار» line that replaces the per-feature AI rows: what is left of the period's credits. */
+function CreditsRow({ t, loc }: { t: T; loc: Locale }) {
+  const credits = useAiCredits();
+  const data = credits.data;
+  return (
+    <li className="plus-tsheet-row">
+      <IconCircle icon="sparkle" tone="warm" size="sm" />
+      <span className="plus-tsheet-row-text">
+        <b>{t('trialSheet.features.credits.title')}</b>
+        <span>{t('trialSheet.features.credits.sub')}</span>
+      </span>
+      <span className="plus-tsheet-row-value nb-tone-warm">
+        {data
+          ? t('trialSheet.features.credits.value', {
+              remaining: formatCredits(data.plan.remaining, loc),
+              total: formatCredits(data.plan.total, loc),
+            })
+          : t('trialSheet.notAvailable')}
+      </span>
     </li>
   );
 }
@@ -130,6 +145,7 @@ function OfferBody({ sheet, offer, since, t, loc }: { sheet: TrialSheetData; off
           {sheet.usage.features.map((u) => (
             <UsageRow key={u.key} t={t} loc={loc} usage={u} />
           ))}
+          <CreditsRow t={t} loc={loc} />
         </ul>
       </Card>
 

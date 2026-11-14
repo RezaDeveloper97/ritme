@@ -2,7 +2,6 @@ package companion
 
 import (
 	"context"
-	"crypto/rand"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -11,32 +10,28 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/go-sql-driver/mysql"
-
 	"github.com/ritme/backend-go/internal/companion/store"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/family"
+	"github.com/ritme/backend-go/internal/family/invites"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 )
 
 // Defaults of Options.
 const (
-	DefaultInviteTTL         = 24 * time.Hour
-	DefaultMaxAttempts       = 5
-	DefaultMaxOpenCompanions = 10
+	DefaultInviteTTL         = invites.DefaultCodeTTL
+	DefaultMaxAttempts       = invites.DefaultMaxAttempts
+	DefaultMaxOpenCompanions = invites.DefaultMaxOpen
 	maxDisplayName           = 100
-	maxCodeRetries           = 5
 )
-
-// defaultPepper keys the code HMAC when Options.CodePepper is empty (tests, local). B-N4-02 wires a secret from env.
-var defaultPepper = []byte("ritme-companion-invite")
 
 // Options tunes the service; zero values take the defaults.
 type Options struct {
-	// CodePepper keys the HMAC of invite codes at rest (secret, from env).
+	// CodePepper keys the HMAC of invite codes at rest (secret, from env; empty → invites.DevPepper, local / testing /
+	// contract only — the server refuses to start without one elsewhere, FAM-L1).
 	CodePepper []byte
-	// InviteTTL is how long an invite stays valid (24 h).
+	// InviteTTL is how long a code-only invite stays valid (24 h); a phone invite lives 7 days (F-11).
 	InviteTTL time.Duration
 	// MaxAttempts locks an invite after this many failed attempts (5).
 	MaxAttempts int
@@ -46,6 +41,10 @@ type Options struct {
 	Rand io.Reader
 	// ReadAudit coalesces member read-audit rows in Redis (F-16, D-203); nil → the DB window check.
 	ReadAudit *family.ReadAudit
+	// MinAcceptDuration is the floor of Accept (CMP-L2, invites.Options.MinDuration); 0 = none (tests).
+	MinAcceptDuration time.Duration
+	// Mismatch counts a phone-bound code's wrong-account tries once per account (CMP-L8); nil = every try.
+	Mismatch invites.Gate
 }
 
 // Conn is the database the service writes through (a *sql.DB).
@@ -56,37 +55,32 @@ type Conn interface {
 
 // Service is the companion domain.
 type Service struct {
-	conn        Conn
-	clock       clock.Clock
-	pepper      []byte
-	ttl         time.Duration
-	maxAttempts int
-	maxOpen     int
-	rand        io.Reader
-	readAudit   *family.ReadAudit
+	conn      Conn
+	clock     clock.Clock
+	maxOpen   int
+	readAudit *family.ReadAudit
+	// inv is the one invite service (T-M11-08, D-196): codes are issued and redeemed there.
+	inv *invites.Service
 }
 
 // NewService returns a Service on conn.
 func NewService(conn Conn, clk clock.Clock, opt Options) *Service {
-	s := &Service{conn: conn, clock: clk, pepper: opt.CodePepper, ttl: opt.InviteTTL, maxAttempts: opt.MaxAttempts,
-		maxOpen: opt.MaxOpenCompanions, rand: opt.Rand, readAudit: opt.ReadAudit}
-	if len(s.pepper) == 0 {
-		s.pepper = defaultPepper
-	}
-	if s.ttl <= 0 {
-		s.ttl = DefaultInviteTTL
-	}
-	if s.maxAttempts <= 0 {
-		s.maxAttempts = DefaultMaxAttempts
-	}
+	s := &Service{conn: conn, clock: clk, maxOpen: opt.MaxOpenCompanions, readAudit: opt.ReadAudit}
 	if s.maxOpen <= 0 {
 		s.maxOpen = DefaultMaxOpenCompanions
 	}
-	if s.rand == nil {
-		s.rand = rand.Reader
+	var invConn invites.Conn
+	if conn != nil {
+		invConn = conn
 	}
+	s.inv = invites.NewService(invConn, clk, invites.Options{Pepper: opt.CodePepper, CodeTTL: opt.InviteTTL,
+		MaxAttempts: opt.MaxAttempts, MaxOpen: s.maxOpen, Rand: opt.Rand, MinDuration: opt.MinAcceptDuration,
+		Mismatch: opt.Mismatch})
 	return s
 }
+
+// Invites is the invite service the companion routes run on (D-196).
+func (s *Service) Invites() *invites.Service { return s.inv }
 
 // Link is one owner ↔ companion relation as either party sees it.
 type Link struct {
@@ -106,6 +100,8 @@ type Link struct {
 	// FamilyID / SharedChildIDs are set for spouse links (children rows arrive in B-N5-02).
 	FamilyID       uint64
 	SharedChildIDs []uint64
+	// Preferences are the owner's «ریتمی همراه» v2 settings of the link (goal, signal consents, action kinds).
+	Preferences Preferences
 }
 
 // InviteInput is the Hamdam_Type → Access → Children → Invite flow.
@@ -116,6 +112,8 @@ type InviteInput struct {
 	Grants      Grants
 	// ChildIDs are the shared children (spouse only). The caller verifies ownership (B-N5-02 children service).
 	ChildIDs []uint64
+	// Preferences are the optional «ریتمی همراه» v2 settings (zero value = DefaultPreferences).
+	Preferences Preferences
 }
 
 // CreatedInvite is the result of CreateInvite / RenewInvite. Code is the only place the plain code exists.
@@ -143,11 +141,6 @@ func nt(t time.Time) sql.NullTime { return sql.NullTime{Time: t, Valid: true} }
 func nid(id uint64) sql.NullInt64 { return sql.NullInt64{Int64: int64(id), Valid: id != 0} } //nolint:gosec // ids fit
 
 func nstr(v string) sql.NullString { return sql.NullString{String: v, Valid: v != ""} }
-
-func isDuplicate(err error) bool {
-	var me *mysql.MySQLError
-	return errors.As(err, &me) && me.Number == 1062
-}
 
 // inTx runs fn on one READ COMMITTED transaction.
 func (s *Service) inTx(ctx context.Context, fn func(q *store.Queries) error) error {
@@ -204,7 +197,7 @@ func validateInput(in *InviteInput) error {
 	if len(in.ChildIDs) > 0 && in.Type != TypeSpouse {
 		return ErrChildrenNoSpouse
 	}
-	return nil
+	return in.Preferences.Validate()
 }
 
 // CreateInvite makes a pending link with the chosen type, grants and (spouse) shared children, and a one-time code
@@ -249,6 +242,9 @@ func (s *Service) CreateInvite(ctx context.Context, ownerID uint64, in InviteInp
 		}
 		id, err := q.CreateCompanion(ctx, store.CreateCompanionParams{
 			OwnerID: ownerID, Type: string(in.Type), DisplayName: nstr(in.DisplayName), Now: nt(now),
+			Goal: goalColumn(in.Preferences.Goal), SharePain: in.Preferences.Signals.On(SignalPain),
+			ShareMood: in.Preferences.Signals.On(SignalMood), ShareEnergy: in.Preferences.Signals.On(SignalEnergy),
+			ShareSleep: in.Preferences.Signals.On(SignalSleep), ActionPrefs: actionsColumn(in.Preferences.Actions),
 		})
 		if err != nil {
 			return fmt.Errorf("companion: create: %w", err)
@@ -352,125 +348,30 @@ func latestPhone(ctx context.Context, q *store.Queries, ownerID, companionID uin
 }
 
 func (s *Service) issueInvite(ctx context.Context, q *store.Queries, ownerID, companionID uint64, phone string, now time.Time) (string, time.Time, error) {
-	expires := now.Add(s.ttl)
-	for range maxCodeRetries {
-		code, err := newCode(s.rand)
-		if err != nil {
-			return "", time.Time{}, err
-		}
-		_, err = q.CreateInvite(ctx, store.CreateInviteParams{
-			CompanionID: companionID, OwnerID: ownerID, Phone: nstr(phone), CodeHash: s.hashCode(code),
-			ExpiresAt: nt(expires), Now: nt(now),
-		})
-		if err == nil {
-			return code, expires, nil
-		}
-		if !isDuplicate(err) {
-			return "", time.Time{}, fmt.Errorf("companion: invite: %w", err)
-		}
-	}
-	return "", time.Time{}, errors.New("companion: invite: no free code")
+	return s.inv.Issue(ctx, q, ownerID, companionID, phone, now)
 }
 
-// Accept redeems a code for viewerID: the pending link becomes active with the grants the owner chose, and a spouse
-// joins the owner's family. A bound invite redeemed by another number counts a failed attempt; MaxAttempts locks it.
-// Callers rate-limit Accept per user (B-N4-02): an unknown code does not touch any row.
+// Accept redeems a code for viewerID on the invite service (D-196): the pending link becomes active with the grants
+// the owner chose (or awaiting_owner for a high-impact code-only v6 invite, F-11: the member then sees nothing), and a
+// spouse joins the owner's family. A bound invite redeemed by another number counts a failed attempt; MaxAttempts
+// locks it. Callers rate-limit Accept per user (B-N4-02).
 func (s *Service) Accept(ctx context.Context, viewerID uint64, typed string) (Link, error) {
-	code, ok := NormalizeCode(typed)
-	if !ok {
-		return Link{}, ErrInviteInvalid
-	}
-	hash := s.hashCode(code)
-	inv, err := store.New(s.conn).GetInviteByHash(ctx, hash)
-	if errors.Is(err, sql.ErrNoRows) {
-		return Link{}, ErrInviteInvalid
-	}
+	a, err := s.inv.Accept(ctx, viewerID, invites.AcceptInput{Code: typed})
 	if err != nil {
-		return Link{}, fmt.Errorf("companion: invite: %w", err)
+		if errors.Is(err, invites.ErrNotFound) {
+			return Link{}, ErrNotFound
+		}
+		return Link{}, err
 	}
-	now := s.now()
-	var link Link
-	err = s.inTxTx(ctx, func(tx *sql.Tx, q *store.Queries) error {
-		if err := lockOwner(ctx, q, inv.OwnerID); err != nil {
-			return err
-		}
-		inv, err := q.GetInvite(ctx, inv.ID) // re-read under the owner lock
-		if err != nil {
-			return notFound(err)
-		}
-		switch {
-		case inv.UsedAt.Valid || inv.RevokedAt.Valid:
-			return ErrInviteUsed
-		case !inv.ExpiresAt.Valid || !now.Before(inv.ExpiresAt.Time):
-			return ErrInviteExpired
-		case int(inv.Attempts) >= s.maxAttempts:
-			return ErrInviteLocked
-		case inv.OwnerID == viewerID:
-			return ErrSelfInvite
-		}
-		if inv.Phone.Valid && inv.Phone.String != "" {
-			mobile, err := q.GetUserMobile(ctx, viewerID)
-			if err != nil {
-				return notFound(err)
-			}
-			if !mobile.Valid || mobile.String != inv.Phone.String {
-				return ErrInvitePhoneMismatch
-			}
-		}
-		c, err := q.GetCompanion(ctx, inv.CompanionID)
-		if err != nil {
-			return notFound(err)
-		}
-		if Status(c.Status) != StatusInvited {
-			return ErrInviteUsed
-		}
-		if err := checkTeenRule(ctx, q, inv.OwnerID, Type(c.Type)); err != nil {
-			// The owner's mode changed since the invite (CB-TEEN-01): a partner / spouse invite of an owner now in
-			// teen mode, or a parent invite of one who left it, cannot be accepted. Not a failed attempt.
-			return ErrInviteNotAllowed
-		}
-		linked, err := q.CountOpenLinks(ctx, store.CountOpenLinksParams{OwnerID: inv.OwnerID, CompanionUserID: nid(viewerID)})
-		if err != nil {
-			return fmt.Errorf("companion: links: %w", err)
-		}
-		if linked > 0 {
-			return ErrAlreadyLinked
-		}
-		if n, err := q.MarkInviteUsed(ctx, store.MarkInviteUsedParams{ID: inv.ID, UsedByID: nid(viewerID), Now: nt(now)}); err != nil {
-			return fmt.Errorf("companion: use invite: %w", err)
-		} else if n == 0 {
-			return ErrInviteUsed
-		}
-		if n, err := q.ActivateCompanion(ctx, store.ActivateCompanionParams{ID: c.ID, CompanionUserID: nid(viewerID), Now: nt(now)}); err != nil {
-			return fmt.Errorf("companion: activate: %w", err)
-		} else if n == 0 {
-			return ErrInviteUsed
-		}
-		if err := q.RevokeOpenInvites(ctx, store.RevokeOpenInvitesParams{CompanionID: c.ID, Now: nt(now)}); err != nil {
-			return fmt.Errorf("companion: revoke invites: %w", err)
-		}
-		if Type(c.Type) == TypeSpouse {
-			if err := q.SetFamilySpouse(ctx, store.SetFamilySpouseParams{CompanionID: c.ID, SpouseUserID: nid(viewerID), Now: nt(now)}); err != nil {
-				return fmt.Errorf("companion: family spouse: %w", err)
-			}
-		}
-		if err := audit(ctx, q, inv.OwnerID, viewerID, c.ID, "", ActionAccepted, now); err != nil {
-			return err
-		}
-		// The grants the owner chose at invite time take effect now: re-stamped with her current mode epoch.
-		c.CompanionUserID = nid(viewerID)
-		if err := restampGrants(ctx, tx, q, c, inv.OwnerID, family.ChangeAccept, now); err != nil {
-			return err
-		}
-		link, err = loadLink(ctx, q, c.ID)
-		return err
-	})
-	if errors.Is(err, ErrInvitePhoneMismatch) {
-		if ierr := store.New(s.conn).IncrementInviteAttempts(ctx, store.IncrementInviteAttemptsParams{ID: inv.ID, Now: nt(now)}); ierr != nil {
-			return Link{}, fmt.Errorf("companion: attempts: %w", ierr)
-		}
+	link, err := loadLink(ctx, store.New(s.conn), a.LinkID)
+	if err != nil {
+		return Link{}, err
 	}
-	return link, err
+	if link.Status == StatusAwaitingOwner {
+		link.Grants = Grants{} // nothing is shared before the owner confirms
+		link.SharedChildIDs = nil
+	}
+	return link, nil
 }
 
 // Revoke ends a link: the owner removes a companion or the companion leaves. Grants, open invites and the spouse
@@ -795,25 +696,6 @@ func applyGrants(ctx context.Context, tx *sql.Tx, c store.Companion, ownerID uin
 	return err
 }
 
-// restampGrants re-applies a link's stored grants on accept (consent + activity rows). Levels do not change, so
-// Grants.Apply keeps every row's stored epoch (L2): a grant chosen in mode A and accepted after a switch to mode B
-// stays paused until the owner re-approves it — accept never re-stamps with the accept-time epoch (M2).
-func restampGrants(ctx context.Context, tx *sql.Tx, q *store.Queries, c store.Companion, ownerID uint64, reason string, now time.Time) error {
-	rows, err := q.ListGrants(ctx, c.ID)
-	if err != nil {
-		return fmt.Errorf("companion: grants: %w", err)
-	}
-	set := map[family.Domain]family.Level{}
-	for _, g := range rows {
-		if d, ok := family.ParseDomain(g.Section); ok {
-			if l, ok := family.ParseLevel(g.Level); ok && l > family.LevelOff {
-				set[d] = l
-			}
-		}
-	}
-	return applyGrants(ctx, tx, c, ownerID, set, reason, now)
-}
-
 func notFound(err error) error {
 	if err == nil || errors.Is(err, sql.ErrNoRows) {
 		return ErrNotFound
@@ -825,7 +707,7 @@ func toLink(c store.Companion, grants []store.CompanionGrant) Link {
 	l := Link{
 		ID: c.ID, OwnerID: c.OwnerID, CompanionUserID: uint64(c.CompanionUserID.Int64), //nolint:gosec // positive id
 		Type: Type(c.Type), Status: Status(c.Status), DisplayName: c.DisplayName.String,
-		InvitedAt: c.InvitedAt.Time, AcceptedAt: c.AcceptedAt.Time, Grants: Grants{},
+		InvitedAt: c.InvitedAt.Time, AcceptedAt: c.AcceptedAt.Time, Grants: Grants{}, Preferences: preferencesOf(c),
 	}
 	for _, g := range grants {
 		if g.CompanionID != c.ID {

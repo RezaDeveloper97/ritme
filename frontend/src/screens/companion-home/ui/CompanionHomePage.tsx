@@ -5,24 +5,23 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { useModuleEnabled } from '@/entities/app-module';
+import { ChildAvatar, parseCompanionChildren } from '@/entities/child';
 import {
   canRecordFor,
-  COMPANION_SECTIONS,
-  type CompanionArticle,
   type CompanionPartner,
   type CompanionSection,
   type SharedAppointment,
   useCompanionHome,
 } from '@/entities/companion';
-import { ChildAvatar, parseCompanionChildren } from '@/entities/child';
 import { useLifeStage } from '@/entities/user';
 import { getApiErrorStatus } from '@/shared/api';
 import { Link, type Locale, useDirection, useRouter } from '@/shared/i18n';
-import { formatDayMonth, formatNumber, formatWeekday, fromApiDate } from '@/shared/lib/date';
+import { formatDayMonth, formatNumber, formatWeekday, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
-import { openSheet } from '@/shared/sheet';
+import { AppSheet } from '@/shared/sheet';
 import {
   EmptyState,
+  HeaderButton,
   Icon,
   IconCircle,
   type IconName,
@@ -35,13 +34,30 @@ import {
   type Tone,
 } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
+import {
+  ActionCard,
+  dailyIndex,
+  homeActions,
+  LEARN_TOPICS,
+  LearnTile,
+  learnTopic,
+  useSuggestionsMuted,
+} from '@/widgets/companion-support';
 import { LinkedTeenCards } from '@/widgets/linked-teen-card';
 
-import { joinList } from '../model/list';
-import { phaseBar } from '../model/phase-bar';
-import { CodeEntry } from './CodeEntry';
+import { statusCopy } from '../model/status';
 
 type T = ReturnType<typeof useTranslations<'companionHome'>>;
+
+/** «نکته‌ی امروز» rotation (compPersonal): neutral, non-medical lines under `companionHome.personal.tips`. */
+const DAILY_TIPS = ['listen', 'ask', 'small', 'space', 'notice', 'together', 'patience'] as const;
+
+/** Static «امروز چه کمکی می‌توانی بکنی؟» lines when the server sends no tips. */
+const HELP_LINES = [
+  { key: 'a', icon: 'heart' },
+  { key: 'b', icon: 'glass' },
+  { key: 'c', icon: 'chat' },
+] as const satisfies readonly { key: string; icon: IconName }[];
 
 function firstLetter(name: string): string {
   return Array.from(name.trim())[0] ?? '';
@@ -60,93 +76,77 @@ function appointmentWhen(a: SharedAppointment, locale: Locale): string | null {
   return `${dayLabel} ${clock(a.scheduledAt, locale)}`;
 }
 
-// ── Partner card (her day / phase / next period, or pregnancy week) ──────────
-function PartnerCard({ partner, name, t, locale }: { partner: CompanionPartner; name: string; t: T; locale: Locale }) {
-  const cycle = partner.cycle?.hasData ? partner.cycle : null;
-  const pregnancy = partner.pregnancy?.isActive ? partner.pregnancy : null;
-  const bar = cycle?.cycleDay && cycle.cycleLength ? phaseBar(cycle.cycleDay, cycle.cycleLength) : null;
-  const n = (v: number) => formatNumber(v, locale);
-
-  if (pregnancy) {
-    return (
-      <section className="nb-card cmh-hero" aria-label={t('pregnancy.overline', { name })}>
-        <div className="cmh-hero-head">
-          <div>
-            <div className="cmh-overline">{t('pregnancy.overline', { name })}</div>
-            {pregnancy.currentWeek ? <span className="cmh-display">{t('pregnancy.week', { week: n(pregnancy.currentWeek) })}</span> : null}
-          </div>
-          {pregnancy.trimester ? <StatusPill tone="bloom">{t('pregnancy.trimester', { n: n(pregnancy.trimester) })}</StatusPill> : null}
-        </div>
-        {partner.note ? <p className="cmh-hero-note">{partner.note}</p> : null}
-      </section>
-    );
-  }
-
-  if (cycle) {
-    return (
-      <section className="nb-card cmh-hero" aria-label={t('cycle.overline', { name })}>
-        <div className="cmh-hero-head">
-          <div>
-            <div className="cmh-overline">{t('cycle.overline', { name })}</div>
-            {cycle.cycleDay ? (
-              <span className="cmh-display">
-                {cycle.cycleLength
-                  ? t('cycle.day', { day: n(cycle.cycleDay), length: n(cycle.cycleLength) })
-                  : t('cycle.dayOnly', { day: n(cycle.cycleDay) })}
-              </span>
-            ) : null}
-          </div>
-          {partner.phase !== 'general' ? (
-            <StatusPill tone="period" className="cmh-phase-pill">
-              {t('cycle.phase', { phase: t(`phases.${partner.phase}`) })}
-            </StatusPill>
-          ) : null}
-        </div>
-        {bar && cycle.cycleDay && cycle.cycleLength ? (
-          <div
-            className="cmh-bar-wrap"
-            role="img"
-            aria-label={t('cycle.barLabel', { day: n(cycle.cycleDay), length: n(cycle.cycleLength) })}
-          >
-            <div className="cmh-bar">
-              {bar.segments
-                .filter((s) => s.days > 0)
-                .map((s) => (
-                  <span key={s.key} className={`cmh-bar-seg is-${s.key}`} style={{ flexGrow: s.days }} />
-                ))}
-            </div>
-            <span className="cmh-bar-marker" style={{ insetInlineStart: `${bar.markerPercent}%` }} />
-          </div>
-        ) : null}
-        {bar ? (
-          <div className="cmh-bar-legend" aria-hidden>
-            <span>{t('cycle.bar.period')}</span>
-            <span>{t('cycle.bar.fertile')}</span>
-            <span>{t('cycle.bar.luteal')}</span>
-          </div>
-        ) : null}
-        {cycle.daysToPeriod != null && cycle.daysToPeriod >= 0 ? (
-          <div className="cmh-next">
-            <Icon name="drop" size={16} className="cmh-next-ic" />
-            {t('cycle.nextPeriod', { days: cycle.daysToPeriod })}
-          </div>
-        ) : null}
-        {partner.note ? <p className="cmh-hero-note">{partner.note}</p> : null}
-      </section>
-    );
-  }
-
-  // Cycle not shared (or nothing logged yet): her name and the general note.
+// ── «وضعیت کلی امروز» ────────────────────────────────────────────────────────
+function StatusCard({ partner, t }: { partner: CompanionPartner; t: T }) {
+  const copy = statusCopy(partner.phase, partner.signals);
   return (
-    <section className="nb-card cmh-hero">
-      <div className="cmh-overline">{t('generalOverline')}</div>
-      {partner.cycle && !partner.cycle.hasData ? <p className="cmh-hero-note">{t('cycle.noData', { name })}</p> : null}
-      {partner.note ? <p className="cmh-hero-note">{partner.note}</p> : null}
+    <section className="cmh2-status" aria-labelledby={`cmh2-status-${partner.link.id}`}>
+      <span id={`cmh2-status-${partner.link.id}`} className="cmh2-status-lbl">
+        <Icon name="clock" size={15} />
+        {t('status.label')}
+      </span>
+      <p className="cmh2-status-main">{t(`status.${copy.phase}.main`)}</p>
+      <p className="cmh2-status-sub">{t(`status.${copy.phase}.sub`)}</p>
+      {copy.signal ? <p className="cmh2-status-extra">{t(`status.signals.${copy.signal}`)}</p> : null}
     </section>
   );
 }
 
-// ── «چیزهایی که سارا با تو به اشتراک گذاشته» ───────────────────────────────
+// ── «امروز چه کمکی می‌توانی بکنی؟» ─────────────────────────────────────────────
+function HelpCard({ partner, t }: { partner: CompanionPartner; t: T }) {
+  return (
+    <section className="cmh2-help" aria-labelledby="cmh2-help-title">
+      <h2 id="cmh2-help-title" className="cmh2-help-title">
+        {t('help.title')}
+      </h2>
+      <ul className="cmh2-help-list">
+        {partner.tips.length
+          ? partner.tips.slice(0, 3).map((tip, i) => (
+              <li key={tip.key} className="cmh2-help-item">
+                <span className="cmh2-help-ic" aria-hidden>
+                  <Icon name={HELP_LINES[i % HELP_LINES.length]!.icon} size={15} />
+                </span>
+                <span>
+                  {tip.title}
+                  {tip.body ? <span className="cmh2-help-body">{tip.body}</span> : null}
+                </span>
+              </li>
+            ))
+          : HELP_LINES.map((line) => (
+              <li key={line.key} className="cmh2-help-item">
+                <span className="cmh2-help-ic" aria-hidden>
+                  <Icon name={line.icon} size={15} />
+                </span>
+                <span>{t(`help.${partner.phase}.${line.key}`)}</span>
+              </li>
+            ))}
+      </ul>
+    </section>
+  );
+}
+
+// ── «اقدام‌های پیشنهادی» ──────────────────────────────────────────────────────
+function SuggestedActions({ partner, t }: { partner: CompanionPartner; t: T }) {
+  const router = useRouter();
+  const picked = homeActions(partner.link.settings);
+  return (
+    <section className="cmh-sec" aria-labelledby="cmh2-acts-title">
+      <SectionTitle
+        id="cmh2-acts-title"
+        title={t('actions.homeTitle')}
+        actionLabel={t('actions.all')}
+        onAction={() => router.push('/companion/actions')}
+      />
+      <ul className="cmh2-acts-scroll">
+        {picked.map((a) => (
+          <ActionCard key={a.key} cardKey={a.key} icon={a.icon} tone={a.tone} />
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+// ── «چیزهایی که سارا با تو به اشتراک گذاشته» (meds / appointments only) ─────────
 function SharedRow({ icon, tone, title, sub, level, t }: { icon: IconName; tone: Tone; title: string; sub: string; level: 'view' | 'edit'; t: T }) {
   return (
     <li className="cmh-shared-row">
@@ -180,6 +180,7 @@ function SharedSection({ partner, name, t, locale }: { partner: CompanionPartner
   const rows: React.ReactNode[] = [];
   const ownerId = partner.link.owner.id;
 
+  // A section is null unless she shares it (grant ≠ none), so nothing unshared ever renders here.
   if (partner.meds) {
     const first = partner.meds[0];
     const sub = !first
@@ -213,119 +214,14 @@ function SharedSection({ partner, name, t, locale }: { partner: CompanionPartner
       );
     }
   }
-  // «همین کارت بالا» only when PartnerCard actually renders that section (B-N5-10).
-  const heroPregnancy = Boolean(partner.pregnancy?.isActive);
-  const heroCycle = !heroPregnancy && Boolean(partner.cycle?.hasData);
-  if (partner.cycle) {
-    rows.push(
-      <SharedRow key="cycle" icon="drop" tone="period" title={t('shared.cycle')} sub={t(heroCycle ? 'shared.aboveCard' : 'shared.nothingYet')} level={level('cycle')} t={t} />,
-    );
-  }
-  if (partner.pregnancy) {
-    rows.push(
-      <SharedRow key="preg" icon="heart" tone="bloom" title={t('shared.pregnancy')} sub={t(heroPregnancy ? 'shared.aboveCard' : 'shared.nothingYet')} level={level('pregnancy')} t={t} />,
-    );
-  }
-  if (partner.symptomDays != null) {
-    rows.push(
-      <SharedRow
-        key="symptoms"
-        icon="symptom"
-        tone="warm"
-        title={t('shared.symptoms')}
-        sub={t('shared.symptomDays', { days: partner.symptomDays })}
-        level={level('symptoms')}
-        t={t}
-      />,
-    );
-  }
-
-  const hidden = COMPANION_SECTIONS.filter((s) => grants[s] === 'none').map((s) => t(`shared.sections.${s}`));
-  const hiddenText = hidden.length ? joinList(hidden, locale) : null;
+  if (!rows.length) return null;
 
   return (
     <section className="cmh-sec" aria-labelledby={`cmh-shared-${partner.link.id}`}>
       <SectionTitle id={`cmh-shared-${partner.link.id}`} title={t('shared.title', { name })} />
       <div className="nb-card cmh-shared">
-        {rows.length ? <ul className="cmh-shared-list">{rows}</ul> : <p className="cmh-shared-note">{t('shared.nothing', { name })}</p>}
-        {rows.length && hiddenText ? <p className="cmh-shared-note">{t('shared.notShared', { items: hiddenText })}</p> : null}
+        <ul className="cmh-shared-list">{rows}</ul>
       </div>
-    </section>
-  );
-}
-
-// ── «امروز چه کار کنی؟» ────────────────────────────────────────────────────
-const TIP_LOOK: readonly { icon: IconName; tone: Tone }[] = [
-  { icon: 'heart', tone: 'period' },
-  { icon: 'sparkle', tone: 'data' },
-  { icon: 'walk', tone: 'brand' },
-];
-
-function Tips({ partner, t }: { partner: CompanionPartner; t: T }) {
-  // Ticking a tip off is a private nudge for today — kept on screen only.
-  const [done, setDone] = useState<ReadonlySet<string>>(new Set());
-  if (!partner.tips.length) return null;
-  return (
-    <section className="cmh-sec" aria-labelledby={`cmh-tips-${partner.link.id}`}>
-      <SectionTitle id={`cmh-tips-${partner.link.id}`} title={t('tips.title')} />
-      <ul className="cmh-tips">
-        {partner.tips.map((tip, i) => {
-          const look = TIP_LOOK[i % TIP_LOOK.length]!;
-          const on = done.has(tip.key);
-          return (
-            <li key={tip.key} className={clsx('nb-card cmh-tip', on && 'is-done')}>
-              <IconCircle icon={look.icon} tone={look.tone} size="md" />
-              <span className="cmh-tip-text">
-                <b className="cmh-tip-title">{tip.title}</b>
-                {tip.body ? <span className="cmh-tip-body">{tip.body}</span> : null}
-              </span>
-              <button
-                type="button"
-                className="cmh-tip-btn"
-                aria-pressed={on}
-                onClick={() =>
-                  setDone((prev) => {
-                    const next = new Set(prev);
-                    if (on) next.delete(tip.key);
-                    else next.add(tip.key);
-                    return next;
-                  })
-                }
-              >
-                {on ? <Icon name="check" size={16} strokeWidth={2.4} /> : null}
-                {on ? t('tips.doneOn') : t('tips.done')}
-              </button>
-            </li>
-          );
-        })}
-      </ul>
-    </section>
-  );
-}
-
-// ── «برای خواندن» ─────────────────────────────────────────────────────────
-function Articles({ articles, t }: { articles: CompanionArticle[]; t: T }) {
-  if (!articles.length) return null;
-  return (
-    <section className="cmh-sec" aria-labelledby="cmh-articles">
-      <SectionTitle id="cmh-articles" title={t('articles.title')} actionLabel={t('articles.all')} onAction={() => openSheet('articles')} />
-      <ul className="cmh-articles">
-        {articles.map((a, i) => (
-          <li key={a.id}>
-            <button type="button" className="nb-card cmh-article" onClick={() => openSheet('article', a.slug)}>
-              <span className={clsx('cmh-article-art', i % 2 ? 'is-period' : 'is-bloom')} aria-hidden>
-                <Icon name="bookOpen" size={22} />
-              </span>
-              <span className="cmh-article-body">
-                <b className="cmh-article-title">{a.title ?? t('articles.article')}</b>
-                <span className="cmh-article-meta">
-                  {a.readTimeMinutes ? t('articles.readTime', { minutes: a.readTimeMinutes }) : t('articles.article')}
-                </span>
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
     </section>
   );
 }
@@ -359,72 +255,17 @@ function SharedChildren({ raw }: { raw: unknown }) {
   );
 }
 
-function HomeSkeleton({ t }: { t: T }) {
-  return (
-    <SkeletonGroup label={t('loading')} className="cmh-skel">
-      <Skeleton width="short" />
-      <Skeleton width="medium" />
-      <Skeleton shape="card" />
-      <Skeleton shape="block" />
-      <Skeleton shape="block" />
-    </SkeletonGroup>
-  );
-}
-
-/**
- * `/companion` — the companion panel home (B-N4-05, nbl_Hamdam_Home): per
- * linked partner her cycle/pregnancy card, what she shares (meds, appointments,
- * cycle, symptoms with the access level), «امروز چه کار کنی؟» tips, reading
- * suggestions and the shared children card (B-N5-05). With no link the
- * empty state carries the code entry. Its own nav: امروز · خدمات · من.
- */
-export function CompanionHomePage() {
-  const t = useTranslations('companionHome');
-  const locale = useLocale() as Locale;
-  const router = useRouter();
-  const mounted = useMounted();
-  const life = useLifeStage();
-  const home = useCompanionHome();
+// ── compHome: linked ─────────────────────────────────────────────────────────
+function PartnerPanel({ partners, t, locale }: { partners: CompanionPartner[]; t: T; locale: Locale }) {
   const [selected, setSelected] = useState<number | null>(null);
+  const [about, setAbout] = useState(false);
+  const [muted] = useSuggestionsMuted();
+  const partner = partners.find((p) => p.link.id === selected) ?? partners[0]!;
+  const name = partner.partnerName ?? t('someone');
 
-  // A woman's account has no companion home (403) — send her to her own.
-  const notCompanion = getApiErrorStatus(home.error) === 403 || (life.data != null && !life.data.companion);
-  useEffect(() => {
-    if (notCompanion) router.replace('/home');
-  }, [notCompanion, router]);
-
-  const data = home.data;
-  const partners = data?.partners ?? [];
-  const partner = partners.find((p) => p.link.id === selected) ?? partners[0] ?? null;
-  const name = partner?.partnerName ?? t('someone');
-  const viewer = data?.viewer.name ?? null;
-
-  let body: React.ReactNode;
-  if (!mounted || home.isPending || notCompanion) {
-    body = <HomeSkeleton t={t} />;
-  } else if (home.isError || !data) {
-    body = (
-      <EmptyState
-        icon="refresh"
-        title={t('error.title')}
-        body={t('error.body')}
-        action={<PrimaryButton onClick={() => void home.refetch()}>{t('error.retry')}</PrimaryButton>}
-      />
-    );
-  } else if (!partner) {
-    body = (
-      <section className="nb-card cmh-empty" aria-labelledby="cmh-empty-title">
-        <IconCircle icon="users" tone="brand" size="lg" />
-        <h2 id="cmh-empty-title" className="cmh-empty-title">
-          {data.emptyState?.title ?? t('empty.title')}
-        </h2>
-        <p className="cmh-empty-body">{data.emptyState?.body ?? t('empty.body')}</p>
-        <CodeEntry />
-      </section>
-    );
-  } else {
-    body = (
-      <>
+  return (
+    <>
+      <header className="cmh2-hero">
         {partners.length > 1 ? (
           <div className="cmh-switch" role="tablist" aria-label={t('partners')}>
             {partners.map((p) => {
@@ -444,34 +285,158 @@ export function CompanionHomePage() {
             })}
           </div>
         ) : null}
-        <PartnerCard partner={partner} name={name} t={t} locale={locale} />
+        <div className="cmh2-hero-head">
+          <div className="cmh2-hero-text">
+            <span className="cmh2-overline">{t('companionOfLabel')}</span>
+            <h1 className="cmh2-name">{name}</h1>
+          </div>
+          <HeaderButton label={t('about.open')} icon="info" onClick={() => setAbout(true)} />
+        </div>
+        <StatusCard partner={partner} t={t} />
+      </header>
+
+      <div className="cmh-body">
+        {/* CB-TEEN-03: a father's read-only teen cards (parent links never appear as partners). */}
+        <LinkedTeenCards />
+        {muted ? (
+          <Link href="/companion/actions" className="cmh2-muted">
+            <Icon name="bellPlain" size={16} />
+            {t('actions.mutedNote')}
+          </Link>
+        ) : (
+          <>
+            <HelpCard key={partner.link.id} partner={partner} t={t} />
+            <SuggestedActions partner={partner} t={t} />
+          </>
+        )}
+        <section className="cmh-sec" aria-labelledby="cmh2-learn-title">
+          <SectionTitle id="cmh2-learn-title" title={t('learn.homeTitle')} />
+          <div className="cmh2-tiles">
+            <LearnTile topic={learnTopic('cycle')} href="/companion/learn" />
+            <LearnTile topic={learnTopic('support')} href="/companion/learn" />
+          </div>
+        </section>
         <SharedSection partner={partner} name={name} t={t} locale={locale} />
-        <Tips key={partner.link.id} partner={partner} t={t} />
-        <Articles articles={data.articles} t={t} />
         <SharedChildren raw={partner.child} />
-      </>
+      </div>
+
+      <AppSheet open={about} onClose={() => setAbout(false)} size="half" title={t('about.title')}>
+        <div className="cmh2-sheet-copy">
+          <p>{t('about.sees', { name })}</p>
+          <p>{t('about.words')}</p>
+          <p>{t('about.control', { name })}</p>
+        </div>
+      </AppSheet>
+    </>
+  );
+}
+
+// ── compPersonal: no link (also the «ورود بدون اتصال» of the male onboarding) ──
+function PersonalPanel({ viewer, t }: { viewer: string | null; t: T }) {
+  const rtl = useDirection() === 'rtl';
+  const tip = DAILY_TIPS[dailyIndex(toApiDate(today()), DAILY_TIPS.length)]!;
+  return (
+    <>
+      <header className="cmh2-hero is-personal">
+        <span className="cmh-avatar" aria-hidden>
+          {viewer ? firstLetter(viewer) : <Icon name="user" size={20} />}
+        </span>
+        <h1 className="cmh2-hello">{viewer ? t('personal.hello', { name: viewer }) : t('personal.helloNoName')}</h1>
+        <p className="cmh2-hello-sub">{t('personal.sub')}</p>
+      </header>
+      <div className="cmh-body">
+        <LinkedTeenCards />
+        <Link href="/companion/links" className="nb-card cmh2-banner">
+          <span className="cmh2-banner-ic" aria-hidden>
+            <Icon name="users" size={22} />
+          </span>
+          <span className="cmh2-banner-text">
+            <b>{t('personal.bannerTitle')}</b>
+            <span>{t('personal.bannerSub')}</span>
+          </span>
+          <span className="cmh2-banner-go" aria-hidden>
+            <Icon name={rtl ? 'chevronLeft' : 'chevronRight'} size={16} />
+          </span>
+        </Link>
+        <section className="cmh-sec" aria-labelledby="cmh2-foryou">
+          <SectionTitle id="cmh2-foryou" title={t('personal.forYou')} />
+          <div className="cmh2-tiles">
+            {LEARN_TOPICS.map((topic) => (
+              <LearnTile key={topic.id} topic={topic} href="/companion/learn" tall />
+            ))}
+          </div>
+        </section>
+        <aside className="nb-card cmh2-tip" aria-labelledby="cmh2-tip-title">
+          <IconCircle icon="info" tone="brand" size="md" />
+          <p className="cmh2-tip-text">
+            <b id="cmh2-tip-title">{t('personal.tipLabel')}</b> {t(`personal.tips.${tip}`)}
+          </p>
+        </aside>
+      </div>
+    </>
+  );
+}
+
+function HomeSkeleton({ t }: { t: T }) {
+  return (
+    <div className="cmh-body">
+      <SkeletonGroup label={t('loading')} className="cmh-skel">
+        <Skeleton width="short" />
+        <Skeleton width="medium" />
+        <Skeleton shape="card" />
+        <Skeleton shape="block" />
+        <Skeleton shape="block" />
+      </SkeletonGroup>
+    </div>
+  );
+}
+
+/**
+ * `/companion` — «ریتمی همراه» v2, member side. Linked: compHome — her coarse phase in probabilistic words
+ * (no calendar, no day numbers, F-01), «امروز چه کمکی می‌توانی بکنی؟», suggested action cards ordered by her
+ * preferences, two learn tiles, and only the meds / appointments / children she shares. Not linked: compPersonal —
+ * his own panel (learn tiles, today's tip) with the «کد همراه داری؟» banner. Companion nav, no FAB.
+ */
+export function CompanionHomePage() {
+  const t = useTranslations('companionHome');
+  const locale = useLocale() as Locale;
+  const router = useRouter();
+  const mounted = useMounted();
+  const life = useLifeStage();
+  const home = useCompanionHome();
+
+  // A woman's account has no companion home (403) — send her to her own.
+  const notCompanion = getApiErrorStatus(home.error) === 403 || (life.data != null && !life.data.companion);
+  useEffect(() => {
+    if (notCompanion) router.replace('/home');
+  }, [notCompanion, router]);
+
+  const data = home.data;
+
+  let body: React.ReactNode;
+  if (!mounted || home.isPending || notCompanion) {
+    body = <HomeSkeleton t={t} />;
+  } else if (home.isError || !data) {
+    body = (
+      <div className="cmh-body">
+        <EmptyState
+          icon="refresh"
+          title={t('error.title')}
+          body={t('error.body')}
+          action={<PrimaryButton onClick={() => void home.refetch()}>{t('error.retry')}</PrimaryButton>}
+        />
+      </div>
     );
+  } else if (!data.partners.length) {
+    body = <PersonalPanel viewer={data.viewer.name} t={t} />;
+  } else {
+    body = <PartnerPanel partners={data.partners} t={t} locale={locale} />;
   }
 
   return (
     <div className="view cmh-page">
       <SkyLayer />
-      <div className="scroll cmh-scroll">
-        <header className="cmh-hdr">
-          <div className="cmh-hdr-text">
-            {partner ? <div className="cmh-overline">{t('companionOf', { name })}</div> : null}
-            <h1 className="cmh-greeting">{viewer ? t('greeting', { name: viewer }) : t('greetingNoName')}</h1>
-          </div>
-          <span className="cmh-avatar" aria-hidden>
-            {viewer ? firstLetter(viewer) : <Icon name="user" size={20} />}
-          </span>
-        </header>
-        <div className="cmh-body">
-          {/* CB-TEEN-03: a father's read-only teen cards (parent links never appear as partners). */}
-          <LinkedTeenCards />
-          {body}
-        </div>
-      </div>
+      <div className="scroll cmh-scroll">{body}</div>
       <BottomNav mode="companion" />
     </div>
   );

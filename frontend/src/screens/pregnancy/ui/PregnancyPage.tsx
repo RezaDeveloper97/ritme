@@ -13,7 +13,8 @@ import {
   type WeekTip,
 } from '@/entities/pregnancy';
 import { isLossCareOpen, LossCareReturn, useLossState } from '@/entities/loss';
-import { Link, type Locale, useDirection, useRouter } from '@/shared/i18n';
+import { Link, type Locale, useDirection } from '@/shared/i18n';
+import { openSheet } from '@/shared/sheet';
 import {
   formatDayMonth,
   formatLongDate,
@@ -27,7 +28,6 @@ import {
 import {
   Card,
   EmptyState,
-  HeaderButton,
   HubHeader,
   Icon,
   type IconName,
@@ -40,7 +40,7 @@ import {
 } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 import { ForToday } from '@/widgets/for-today';
-import { ModeChip } from '@/widgets/mode-chip';
+import { HeaderActions } from '@/widgets/notification-bell';
 import { PregnancyCareChecklist } from '@/widgets/pregnancy-care-checklist';
 import { QuickAccess } from '@/widgets/quick-access';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
@@ -62,34 +62,14 @@ function Shell({ header, children }: { header?: React.ReactNode; children: React
   );
 }
 
-function Header({ unread, t }: { unread: number; t: T }) {
+function Header({ t }: { t: T }) {
   const locale = useLocale() as Locale;
-  const router = useRouter();
-  const tSearch = useTranslations('search');
   return (
     <HubHeader
       className="pgn-hub"
-      date={
-        <>
-          {/* CB-NAV-03 (nbd_Nav_Today): mode chip → /profile/mode. */}
-          <ModeChip className="is-stacked" />
-          {formatWeekdayDayMonth(todayDate(), locale)}
-        </>
-      }
+      date={formatWeekdayDayMonth(todayDate(), locale)}
       greeting={t('common.title')}
-      actions={
-        <>
-          {/* CB-NAV-02: global search (nbd_Nav_Today header). */}
-          <HeaderButton variant="soft" icon="search" label={tSearch('open')} onClick={() => router.push('/search')} />
-          <HeaderButton
-            variant="soft"
-            icon="bell"
-            badge={unread > 0}
-            label={t('today.newAlerts', { count: unread })}
-            onClick={() => router.push('/pregnancy/alerts')}
-          />
-        </>
-      }
+      actions={<HeaderActions className="nb-hbtn is-soft" />}
     />
   );
 }
@@ -171,16 +151,19 @@ function Tile({
   label,
   badge,
   ariaLabel,
+  onClick,
 }: {
-  href: string;
+  /** A tile either links somewhere or (with `onClick`) opens a sheet in place. */
+  href?: string;
+  onClick?: () => void;
   icon: IconName;
   tone: Tone;
   label: string;
   badge?: string;
   ariaLabel?: string;
 }) {
-  return (
-    <Link href={href} aria-label={ariaLabel} className="pgn-tile">
+  const inner = (
+    <>
       <IconCircle icon={icon} tone={tone} size="md" />
       <b className="pgn-tile-label">{label}</b>
       {badge && (
@@ -188,6 +171,18 @@ function Tile({
           {badge}
         </span>
       )}
+    </>
+  );
+  if (onClick || !href) {
+    return (
+      <button type="button" onClick={onClick} aria-label={ariaLabel} className="pgn-tile">
+        {inner}
+      </button>
+    );
+  }
+  return (
+    <Link href={href} aria-label={ariaLabel} className="pgn-tile">
+      {inner}
     </Link>
   );
 }
@@ -200,7 +195,7 @@ function QuickTiles({ data, t }: { data: PregnancyToday; t: T }) {
       <Tile href="/pregnancy/log?tab=weekly" icon="check" tone="data" label={t('today.actions.checkup')} />
       <Tile href={`/pregnancy/weeks/${data.progress.week}`} icon="calendar" tone="brand" label={t('today.actions.weeks')} />
       <Tile
-        href="/pregnancy/alerts"
+        onClick={() => openSheet('notifications')}
         icon="bell"
         tone="danger"
         label={t('today.actions.alerts')}
@@ -330,7 +325,7 @@ export function PregnancyPage() {
 
   if (query.isError) {
     return (
-      <Shell header={<Header unread={0} t={t} />}>
+      <Shell header={<Header t={t} />}>
         <Card className="pgn-state" role="alert">
           <span className="pgn-state-disc" aria-hidden>
             <Icon name="warning" size={24} />
@@ -347,7 +342,7 @@ export function PregnancyPage() {
   const data = query.data;
   if (!data && recentLoss) {
     return (
-      <Shell header={<Header unread={0} t={t} />}>
+      <Shell header={<Header t={t} />}>
         <Card className="pgn-state">
           <span className="pgn-state-disc is-calm" aria-hidden>
             <Icon name="heart" size={24} />
@@ -360,7 +355,7 @@ export function PregnancyPage() {
   }
   if (!data) {
     return (
-      <Shell header={<Header unread={0} t={t} />}>
+      <Shell header={<Header t={t} />}>
         <Card>
           <EmptyState
             icon="heart"
@@ -377,7 +372,7 @@ export function PregnancyPage() {
   }
 
   return (
-    <Shell header={<Header unread={data.unreadAlerts} t={t} />}>
+    <Shell header={<Header t={t} />}>
       <RingHero data={data} t={t} />
       {data.due && <DueDateCard due={data.due} t={t} />}
       <QuickTiles data={data} t={t} />

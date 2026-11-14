@@ -15,6 +15,7 @@ import {
   useRecordDating,
   useRecordDocument,
 } from '@/entities/health-record';
+import { useAiGate } from '@/features/ai-gate';
 import { getApiErrorStatus } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate } from '@/shared/lib/date';
@@ -78,11 +79,15 @@ export function RecordDocumentPage({ id }: { id: number }) {
   };
   const toTimeline = () => router.push('/record/timeline');
   const extract = useExtractRecordDocument(id);
+  const gate = useAiGate('doc_extract');
   const [extractError, setExtractError] = useState<ExtractErrorKind | null>(null);
   const read = () => {
     setExtractError(null);
+    if (!gate.guard()) return;
     extract.mutate(undefined, {
+      onSuccess: gate.refresh,
       onError: (e) => {
+        if (gate.handleError(e)) return; // the gate sheet explains it
         const kind = extractErrorOf(e);
         if (kind === 'consent') setSheet('consent');
         else if (kind === 'conflict') void query.refetch();

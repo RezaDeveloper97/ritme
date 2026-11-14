@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 
 import { Link, type Locale } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, fromApiDate } from '@/shared/lib/date';
-import { Icon, type Tone } from '@/shared/ui';
+import { CheckTick, Icon, type Tone } from '@/shared/ui';
 
 import { CATEGORY_LOOK, doneKind, itemDueKind } from '../model/board';
 import type { TodoCategory, TodoGroupKey, TodoItem, TodoTask } from '../model/types';
@@ -43,7 +43,7 @@ export function TodoCheck({
       disabled={disabled}
     >
       <span className="td-check-box" aria-hidden>
-        {done ? <Icon name="check" size={14} strokeWidth={3} /> : null}
+        <CheckTick on={done} />
       </span>
     </button>
   );

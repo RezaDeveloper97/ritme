@@ -14,7 +14,7 @@ import (
 
 const getWeekUserState = `-- name: GetWeekUserState :one
 
-SELECT id, user_id, week, bookmarked, done_task_keys, created_at, updated_at FROM ` + "`" + `pregnancy_week_user_state` + "`" + ` WHERE user_id = ? AND week = ? LIMIT 1
+SELECT id, user_id, week, done_task_keys, created_at, updated_at FROM ` + "`" + `pregnancy_week_user_state` + "`" + ` WHERE user_id = ? AND week = ? LIMIT 1
 `
 
 type GetWeekUserStateParams struct {
@@ -22,7 +22,7 @@ type GetWeekUserStateParams struct {
 	Week   uint8
 }
 
-// Pregnancy v2 per-week user state (table pregnancy_week_user_state, T-M7-01): bookmark and the done
+// Pregnancy v2 per-week user state (table pregnancy_week_user_state, T-M7-01): the done
 // task keys of that week's checklist. Every query is scoped by user_id. Unique (user_id, week).
 func (q *Queries) GetWeekUserState(ctx context.Context, arg GetWeekUserStateParams) (PregnancyWeekUserState, error) {
 	row := q.db.QueryRowContext(ctx, getWeekUserState, arg.UserID, arg.Week)
@@ -31,7 +31,6 @@ func (q *Queries) GetWeekUserState(ctx context.Context, arg GetWeekUserStatePara
 		&i.ID,
 		&i.UserID,
 		&i.Week,
-		&i.Bookmarked,
 		&i.DoneTaskKeys,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -40,7 +39,7 @@ func (q *Queries) GetWeekUserState(ctx context.Context, arg GetWeekUserStatePara
 }
 
 const listWeekUserStates = `-- name: ListWeekUserStates :many
-SELECT id, user_id, week, bookmarked, done_task_keys, created_at, updated_at FROM ` + "`" + `pregnancy_week_user_state` + "`" + ` WHERE user_id = ? ORDER BY week
+SELECT id, user_id, week, done_task_keys, created_at, updated_at FROM ` + "`" + `pregnancy_week_user_state` + "`" + ` WHERE user_id = ? ORDER BY week
 `
 
 func (q *Queries) ListWeekUserStates(ctx context.Context, userID uint64) ([]PregnancyWeekUserState, error) {
@@ -56,7 +55,6 @@ func (q *Queries) ListWeekUserStates(ctx context.Context, userID uint64) ([]Preg
 			&i.ID,
 			&i.UserID,
 			&i.Week,
-			&i.Bookmarked,
 			&i.DoneTaskKeys,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -75,7 +73,7 @@ func (q *Queries) ListWeekUserStates(ctx context.Context, userID uint64) ([]Preg
 }
 
 const listWeekUserStatesRange = `-- name: ListWeekUserStatesRange :many
-SELECT id, user_id, week, bookmarked, done_task_keys, created_at, updated_at FROM ` + "`" + `pregnancy_week_user_state` + "`" + `
+SELECT id, user_id, week, done_task_keys, created_at, updated_at FROM ` + "`" + `pregnancy_week_user_state` + "`" + `
 WHERE user_id = ? AND week >= ? AND week <= ?
 ORDER BY week
 `
@@ -99,7 +97,6 @@ func (q *Queries) ListWeekUserStatesRange(ctx context.Context, arg ListWeekUserS
 			&i.ID,
 			&i.UserID,
 			&i.Week,
-			&i.Bookmarked,
 			&i.DoneTaskKeys,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -118,10 +115,9 @@ func (q *Queries) ListWeekUserStatesRange(ctx context.Context, arg ListWeekUserS
 }
 
 const upsertWeekUserState = `-- name: UpsertWeekUserState :exec
-INSERT INTO ` + "`" + `pregnancy_week_user_state` + "`" + ` (user_id, week, bookmarked, done_task_keys, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?)
+INSERT INTO ` + "`" + `pregnancy_week_user_state` + "`" + ` (user_id, week, done_task_keys, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?)
 ON DUPLICATE KEY UPDATE
-  bookmarked = VALUES(bookmarked),
   done_task_keys = VALUES(done_task_keys),
   updated_at = VALUES(updated_at)
 `
@@ -129,17 +125,15 @@ ON DUPLICATE KEY UPDATE
 type UpsertWeekUserStateParams struct {
 	UserID       uint64
 	Week         uint8
-	Bookmarked   bool
 	DoneTaskKeys db.NullRawJSON
 	Now          sql.NullTime
 }
 
-// Callers merge the partial PUT (bookmarked?, done_task_keys?) with the current row first.
+// Callers merge the partial PUT (done_task_keys?) with the current row first.
 func (q *Queries) UpsertWeekUserState(ctx context.Context, arg UpsertWeekUserStateParams) error {
 	_, err := q.db.ExecContext(ctx, upsertWeekUserState,
 		arg.UserID,
 		arg.Week,
-		arg.Bookmarked,
 		arg.DoneTaskKeys,
 		arg.Now,
 		arg.Now,

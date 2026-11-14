@@ -1,4 +1,4 @@
-import type { CareToday, MedicationForm, TodayDose } from '@/entities/care-reminder';
+import { type CareToday, doseDetail, type MedicationForm, type TodayDose } from '@/entities/care-reminder';
 import type { IconName } from '@/shared/ui';
 
 /*
@@ -26,6 +26,8 @@ export interface DoseRowState {
   period: SlotPeriod;
   /** What tapping the check does next: tick an untaken dose, untick a taken one. */
   nextTaken: boolean;
+  /** «۱ قرص · بعد از غذا» parts; null for an old medication. */
+  detail: ReturnType<typeof doseDetail>;
 }
 
 const FORM_ICON: Record<MedicationForm, IconName> = {
@@ -74,6 +76,7 @@ export function doseRowState(dose: TodayDose): DoseRowState {
     clock: slotClock(dose.slot),
     period: slotPeriod(dose.slot),
     nextTaken: !dose.taken,
+    detail: doseDetail(dose),
   };
 }
 

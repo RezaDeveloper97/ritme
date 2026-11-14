@@ -19,6 +19,7 @@ import (
 	"github.com/ritme/backend-go/internal/i18n/lang"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
+	"github.com/ritme/backend-go/internal/platform/config"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
@@ -31,7 +32,9 @@ type Handlers struct {
 	q          *store.Queries
 	txdb       txBeginner // member writes run in a transaction with RecheckTx (delegation.go); nil = none
 	clock      clock.Clock
-	delegation Delegation // «ثبت برای …» (B-N4-02); nil = own records only
+	delegation Delegation  // «ثبت برای …» (B-N4-02); nil = own records only
+	push       config.Push // VAPID settings (SetPush); zero = web push off
+	prefs      PrefsGetter // notification settings reader (SetPush); nil = /care/upcoming is empty
 }
 
 // NewHandlers wires the handlers; base is the fallback clock (tests pin it per request).
@@ -316,6 +319,9 @@ func (h *Handlers) intake(c fiber.Ctx, tick bool) error {
 	}
 	if !m.Covers(day) {
 		return fieldError(locale, "date", T("validation.date_not_scheduled", locale))
+	}
+	if !slices.Contains(m.SlotsOn(day), slot) { // an hourly chain's slots before its first dose on the start date
+		return fieldError(locale, "slot", T("validation.slot_unknown", locale))
 	}
 	ts := sql.NullTime{Time: now, Valid: true}
 	if _, err := h.q.InsertIntake(c, store.InsertIntakeParams{

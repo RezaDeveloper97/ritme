@@ -87,7 +87,7 @@ it('serves /contact from its controller with one h1, SEO tags, ContactPage JSON-
         ->toContain('اطلاعات سلامت را در این فرم ننویس')
         ->toContain('رمز یا قفل اپ را فراموش کرده‌ام')
         ->toContain('همه سؤال‌ها')
-        ->toContain('href="tel:115"')
+        ->not->toContain('href="tel:115"')
         ->toContain('name="_token"')
         ->toContain('name="website"')
         ->toContain('name="form_token"')

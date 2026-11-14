@@ -1,6 +1,5 @@
 {
   "title": "Customize logging",
-  "subtitle": "Order and visibility of categories",
   "back": "Back",
   "hint": "= in quick log (up to {max}) · drag to reorder.",
   "pinCount": "Quick log: {count} of {max}",

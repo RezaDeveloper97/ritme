@@ -22,7 +22,7 @@ final class AppInstall extends Command
     public const MIN_PHP = '8.2.0';
 
     /** Seeders that are safe on a live database (insert-missing only); app:upgrade runs them too. */
-    public const PRODUCTION_SEEDERS = ['Database\\Seeders\\SettingsSeeder', 'Database\\Seeders\\AdminRolesSeeder'];
+    public const PRODUCTION_SEEDERS = ['Database\\Seeders\\SettingsSeeder', 'Database\\Seeders\\AdminRolesSeeder', 'Database\\Seeders\\SitePhotosSeeder'];
 
     protected $signature = 'app:install
         {--check : Only run the requirement and environment checks}

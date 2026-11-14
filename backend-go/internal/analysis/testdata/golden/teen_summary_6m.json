@@ -138,7 +138,8 @@
         "min_readings": 2,
         "min_days": 2,
         "blood_pressure": null,
-        "blood_sugar": null
+        "blood_sugar": null,
+        "heart_rate": null
       }
     },
     "labs": {

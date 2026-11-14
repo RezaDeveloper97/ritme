@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { useCompanionLinks, useLeaveCompanionLink, type ViewerLink } from '@/entities/companion';
+import { InviteAppLink, JoinCodeStep, JoinConfirmStep, useJoinCompanion } from '@/features/join-companion';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, fromApiDate } from '@/shared/lib/date';
 import { AppSheet } from '@/shared/sheet';
@@ -18,12 +19,10 @@ import {
   SkyLayer,
 } from '@/shared/ui';
 
-import { CodeEntry } from './CodeEntry';
-
 /**
- * `/companion/links` — Me «کد همدم» for a companion account (B-N4-05): enter
- * another partner's code, see who you are linked to, and leave a link
- * (`DELETE /companions/links/{id}`, confirmed in a sheet).
+ * `/companion/links` — «افزودن همراه» (companion v2 `join` → `joinConfirm`): enter a code, see whose
+ * cycle you are joining and the boundaries, then «شروع همراهی» accepts it and opens `/companion`. Below the
+ * code step: who you are linked to, and leaving a link (`DELETE /companions/links/{id}`, confirmed in a sheet).
  */
 export function CompanionLinksPage() {
   const t = useTranslations('companionHome');
@@ -33,6 +32,8 @@ export function CompanionLinksPage() {
   const leave = useLeaveCompanionLink();
   const [confirm, setConfirm] = useState<ViewerLink | null>(null);
   const someone = t('someone');
+  const join = useJoinCompanion(() => router.replace('/companion'));
+  const confirming = join.step === 'confirm';
 
   const doLeave = () => {
     if (!confirm || leave.isPending) return;
@@ -42,12 +43,31 @@ export function CompanionLinksPage() {
   return (
     <div className="view cmh-page">
       <SkyLayer />
-      <ScreenHeader title={t('links.title')} onBack={() => router.replace('/profile')} backLabel={t('links.back')} />
+      <ScreenHeader
+        title={t('links.title')}
+        onBack={() => (confirming ? join.backToCode() : router.replace('/companion'))}
+        backLabel={t('links.back')}
+      />
       <div className="scroll cmh-scroll">
         <div className="cmh-body">
-          <p className="cmh-links-sub">{t('links.subtitle')}</p>
-          <CodeEntry />
+          {confirming ? (
+            <>
+              <JoinConfirmStep join={join} />
+              <PrimaryButton onClick={join.confirm} loading={join.accepting}>
+                {t('join.confirm.start')}
+              </PrimaryButton>
+            </>
+          ) : (
+            <>
+              <JoinCodeStep join={join} />
+              <PrimaryButton onClick={join.submitCode} disabled={!join.complete} loading={join.checking}>
+                {join.checking ? t('code.connecting') : t('code.connect')}
+              </PrimaryButton>
+              <InviteAppLink />
+            </>
+          )}
 
+          {confirming ? null : (
           <section className="cmh-sec" aria-labelledby="cmh-links-title">
             <SectionTitle id="cmh-links-title" title={t('links.linkedTitle')} />
             {links.isPending ? (
@@ -103,6 +123,7 @@ export function CompanionLinksPage() {
               </SecondaryButton>
             ) : null}
           </section>
+          )}
         </div>
       </div>
 

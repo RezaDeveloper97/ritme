@@ -198,6 +198,10 @@ func capabilityOf(path string) string {
 	case "okr":
 		return CapOKR
 	case "users":
+		// users/:id/ai-credits[/adjust]: a user's AI credit balance and manual gifts — billing data (goose 00125).
+		if _, sub, _ := strings.Cut(tail, "/"); sub == "ai-credits" || strings.HasPrefix(sub, "ai-credits/") {
+			return CapBilling
+		}
 		if tail == "directory/export" { // the anonymised CSV (no name, mobile or health value): export, not users
 			return CapExport
 		}
@@ -216,6 +220,9 @@ func capabilityOf(path string) string {
 	case "clinical-config":
 		return CapThresholds
 	case "ai", "modules":
+		if tail == "credit-packs" || strings.HasPrefix(tail, "credit-packs/") { // what users pay: billing (goose 00125)
+			return CapBilling
+		}
 		return CapConfig
 	case "articles", "affirmations", "banners", "info-sections", "phase-contents", "recommendations",
 		"task-templates", "companions", "uploads", "media", "city-services":

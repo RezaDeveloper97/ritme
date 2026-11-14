@@ -113,7 +113,7 @@ type cycleState struct {
 }
 
 func (h *CycleSettingsHandlers) load(ctx context.Context, userID uint64) (cycleState, error) {
-	st := cycleState{auto: true}
+	st := cycleState{} // no saved row = manual: the history median is only suggested until the user confirms it
 	cp, err := h.q.GetCyclePreferences(ctx, userID)
 	switch {
 	case err == nil:

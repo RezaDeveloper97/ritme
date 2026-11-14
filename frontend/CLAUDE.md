@@ -735,6 +735,58 @@ Users must stay signed in for a year. The background is in
 - **Keys:** Passport `backend/storage/*.key` never ship (excluded from rsync and
   Docker). Rotating them signs out every user, so it needs a plan. See `backend/CLAUDE.MD`.
 
+## 11.5 AI gate — every AI surface goes through `features/ai-gate`
+
+AI features cost **credits** («اعتبار», `docs/ai-credits.md`): a running subscription is required, the period's
+credits are spent first, then the extra ones. The server is the authority; the frontend only explains refusals and
+keeps the meter right. The word is always «اعتبار» / "credit" — **never "token"**, never a token count.
+
+**The rule:** every AI surface — now and in the future — uses `useAiGate(featureKey)` or `<AiGate feature="…">`
+from `@/features/ai-gate`. A 402 / 403 of an AI endpoint is **never** handled by hand (no `plusDenialOf`, no custom
+paywall card, no free-quota line). `plusDenialOf` / `PlusFeatureGate` stay for the non-AI Plus features (companion,
+analysis range, PDF share) only.
+
+- `aiDenialOf(error)` (`@/entities/ai-credit`) is the ONE normaliser: kinds `subscription` · `credits` · `disabled` ·
+  `consent` · `busy` · `unavailable`. It takes an `ApiError` or the `error_code` of an SSE `error` event.
+- `useAiGate(key)` → `{ status, cost, balance, canUse, guard, handleError, denial, refresh }`. It **fails open**
+  while the balance is unknown — never block on a failed read.
+- `guard()` **before** starting the action (false = the gate sheet opened, don't start).
+- `handleError(error)` in **every** catch / `onError`: true = the gate sheet took it (show nothing else); false =
+  show your own consent / busy / unavailable state from `gate.denial` / `aiDenialOf`.
+- `refresh()` after **every success**, so the credit meter stays right.
+- `<AiGateSheet />` is mounted once in the shell (`app/[locale]/layout.tsx`). A safety net (QueryClient
+  `MutationCache` / `QueryCache`, and the SSE stream that bypasses `apiClient`) opens it for a 402 a surface forgot.
+- A *feature* slice cannot import `features/ai-gate`: the composing screen / widget calls `useAiGate` and passes it
+  down as the `AiGateHooks` prop (`entities/ai-credit`) — see `widgets/voice-log-slot`, `features/upload-lab`.
+- The balance UI is shared: `CreditMeter` (entity), `/profile/credits`, `/plus/credits` (purchase = a **route**, the
+  gate sheet is only the short decision). Amber `--warm` is the credits accent.
+
+**Add a new AI feature in 5 steps**
+
+1. Backend: `ai.RegisterFeature("foo", ai.CapChat)` + a policy, and `platform.guard.Chain(FeatureFoo)` on the route
+   (`docs/ai-credits.md`). The slot then appears in `GET /ai/credits` `features[]` with its `credit_cost`.
+2. Frontend: the surface's request lives in its slice's `api/` (a `useMutation`); no gate code in there.
+3. The screen calls `const gate = useAiGate('foo')` and wraps the entry point in `<AiGate feature="foo">` (or calls
+   `gate.guard()` in the click handler).
+4. Every failure path: `onError: (e) => { if (gate.handleError(e)) return; /* consent / busy / unavailable */ }`.
+5. Every success path: `onSuccess: gate.refresh`. Show a cost only from `gate.cost` / `features[].credit_cost` — never hard-code one.
+
+```tsx
+const gate = useAiGate('foo');
+const run = useFoo();
+const start = () => {
+  if (!gate.guard()) return;                       // opens «اشتراک لازم است» / «اعتبار تمام شد»
+  run.mutate(input, {
+    onSuccess: gate.refresh,                       // keep the meter right
+    onError: (e) => {
+      if (gate.handleError(e)) return;             // gate sheet took it
+      const d = aiDenialOf(e);                     // consent / busy / unavailable: your own state
+    },
+  });
+};
+return <AiGate feature="foo"><button onClick={start}>…</button></AiGate>;
+```
+
 ---
 
 ## 12. Anti-patterns — do NOT do these
@@ -763,6 +815,7 @@ Users must stay signed in for a year. The background is in
   app-wide (§4.2). Navigate forwards to an explicit route.
 - ❌ Putting server data into Zustand/`useState` instead of TanStack Query.
 - ❌ Logging or transmitting health data anywhere it isn't strictly required.
+- ❌ Handling a 402 / 403 of an AI endpoint by hand (`plusDenialOf`, a bespoke paywall / quota card), or showing token counts — every AI surface uses `useAiGate` / `<AiGate>` (§11.5); call `handleError` in every catch and `refresh` after success.
 - ❌ Adding abstraction layers preemptively. Introduce structure when a pattern
   repeats (rule of three), not before.
 

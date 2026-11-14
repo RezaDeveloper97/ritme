@@ -14,8 +14,6 @@ export type MarkerState = 'low' | 'borderline_low' | 'normal' | 'borderline_high
 
 /** The consent the AI lab analysis needs (`internal/ai/access`, versioned catalog). */
 export const LAB_CONSENT_CODE = 'ai_lab_analysis';
-/** Plus entitlement key of the upload. */
-export const LAB_PLUS_FEATURE = 'plus.lab_ai';
 
 export interface LabLimits {
   maxFiles: number;

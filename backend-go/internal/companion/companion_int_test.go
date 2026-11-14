@@ -92,9 +92,16 @@ func TestInviteAccept_ActivatesWithChosenGrants(t *testing.T) {
 
 	link, err := e.svc.Accept(ctx, ali, " "+inv.Code[:3]+"-"+inv.Code[3:]+" ")
 	require.NoError(t, err)
-	assert.Equal(t, companion.StatusActive, link.Status)
+	// A code-only invite with a write grant waits for the owner (D-196, FAM-M5): nothing is shared before.
+	assert.Equal(t, companion.StatusAwaitingOwner, link.Status)
+	assert.Empty(t, link.Grants)
 	assert.Equal(t, ali, link.CompanionUserID)
 	assert.Equal(t, e.clk.Now(), link.AcceptedAt)
+	ok, err = e.svc.CanRead(ctx, owner, ali, companion.SectionMeds)
+	require.NoError(t, err)
+	assert.False(t, ok, "awaiting_owner grants nothing")
+	_, err = e.svc.Invites().Confirm(ctx, owner, inv.Link.ID)
+	require.NoError(t, err)
 
 	for _, c := range []struct {
 		sec         companion.Section
@@ -477,11 +484,19 @@ func TestSpouse_FamilyAndSharedChildren(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, inv.Link.FamilyID, link.FamilyID)
 	assert.Equal(t, 1, e.count(t, "SELECT COUNT(*) FROM families WHERE owner_id = ? AND spouse_user_id = ?", owner, ali))
+	// A code-only spouse invite with shared children waits for the owner (D-196, FAM-M5): no children before.
+	assert.Equal(t, companion.StatusAwaitingOwner, link.Status)
+	assert.Empty(t, link.SharedChildIDs)
+	theirs, err := e.svc.ListForCompanion(ctx, ali)
+	require.NoError(t, err)
+	assert.Empty(t, theirs, "the member sees nothing before the owner confirms")
+	_, err = e.svc.Invites().Confirm(ctx, owner, inv.Link.ID)
+	require.NoError(t, err)
 
 	link, err = e.svc.SetSharedChildren(ctx, owner, inv.Link.ID, []uint64{9})
 	require.NoError(t, err)
 	assert.Equal(t, []uint64{9}, link.SharedChildIDs)
-	theirs, err := e.svc.ListForCompanion(ctx, ali)
+	theirs, err = e.svc.ListForCompanion(ctx, ali)
 	require.NoError(t, err)
 	require.Len(t, theirs, 1)
 	assert.Equal(t, []uint64{9}, theirs[0].SharedChildIDs)

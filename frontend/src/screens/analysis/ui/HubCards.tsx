@@ -336,7 +336,7 @@ export function WeightCard({ section }: { section: AnalysisSection<HubWeight> })
 }
 
 /**
- * «فشار خون و قند» (§4.1): mean and min–max per type once it has 2 readings on
+ * «علائم حیاتی» (§4.1): BP, fasting sugar and heart rate — mean and min–max per type once it has 2 readings on
  * 2 different days; a type below that reads «—». Opens the vitals hub (B-N6-02).
  */
 export function VitalsCard({ section }: { section: AnalysisSection<HubVitals> }) {
@@ -344,6 +344,7 @@ export function VitalsCard({ section }: { section: AnalysisSection<HubVitals> })
   const v = section.data;
   const bp = v?.bloodPressure?.ready ? v.bloodPressure : null;
   const sugar = v?.bloodSugar?.ready ? v.bloodSugar : null;
+  const hr = v?.heartRate?.ready ? v.heartRate : null;
   // LTR-isolated «۱۲۰/۸۰» inside the RTL sentence (U+2066 … U+2069).
   const pair = (p: { systolic: number; diastolic: number }) => `\u2066${num(p.systolic)}/${num(p.diastolic)}\u2069`;
   return (
@@ -368,6 +369,13 @@ export function VitalsCard({ section }: { section: AnalysisSection<HubVitals> })
             <dd className="an-num is-md">{sugar?.avg != null ? num(sugar.avg) : t('vitals.none')}</dd>
             {sugar?.min != null && sugar.max != null ? (
               <dd className="an-caption">{t('vitals.range', { min: num(sugar.min), max: num(sugar.max) })}</dd>
+            ) : null}
+          </div>
+          <div>
+            <dt>{t('vitals.hr')}</dt>
+            <dd className="an-num is-md">{hr?.avg != null ? num(hr.avg) : t('vitals.none')}</dd>
+            {hr?.min != null && hr.max != null ? (
+              <dd className="an-caption">{t('vitals.range', { min: num(hr.min), max: num(hr.max) })}</dd>
             ) : null}
           </div>
         </dl>

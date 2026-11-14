@@ -18,6 +18,12 @@ describe('onboarding v2 flow', () => {
     expect(nextStep('health', {})).toBe('ready');
   });
 
+  it('routes «ترجیح می‌دهم نگویم» like a woman (full experience)', () => {
+    expect(nextStep('gender', { gender: 'unspecified' })).toBe('goal');
+    expect(landingRoute('cycle', false, 'unspecified')).toBe('/home');
+    expect(landingRoute('pregnancy', true, 'unspecified')).toBe('/pregnancy');
+  });
+
   it('sends a man to the partner-code stub, then Ready', () => {
     expect(nextStep('gender', { gender: 'male' })).toBe('partner');
     expect(nextStep('partner', { gender: 'male' })).toBe('ready');

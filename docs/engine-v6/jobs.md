@@ -92,8 +92,15 @@ q.RegisterPeriodic(job, handler, "*/10 * * * *", opts...)        // Register + S
 | `messages.inbox_sweep` | low | `10 4 * * *` | `Unique(23h)` | 3 / 10 m, 30 m / 30 m | (user, rule) open row: re-evaluation writes only what changed; archive matches only resolved / acknowledged / noted rows with `last_at` before Tehran midnight of today − 29, in chunks of 5 000 | `internal/messages/inbox` |
 | `messages.push_slot` | low | `0 * * * *` | `Unique(55m)` | 2 / 5 m / 20 m | (user, user-local day): the push slot's `shown` row (slot cap 1 a day, 3 in 7 days) is written in the same transaction as the notification | `internal/messages/inbox` |
 | `analysis.warm` | low | `0 5 * * *` | `Unique(23h)` | 2 / 30 m / 30 m | the cache key (user, analysis_rev, engine_rev, summary, 6m, plus, local day, cfgFP, locale, build): a key already in Redis is skipped | `internal/analysis` |
+| `family.invites_sweep` | low | `5 4 * * *` | `Unique(23h)` | 3 / 10 m, 30 m / 10 m | link id: each candidate is re-checked under the owner lock (`status`, `expires_at`, an open unexpired invite), so a link already revoked, extended or renewed is skipped | `internal/family/invites` |
 
 Notes:
+
+- `family.invites_sweep` (T-M11-08, D-196; F-12, F-13): `invited` links with no open, unexpired invite and `active`
+  links past `expires_at` (the carer time-box) become `revoked` with `revoked_by = expired`; their open invites,
+  grants, share requests and member notices end, an activity row (`invite_expired` | `link_expire`) is written and the
+  owner gets one `family` inbox row (named by her own label only, one entry per active language), all in one
+  transaction per link. `awaiting_owner` links are left alone (the owner confirms or cancels).
 
 - `files:sweep` and `media:sweep` read the local storage volumes (`STORAGE_PATH`, `MEDIA_STORAGE_PATH`): a process
   that runs the worker must mount them (T-M9-12).

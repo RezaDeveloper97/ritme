@@ -4,10 +4,8 @@ import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { useCurrentAdmin } from '@/features/auth';
-import { formatNumber } from '@/shared/lib';
+import { formatNumber, rialsToToman } from '@/shared/lib';
 import { Badge, type BadgeTone } from '@/shared/ui';
-
-import { rialsToToman } from '../lib/money';
 
 /** Money writes (prices, codes, settings, refunds, extensions) are super-admin only (admin-api.md §15). */
 export function useCanManage(): boolean {

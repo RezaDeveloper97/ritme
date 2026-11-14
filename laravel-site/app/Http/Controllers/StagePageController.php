@@ -22,7 +22,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Routing\Router;
 
 /**
- * The six life-stage pages (`stage.*` routes) on one template, `pages/stages/show.blade.php`. The stage comes from
+ * The six life-stage pages (`stage.*` routes) on `pages/stages/show.blade.php` (postpartum, menopause, teen) or `redesign.blade.php` (cycle, ttc, pregnancy). The stage comes from
  * the route name; a stage whose StageDefinition does not exist yet keeps the noindex placeholder.
  */
 final class StagePageController
@@ -49,7 +49,7 @@ final class StagePageController
         $data = $this->builder->build($definition);
         $this->describe($seo, $graph, $page, $data);
 
-        return view('pages.stages.show', ['page' => $data]);
+        return view($definition->template(), ['page' => $data]);
     }
 
     /**

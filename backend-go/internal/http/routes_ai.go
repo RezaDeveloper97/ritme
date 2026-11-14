@@ -1,40 +1,67 @@
 package http
 
 import (
+	"context"
+	"time"
+
 	"github.com/gofiber/fiber/v3"
 
 	"github.com/ritme/backend-go/internal/ai"
 	"github.com/ritme/backend-go/internal/ai/access"
+	"github.com/ritme/backend-go/internal/ai/credits"
 	"github.com/ritme/backend-go/internal/ai/usage"
+	"github.com/ritme/backend-go/internal/assistant"
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/consent"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/ratelimit"
-	"github.com/ritme/backend-go/internal/plus"
 )
 
 // aiPlatform is the AI adapter platform a feature route needs (B-N6-05): the client for the configured provider
 // with the durable usage + cost log and the global + per-user daily cost caps, and the gate (throttles, consent,
-// caps, concurrency, reserve-first Plus quota — B-N6-05b) its routes pass first. Features: guard.Chain(ai.Feature…) after auth, then the handler calls client.* with c.Context().
+// caps, concurrency, the subscription + reserve-first credits of goose 00125) its routes pass first. The model of each
+// feature comes from the admin catalogue (credits.Catalog is the client's ai.Router). Features: guard.Chain(ai.Feature…) after auth, then the handler calls client.* with c.Context().
 type aiPlatform struct {
-	client *ai.Client
-	budget *usage.Budget
-	guard  *access.Guard
+	client  *ai.Client
+	budget  *usage.Budget
+	guard   *access.Guard
+	credits *credits.Service
+	catalog *credits.Catalog
 }
 
-func newAIPlatform(d *Deps, gate *plus.Gate, plusSvc *plus.Service, rejects map[ai.Feature]ratelimit.Reject) aiPlatform {
+func newAIPlatform(d *Deps, rejects map[ai.Feature]ratelimit.Reject) aiPlatform {
+	catalog, creditSvc := credits.NewCatalog(d.DB), credits.NewService(d.DB)
 	budget := usage.NewBudget(d.DB, d.Config.AI.DailyCostCapUSD, clock.Real{}, d.Logger).WithUserCap(d.Config.AI.UserDailyCostCapUSD)
 	client := ai.New(ai.Deps{App: d.Config.App, Config: d.Config.AI, Logger: d.Logger,
-		Recorder: usage.NewRecorder(d.DB, clock.Real{}, d.Logger), Limiter: budget})
+		Recorder: usage.NewRecorder(d.DB, clock.Real{}, d.Logger), Limiter: budget, Router: catalog})
 	var limiter *ratelimit.Limiter
 	if d.Cache != nil {
 		limiter = ratelimit.New(d.Cache, clock.Real{})
 	}
-	guard := access.NewGuard(access.Options{Client: client, Consents: consent.NewService(d.DB), Budget: budget, Gate: gate,
-		Plus: plusSvc, Limiter: limiter, Throttled: rejects, Logger: d.Logger})
-	return aiPlatform{client: client, budget: budget, guard: guard}
+	guard := access.NewGuard(access.Options{Client: client, Consents: consent.NewService(d.DB), Budget: budget,
+		Credits: creditSvc, Catalog: catalog, Limiter: limiter, Throttled: rejects, Logger: d.Logger})
+	return aiPlatform{client: client, budget: budget, guard: guard, credits: creditSvc, catalog: catalog}
+}
+
+// assistantQuota is the assistant hub's `quota`: what the user can still spend on a message.
+func assistantQuota(p aiPlatform) assistant.Quota {
+	return func(ctx context.Context, userID uint64, now time.Time) (assistant.QuotaState, error) {
+		b, err := p.credits.Balance(ctx, userID, now.In(civildate.Tehran).Truncate(time.Second))
+		if err != nil {
+			return assistant.QuotaState{}, err
+		}
+		var cost uint32 = 1
+		if f, ok, err := p.catalog.Feature(ctx, ai.FeatureAssistant); err != nil {
+			return assistant.QuotaState{}, err
+		} else if ok {
+			cost = f.Cost
+		}
+		return assistant.QuotaState{Allowed: b.Active && b.Spendable() >= cost, Limit: b.PlanTotal,
+			Used: b.PlanTotal - b.PlanRemaining, Remaining: b.Spendable()}, nil
+	}
 }
 
 // Versioned consents (B-N6-05, internal/consent): every consent with its text in force, one consent, accept a

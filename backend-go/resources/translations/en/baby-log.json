@@ -47,8 +47,6 @@
     "todayPump": "pump {ml} ml",
     "todayNone": "No feeds logged yet",
     "finish": "Finish and save",
-    "hintBreast": "Tap a side to start.",
-    "hintTimer": "Tap “Start timer” to begin.",
     "discard": "Cancel this feed"
   },
   "manual": {

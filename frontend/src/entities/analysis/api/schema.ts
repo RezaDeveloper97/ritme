@@ -289,6 +289,8 @@ const hubVitalsSchema: Parser<HubVitals> = z
       .object({ ...readiness, systolic: nullableNum, diastolic: nullableNum, min: bpPair, max: bpPair })
       .nullable(),
     blood_sugar: z.object({ ...readiness, avg: nullableNum, min: nullableNum, max: nullableNum }).nullable(),
+    // Added after the first release: an older server omits it.
+    heart_rate: z.object({ ...readiness, avg: nullableNum, min: nullableNum, max: nullableNum }).nullable().catch(null),
   })
   .transform((v) => ({
     minReadings: v.min_readings,
@@ -316,6 +318,18 @@ const hubVitalsSchema: Parser<HubVitals> = z
           avg: v.blood_sugar.avg,
           min: v.blood_sugar.min,
           max: v.blood_sugar.max,
+        }
+      : null,
+    heartRate: v.heart_rate
+      ? {
+          ready: v.heart_rate.ready,
+          readings: v.heart_rate.readings,
+          days: v.heart_rate.days,
+          readingsNeeded: v.heart_rate.readings_needed,
+          classes: v.heart_rate.classes,
+          avg: v.heart_rate.avg,
+          min: v.heart_rate.min,
+          max: v.heart_rate.max,
         }
       : null,
   }));

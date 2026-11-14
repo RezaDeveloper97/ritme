@@ -1,0 +1,47 @@
+{
+    "messages": {
+        "validation_failed": "The given data was invalid.",
+        "not_found": "Not found.",
+        "invite_created": "Invite created.",
+        "invite_invalid": "This code is not valid or has expired. Ask for a new code.",
+        "invite_not_allowed": "This invite can no longer be accepted. Ask for a new one.",
+        "preview": "Here is what you would see.",
+        "accepted": "You are now connected.",
+        "awaiting_owner": "Accepted. You will see it once she confirms.",
+        "declined": "Invite declined.",
+        "confirmed": "Confirmed.",
+        "cancelled": "Invite cancelled.",
+        "unavailable": "Invites are temporarily unavailable.",
+        "too_many_attempts": "Too many attempts. Please try again later.",
+        "limit_reached": "You have reached the maximum number of members.",
+        "teen_parent_only": "In teen mode you can only invite your mother or a parent.",
+        "mutual_exists": "You already share with this person.",
+        "level_not_allowed": "This access level isn't allowed for this part."
+    },
+    "validation": {
+        "role_invalid": "The selected relation is invalid.",
+        "template_invalid": "The selected quick start is invalid.",
+        "phone_invalid": "Enter a valid mobile number (09xxxxxxxxx).",
+        "self_invite": "You cannot invite your own number.",
+        "name_too_long": "The name may not be greater than 100 characters.",
+        "domain_invalid": "Unknown part.",
+        "level_invalid": "The access level must be off, view, nudge or write.",
+        "children_invalid": "This child access isn't allowed for this relation.",
+        "expires_invalid": "The end date must be after today.",
+        "mutual_invalid": "You can only ask for appointments and medicines back.",
+        "mutual_not_requested": "Only the parts she asked for can be shared back.",
+        "consent_version": "Please review the latest sharing text and try again.",
+        "code_required": "Enter the invite code."
+    },
+    "notices": {
+        "someone": "A family member",
+        "accepted_title": ":name accepted your invite",
+        "accepted_body": "They now see only what you allowed. You can change access any time.",
+        "awaiting_owner_title": ":name accepted your invite",
+        "awaiting_owner_body": "Confirm it so they can see what you chose.",
+        "invite_expired_title": "The invite for :name expired",
+        "invite_expired_body": "You can send a new invite any time.",
+        "carer_expired_title": ":name's access has ended",
+        "carer_expired_body": "You can invite them again any time."
+    }
+}

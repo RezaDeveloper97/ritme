@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\Content\Stages;
 
 use App\Domain\Blog\Enums\LifeStage;
+use App\Domain\Content\Enums\SitePhoto;
 
 /**
  * /ttc — «اقدام به بارداری» (design/html/ttc.html): fertility window, companion, IVF/IUI. Copy: lang/fa/stages/ttc.php.
@@ -60,5 +61,10 @@ final class Ttc extends StageDefinition
     public function eyebrowIcon(): string
     {
         return 'sprout';
+    }
+
+    public function redesign(): RedesignSpec
+    {
+        return new RedesignSpec(SitePhoto::TtcHero, SitePhoto::CoupleBreakfast, 'ttc', ['calendar', 'ovulation', 'bbt', 'treatment', 'pregnancy-test', 'partner']);
     }
 }

@@ -25,6 +25,114 @@ func (q *Queries) AnonymizeUsageBefore(ctx context.Context, before sql.NullTime)
 	return result.RowsAffected()
 }
 
+const creditSpendByDay = `-- name: CreditSpendByDay :many
+SELECT CAST(DATE(created_at) AS CHAR(10)) AS day, COUNT(*) AS uses,
+  CAST(COALESCE(SUM(credits), 0) AS UNSIGNED) AS credits,
+  CAST(COALESCE(SUM(plan_credits), 0) AS UNSIGNED) AS plan_credits,
+  CAST(COALESCE(SUM(extra_credits), 0) AS UNSIGNED) AS extra_credits
+FROM ` + "`" + `ai_credit_spends` + "`" + `
+WHERE status = 'spent' AND created_at >= ? AND created_at < ?
+GROUP BY DATE(created_at) ORDER BY day
+`
+
+type CreditSpendByDayParams struct {
+	FromAt sql.NullTime
+	ToAt   sql.NullTime
+}
+
+type CreditSpendByDayRow struct {
+	Day          interface{}
+	Uses         int64
+	Credits      int64
+	PlanCredits  int64
+	ExtraCredits int64
+}
+
+// Admin report (goose 00125): credits users spent per Tehran day in [from, to) — refunded uses excluded — next to
+// the provider cost above.
+func (q *Queries) CreditSpendByDay(ctx context.Context, arg CreditSpendByDayParams) ([]CreditSpendByDayRow, error) {
+	rows, err := q.db.QueryContext(ctx, creditSpendByDay, arg.FromAt, arg.ToAt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CreditSpendByDayRow{}
+	for rows.Next() {
+		var i CreditSpendByDayRow
+		if err := rows.Scan(
+			&i.Day,
+			&i.Uses,
+			&i.Credits,
+			&i.PlanCredits,
+			&i.ExtraCredits,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const creditSpendByFeature = `-- name: CreditSpendByFeature :many
+SELECT feature, COUNT(*) AS uses, COUNT(DISTINCT user_id) AS users,
+  CAST(COALESCE(SUM(credits), 0) AS UNSIGNED) AS credits,
+  CAST(COALESCE(SUM(plan_credits), 0) AS UNSIGNED) AS plan_credits,
+  CAST(COALESCE(SUM(extra_credits), 0) AS UNSIGNED) AS extra_credits
+FROM ` + "`" + `ai_credit_spends` + "`" + `
+WHERE status = 'spent' AND created_at >= ? AND created_at < ?
+GROUP BY feature ORDER BY credits DESC, feature
+`
+
+type CreditSpendByFeatureParams struct {
+	FromAt sql.NullTime
+	ToAt   sql.NullTime
+}
+
+type CreditSpendByFeatureRow struct {
+	Feature      string
+	Uses         int64
+	Users        int64
+	Credits      int64
+	PlanCredits  int64
+	ExtraCredits int64
+}
+
+func (q *Queries) CreditSpendByFeature(ctx context.Context, arg CreditSpendByFeatureParams) ([]CreditSpendByFeatureRow, error) {
+	rows, err := q.db.QueryContext(ctx, creditSpendByFeature, arg.FromAt, arg.ToAt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CreditSpendByFeatureRow{}
+	for rows.Next() {
+		var i CreditSpendByFeatureRow
+		if err := rows.Scan(
+			&i.Feature,
+			&i.Uses,
+			&i.Users,
+			&i.Credits,
+			&i.PlanCredits,
+			&i.ExtraCredits,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const insertUsage = `-- name: InsertUsage :exec
 
 INSERT INTO ` + "`" + `ai_usage_logs` + "`" + ` (user_id, feature, op, provider, model, input_tokens, output_tokens, audio_bytes,
@@ -221,4 +329,16 @@ func (q *Queries) UsageByFeature(ctx context.Context, arg UsageByFeatureParams) 
 		return nil, err
 	}
 	return items, nil
+}
+
+const usageFXRate = `-- name: UsageFXRate :one
+SELECT ` + "`" + `value` + "`" + ` FROM plus_settings WHERE ` + "`" + `key` + "`" + ` = 'ai_cost_usd_irr_rate'
+`
+
+// plus_settings.ai_cost_usd_irr_rate (IRR per USD; admin «اشتراک‌ها» settings): the report converts the cost.
+func (q *Queries) UsageFXRate(ctx context.Context) (string, error) {
+	row := q.db.QueryRowContext(ctx, usageFXRate)
+	var value string
+	err := row.Scan(&value)
+	return value, err
 }

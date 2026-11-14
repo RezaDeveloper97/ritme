@@ -43,7 +43,6 @@
         "ultrasound_days": "ultrasound days",
         "manual_weeks": "pregnancy weeks",
         "manual_days": "pregnancy days",
-        "bookmarked": "bookmark",
         "done_task_keys": "done tasks",
         "done_task_keys.*": "done task"
     }

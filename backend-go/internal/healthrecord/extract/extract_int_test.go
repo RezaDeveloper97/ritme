@@ -1,6 +1,6 @@
 package extract_test
 
-// CB-REC-02 end to end against MariaDB with the fake AI provider: the AI gate (401, Plus 402 for free users who then
+// CB-REC-02 end to end against MariaDB with the fake AI provider: the AI gate (401, 402 without a subscription — users then
 // fill the fields in by hand, consent 403), extraction per kind (sync and the async worker, lease recovery, exhausted
 // jobs), refunds on failure, review with corrections, the pregnancy dating offer (never silent; explicit confirm,
 // dismiss) and user isolation.
@@ -26,6 +26,7 @@ import (
 
 	"github.com/ritme/backend-go/internal/ai"
 	"github.com/ritme/backend-go/internal/ai/access"
+	"github.com/ritme/backend-go/internal/ai/credits"
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/auth/passport"
 	authstore "github.com/ritme/backend-go/internal/auth/store"
@@ -56,6 +57,7 @@ type env struct {
 	files    *files.Service
 	runner   *extract.Runner
 	plus     *plus.Service
+	credits  *credits.Service
 	consents *consent.Service
 }
 
@@ -72,17 +74,19 @@ func setup(t *testing.T, sync bool) *env {
 	locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(db), nil, quiet))
 
 	plusSvc := plus.NewService(db, config.Plus{TrialDays: 7}, nil, quiet)
-	gate := plus.NewGate(plusSvc, clock.Real{})
+	creditSvc := credits.NewService(db)
+	_, err = db.Exec("UPDATE plus_settings SET value = '1000' WHERE `key` = 'trial_ai_credits'") // plenty: one read costs 3
+	require.NoError(t, err)
 	fake := ai.NewFake()
 	client := ai.NewClientWith(ai.Options{Provider: config.AIProviderFake, Extractor: fake})
 	consents := consent.NewService(db)
-	g := access.NewGuard(access.Options{Client: client, Consents: consents, Gate: gate, Plus: plusSvc, Logger: quiet})
+	g := access.NewGuard(access.Options{Client: client, Consents: consents, Credits: creditSvc, Catalog: credits.NewCatalog(db), Logger: quiet})
 
 	vault, err := files.NewVault(t.TempDir(), files.DevKey("ritme-file-dev-key"), nil, false)
 	require.NoError(t, err)
 	fs := files.NewService(files.Options{DB: db, Vault: vault, BaseURL: "https://api.test"})
-	docs := healthrecord.NewDocuments(db, fs, nil).OnDeletePending(extract.RefundDeleted(plusSvc, clock.Real{}, quiet))
-	svc := extract.NewService(extract.Options{DB: db, Docs: docs, Files: fs, AI: client, Consents: consents, Plus: plusSvc,
+	docs := healthrecord.NewDocuments(db, fs, nil).OnDeletePending(extract.RefundDeleted(creditSvc, clock.Real{}, quiet))
+	svc := extract.NewService(extract.Options{DB: db, Docs: docs, Files: fs, AI: client, Consents: consents, Plus: creditSvc,
 		Pregnancy: pregstore.New(db), Logger: quiet})
 	runner := extract.NewRunner(svc, extract.RunnerOptions{Sync: sync, Poll: 50 * time.Millisecond})
 	t.Cleanup(runner.Shutdown)
@@ -102,10 +106,10 @@ func setup(t *testing.T, sync bool) *env {
 	app.Post(p+"/:id/dating", locale, guard, h.ApplyDating)
 	app.Delete(p+"/:id/dating", locale, guard, h.DismissDating)
 	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), files: fs, runner: runner,
-		plus: plusSvc, consents: consents}
+		plus: plusSvc, credits: creditSvc, consents: consents}
 }
 
-// user creates a user; trial = Plus trial started, consented = ai_documents accepted.
+// user creates a user; trial = Plus trial started (AI credits), consented = ai_documents accepted.
 func (e *env) user(t *testing.T, mobile string, trial, consented bool) (uint64, string) {
 	t.Helper()
 	res, err := e.db.Exec(`INSERT INTO users (name, mobile, created_at, updated_at) VALUES ('Sara Test', ?, NOW(), NOW())`, mobile)
@@ -183,9 +187,9 @@ const docsPath = "/api/v1/health-record/documents"
 
 func (e *env) usage(t *testing.T, uid uint64) int {
 	t.Helper()
-	var n sql.NullInt64
-	require.NoError(t, e.db.QueryRow(`SELECT SUM(used) FROM plus_usage_counters WHERE user_id = ? AND feature = 'plus.doc_ai'`, uid).Scan(&n))
-	return int(n.Int64)
+	var n int
+	require.NoError(t, e.db.QueryRow(`SELECT COUNT(*) FROM ai_credit_spends WHERE user_id = ? AND feature = 'doc_extract' AND status = 'spent'`, uid).Scan(&n))
+	return n
 }
 
 func extracted(r resp) map[string]any { m, _ := r.data()["extracted"].(map[string]any); return m }
@@ -202,14 +206,15 @@ func TestExtract_Unauthenticated(t *testing.T) {
 	}
 }
 
-// Free users get 402 before anything is read and fill the document in by hand; without the consent → 403.
+// Users without a subscription get 402 before anything is read and fill the document in by hand; without the consent → 403.
 func TestExtract_FreeAndConsentGates(t *testing.T) {
 	e := setup(t, true)
 	free, freeTok := e.user(t, "09120000001", false, true)
 	id := e.document(t, free, freeTok, healthrecord.KindVisit, "visit")
 	r := e.do(t, http.MethodPost, docsPath+"/"+id+"/extract", freeTok, nil)
 	require.Equal(t, http.StatusPaymentRequired, r.status, r.raw)
-	assert.Equal(t, "plus.doc_ai", r.body["feature"])
+	assert.Equal(t, access.CodeSubscriptionRequired, r.body["error_code"])
+	assert.Equal(t, "doc_extract", r.body["feature"])
 	r = e.do(t, http.MethodPut, docsPath+"/"+id, freeTok, map[string]any{"date": "2026-09-15", "centre": "Clinic", "doctor": "Dr. A"})
 	require.Equal(t, http.StatusOK, r.status, r.raw)
 	assert.Equal(t, healthrecord.ReviewManual, r.data()["review_state"])

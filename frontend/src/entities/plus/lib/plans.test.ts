@@ -13,6 +13,9 @@ const plan = (id: number, months: number, highlighted = false): PlusPlan => ({
   monthlyPrice: 1000,
   savingsPercent: 0,
   isHighlighted: highlighted,
+  durationMinutes: null,
+  aiCredits: 0,
+  storeSkus: {},
 });
 const plans = [plan(1, 1), plan(2, 3, true), plan(3, 6)];
 

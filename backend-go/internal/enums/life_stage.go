@@ -113,17 +113,21 @@ func OnboardingGoalValues() []string {
 	return []string{string(OnboardingGoalCycle), string(OnboardingGoalTTC), string(OnboardingGoalPregnancy), string(OnboardingGoalMenopause)}
 }
 
-// Gender is the Gender step (nbl_Onb_Gender). male → the companion path (B-N4-03).
+// Gender is the Gender step (nbl_Onb_Gender). male → the companion path (B-N4-03). unspecified («ترجیح می‌دهم
+// نگویم», «ریتمی همراه» v2) gets the full experience exactly like female: only male ever branches.
 type Gender string
 
 // Gender cases, in screen order.
 const (
-	GenderFemale Gender = "female"
-	GenderMale   Gender = "male"
+	GenderFemale      Gender = "female"
+	GenderMale        Gender = "male"
+	GenderUnspecified Gender = "unspecified"
 )
 
 // GenderValues returns the backed values in screen order.
-func GenderValues() []string { return []string{string(GenderFemale), string(GenderMale)} }
+func GenderValues() []string {
+	return []string{string(GenderFemale), string(GenderMale), string(GenderUnspecified)}
+}
 
 // MenopauseStage is the Meno step («کجای مسیر یائسگی هستی؟», nbl_Onb_Meno).
 type MenopauseStage string

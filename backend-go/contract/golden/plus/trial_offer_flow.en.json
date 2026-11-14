@@ -41,22 +41,6 @@
               "remaining": null
             },
             {
-              "key": "plus.lab_ai",
-              "allowed": true,
-              "unlimited": false,
-              "limit": 10,
-              "used": 0,
-              "remaining": 10
-            },
-            {
-              "key": "plus.assistant_unlimited",
-              "allowed": true,
-              "unlimited": true,
-              "limit": null,
-              "used": 0,
-              "remaining": null
-            },
-            {
               "key": "plus.pdf_share",
               "allowed": true,
               "unlimited": true,
@@ -73,7 +57,7 @@
               "remaining": null
             },
             {
-              "key": "plus.voice_log",
+              "key": "plus.analysis_long_range",
               "allowed": true,
               "unlimited": true,
               "limit": null,
@@ -81,12 +65,20 @@
               "remaining": null
             },
             {
-              "key": "plus.doc_ai",
+              "key": "plus.sms_reminders",
               "allowed": true,
-              "unlimited": false,
-              "limit": 20,
+              "unlimited": true,
+              "limit": null,
               "used": 0,
-              "remaining": 20
+              "remaining": null
+            },
+            {
+              "key": "plus.companion",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
             }
           ],
           "trial_offer": {
@@ -110,6 +102,7 @@
               "monthly_price": 790000,
               "savings_percent": 20,
               "is_highlighted": true,
+              "ai_credits": 300,
               "offer_price": 1185000,
               "offer_monthly_price": 395000
             }
@@ -162,6 +155,7 @@
               "monthly_price": 790000,
               "savings_percent": 20,
               "is_highlighted": true,
+              "ai_credits": 300,
               "offer_price": 1185000,
               "offer_monthly_price": 395000
             }
@@ -178,6 +172,7 @@
               "monthly_price": 990000,
               "savings_percent": 0,
               "is_highlighted": false,
+              "ai_credits": 100,
               "offer_price": 495000,
               "offer_monthly_price": 495000
             },
@@ -191,6 +186,7 @@
               "monthly_price": 790000,
               "savings_percent": 20,
               "is_highlighted": true,
+              "ai_credits": 300,
               "offer_price": 1185000,
               "offer_monthly_price": 395000
             },
@@ -204,6 +200,7 @@
               "monthly_price": 650000,
               "savings_percent": 34,
               "is_highlighted": false,
+              "ai_credits": 600,
               "offer_price": 1950000,
               "offer_monthly_price": 325000
             }
@@ -213,18 +210,6 @@
             "features": [
               {
                 "key": "plus.deep_analysis",
-                "used": 0,
-                "unlimited": true,
-                "plus_limit": null
-              },
-              {
-                "key": "plus.lab_ai",
-                "used": 0,
-                "unlimited": false,
-                "plus_limit": 10
-              },
-              {
-                "key": "plus.assistant_unlimited",
                 "used": 0,
                 "unlimited": true,
                 "plus_limit": null
@@ -242,16 +227,22 @@
                 "plus_limit": null
               },
               {
-                "key": "plus.voice_log",
+                "key": "plus.analysis_long_range",
                 "used": 0,
                 "unlimited": true,
                 "plus_limit": null
               },
               {
-                "key": "plus.doc_ai",
+                "key": "plus.sms_reminders",
                 "used": 0,
-                "unlimited": false,
-                "plus_limit": 20
+                "unlimited": true,
+                "plus_limit": null
+              },
+              {
+                "key": "plus.companion",
+                "used": 0,
+                "unlimited": true,
+                "plus_limit": null
               }
             ]
           }
@@ -340,22 +331,6 @@
               "remaining": 0
             },
             {
-              "key": "plus.lab_ai",
-              "allowed": false,
-              "unlimited": false,
-              "limit": 0,
-              "used": 0,
-              "remaining": 0
-            },
-            {
-              "key": "plus.assistant_unlimited",
-              "allowed": true,
-              "unlimited": false,
-              "limit": 5,
-              "used": 0,
-              "remaining": 5
-            },
-            {
               "key": "plus.pdf_share",
               "allowed": false,
               "unlimited": false,
@@ -372,7 +347,7 @@
               "remaining": 0
             },
             {
-              "key": "plus.voice_log",
+              "key": "plus.analysis_long_range",
               "allowed": false,
               "unlimited": false,
               "limit": 0,
@@ -380,7 +355,15 @@
               "remaining": 0
             },
             {
-              "key": "plus.doc_ai",
+              "key": "plus.sms_reminders",
+              "allowed": false,
+              "unlimited": false,
+              "limit": 0,
+              "used": 0,
+              "remaining": 0
+            },
+            {
+              "key": "plus.companion",
               "allowed": false,
               "unlimited": false,
               "limit": 0,

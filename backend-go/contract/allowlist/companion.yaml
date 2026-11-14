@@ -1,19 +1,26 @@
 group: companion
 entries:
+  # D-196 (accepted 2026-10-21, T-M11-01; T-M11-08): /companions invites run on the v6 invite service — a phone
+  # invite lives 7 days (F-11) instead of 24 h; a code-only invite keeps 24 h.
+  - case: invite_accept_read_record_revoke
+    step: 2
+    where: data.companion.invite.expires_at
+    deviation: D-196
+    reason: phone invite lives 7 days (F-11), not 24 h
+  - case: invite_accept_read_record_revoke
+    step: 2
+    where: data.invite.expires_at
+    deviation: D-196
+    reason: phone invite lives 7 days (F-11), not 24 h
   # D-204 / D-193 (accepted 2026-10-21, T-M11-01; T-M11-05): every grant change goes through family.Grants.Apply,
   # which writes a grants_changed activity row (with the v6 per-domain diff_json) — at invite and again at accept,
   # when the owner's choice takes effect stamped with her mode epoch. The /companions/audit trail therefore has two
   # more rows (owner-actor grants_changed), and every later row id shifts by two.
   - case: invite_accept_read_record_revoke
-    step: 14
+    step: 15
     where: body
     deviation: D-204
     reason: two extra grants_changed rows (invite + accept) from family.Grants.Apply; ids shift by two
-  - case: audit_filter_cursor_and_history_404
-    step: 6
-    where: body
-    deviation: D-204
-    reason: audit row ids shift by two (grants_changed rows of invite + accept)
   - case: audit_filter_cursor_and_history_404
     step: 7
     where: body
@@ -28,16 +35,21 @@ entries:
     step: 9
     where: body
     deviation: D-204
+    reason: audit row ids shift by two (grants_changed rows of invite + accept)
+  - case: audit_filter_cursor_and_history_404
+    step: 10
+    where: body
+    deviation: D-204
     reason: the cursor page now holds the accept-time grants_changed row and the accepted row
   # D-193 (T-M11-05): the pregnancy domain is visible only while the owner is pregnant (family.md §2, mode scope);
   # outside it a member read is 403 section_not_shared with no data, not 200 {is_active: false}.
   - case: spouse_renew_children_leave
-    step: 5
+    step: 6
     where: status
     deviation: D-193
     reason: pregnancy section of a non-pregnant owner is 403 (mode_inactive) instead of 200 is_active false
   - case: spouse_renew_children_leave
-    step: 5
+    step: 6
     where: body
     deviation: D-193
     reason: the 403 section_not_shared body, no data
@@ -63,12 +75,58 @@ entries:
     deviation: D-194
     reason: the meds section is the v6 meds DTO (no type, weekdays, starts_on, ends_on, is_active; today at nudge+)
   - case: invite_accept_read_record_revoke
-    step: 5
+    step: 6
     where: status
     deviation: D-194
     reason: symptoms section removed (F-03) — 404 instead of 403
   - case: invite_accept_read_record_revoke
-    step: 5
+    step: 6
     where: body
     deviation: D-194
     reason: symptoms section removed (F-03) — the 404 companion-not-found body
+  # D-208 («ریتمی همراه» v2, Go only): additive owner-link preferences (goal, signals, action_prefs) and the member
+  # link's settings {goal, action_prefs}. Laravel never prints them; the clients treat them as optional.
+  - case: "*"
+    where: data.goal
+    deviation: D-208
+    reason: owner link gains goal (companion v2)
+  - case: "*"
+    where: data.signals
+    deviation: D-208
+    reason: owner link gains signal consents (companion v2)
+  - case: "*"
+    where: data.action_prefs
+    deviation: D-208
+    reason: owner link gains action_prefs (companion v2)
+  - case: "*"
+    where: data[*].goal
+    deviation: D-208
+    reason: owner list items gain goal (companion v2)
+  - case: "*"
+    where: data[*].signals
+    deviation: D-208
+    reason: owner list items gain signal consents (companion v2)
+  - case: "*"
+    where: data[*].action_prefs
+    deviation: D-208
+    reason: owner list items gain action_prefs (companion v2)
+  - case: "*"
+    where: data.companion.goal
+    deviation: D-208
+    reason: POST /companions companion gains goal (companion v2)
+  - case: "*"
+    where: data.companion.signals
+    deviation: D-208
+    reason: POST /companions companion gains signal consents (companion v2)
+  - case: "*"
+    where: data.companion.action_prefs
+    deviation: D-208
+    reason: POST /companions companion gains action_prefs (companion v2)
+  - case: "*"
+    where: data.settings
+    deviation: D-208
+    reason: accept / member link gains settings {goal, action_prefs} (companion v2)
+  - case: "*"
+    where: data[*].settings
+    deviation: D-208
+    reason: GET /companions/links items gain settings {goal, action_prefs} (companion v2)

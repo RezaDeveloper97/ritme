@@ -1,0 +1,539 @@
+{
+  "case": "ai-credits/trial_then_pack",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/plus/trial/start",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59"
+      },
+      "body": {
+        "success": true,
+        "message": "دوره رایگان ریتمی پلاس شروع شد",
+        "data": {
+          "tier": "trial",
+          "is_plus": true,
+          "subscription": null,
+          "trial": {
+            "started_at": "2026-09-23T10:00:00+03:30",
+            "ends_at": "2026-09-30T10:00:00+03:30",
+            "is_active": true,
+            "days_left": 7
+          },
+          "trial_available": false,
+          "period_start": "2026-09-01",
+          "resets_at": "2026-10-01T00:00:00+03:30",
+          "entitlements": [
+            {
+              "key": "plus.deep_analysis",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.pdf_share",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.visit_discount",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.analysis_long_range",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.sms_reminders",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            },
+            {
+              "key": "plus.companion",
+              "allowed": true,
+              "unlimited": true,
+              "limit": null,
+              "used": 0,
+              "remaining": null
+            }
+          ],
+          "trial_offer": {
+            "percent": 50,
+            "ends_at": "2026-09-30T10:00:00+03:30",
+            "seconds_left": 604800,
+            "days_left": 7,
+            "countdown": {
+              "days": 7,
+              "hours": 0,
+              "minutes": 0
+            },
+            "currency": "IRR",
+            "plan": {
+              "id": 2,
+              "code": "plus_3m",
+              "title": "۳ ماهه",
+              "badge": "محبوب‌ترین",
+              "duration_months": 3,
+              "price": 2370000,
+              "monthly_price": 790000,
+              "savings_percent": 20,
+              "is_highlighted": true,
+              "ai_credits": 300,
+              "offer_price": 1185000,
+              "offer_monthly_price": 395000
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/ai/credits",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "can_use": true,
+          "period": "trial",
+          "period_ends_at": "2026-09-30T10:00:00+03:30",
+          "plan": {
+            "total": 20,
+            "used": 0,
+            "remaining": 20
+          },
+          "extra": {
+            "remaining": 0,
+            "locked": false
+          },
+          "spendable": 20,
+          "features": [
+            {
+              "key": "assistant",
+              "title": "دستیار سلامت",
+              "credit_cost": 1,
+              "available": true,
+              "affordable": true
+            },
+            {
+              "key": "voice_log",
+              "title": "ثبت صوتی",
+              "credit_cost": 1,
+              "available": true,
+              "affordable": true
+            },
+            {
+              "key": "lab_analysis",
+              "title": "تحلیل آزمایش",
+              "credit_cost": 5,
+              "available": true,
+              "affordable": true
+            },
+            {
+              "key": "doc_extract",
+              "title": "خواندن مدارک",
+              "credit_cost": 3,
+              "available": true,
+              "affordable": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/plus/credit-packs/checkout",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "body": {
+          "pack_id": 1
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "58"
+      },
+      "body": {
+        "success": true,
+        "message": "صورتحساب ساخته شد",
+        "data": {
+          "invoice": {
+            "reference": "<pattern:^RP[A-Z2-7]{16}$>",
+            "status": "pending",
+            "plan": null,
+            "duration_months": 0,
+            "currency": "IRR",
+            "subtotal": 490000,
+            "discount": 0,
+            "discount_code": null,
+            "vat_rate_bps": 1000,
+            "vat": 49000,
+            "total": 539000,
+            "gateway": "fake",
+            "created_at": "2026-09-23T10:00:00+03:30",
+            "expires_at": "2026-09-23T10:30:00+03:30",
+            "paid_at": null,
+            "receipt": null,
+            "discount_source": null,
+            "kind": "credit_pack",
+            "credits": 50,
+            "credit_pack": {
+              "id": 1,
+              "code": "credits_50",
+              "title": "۵۰ اعتبار",
+              "credits": 50
+            }
+          },
+          "payment": {
+            "gateway": "fake",
+            "authority": "<pattern:^FAKE-RP[A-Z2-7]{16}$>",
+            "redirect_url": "<pattern:^http://127\\.0\\.0\\.1:8090/api/v1/payments/fake/pay/FAKE-RP[A-Z2-7]{16}$>"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/payments/fake/pay/{{auth}}",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30",
+        "raw_body": "decision=success"
+      },
+      "status": 303,
+      "headers": {
+        "content-type": "text/html; charset=utf-8",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "59",
+        "location": "<ignored>"
+      },
+      "body_ignored": true
+    },
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/plus/verify",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:05:00+03:30",
+        "body": {
+          "reference": "{{ref}}",
+          "authority": "{{auth}}",
+          "status": "OK"
+        }
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "60",
+        "x-ratelimit-remaining": "57"
+      },
+      "body": {
+        "success": true,
+        "message": "پرداخت تأیید شد. اعتبارت اضافه شد",
+        "data": {
+          "invoice": {
+            "reference": "<pattern:^RP[A-Z2-7]{16}$>",
+            "status": "paid",
+            "plan": null,
+            "duration_months": 0,
+            "currency": "IRR",
+            "subtotal": 490000,
+            "discount": 0,
+            "discount_code": null,
+            "vat_rate_bps": 1000,
+            "vat": 49000,
+            "total": 539000,
+            "gateway": "fake",
+            "created_at": "2026-09-23T10:00:00+03:30",
+            "expires_at": "2026-09-23T10:30:00+03:30",
+            "paid_at": "2026-09-23T10:05:00+03:30",
+            "receipt": {
+              "ref_id": "<pattern:^FAKE-REF-RP[A-Z2-7]{16}$>",
+              "card_pan": null,
+              "amount": 539000,
+              "paid_at": "2026-09-23T10:05:00+03:30"
+            },
+            "discount_source": null,
+            "kind": "credit_pack",
+            "credits": 50,
+            "credit_pack": {
+              "id": 1,
+              "code": "credits_50",
+              "title": "۵۰ اعتبار",
+              "credits": 50
+            }
+          },
+          "already_verified": false,
+          "status": {
+            "tier": "trial",
+            "is_plus": true,
+            "subscription": null,
+            "trial": {
+              "started_at": "2026-09-23T10:00:00+03:30",
+              "ends_at": "2026-09-30T10:00:00+03:30",
+              "is_active": true,
+              "days_left": 7
+            },
+            "trial_available": false,
+            "period_start": "2026-09-01",
+            "resets_at": "2026-10-01T00:00:00+03:30",
+            "entitlements": [
+              {
+                "key": "plus.deep_analysis",
+                "allowed": true,
+                "unlimited": true,
+                "limit": null,
+                "used": 0,
+                "remaining": null
+              },
+              {
+                "key": "plus.pdf_share",
+                "allowed": true,
+                "unlimited": true,
+                "limit": null,
+                "used": 0,
+                "remaining": null
+              },
+              {
+                "key": "plus.visit_discount",
+                "allowed": true,
+                "unlimited": true,
+                "limit": null,
+                "used": 0,
+                "remaining": null
+              },
+              {
+                "key": "plus.analysis_long_range",
+                "allowed": true,
+                "unlimited": true,
+                "limit": null,
+                "used": 0,
+                "remaining": null
+              },
+              {
+                "key": "plus.sms_reminders",
+                "allowed": true,
+                "unlimited": true,
+                "limit": null,
+                "used": 0,
+                "remaining": null
+              },
+              {
+                "key": "plus.companion",
+                "allowed": true,
+                "unlimited": true,
+                "limit": null,
+                "used": 0,
+                "remaining": null
+              }
+            ],
+            "trial_offer": {
+              "percent": 50,
+              "ends_at": "2026-09-30T10:00:00+03:30",
+              "seconds_left": 604500,
+              "days_left": 7,
+              "countdown": {
+                "days": 6,
+                "hours": 23,
+                "minutes": 55
+              },
+              "currency": "IRR",
+              "plan": {
+                "id": 2,
+                "code": "plus_3m",
+                "title": "۳ ماهه",
+                "badge": "محبوب‌ترین",
+                "duration_months": 3,
+                "price": 2370000,
+                "monthly_price": 790000,
+                "savings_percent": 20,
+                "is_highlighted": true,
+                "ai_credits": 300,
+                "offer_price": 1185000,
+                "offer_monthly_price": 395000
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/ai/credits",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:06:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "can_use": true,
+          "period": "trial",
+          "period_ends_at": "2026-09-30T10:00:00+03:30",
+          "plan": {
+            "total": 20,
+            "used": 0,
+            "remaining": 20
+          },
+          "extra": {
+            "remaining": 50,
+            "locked": false
+          },
+          "spendable": 70,
+          "features": [
+            {
+              "key": "assistant",
+              "title": "دستیار سلامت",
+              "credit_cost": 1,
+              "available": true,
+              "affordable": true
+            },
+            {
+              "key": "voice_log",
+              "title": "ثبت صوتی",
+              "credit_cost": 1,
+              "available": true,
+              "affordable": true
+            },
+            {
+              "key": "lab_analysis",
+              "title": "تحلیل آزمایش",
+              "credit_cost": 5,
+              "available": true,
+              "affordable": true
+            },
+            {
+              "key": "doc_extract",
+              "title": "خواندن مدارک",
+              "credit_cost": 3,
+              "available": true,
+              "affordable": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/ai/credits",
+        "persona": "no_profile",
+        "now": "2026-09-30T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "can_use": false,
+          "period": null,
+          "period_ends_at": null,
+          "plan": {
+            "total": 0,
+            "used": 0,
+            "remaining": 0
+          },
+          "extra": {
+            "remaining": 50,
+            "locked": true
+          },
+          "spendable": 0,
+          "features": [
+            {
+              "key": "assistant",
+              "title": "دستیار سلامت",
+              "credit_cost": 1,
+              "available": true,
+              "affordable": false
+            },
+            {
+              "key": "voice_log",
+              "title": "ثبت صوتی",
+              "credit_cost": 1,
+              "available": true,
+              "affordable": false
+            },
+            {
+              "key": "lab_analysis",
+              "title": "تحلیل آزمایش",
+              "credit_cost": 5,
+              "available": true,
+              "affordable": false
+            },
+            {
+              "key": "doc_extract",
+              "title": "خواندن مدارک",
+              "credit_cost": 3,
+              "available": true,
+              "affordable": false
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/ai/credits/usage",
+        "persona": "no_profile",
+        "now": "2026-09-30T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "days": 30,
+          "since": "2026-09-01T00:00:00+03:30",
+          "total": 0,
+          "by_feature": [],
+          "by_day": [],
+          "history": {
+            "items": [],
+            "next": null
+          }
+        }
+      }
+    }
+  ]
+}

@@ -13,7 +13,7 @@ import {
 } from '@/features/manage-reminders';
 import type { Locale } from '@/shared/i18n';
 import { toApiDate } from '@/shared/lib/date';
-import { Icon, type IconName } from '@/shared/ui';
+import { CheckTick, Icon, type IconName } from '@/shared/ui';
 
 const FA = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
 const localizeNum = (n: number, loc: Locale) =>
@@ -90,7 +90,6 @@ export function DayTasks({ date }: { date: Date }) {
             </span>
           )}
         </div>
-        <p className="sub dt-sub">{t('subtitle')}</p>
 
         {/* Type picker + text field + add button */}
         <div className="dt-types">
@@ -157,7 +156,7 @@ export function DayTasks({ date }: { date: Date }) {
                   aria-pressed={done}
                   className={clsx('cbx', 'dt-check', done && 'on')}
                 >
-                  <Icon name="check" size={14} stroke="var(--on-brand)" />
+                  <CheckTick on={done} />
                 </button>
                 <button
                   type="button"

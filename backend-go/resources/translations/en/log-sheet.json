@@ -24,7 +24,6 @@
   },
   "quick": {
     "title": "Quick log",
-    "hint": "Tap one and it opens right below",
     "open": "open"
   },
   "tiles": {

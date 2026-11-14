@@ -44,7 +44,7 @@ describe('quick access shortcuts (CB-NAV-03)', () => {
   });
 
   it('defaults to four of the board picks the app can open', () => {
-    expect(ids(visibleShortcuts('cycle', null))).toEqual(['record', 'doctor', 'painDiary', 'courses']);
+    expect(ids(visibleShortcuts('cycle', null))).toEqual(['record', 'doctor', 'vitals', 'painDiary']);
     expect(ids(visibleShortcuts('menopause', null))[0]).toBe('hotFlash');
   });
 

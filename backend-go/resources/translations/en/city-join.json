@@ -59,7 +59,6 @@
   },
   "place": {
     "mapTitle": "Location on the map",
-    "mapHint": "Where mothers should come",
     "mapDrag": "Move the map so the entrance is in view, then tap the button.",
     "setPin": "Pin the entrance here",
     "pinSet": "Pin set",

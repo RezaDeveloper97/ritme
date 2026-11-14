@@ -1,6 +1,5 @@
 {
   "title": "Calendar",
-  "subtitle": "See your cycle days and predictions here.",
   "soon": "This section is coming soon.",
   "fullMonth": "Full month",
   "weekView": "Week",
@@ -61,8 +60,7 @@
     "title": "This day's log",
     "count": "{count, plural, one {# entry logged} other {# entries logged}}",
     "edit": "Edit",
-    "emptyTitle": "Nothing logged for this day",
-    "emptySubtitle": "Log symptoms, mood and more for {date}."
+    "emptyTitle": "Nothing logged for this day"
   },
   "smartTip": {
     "title": "Smart tip",
@@ -118,5 +116,6 @@
     "emptyBody": "Log your first period and the calendar will predict period days, the fertile window and PMS.",
     "analysis": "Analysis",
     "history": "History"
-  }
+  },
+  "dayVitals": { "title": "This day's vital signs", "open": "All" }
 }

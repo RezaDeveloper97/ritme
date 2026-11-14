@@ -1,8 +1,11 @@
 /**
- * Whether the log sheet hides its «ثبت با صدا» tab (B-N3-14b, N3 stage smoke B-9): voice logging is a
- * Plus feature and teens have no Plus path (/plus redirects them), so a locked tab would be a dead-end
- * upsell for a teen. Everyone else keeps the tab (locked ones show the Plus badge).
+ * Whether the log sheet hides its «ثبت با صدا» tab. Voice costs credits (the AI gate) and a teen account has no
+ * commercial path (/plus redirects her), so the tab would be a dead end for her; everyone else keeps it and
+ * the gate sheet explains a missing subscription / spent credits when she starts recording.
  */
-export function voiceTabHidden(mode: string | null | undefined, voiceLocked: boolean): boolean {
-  return mode === 'teen' && voiceLocked;
+export function voiceTabHidden(mode: string | null | undefined): boolean {
+  return mode === 'teen';
 }
+
+/** Voice logging is paused for now: the tab shows «به‌زودی» and the sheet always stays on manual. */
+export const VOICE_LOG_ENABLED = false;

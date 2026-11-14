@@ -243,7 +243,7 @@ func TestGemini_TaskCallsDisableThinking(t *testing.T) {
 	assert.InDelta(t, GeminiExtractMaxOutputTokens, gc()["maxOutputTokens"], 0)
 
 	pro := NewGemini(config.Gemini{Model: "gemini-2.5-pro"}, nil)
-	assert.Equal(t, 128, pro.thinkingBudget(), "pro models cannot turn thinking off")
+	assert.Equal(t, 128, thinkingBudget(pro.modelOf(context.Background())), "pro models cannot turn thinking off")
 }
 
 // userLimiter is a Limiter + UserLimiter spy.

@@ -33,7 +33,12 @@ func TestCycleSettings_EngineHonoursManualLengths(t *testing.T) {
 	r := e.do(t, "PUT", "/api/v1/profile/cycle-settings", tok, `{"cycle_length": 33, "period_length": 6}`)
 	require.Equal(t, 200, r.status, r.raw)
 	c, p := effective()
-	assert.Equal(t, [2]int{29, 5}, [2]int{c, p}, "automatic: the medians win over the stored profile values")
+	assert.Equal(t, [2]int{33, 6}, [2]int{c, p}, "never switched: the medians are only a suggestion, the profile values win")
+
+	r = e.do(t, "PUT", "/api/v1/profile/cycle-settings", tok, `{"lengths_auto": true}`)
+	require.Equal(t, 200, r.status, r.raw)
+	c, p = effective()
+	assert.Equal(t, [2]int{29, 5}, [2]int{c, p}, "automatic (her choice): the medians win over the stored profile values")
 
 	r = e.do(t, "PUT", "/api/v1/profile/cycle-settings", tok, `{"lengths_auto": false}`)
 	require.Equal(t, 200, r.status, r.raw)

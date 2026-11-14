@@ -23,6 +23,8 @@ const (
 	MaxPriceRials     = 100_000_000_000
 	MaxDurationMonths = 36
 	MaxSortOrder      = 100_000
+	// MaxPlanAICredits bounds plus_plans.ai_credits (the credits of one purchased period, docs/ai-credits.md).
+	MaxPlanAICredits = 1_000_000
 )
 
 const planCodePattern = "/^[a-z][a-z0-9_]*$/"
@@ -49,6 +51,7 @@ func planJSON(p *store.PlusPlan, n planCounts) *jsonx.OrderedMap {
 		"price_rials", p.PriceRials,
 		"monthly_display_rials", nullInt64(p.MonthlyDisplayRials),
 		"monthly_price_rials", monthlyRials(p),
+		"ai_credits", p.AiCredits,
 		"is_highlighted", p.IsHighlighted,
 		"is_active", p.IsActive,
 		"sort_order", p.SortOrder,
@@ -80,7 +83,7 @@ func (h *Handlers) ListPlans(c fiber.Ctx) error {
 		"items", jsonx.List(items),
 		"currency", "IRR",
 		"limits", jsonx.Obj("min_price_rials", MinPriceRials, "max_price_rials", MaxPriceRials,
-			"max_duration_months", MaxDurationMonths),
+			"max_duration_months", MaxDurationMonths, "max_ai_credits", MaxPlanAICredits),
 		"next_sort_order", next,
 	))
 }
@@ -137,6 +140,7 @@ func planRules(c fiber.Ctx, create bool) validation.Rules {
 		validation.F("duration_months", "required|integer|min:1|max:"+strconv.Itoa(MaxDurationMonths)),
 		validation.F("price_rials", "required|integer|min:"+strconv.Itoa(MinPriceRials)+"|max:"+strconv.Itoa(MaxPriceRials)),
 		validation.F("monthly_display_rials", "nullable|integer|min:1|max:"+strconv.Itoa(MaxPriceRials)),
+		validation.F("ai_credits", "nullable|integer|min:0|max:"+strconv.Itoa(MaxPlanAICredits)),
 		validation.F("is_highlighted", "nullable|boolean"),
 		validation.F("is_active", "nullable|boolean"),
 		validation.F("sort_order", "nullable|integer|min:0|max:"+strconv.Itoa(MaxSortOrder)),
@@ -212,6 +216,7 @@ func (h *Handlers) StorePlan(c fiber.Ctx) error {
 		Code: httpadmin.String(data, "code"), Title: title.V, Badge: translatable(data, "badge"),
 		DurationMonths: uint16(u64(data, "duration_months")), //nolint:gosec // G115: validated ≤ 36
 		PriceRials:     u64(data, "price_rials"),
+		AiCredits:      uint32(u64(data, "ai_credits")), //nolint:gosec // G115: validated ≤ MaxPlanAICredits
 		IsHighlighted:  boolOr(data, "is_highlighted", false), IsActive: boolOr(data, "is_active", true),
 		SortOrder: sortOrder, Now: httpadmin.DBTime(httpadmin.Now(c)),
 	}
@@ -226,7 +231,8 @@ func (h *Handlers) StorePlan(c fiber.Ctx) error {
 		}
 		id = uint64(lastID) //nolint:gosec // G115: auto-increment ids are positive
 		return h.record(c, q, action{name: "plan.create", targetType: "plan", targetID: id,
-			details: jsonx.Obj("code", params.Code, "price_rials", params.PriceRials, "duration_months", params.DurationMonths)})
+			details: jsonx.Obj("code", params.Code, "price_rials", params.PriceRials, "duration_months", params.DurationMonths,
+				"ai_credits", params.AiCredits)})
 	})
 	if err != nil {
 		return err
@@ -249,7 +255,7 @@ func (h *Handlers) UpdatePlan(c fiber.Ctx) error {
 	p := store.AdminUpdatePlusPlanParams{
 		Title: translatable(data, "title").V, Badge: cur.Badge,
 		DurationMonths: uint16(u64(data, "duration_months")), //nolint:gosec // G115: validated ≤ 36
-		PriceRials:     u64(data, "price_rials"), MonthlyDisplayRials: cur.MonthlyDisplayRials,
+		PriceRials:     u64(data, "price_rials"), MonthlyDisplayRials: cur.MonthlyDisplayRials, AiCredits: cur.AiCredits,
 		IsHighlighted: boolOr(data, "is_highlighted", cur.IsHighlighted), IsActive: boolOr(data, "is_active", cur.IsActive),
 		SortOrder: cur.SortOrder, Now: httpadmin.DBTime(httpadmin.Now(c)), ID: cur.ID,
 	}
@@ -265,12 +271,18 @@ func (h *Handlers) UpdatePlan(c fiber.Ctx) error {
 	if form.Has(data, "sort_order") {
 		p.SortOrder = uint32(u64(data, "sort_order")) //nolint:gosec // G115: validated ≤ MaxSortOrder
 	}
+	if form.Has(data, "ai_credits") {
+		p.AiCredits = uint32(u64(data, "ai_credits")) //nolint:gosec // G115: validated ≤ MaxPlanAICredits
+	}
 	details := jsonx.Obj()
 	if cur.PriceRials != p.PriceRials {
 		details.Set("price_rials", jsonx.Obj("from", cur.PriceRials, "to", p.PriceRials))
 	}
 	if cur.DurationMonths != p.DurationMonths {
 		details.Set("duration_months", jsonx.Obj("from", cur.DurationMonths, "to", p.DurationMonths))
+	}
+	if cur.AiCredits != p.AiCredits {
+		details.Set("ai_credits", jsonx.Obj("from", cur.AiCredits, "to", p.AiCredits))
 	}
 	if cur.IsActive != p.IsActive {
 		details.Set("is_active", jsonx.Obj("from", cur.IsActive, "to", p.IsActive))

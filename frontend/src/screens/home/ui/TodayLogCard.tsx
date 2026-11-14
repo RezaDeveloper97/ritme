@@ -2,7 +2,9 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 
-import { useHealthLog } from '@/entities/health-log';
+import { useMemo } from 'react';
+
+import { useLogDay, useLogPreferences, useLogTaxonomy } from '@/entities/health-log';
 import type { Locale } from '@/shared/i18n';
 import { formatNumber, toApiDate, today } from '@/shared/lib/date';
 import { openSheet } from '@/shared/sheet';
@@ -10,10 +12,9 @@ import { Card, Icon, IconCircle, type IconName, type Tone } from '@/shared/ui';
 
 import { summarizeTodayLog } from '../model/today-log';
 
-type Translate = (key: string, values?: Record<string, string | number>) => string;
-
 interface Row {
-  key: string;
+  /** Also the log taxonomy category the row opens (`?sheet=log` scrolls to it). */
+  key: 'bleeding' | 'symptoms' | 'mood';
   icon: IconName;
   tone: Tone;
   title: string;
@@ -24,24 +25,25 @@ interface Row {
 
 /**
  * «ثبت امروز» (nbl_Cycle_Home): today's bleeding, symptoms and mood at a glance
- * with the logging streak. Every row opens the log sheet (`?sheet=log`, B-N3-03);
+ * with the logging streak. Every row opens the log sheet (`?sheet=log`, B-N3-03) on its own section;
  * the rows are buttons, so the + disc is decoration, not a second target.
  */
 export function TodayLogCard({ streakDays }: { streakDays: number | null }) {
   const t = useTranslations('home.nb.log');
-  const tLog = useTranslations('log') as unknown as Translate;
+  const tSheet = useTranslations('logSheet');
   const loc = useLocale() as Locale;
-  const { data: log, isPending } = useHealthLog(toApiDate(today()));
-  const summary = summarizeTodayLog(log);
+  const { data: day, isPending } = useLogDay(toApiDate(today()));
+  const taxonomy = useLogTaxonomy();
+  const prefs = useLogPreferences();
+  const unknown = tSheet('unknownValue');
+  const summary = useMemo(() => {
+    const extraLabels: Record<string, string> = {};
+    for (const item of prefs.data?.customItems ?? []) extraLabels[item.code] = item.label;
+    return summarizeTodayLog(day?.categories, taxonomy.data?.categories ?? [], { extraLabels, unknown });
+  }, [day, taxonomy.data, prefs.data, unknown]);
 
-  const label = (key: string) => tLog(key);
-  const bleedingSub =
-    summary.bleeding === null
-      ? t('bleedingHint')
-      : summary.bleeding === 'spotting'
-        ? label('fields.spotting')
-        : `${label('fields.bleeding_intensity')}: ${label(`enums.bleeding_intensity.${summary.bleeding}`)}`;
-  const list = (items: string[]) => items.slice(0, 2).join(' · ');
+  // Every logged item; the sub line ellipsizes when it runs out of room.
+  const list = (items: string[]) => items.join(' · ');
 
   const rows: Row[] = [
     {
@@ -49,7 +51,7 @@ export function TodayLogCard({ streakDays }: { streakDays: number | null }) {
       icon: 'drop',
       tone: 'period',
       title: t('bleeding'),
-      sub: bleedingSub,
+      sub: summary.bleeding ?? t('bleedingHint'),
       count: summary.bleeding === null ? 0 : null,
     },
     {
@@ -57,7 +59,7 @@ export function TodayLogCard({ streakDays }: { streakDays: number | null }) {
       icon: 'symptom',
       tone: 'brand',
       title: t('symptoms'),
-      sub: summary.symptoms.length ? list(summary.symptoms.map((k) => label(`fields.${k}`))) : t('empty'),
+      sub: summary.symptoms.length ? list(summary.symptoms) : t('empty'),
       count: summary.symptoms.length,
     },
     {
@@ -65,7 +67,7 @@ export function TodayLogCard({ streakDays }: { streakDays: number | null }) {
       icon: 'smile',
       tone: 'data',
       title: t('mood'),
-      sub: summary.moods.length ? list(summary.moods.map((m) => label(`enums.moods.${m}`))) : t('empty'),
+      sub: summary.moods.length ? list(summary.moods) : t('empty'),
       count: summary.moods.length,
     },
   ];
@@ -82,7 +84,7 @@ export function TodayLogCard({ streakDays }: { streakDays: number | null }) {
         <button
           key={row.key}
           type="button"
-          onClick={() => openSheet('log')}
+          onClick={() => openSheet('log', `${toApiDate(today())}:${row.key}`)}
           className="ch-log-row"
           aria-label={row.count === 0 ? t('add', { name: row.title }) : `${row.title} · ${row.sub}`}
         >

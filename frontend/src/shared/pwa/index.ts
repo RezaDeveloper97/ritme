@@ -3,3 +3,4 @@ export { InstallPrompt } from './InstallPrompt';
 export { useAppUpdate, type UpdateStatus } from './useAppUpdate';
 export { compareVersions } from './semver';
 export { isShellUserAgent } from './shell';
+export * from './notify';

@@ -101,7 +101,10 @@
     "submitError": "Setup didn't go through. Please try again in a bit.",
     "fillRequired": "Please complete the calculation basis first.",
     "calculating": "Calculating…",
-    "stepOf": "Step {step} of {total}"
+    "stepOf": "Step {step} of {total}",
+    "ageSheetTitle": "Pregnancy age",
+    "cancel": "Cancel",
+    "confirm": "Confirm"
   },
   "today": {
     "alerts": "Alerts",
@@ -148,8 +151,6 @@
     "calendarLink": "Calendar"
   },
   "week": {
-    "bookmark": "Save to bookmarks",
-    "unbookmark": "Remove from bookmarks",
     "stripLabel": "Pregnancy weeks",
     "chipWeek": "Week",
     "legend": {
@@ -240,7 +241,6 @@
     "saving": "Saving…",
     "saved": "Saved",
     "offlineNote": "Saves even without internet and syncs later.",
-    "editNote": "You can edit any entry later.",
     "alertsRaised": "{count, plural, one {This log created a new message} other {This log created # new messages}}",
     "seeAlerts": "See alerts",
     "queued": "Saved offline — it will be sent when you're back online",

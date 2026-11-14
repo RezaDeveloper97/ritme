@@ -183,6 +183,9 @@ cases:
         path: /api/v1/onboarding/steps/gender
         body: {gender: male}
         status: 200
+      - method: POST  # «ریتمی همراه» is Ritme Plus (plus.companion): the owner starts her trial first
+        path: /api/v1/plus/trial/start
+        status: 200
       - method: POST
         path: /api/v1/companions
         body: {type: spouse, child_ids: ["{{child}}"]}

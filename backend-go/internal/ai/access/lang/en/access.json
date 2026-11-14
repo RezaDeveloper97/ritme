@@ -5,5 +5,8 @@
     "ai_invalid_request": "This request is not valid for the AI service.",
     "ai_user_budget_exhausted": "You have reached today's AI usage limit. Please try again tomorrow.",
     "ai_busy": "Your previous AI request is still running. Please wait a moment and try again.",
-    "too_many_requests": "Too many requests. Please wait a little and try again."
+    "too_many_requests": "Too many requests. Please wait a little and try again.",
+    "ai_subscription_required": "You need an active subscription to use smart features.",
+    "ai_credits_exhausted": "You do not have enough credit for this. Get more credit to continue.",
+    "ai_feature_disabled": "This feature is not available right now."
 }

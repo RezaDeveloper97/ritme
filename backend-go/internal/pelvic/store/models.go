@@ -147,6 +147,75 @@ type Affirmation struct {
 	UpdatedAt  sql.NullTime
 }
 
+type AiCreditGrant struct {
+	ID             uint64
+	UserID         uint64
+	Kind           string
+	SubscriptionID sql.NullInt64
+	TrialID        sql.NullInt64
+	InvoiceID      sql.NullInt64
+	Amount         uint32
+	Remaining      uint32
+	Note           sql.NullString
+	CreatedAt      sql.NullTime
+	UpdatedAt      sql.NullTime
+}
+
+type AiCreditPack struct {
+	ID            uint64
+	Code          string
+	Title         json.RawMessage
+	Badge         db.NullRawJSON
+	Credits       uint32
+	PriceRials    uint64
+	IsHighlighted bool
+	IsActive      bool
+	SortOrder     uint32
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
+}
+
+type AiCreditSpend struct {
+	ID           uint64
+	UserID       uint64
+	Feature      string
+	Credits      uint32
+	PlanCredits  uint32
+	ExtraCredits uint32
+	Allocations  json.RawMessage
+	Status       string
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
+}
+
+type AiFeature struct {
+	ID              uint64
+	Key             string
+	Title           json.RawMessage
+	ModelID         sql.NullInt64
+	FallbackModelID sql.NullInt64
+	CreditCost      uint32
+	IsActive        bool
+	SortOrder       uint32
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
+}
+
+type AiModel struct {
+	ID               uint64
+	Code             string
+	Provider         string
+	UpstreamModel    string
+	Title            string
+	Capabilities     json.RawMessage
+	InputPriceMilli  uint32
+	OutputPriceMilli uint32
+	AudioPriceMilli  uint32
+	IsActive         bool
+	CreatedAt        sql.NullTime
+	UpdatedAt        sql.NullTime
+}
+
 type AiUsageLog struct {
 	ID           uint64
 	UserID       sql.NullInt64
@@ -789,6 +858,12 @@ type Companion struct {
 	ExpiresAt        sql.NullTime
 	UrgentSms        bool
 	OwnerConfirmedAt sql.NullTime
+	Goal             sql.NullString
+	SharePain        bool
+	ShareMood        bool
+	ShareEnergy      bool
+	ShareSleep       bool
+	ActionPrefs      sql.NullString
 }
 
 type CompanionAuditLog struct {
@@ -2194,26 +2269,30 @@ type PlusDiscountCode struct {
 }
 
 type PlusInvoice struct {
-	ID             uint64
-	Reference      string
-	UserID         uint64
-	PlanID         sql.NullInt64
-	DurationMonths uint16
-	Status         string
-	Currency       string
-	SubtotalRials  uint64
-	DiscountRials  uint64
-	VatRateBps     uint32
-	VatRials       uint64
-	TotalRials     uint64
-	DiscountCodeID sql.NullInt64
-	DiscountCode   sql.NullString
-	Gateway        sql.NullString
-	Authority      sql.NullString
-	ExpiresAt      time.Time
-	PaidAt         sql.NullTime
-	CreatedAt      sql.NullTime
-	UpdatedAt      sql.NullTime
+	ID              uint64
+	Reference       string
+	UserID          uint64
+	PlanID          sql.NullInt64
+	DurationMonths  uint16
+	Status          string
+	Currency        string
+	SubtotalRials   uint64
+	DiscountRials   uint64
+	VatRateBps      uint32
+	VatRials        uint64
+	TotalRials      uint64
+	DiscountCodeID  sql.NullInt64
+	DiscountCode    sql.NullString
+	Gateway         sql.NullString
+	Authority       sql.NullString
+	ExpiresAt       time.Time
+	PaidAt          sql.NullTime
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
+	DurationMinutes sql.NullInt32
+	Kind            string
+	CreditPackID    sql.NullInt64
+	Credits         sql.NullInt32
 }
 
 type PlusPlan struct {
@@ -2229,6 +2308,8 @@ type PlusPlan struct {
 	SortOrder           uint32
 	CreatedAt           sql.NullTime
 	UpdatedAt           sql.NullTime
+	DurationMinutes     sql.NullInt32
+	AiCredits           uint32
 }
 
 type PlusReceipt struct {
@@ -2250,6 +2331,28 @@ type PlusSetting struct {
 	Value     string
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
+}
+
+type PlusStoreProduct struct {
+	ID        uint64
+	Store     string
+	Sku       string
+	Kind      string
+	PlanID    sql.NullInt64
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
+type PlusStorePurchase struct {
+	ID            uint64
+	UserID        uint64
+	Store         string
+	Sku           string
+	PurchaseToken string
+	OrderID       sql.NullString
+	PurchaseTime  time.Time
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
 }
 
 type PlusSubscription struct {
@@ -2545,7 +2648,6 @@ type PregnancyWeekUserState struct {
 	ID           uint64
 	UserID       uint64
 	Week         uint8
-	Bookmarked   bool
 	DoneTaskKeys db.NullRawJSON
 	CreatedAt    sql.NullTime
 	UpdatedAt    sql.NullTime
@@ -2592,6 +2694,18 @@ type PregnancyWeeklyLog struct {
 	Notes                  sql.NullString
 	CreatedAt              sql.NullTime
 	UpdatedAt              sql.NullTime
+}
+
+type PushSubscription struct {
+	ID           uint64
+	UserID       uint64
+	Endpoint     string
+	EndpointHash string
+	P256dh       string
+	Auth         string
+	Locale       string
+	CreatedAt    sql.NullTime
+	UpdatedAt    sql.NullTime
 }
 
 type Recommendation struct {
@@ -2673,6 +2787,24 @@ type ReminderIntake struct {
 	TakenAt    time.Time
 	CreatedAt  sql.NullTime
 	UpdatedAt  sql.NullTime
+}
+
+type ReminderPush struct {
+	ID         uint64
+	UserID     uint64
+	ReminderID uint64
+	IntakeDate civildate.Date
+	Slot       string
+	SentAt     time.Time
+}
+
+type ReminderSm struct {
+	ID         uint64
+	UserID     uint64
+	ReminderID uint64
+	Occurrence string
+	Sent       bool
+	SentAt     time.Time
 }
 
 type SafetyScenarioRun struct {
@@ -3332,6 +3464,7 @@ type UserNotification struct {
 	CreatedAt sql.NullTime
 	UpdatedAt sql.NullTime
 	LinkID    sql.NullInt64
+	PushedAt  sql.NullTime
 }
 
 type UserProfile struct {

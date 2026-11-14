@@ -158,8 +158,8 @@ func (h *Handlers) Extract(c fiber.Ctx) error {
 		return h.fail(ErrNotFound, locale)
 	}
 	var reserved time.Time
-	if access.ReservationFrom(c.Context()) != nil {
-		reserved = now // the gate reserved the use at this request's time (same clock, same second)
+	if res := access.ReservationFrom(c.Context()); res != nil {
+		reserved = res.At() // the moment the gate counted the use: the job refunds a failed extraction by it
 	}
 	if err := h.svc.Start(c.Context(), userID, id, locale, reserved, now); err != nil {
 		return h.fail(err, locale)

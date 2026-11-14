@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useModuleEnabled } from '@/entities/app-module';
 import { type Child, ChildAvatar, useChildren } from '@/entities/child';
 import { Link } from '@/shared/i18n';
-import { Icon, PrimaryButton, Skeleton, SkeletonGroup } from '@/shared/ui';
+import { CheckTick, Icon, PrimaryButton, Skeleton, SkeletonGroup } from '@/shared/ui';
 
 import { toggleChildId } from '../model/draft';
 
@@ -95,11 +95,14 @@ function ChildrenPickerList({ value, onChange, disabled, showAdd = true }: Child
               </span>
               <input
                 type="checkbox"
-                className="cmp-kid-check"
+                className="nb-check-native cmp-kid-check"
                 checked={value.includes(c.id)}
                 disabled={disabled}
                 onChange={() => onChange(toggleChildId(value, c.id))}
               />
+              <span className="nb-check-box" aria-hidden>
+                <CheckTick on={value.includes(c.id)} />
+              </span>
             </label>
           </li>
         ))}

@@ -1,6 +1,5 @@
 {
   "title": "Alerts & messages",
-  "subtitle": "Everything Ritme has noticed in your own logs, in one place.",
   "back": "Back",
   "settings": "Reminder settings",
   "loading": "Loading…",
@@ -32,7 +31,9 @@
     "visitNote": "Add to visit note",
     "visitNoteDone": "Added to your visit note",
     "dismiss": "Close",
-    "call": "Call {contact}"
+    "call": "Call {contact}",
+    "markRead": "Mark as read",
+    "read": "Read"
   },
   "bell": {
     "open": "Alerts: {count, number} open",

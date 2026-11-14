@@ -28,6 +28,8 @@ const med = (over: Partial<Medication> = {}): Medication => ({
   amount: 1,
   duration: 'ongoing',
   notify: true,
+  frequency: null,
+  doses: [],
   startsOn: '2026-09-23',
   endsOn: null,
   isActive: true,
@@ -96,7 +98,7 @@ describe('slots', () => {
   });
 
   it('maps a dose to its card', () => {
-    const card = doseCardState({ reminderId: 3, title: 'ویتامین D', form: 'capsule', slot: '21:00', taken: false });
+    const card = doseCardState({ reminderId: 3, title: 'ویتامین D', form: 'capsule', slot: '21:00', taken: false, amount: null, unit: null, unitLabel: null, meal: null });
     expect(card).toMatchObject({ key: '3-21:00', clock: '9:00', period: 'night', nextTaken: true });
   });
 });

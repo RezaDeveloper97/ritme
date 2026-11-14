@@ -4,8 +4,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { type AssistantMessage, assistantKeys, messageSchema, type TriageLevel } from '@/entities/assistant';
-import { getApiErrorCode, getApiErrorStatus } from '@/shared/api';
-import { type PlusDenial, plusDenialOf } from '@/shared/ui/plus-gate';
+import { aiDenialOf } from '@/entities/ai-credit';
+import { getApiErrorCode } from '@/shared/api';
 
 import { streamMessage } from '../api/stream';
 
@@ -34,14 +34,22 @@ const fromMessage = (m: AssistantMessage): ChatItem => ({
 
 export const itemsOf = (messages: AssistantMessage[]): ChatItem[] => messages.map(fromMessage);
 
+/** What the screen wires in from `useAiGate` (a feature can't import another feature). */
+export interface ChatGateHooks {
+  /** Every failed request / SSE `error`: true = the gate sheet handled it. */
+  onError: (error: unknown) => boolean;
+  /** After a completed answer: refresh the credit meter. */
+  onSuccess: () => void;
+}
+
 export interface ChatState {
   items: ChatItem[];
   busy: boolean;
   /** The text the last failed send carried, for the retry button. */
   failedText: string | null;
   errorCode: string | null;
-  /** 402 from the Plus gate (free quota spent / locked). */
-  denial: PlusDenial | null;
+  /** The AI gate sheet took the refusal (no subscription / credits spent / switched off): show nothing else. */
+  gated: boolean;
   /** 403 consent_required — the `ai_assistant` consent must be accepted first. */
   needsConsent: boolean;
   emergency: boolean;
@@ -62,14 +70,16 @@ const nextKey = () => `l${++seq}`;
  * Drives one conversation: sends a message over SSE, renders deltas as they arrive, shows the 115 card at once, parses
  * the final message (triage, chips), and exposes stop / retry. Everything is reset when `conversationId` changes.
  */
-export function useChat(conversationId: number, initial: ChatItem[], initialEmergency: boolean) {
+export function useChat(conversationId: number, initial: ChatItem[], initialEmergency: boolean, gate?: ChatGateHooks) {
+  const gateRef = useRef(gate);
+  gateRef.current = gate;
   const client = useQueryClient();
   const [state, setState] = useState<ChatState>(() => ({
     items: initial,
     busy: false,
     failedText: null,
     errorCode: null,
-    denial: null,
+    gated: false,
     needsConsent: false,
     emergency: initialEmergency,
   }));
@@ -91,7 +101,7 @@ export function useChat(conversationId: number, initial: ChatItem[], initialEmer
         busy: true,
         failedText: null,
         errorCode: null,
-        denial: null,
+        gated: false,
         needsConsent: false,
         items: [
           ...s.items.map((i) => ({ ...i, chips: [] })),
@@ -129,6 +139,7 @@ export function useChat(conversationId: number, initial: ChatItem[], initialEmer
           } else if (ev.event === 'done') {
             const m = messageSchema.safeParse(d.message);
             ended = true;
+            gateRef.current?.onSuccess();
             setState((s) => ({
               ...s,
               busy: false,
@@ -142,11 +153,15 @@ export function useChat(conversationId: number, initial: ChatItem[], initialEmer
           } else if (ev.event === 'error') {
             ended = true;
             const code = typeof d.error_code === 'string' ? d.error_code : null;
+            const gated = gateRef.current?.onError(d) ?? false;
+            const consent = !gated && aiDenialOf(d)?.kind === 'consent';
             setState((s) => ({
               ...s,
               busy: false,
               failedText: body,
-              errorCode: code ?? 'ai_failed',
+              gated,
+              needsConsent: consent,
+              errorCode: gated || consent ? null : (code ?? 'ai_failed'),
               items: settle(s.items, botKey),
             }));
           }
@@ -157,10 +172,9 @@ export function useChat(conversationId: number, initial: ChatItem[], initialEmer
           // stop button: keep what streamed so far
           setState((s) => ({ ...s, busy: false, items: settle(s.items, botKey) }));
         } else {
-          const denial = plusDenialOf(e);
           const code = getApiErrorCode(e);
-          if (denial) fail(null, { denial });
-          else if (getApiErrorStatus(e) === 403 && code === 'consent_required') fail(null, { needsConsent: true });
+          if (gateRef.current?.onError(e)) fail(null, { gated: true });
+          else if (aiDenialOf(e)?.kind === 'consent') fail(null, { needsConsent: true });
           else fail(code ?? 'network');
         }
       } finally {

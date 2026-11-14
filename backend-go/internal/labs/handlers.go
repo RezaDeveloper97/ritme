@@ -211,9 +211,11 @@ func (h *Handlers) Upload(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	// The moment the gate counted the use: the job refunds a failed extraction by it (credits.Service.RefundAt).
 	var quotaAt *time.Time
-	if access.ReservationFrom(c.Context()) != nil {
-		quotaAt = &now
+	if res := access.ReservationFrom(c.Context()); res != nil {
+		at := res.At()
+		quotaAt = &at
 	}
 	id, err := h.svc.CreateUpload(c.Context(), userID, meta, up.files, quotaAt, locale, now)
 	if err != nil {

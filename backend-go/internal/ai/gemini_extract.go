@@ -38,54 +38,23 @@ type gExtracted struct {
 
 // Extract implements Extractor (the document travels inline, base64; ≤ MaxDocumentBytes by the Client).
 func (g *Gemini) Extract(ctx context.Context, req ExtractRequest) (Extraction, Usage, error) {
-	var sb strings.Builder
-	sb.WriteString("DOCUMENT TYPE: " + req.Schema.Name + "\nLANGUAGE: " + req.Language + "\n")
-	if req.Hint != "" {
-		sb.WriteString("CONTEXT: " + req.Hint + "\n")
-	}
-	if len(req.Schema.Fields) > 0 {
-		sb.WriteString("FIELDS (key | type | description | allowed values):\n")
-		schemaLines(&sb, req.Schema.Fields)
-	}
-	if len(req.Schema.Items) > 0 {
-		sb.WriteString("ITEMS (key | type | description | allowed values):\n")
-		schemaLines(&sb, req.Schema.Items)
-	}
 	body := gRequest{
 		SystemInstruction: &gContent{Parts: []gPart{{Text: geminiExtractInstruction}}},
 		Contents: []gContent{{Role: "user", Parts: []gPart{
-			{Text: sb.String()},
+			{Text: extractPrompt(req)},
 			{InlineData: &gInline{MimeType: req.Document.MIME, Data: req.Document.Data}},
 		}}},
-		GenerationConfig: g.taskConfig(GeminiExtractMaxOutputTokens, map[string]any{"responseMimeType": "application/json"}),
+		GenerationConfig: g.taskConfig(ctx, GeminiExtractMaxOutputTokens, map[string]any{"responseMimeType": "application/json"}),
 	}
 	raw, err := json.Marshal(body)
 	if err != nil {
-		return Extraction{}, Usage{Provider: config.AIProviderGemini, Model: g.model}, fmt.Errorf("%w: encode request", ErrUpstream)
+		return Extraction{}, Usage{Provider: config.AIProviderGemini, Model: g.modelOf(ctx)}, fmt.Errorf("%w: encode request", ErrUpstream)
 	}
 	text, u, err := g.generate(ctx, raw)
 	clear(raw)
 	if err != nil {
 		return Extraction{}, u, err
 	}
-	var parsed struct {
-		Fields []gExtracted   `json:"fields"`
-		Items  [][]gExtracted `json:"items"`
-	}
-	text = strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(strings.TrimSpace(text), "```json"), "```"))
-	if err := json.Unmarshal([]byte(text), &parsed); err != nil {
-		return Extraction{}, u, fmt.Errorf("%w: unparsable answer", ErrUpstream)
-	}
-	conv := func(in []gExtracted) []ExtractedField {
-		out := make([]ExtractedField, len(in))
-		for i, f := range in {
-			out[i] = ExtractedField(f)
-		}
-		return out
-	}
-	out := Extraction{Fields: conv(parsed.Fields), Items: make([][]ExtractedField, 0, len(parsed.Items))}
-	for _, r := range parsed.Items {
-		out.Items = append(out.Items, conv(r))
-	}
-	return out, u, nil
+	out, err := decodeExtraction(text)
+	return out, u, err
 }

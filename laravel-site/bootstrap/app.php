@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Middleware\ApplyRedirects;
 use App\Http\Middleware\CanonicalizeUrl;
+use App\Http\Middleware\EnsureSectionEnabled;
 use App\Http\Middleware\HttpCacheHeaders;
 use App\Http\Middleware\MinifyHtml;
 use App\Http\Middleware\PageCache;
@@ -34,8 +35,10 @@ $app = Application::configure(basePath: dirname(__DIR__))
         // The header cart badge (L6-02/L6-04) reads this plain integer cookie from JS.
         $middleware->encryptCookies(except: ['ritme_cart_count']);
 
-        $middleware->web(append: [PageCache::class, MinifyHtml::class]);
+        // Sections switched off in the admin «صفحه‌ها» settings answer 404 — checked before the page cache.
+        $middleware->web(append: [EnsureSectionEnabled::class, PageCache::class, MinifyHtml::class]);
         $middleware->prependToPriorityList(SubstituteBindings::class, PageCache::class);
+        $middleware->prependToPriorityList(PageCache::class, EnsureSectionEnabled::class);
         $middleware->appendToPriorityList(PageCache::class, MinifyHtml::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -1,7 +1,7 @@
 'use client';
 
 import { LogDay } from '@/features/log-day';
-import { VoiceLogPanel } from '@/features/voice-log';
+import { VoiceLogGated } from '@/widgets/voice-log-slot';
 import { useRouter } from '@/shared/i18n';
 import { SkyLayer } from '@/shared/ui';
 import { BodyMap } from '@/widgets/body-map';
@@ -23,7 +23,7 @@ export function PregnancySheetPage({ date }: { date?: string }) {
           mode="pregnancy"
           initialDate={date}
           BodyMap={BodyMap}
-          VoiceLog={VoiceLogPanel}
+          VoiceLog={VoiceLogGated}
           onClose={close}
           onSaved={close}
         />

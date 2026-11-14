@@ -47,5 +47,8 @@ func Enums(c fiber.Ctx) error {
 		"kinds", labeled("kinds", locale, AppointmentKinds),
 		"topics", labeled("topics", locale, AppointmentTopics),
 		"remind_before", labeled("remind_before", locale, RemindBefore),
+		"dose_units", labeled("dose_units", locale, DoseUnits),
+		"meals", labeled("meals", locale, Meals),
+		"frequency_units", labeled("frequency_units", locale, FrequencyUnits),
 	))
 }

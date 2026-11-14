@@ -160,11 +160,11 @@ func (q *Queries) AdminCreatePlusDiscount(ctx context.Context, arg AdminCreatePl
 }
 
 const adminCreatePlusPlan = `-- name: AdminCreatePlusPlan :execlastid
-INSERT INTO plus_plans (code, title, badge, duration_months, price_rials, monthly_display_rials, is_highlighted,
-  is_active, sort_order, created_at, updated_at)
+INSERT INTO plus_plans (code, title, badge, duration_months, price_rials, monthly_display_rials, ai_credits,
+  is_highlighted, is_active, sort_order, created_at, updated_at)
 VALUES (?, ?, ?, ?, ?,
   ?, ?, ?, ?,
-  ?, ?)
+  ?, ?, ?)
 `
 
 type AdminCreatePlusPlanParams struct {
@@ -174,6 +174,7 @@ type AdminCreatePlusPlanParams struct {
 	DurationMonths      uint16
 	PriceRials          uint64
 	MonthlyDisplayRials sql.NullInt64
+	AiCredits           uint32
 	IsHighlighted       bool
 	IsActive            bool
 	SortOrder           uint32
@@ -188,6 +189,7 @@ func (q *Queries) AdminCreatePlusPlan(ctx context.Context, arg AdminCreatePlusPl
 		arg.DurationMonths,
 		arg.PriceRials,
 		arg.MonthlyDisplayRials,
+		arg.AiCredits,
 		arg.IsHighlighted,
 		arg.IsActive,
 		arg.SortOrder,
@@ -362,7 +364,7 @@ func (q *Queries) AdminGetPlusInvoice(ctx context.Context, id uint64) (AdminGetP
 }
 
 const adminGetPlusPlan = `-- name: AdminGetPlusPlan :one
-SELECT id, code, title, badge, duration_months, price_rials, monthly_display_rials, is_highlighted, is_active, sort_order, created_at, updated_at FROM plus_plans WHERE id = ?
+SELECT id, code, title, badge, duration_months, price_rials, monthly_display_rials, is_highlighted, is_active, sort_order, created_at, updated_at, duration_minutes, ai_credits FROM plus_plans WHERE id = ?
 `
 
 func (q *Queries) AdminGetPlusPlan(ctx context.Context, id uint64) (PlusPlan, error) {
@@ -381,6 +383,8 @@ func (q *Queries) AdminGetPlusPlan(ctx context.Context, id uint64) (PlusPlan, er
 		&i.SortOrder,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DurationMinutes,
+		&i.AiCredits,
 	)
 	return i, err
 }
@@ -572,7 +576,7 @@ func (q *Queries) AdminListPlusInvoices(ctx context.Context, arg AdminListPlusIn
 const adminListPlusPlans = `-- name: AdminListPlusPlans :many
 
 
-SELECT plus_plans.id, plus_plans.code, plus_plans.title, plus_plans.badge, plus_plans.duration_months, plus_plans.price_rials, plus_plans.monthly_display_rials, plus_plans.is_highlighted, plus_plans.is_active, plus_plans.sort_order, plus_plans.created_at, plus_plans.updated_at,
+SELECT plus_plans.id, plus_plans.code, plus_plans.title, plus_plans.badge, plus_plans.duration_months, plus_plans.price_rials, plus_plans.monthly_display_rials, plus_plans.is_highlighted, plus_plans.is_active, plus_plans.sort_order, plus_plans.created_at, plus_plans.updated_at, plus_plans.duration_minutes, plus_plans.ai_credits,
        (SELECT COUNT(*) FROM plus_invoices i WHERE i.plan_id = plus_plans.id) AS invoices_count,
        (SELECT COUNT(*) FROM plus_subscriptions s WHERE s.plan_id = plus_plans.id) AS subscriptions_count,
        (SELECT COUNT(*) FROM plus_subscriptions sa WHERE sa.plan_id = plus_plans.id
@@ -615,6 +619,8 @@ func (q *Queries) AdminListPlusPlans(ctx context.Context, now time.Time) ([]Admi
 			&i.PlusPlan.SortOrder,
 			&i.PlusPlan.CreatedAt,
 			&i.PlusPlan.UpdatedAt,
+			&i.PlusPlan.DurationMinutes,
+			&i.PlusPlan.AiCredits,
 			&i.InvoicesCount,
 			&i.SubscriptionsCount,
 			&i.ActiveSubscriptions,
@@ -735,7 +741,7 @@ func (q *Queries) AdminListPlusSubscriptions(ctx context.Context, arg AdminListP
 }
 
 const adminLockPlusInvoice = `-- name: AdminLockPlusInvoice :one
-SELECT id, reference, user_id, plan_id, duration_months, status, currency, subtotal_rials, discount_rials, vat_rate_bps, vat_rials, total_rials, discount_code_id, discount_code, gateway, authority, expires_at, paid_at, created_at, updated_at FROM plus_invoices WHERE id = ? FOR UPDATE
+SELECT id, reference, user_id, plan_id, duration_months, status, currency, subtotal_rials, discount_rials, vat_rate_bps, vat_rials, total_rials, discount_code_id, discount_code, gateway, authority, expires_at, paid_at, created_at, updated_at, duration_minutes, kind, credit_pack_id, credits FROM plus_invoices WHERE id = ? FOR UPDATE
 `
 
 func (q *Queries) AdminLockPlusInvoice(ctx context.Context, id uint64) (PlusInvoice, error) {
@@ -762,6 +768,10 @@ func (q *Queries) AdminLockPlusInvoice(ctx context.Context, id uint64) (PlusInvo
 		&i.PaidAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.DurationMinutes,
+		&i.Kind,
+		&i.CreditPackID,
+		&i.Credits,
 	)
 	return i, err
 }
@@ -1221,7 +1231,8 @@ const adminUpdatePlusPlan = `-- name: AdminUpdatePlusPlan :exec
 UPDATE plus_plans
 SET title = ?, badge = ?, duration_months = ?,
     price_rials = ?, monthly_display_rials = ?,
-    is_highlighted = ?, is_active = ?, sort_order = ?,
+    ai_credits = ?, is_highlighted = ?, is_active = ?,
+    sort_order = ?,
     updated_at = ?
 WHERE id = ?
 `
@@ -1232,6 +1243,7 @@ type AdminUpdatePlusPlanParams struct {
 	DurationMonths      uint16
 	PriceRials          uint64
 	MonthlyDisplayRials sql.NullInt64
+	AiCredits           uint32
 	IsHighlighted       bool
 	IsActive            bool
 	SortOrder           uint32
@@ -1246,11 +1258,36 @@ func (q *Queries) AdminUpdatePlusPlan(ctx context.Context, arg AdminUpdatePlusPl
 		arg.DurationMonths,
 		arg.PriceRials,
 		arg.MonthlyDisplayRials,
+		arg.AiCredits,
 		arg.IsHighlighted,
 		arg.IsActive,
 		arg.SortOrder,
 		arg.Now,
 		arg.ID,
+	)
+	return err
+}
+
+const adminUpsertPlusSetting = `-- name: AdminUpsertPlusSetting :exec
+
+INSERT INTO plus_settings (` + "`" + `key` + "`" + `, ` + "`" + `value` + "`" + `, created_at, updated_at) VALUES (?, ?, ?, ?)
+ON DUPLICATE KEY UPDATE ` + "`" + `value` + "`" + ` = VALUES(` + "`" + `value` + "`" + `), updated_at = VALUES(updated_at)
+`
+
+type AdminUpsertPlusSettingParams struct {
+	SettingKey   string
+	SettingValue string
+	Now          sql.NullTime
+}
+
+// ---------------------------------------------------------------------------
+// Settings
+func (q *Queries) AdminUpsertPlusSetting(ctx context.Context, arg AdminUpsertPlusSettingParams) error {
+	_, err := q.db.ExecContext(ctx, adminUpsertPlusSetting,
+		arg.SettingKey,
+		arg.SettingValue,
+		arg.Now,
+		arg.Now,
 	)
 	return err
 }

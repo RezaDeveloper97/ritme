@@ -18,7 +18,7 @@
     "all": "همه",
     "add": "افزودن یادآور",
     "appointmentTitle": "{title}، {with}",
-    "remindBefore": "{before} یادآوری",
+    "remindBefore": "یادآوری {before}",
     "nextAppointmentMeta": "{when}، ساعت {time}، {place}",
     "nextAppointmentMetaNoPlace": "{when}، ساعت {time}",
     "empty": "امروز یادآور نداری."
@@ -33,7 +33,7 @@
     "progress": "{taken} از {total} مصرف شد",
     "markTaken": "ثبت مصرف {title}",
     "markNotTaken": "برداشتن تیک {title}",
-    "empty": "امروز دارویی برای مصرف نیست."
+    "empty": "امروز نوبت دارویی نداری."
   },
   "slotPeriod": {
     "morning": "صبح",
@@ -44,7 +44,7 @@
   "slotWithPeriod": "{time} {period}",
   "medications": {
     "title": "داروها و مکمل‌ها",
-    "empty": "هنوز دارو یا مکملی اضافه نکردی.",
+    "empty": "هنوز دارو یا مکملی اضافه نکرده‌ای.",
     "rowMeta": "{schedule}، {time}، {amount} {form}",
     "everyDay": "هر روز",
     "everyOtherDay": "یک روز در میان",
@@ -54,11 +54,22 @@
     "confirmDelete": "این یادآور حذف شود؟",
     "nameWithDose": "{title} {dose}",
     "add": "افزودن دارو یا مکمل",
-    "daysPerWeekCount": "{days} روز در هفته"
+    "daysPerWeekCount": "{days} روز در هفته",
+    "rowMetaSimple": "{schedule}، {time}، {dose}",
+    "nextDose": "نوبت بعدی: {when}",
+    "paused": "غیرفعال",
+    "edit": "ویرایش",
+    "editLabel": "ویرایش یادآور {title}",
+    "in": {
+      "now": "همین حالا",
+      "minutes": "{n} دقیقه دیگر",
+      "hours": "{n} ساعت دیگر",
+      "days": "{n} روز دیگر"
+    }
   },
   "appointments": {
     "title": "نوبت‌ها و مشاوره‌ها",
-    "empty": "نوبتی ثبت نکردی.",
+    "empty": "هنوز نوبتی ثبت نکرده‌ای.",
     "rowMeta": "{time}، {kind}، {place}",
     "rowMetaNoPlace": "{time}، {kind}",
     "kindShort": {
@@ -81,19 +92,15 @@
     },
     "consult": {
       "title": "مشاورهٔ پزشکی",
-      "description": "تماس تلفنی یا مشاوره آنلاین"
+      "description": "تماس تلفنی یا مشاورهٔ آنلاین"
     },
-    "disclaimer": "یادآورها فقط برای کمک به نظم تو هستند و جای دستور پزشک را نمی‌گیرند."
+    "disclaimer": "یادآورها فقط کمک می‌کنند منظم بمانی و جای دستور پزشک را نمی‌گیرند."
   },
   "medicationForm": {
     "title": "افزودن دارو",
     "editTitle": "ویرایش دارو",
-    "subtitle": "یادآور مصرف",
     "name": "نام دارو یا مکمل",
     "namePlaceholder": "مثلاً فولیک اسید",
-    "dose": "دوز",
-    "unit": "واحد",
-    "form": "شکل دارو",
     "forms": {
       "tablet": "قرص",
       "capsule": "کپسول",
@@ -101,32 +108,7 @@
       "injection": "آمپول",
       "drops": "قطره"
     },
-    "units": {
-      "mg": "میلی‌گرم",
-      "mcg": "میکروگرم",
-      "ml": "میلی‌لیتر",
-      "iu": "واحد",
-      "drop": "قطره"
-    },
-    "timesPerDay": "چند بار در روز؟",
-    "timesOption": "{count} بار",
-    "slotTimes": "ساعت نوبت‌ها",
-    "slotLabel": "نوبت {n}",
-    "weekdays": "روزهای هفته",
-    "weekdayShort": {
-      "0": "ش",
-      "1": "ی",
-      "2": "د",
-      "3": "س",
-      "4": "چ",
-      "5": "پ",
-      "6": "ج"
-    },
-    "everyDay": "هر روز",
-    "amount": "مقدار در هر نوبت",
-    "decrease": "کم",
-    "increase": "زیاد",
-    "startsOn": "شروع از",
+    "startsOn": "تاریخ شروع",
     "todayWithDate": "امروز، {date}",
     "pickDate": "انتخاب تاریخ",
     "duration": "مدت مصرف",
@@ -141,16 +123,12 @@
     "notifyHint": "سر ساعت هر نوبت",
     "notes": "یادداشت",
     "notesPlaceholder": "مثلاً بعد از غذا",
-    "save": "ذخیره یادآور",
     "saving": "در حال ذخیره…",
     "pickTime": "انتخاب ساعت",
     "hour": "ساعت",
     "minute": "دقیقه",
     "done": "تأیید",
     "cancel": "انصراف",
-    "daysPerWeek": "{count} روز در هفته",
-    "noDays": "هیچ روزی انتخاب نشده",
-    "amountValue": "{amount} {form}",
     "untilDate": "تا {date}",
     "delete": "حذف",
     "deleteTitle": "این یادآور حذف شود؟",
@@ -161,14 +139,40 @@
     "errors": {
       "titleRequired": "نام دارو را بنویس.",
       "tooLong": "متن خیلی طولانی است.",
-      "timesDuplicate": "دو نوبت ساعت یکسان دارند.",
-      "timesInvalid": "ساعت نوبت‌ها معتبر نیست.",
-      "weekdaysRequired": "دست‌کم یک روز را انتخاب کن.",
-      "amountRange": "مقدار باید بین ۱ تا ۱۰ باشد.",
+      "timesDuplicate": "ساعت دو دوز یکی است.",
+      "timesInvalid": "ساعت دوز را انتخاب کن.",
+      "amountRange": "مقدار دوز را انتخاب کن (از ۱ تا ۹۹).",
       "dateInvalid": "تاریخ معتبر نیست.",
       "endsOnRequired": "تاریخ پایان را انتخاب کن.",
-      "endsOnBeforeStart": "تاریخ پایان نباید قبل از شروع باشد."
-    }
+      "endsOnBeforeStart": "تاریخ پایان نباید قبل از شروع باشد.",
+      "doseRequired": "دست‌کم یک دوز کامل وارد کن.",
+      "frequencyInvalid": "تکرار معتبر نیست.",
+      "dosesRange": "حداکثر ۶ دوز می‌توانی اضافه کنی."
+    },
+    "sectionInfo": "اطلاعات دارو",
+    "sectionSchedule": "برنامهٔ مصرف",
+    "sectionDose": "دوز",
+    "sectionMore": "تنظیمات بیشتر",
+    "frequency": "تکرار",
+    "frequencyPlaceholder": "انتخاب تکرار",
+    "frequencyEvery": "هر",
+    "frequencyUnits": {
+      "day": "روز",
+      "hour": "ساعت"
+    },
+    "dose": "مقدار دوز",
+    "dosePlaceholder": "انتخاب مقدار",
+    "time": "ساعت",
+    "firstDose": "اولین نوبت",
+    "timePlaceholder": "انتخاب ساعت",
+    "doseBlock": "دوز {n}",
+    "removeDose": "حذف دوز {n}",
+    "addDose": "+ افزودن دوز دیگر",
+    "maxDoses": "حداکثر ۶ دوز",
+    "mealGroup": "نسبت به غذا",
+    "create": "ساخت یادآور",
+    "saveChanges": "ذخیرهٔ تغییرات",
+    "saveChoice": "ذخیره"
   },
   "appointmentForm": {
     "title": "افزودن نوبت",
@@ -207,8 +211,8 @@
     "addToCalendar": "افزودن به تقویم گوشی",
     "addToCalendarHint": "Google / iOS Calendar",
     "prep": "چیزهایی که باید آماده کنم",
-    "prepPlaceholder": "مثلاً جواب آزمایش قبلی، دفترچه بیمه…",
-    "save": "ذخیره نوبت",
+    "prepPlaceholder": "مثلاً جواب آزمایش قبلی، دفترچهٔ بیمه…",
+    "save": "ذخیرهٔ نوبت",
     "saving": "در حال ذخیره…",
     "placeOnline": "لینک جلسه",
     "placePhone": "شماره تماس",
@@ -220,7 +224,7 @@
     "hour": "ساعت",
     "minute": "دقیقه",
     "confirm": "تأیید",
-    "prepHint": "هر خط یک مورد از چک‌لیست می‌شود",
+    "prepHint": "هر خط یک مورد چک‌لیست می‌شود",
     "errors": {
       "with": "نام پزشک یا مشاور را بنویس.",
       "date": "تاریخ نوبت را انتخاب کن.",
@@ -242,7 +246,7 @@
       "fri": "جمعه"
     },
     "with": "با چه کسی",
-    "about": "درباره",
+    "about": "موضوع",
     "aboutWithNote": "{title}، {note}",
     "place": "محل",
     "directions": "مسیریابی",
@@ -264,5 +268,24 @@
     "descriptionWith": "با {with}"
   },
   "notificationSettings": "تنظیمات اعلان",
-  "listSeparator": "، "
+  "listSeparator": "، ",
+  "doseUnits": {
+    "pill": "قرص",
+    "capsule": "کپسول",
+    "drop": "قطره",
+    "ml": "میلی‌لیتر",
+    "spoon": "قاشق",
+    "puff": "پاف",
+    "injection": "آمپول"
+  },
+  "meals": {
+    "before": "قبل از غذا",
+    "after": "بعد از غذا"
+  },
+  "frequencySummary": {
+    "day": "هر روز",
+    "days": "هر {n} روز",
+    "hours": "هر {n} ساعت"
+  },
+  "doseLine": "{amount} {unit}"
 }

@@ -98,9 +98,10 @@ import { BannerSlideshow } from '@/widgets/banner-slideshow';
 import { HomeLabCards } from '@/widgets/home-lab-cards';
 import { BottomNav } from '@/widgets/bottom-nav';
 import { ForToday } from '@/widgets/for-today';
-import { ModeChip } from '@/widgets/mode-chip';
+import { HeaderActions } from '@/widgets/notification-bell';
 import { QuickAccess } from '@/widgets/quick-access';
 import { CheckupsCard } from '@/widgets/checkups-card';
+import { CompanionInviteBanner } from '@/widgets/companion-invite-banner';
 import { LearnHomeCard } from '@/widgets/learn-home-card';
 import { LinkedTeenCards } from '@/widgets/linked-teen-card';
 import {
@@ -118,6 +119,7 @@ import { TodayRemindersCard } from '@/widgets/today-reminders';
 import { needsPeriodData } from '../model/cycle-data';
 import { feedItemKey, firstVisible, legacyDailyEnabled, usableLink } from '../model/feed-home';
 import { phaseFromMainPhase } from '../model/hero-state';
+import { ringNextMilestone } from '../model/ring-next';
 import { homeLimits } from '../model/limits';
 import { dismissPrompt, isPromptDismissed } from '../model/prompt-dismiss';
 import { readTtcHint, writeTtcHint } from '../model/ttc-hint';
@@ -138,7 +140,7 @@ const localizeNum = (n: string | number, loc: Locale) => (loc === 'fa' ? faNum(n
 
 type T = ReturnType<typeof useTranslations>;
 
-// ── Header: today's date + a time-of-day greeting, notification & cycle settings ──
+// ── Header: today's date + a time-of-day greeting, notifications & light/dark ──
 function greetingKey(hour: number): 'morning' | 'noon' | 'evening' | 'night' {
   if (hour >= 5 && hour < 12) return 'morning';
   if (hour >= 12 && hour < 16) return 'noon';
@@ -146,64 +148,15 @@ function greetingKey(hour: number): 'morning' | 'noon' | 'evening' | 'night' {
   return 'night';
 }
 
-/**
- * T-M10-15: the alerts-inbox bell with the open count (urgent tints it). Shown whenever at least one item is open and
- * never switchable off by a module flag — health alerts must stay reachable. Counts come from the feed's `alerts`.
- */
-function AlertsBell({ loc }: { loc: Locale }) {
-  const tAlerts = useTranslations('alerts');
-  const counts = useMessageFeed().data?.alerts;
-  const mounted = useMounted();
-  if (!mounted || !counts || counts.open < 1) return null;
-  const urgent = counts.urgent > 0;
-  return (
-    <Link
-      href="/alerts"
-      className={clsx('home-hdr-btn relative', urgent && 'text-[var(--danger)]')}
-      aria-label={urgent ? tAlerts('bell.urgent', { count: counts.urgent, open: counts.open }) : tAlerts('bell.open', { count: counts.open })}
-    >
-      <Icon name="bell" size={20} strokeWidth={1.8} />
-      <span
-        aria-hidden
-        className={clsx(
-          'pointer-events-none absolute -top-1 -end-1 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold leading-none',
-          urgent ? 'bg-[var(--danger)] text-[var(--on-danger)]' : 'bg-[var(--brand-fill)] text-[var(--on-brand)]',
-        )}
-      >
-        {localizeNum(Math.min(counts.open, 99), loc)}
-      </span>
-    </Link>
-  );
-}
-
 function HomeHeader({ t, loc }: { t: T; loc: Locale }) {
-  const tSearch = useTranslations('search');
   return (
     <header className="home-hdr">
       <div>
-        {/* CB-NAV-03 (nbd_Nav_Today): mode chip → /profile/mode, above bloom's date + greeting. */}
-        <ModeChip className="is-stacked" />
         <div className="home-hdr-date">{formatWeekdayDayMonth(today(), loc)}</div>
         <div className="home-hdr-greet">{t(`greeting.${greetingKey(currentHour())}`)}</div>
       </div>
       <div className="home-hdr-actions">
-        <AlertsBell loc={loc} />
-        {/* CB-NAV-02: global search (nbd_Nav_Today header). */}
-        <Link href="/search" className="home-hdr-btn" aria-label={tSearch('open')}>
-          <Icon name="search" size={20} strokeWidth={1.8} />
-        </Link>
-        <button
-          type="button"
-          className="home-hdr-btn"
-          onClick={() => openSheet('notifications')}
-          aria-label={t('header.notifications')}
-        >
-          <Icon name="bellPlain" size={20} strokeWidth={1.8} />
-        </button>
-        {/* B-N1-09: the cog opens the cycle settings screen (nbl_Cycle_Home → nbl_Cycle_Settings). */}
-        <Link href="/cycle/settings" className="home-hdr-btn" aria-label={t('header.cycleSettings')}>
-          <Icon name="cog" size={20} strokeWidth={1.8} />
-        </Link>
+        <HeaderActions className="home-hdr-btn" />
       </div>
     </header>
   );
@@ -1035,12 +988,23 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   // a calm label instead of a huge dash, and never «پریود بعدی» without a prediction.
   const noCountdown =
     !loadingInfo && !noPeriodData && !ttcRing && !inPeriod && hero.variant !== 'late' && daysLeft == null;
+  // Off the period, the centre counts to the next coloured stretch on the ring
+  // (fertile window → ovulation → PMS); only when the period is next does it
+  // keep the «پریود بعدی» countdown.
+  const milestone =
+    loadingInfo || noPeriodData || noCountdown || ttcRing || inPeriod || hero.variant === 'late'
+      ? null
+      : ringNextMilestone(ringDays.map(d => d.marker), ringNowIndex);
   const ringOverline = noPeriodData
     ? t('ring.noData')
     : noCountdown
       ? t('ring.noPrediction')
     : ttcRing
       ? tf('home.ovulationIn')
+      : milestone
+        ? milestone.days === 0
+          ? t(`ring.milestoneOn.${milestone.kind}`)
+          : t(`ring.milestoneIn.${milestone.kind}`)
       : inPeriod && !loadingInfo
         ? t('ring.period')
         : hero.variant === 'late'
@@ -1054,6 +1018,10 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
       ? daysToOvulation === 0
         ? t('ring.today')
         : formatNumber(daysToOvulation, loc)
+      : milestone
+        ? milestone.days === 0
+          ? (isToday ? t('ring.today') : t('ring.thisDay'))
+          : formatNumber(milestone.days, loc)
       : inPeriod && infoCycleDay != null
         ? t('ring.periodDay', { n: infoCycleDay })
         : hero.variant === 'late'
@@ -1069,6 +1037,10 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
       ? daysToOvulation > 0
         ? tf('home.days')
         : null
+      : milestone
+        ? milestone.days > 0
+          ? t('ring.daysLeft', { n: milestone.days })
+          : null
       : hero.variant === 'late'
         ? t('nb.hero.lateUnit')
         : !inPeriod && daysLeft != null && daysLeft > 0
@@ -1153,12 +1125,17 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
         }
       : null;
 
-  // The §12 sync nudge: only when recent cycles disagree with the profile value.
+  // The §12 sync nudge: only when recent cycles disagree with the profile value and the
+  // engine is still on the user's number — a suggestion never applies itself, she confirms it.
   const view = todayData?.cycleView ?? null;
   const suggested = view?.calculatedValues.cycleLength ?? null;
   const logged = view?.profileValues.cycleLength ?? null;
   const syncNudge =
-    view && suggested != null && logged != null && suggested !== logged ? (
+    view &&
+    suggested != null &&
+    logged != null &&
+    suggested !== logged &&
+    view.effectiveValues.cycleLength !== suggested ? (
       <CycleValuesCard
         title={t('values.title')}
         loggedLabel={t('values.logged')}
@@ -1325,6 +1302,13 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
               )}
             </CycleRing>
           </section>
+          {/* «دسترسی سریع» sits right under the cycle ring (user request, 2026-11-08) — except on the TTC
+              home, where it sits right above «برای امروز» so the phase pills and tiles follow the ring
+              (user request, 2026-11-10). */}
+          {!isTtc && <QuickAccess />}
+          {/* «ثبت امروز» + streak (nbl_Cycle_Home), right under «دسترسی سریع» (user request, 2026-11-09).
+              The TTC home logs through its tiles. */}
+          {!noPeriodData && !loadFailed && !isTtc && <TodayLogCard streakDays={overview?.streakDays ?? null} />}
           {feedBanner ? (
             // M-14: the engine's `status_banner` copy and CTA win over the built-in banner below.
             <FeedBanner
@@ -1429,21 +1413,21 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
             {!teen && <LossCareReturn variant="home" />}
             {/* CB-TEEN-03: a parent's read-only teen cards (nothing for everyone else). */}
             {!teen && modules.teen && <LinkedTeenCards />}
+            {/* companion-v2: «همراهت را به ریتمی دعوت کن» — only with no companion yet, dismissible per session. */}
+            {!teen && <CompanionInviteBanner />}
             {!teen && <BannerSlideshow position="home_top" />}
             {/* B-N10-02: sponsored slots, targeted by mode only; never teen (the slot also refuses loss/health paths). */}
             {!teen && <AdSlot slot="ad_slider" mode={lifeMode} />}
             {/* «یادآورهای امروز» — today's doses + next appointment (M3, /care/today),
                 right under the hero like the reminders artboard (T-M3-10 audit L-6). */}
             {/* CB-NAV-03 (nbd_Nav_Today): «برای امروز» = the M3 reminders card + today's to-do count,
-                then the user-picked «دسترسی سریع». */}
+                (the user-picked «دسترسی سریع» moved up, under the ring). */}
+            {isTtc && <QuickAccess />}
             <ForToday reminders={<TodayRemindersCard />} />
-            <QuickAccess />
             {/* CB-COND-07b: soft condition suggestion (heavy pain / flow) — nothing unless /messages/nudges hits. */}
             {!teen && modules.programs && <HomeConditionNudge />}
             {/* B-N8-03 (Option A): «ادامه یادگیری» / «جدید · از مدرس» — nothing without a course. */}
             {!teen && modules.learning && <LearnHomeCard />}
-            {/* «ثبت امروز» + streak (nbl_Cycle_Home). The TTC home logs through its tiles. */}
-            {!noPeriodData && !loadFailed && !isTtc && <TodayLogCard streakDays={overview?.streakDays ?? null} />}
             {!noPeriodData && !loadFailed && (
               <PredictionsCard
                 nextPeriod={toPrediction(nextPeriodSlot)}
@@ -1631,7 +1615,7 @@ export function HomePage() {
         <div className="home-grad home-grad-fill" />
         <div className="scroll page-scroll">
           <TeenHome
-            modeChip={<ModeChip className="is-stacked" />}
+            actions={<HeaderActions className="home-hdr-btn" />}
             // CB-NAV-04b: same Today sections as every home; the doctor/labs tiles need a parent link (no shop/ads).
             today={
               <>

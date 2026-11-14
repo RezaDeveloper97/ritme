@@ -165,7 +165,7 @@ export interface FieldDef {
 
 /**
  * The log categories (Figma "Add Log" step sheets). A closed union so the i18n
- * keys `log.categories.<key>` / `log.categoryHint.<key>` stay compile-checked.
+ * keys `log.categories.<key>` stay compile-checked.
  */
 export type CategoryKey =
   | 'bleeding'

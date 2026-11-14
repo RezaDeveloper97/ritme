@@ -270,7 +270,6 @@ func (s *Service) Week(ctx context.Context, userID uint64, n int, now time.Time,
 		"range", rangeJSON(from, to),
 		"range_label", RangeLabel(from, to, l.Locale),
 		"size_line", sizeLine(det, rel, l),
-		"bookmarked", st.Bookmarked,
 		"done_task_keys", done,
 		"details", detailsJSON(det, l),
 		"tasks", tasksJSON(det, done, l),
@@ -280,7 +279,6 @@ func (s *Service) Week(ctx context.Context, userID uint64, n int, now time.Time,
 
 // StateInput is a validated PUT /weeks/{n}/state (nil = keep).
 type StateInput struct {
-	Bookmarked   *bool
 	DoneTaskKeys []string // nil = keep
 }
 
@@ -293,10 +291,7 @@ func (s *Service) SaveState(ctx context.Context, userID uint64, n int, in StateI
 	if err != nil {
 		return nil, err
 	}
-	bookmarked, done := st.Bookmarked, doneKeys(st.DoneTaskKeys)
-	if in.Bookmarked != nil {
-		bookmarked = *in.Bookmarked
-	}
+	done := doneKeys(st.DoneTaskKeys)
 	if in.DoneTaskKeys != nil {
 		det, err := s.details(ctx, n)
 		if err != nil {
@@ -316,13 +311,13 @@ func (s *Service) SaveState(ctx context.Context, userID uint64, n int, in StateI
 		return nil, fmt.Errorf("pregnancy v2: done keys: %w", err)
 	}
 	if err := s.q.UpsertWeekUserState(ctx, store.UpsertWeekUserStateParams{
-		UserID: userID, Week: wk(n), Bookmarked: bookmarked,
+		UserID: userID, Week: wk(n),
 		DoneTaskKeys: db.NullRawJSON{V: raw, Valid: true},
 		Now:          sql.NullTime{Time: now.In(civildate.Tehran).Truncate(time.Second), Valid: true},
 	}); err != nil {
 		return nil, fmt.Errorf("pregnancy v2: save week state: %w", err)
 	}
-	return jsonx.Obj("week", n, "bookmarked", bookmarked, "done_task_keys", done), nil
+	return jsonx.Obj("week", n, "done_task_keys", done), nil
 }
 
 // wk is a 1..MaxWeek week as the tinyint the store takes.

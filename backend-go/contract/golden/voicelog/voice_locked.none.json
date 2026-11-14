@@ -17,12 +17,10 @@
       },
       "body": {
         "success": false,
-        "message": "این امکان بخشی از ریتمی پلاس است.",
-        "error_code": "plus_required",
-        "feature": "plus.voice_log",
-        "reason": "locked",
-        "limit": null,
-        "resets_at": null
+        "message": "برای استفاده از قابلیت‌های هوشمند به اشتراک فعال نیاز داری.",
+        "error_code": "ai_subscription_required",
+        "feature": "voice_log",
+        "extra_credits": 0
       }
     }
   ]

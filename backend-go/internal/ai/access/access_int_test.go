@@ -2,7 +2,7 @@ package access_test
 
 // B-N6-05 end to end against MariaDB with the fake provider: versioned consent endpoints, the B-N1-12 toggles
 // granting the version in force, the AI gate (401, consent_required → accept → runs, ExternalOnly, daily cost
-// cap fail-closed 503, Plus gate), the per-call usage log (no content, user scoped) and PII redaction on the way
+// cap fail-closed 503, the AI credit gate), the per-call usage log (no content, user scoped) and PII redaction on the way
 // to the provider.
 
 import (
@@ -28,6 +28,7 @@ import (
 
 	"github.com/ritme/backend-go/internal/ai"
 	"github.com/ritme/backend-go/internal/ai/access"
+	"github.com/ritme/backend-go/internal/ai/credits"
 	"github.com/ritme/backend-go/internal/ai/usage"
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/auth/passport"
@@ -36,12 +37,12 @@ import (
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/platform/cache"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/config"
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/ratelimit"
-	"github.com/ritme/backend-go/internal/plus"
 	"github.com/ritme/backend-go/internal/profile"
 	profilestore "github.com/ritme/backend-go/internal/profile/store"
 )
@@ -80,11 +81,11 @@ func (s *spyChat) calls() int {
 }
 
 type env struct {
-	db   *sql.DB
-	app  *fiber.App
-	iss  *passport.Issuer
-	spy  *spyChat
-	plus *plus.Service
+	db      *sql.DB
+	app     *fiber.App
+	iss     *passport.Issuer
+	spy     *spyChat
+	credits *credits.Service
 }
 
 func setup(t *testing.T, provider string, capUSD float64) *env {
@@ -119,15 +120,14 @@ func setupWith(t *testing.T, provider string, capUSD, userCapUSD float64, maxCon
 	guard := auth.NewGuardWith(&key.PublicKey, q, clock.Real{}, quiet).RequireUser
 	locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(db), nil, quiet))
 
-	plusSvc := plus.NewService(db, config.Plus{TrialDays: 7}, nil, quiet)
-	gate := plus.NewGate(plusSvc, clock.Real{})
+	creditSvc := credits.NewService(db)
 	budget := usage.NewBudget(db, capUSD, clock.Real{}, quiet).WithUserCap(userCapUSD)
 	spy := &spyChat{Fake: ai.NewFake()}
 	client := ai.NewClientWith(ai.Options{Provider: provider, Chatter: spy, Extractor: ai.NewFake(),
 		Recorder: usage.NewRecorder(db, clock.Real{}, quiet), Limiter: budget,
 		Pricer: ai.NewPricer(map[string]config.AIPrice{ai.FakeChatModel: {InputPerMTok: 1, OutputPerMTok: 1, AudioPerMTok: 1}})})
 	consents := consent.NewService(db)
-	g := access.NewGuard(access.Options{Client: client, Consents: consents, Budget: budget, Gate: gate, Plus: plusSvc,
+	g := access.NewGuard(access.Options{Client: client, Consents: consents, Budget: budget, Credits: creditSvc, Catalog: credits.NewCatalog(db),
 		Limiter: testLimiter(t), Logger: quiet, MaxConcurrent: maxConcurrent})
 
 	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(quiet)})
@@ -161,7 +161,13 @@ func setupWith(t *testing.T, provider string, capUSD, userCapUSD float64, maxCon
 	app.Post("/test/assistant", locale, append(append([]any{guard}, g.Chain(ai.FeatureAssistant)...), chat(ai.FeatureAssistant))...)
 	app.Post("/test/voice", locale, append(append([]any{guard}, g.Chain(ai.FeatureVoiceLog)...), chat(ai.FeatureVoiceLog))...)
 	app.Post("/test/lab", locale, append(append([]any{guard}, g.Chain(ai.FeatureLabAnalysis)...), chat(ai.FeatureLabAnalysis))...)
-	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), spy: spy, plus: plusSvc}
+	// A handler that answers an error status without returning an error (an invalid upload, …).
+	app.Post("/test/assistant-invalid", locale, append(append([]any{guard}, g.Chain(ai.FeatureAssistant)...), func(c fiber.Ctx) error {
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{"success": false})
+	})...)
+	// Gate: the subscription is required, nothing is spent (assistant summaries).
+	app.Post("/test/gate", locale, append(append([]any{guard}, g.Gate(ai.FeatureAssistant)...), chat(ai.FeatureAssistant))...)
+	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), spy: spy, credits: creditSvc}
 }
 
 func (e *env) user(t *testing.T, mobile, name string, trial bool) (uint64, string) {
@@ -302,9 +308,9 @@ func TestProfileToggleGrantsVersionInForce(t *testing.T) {
 	assert.Equal(t, 200, r.status, r.raw)
 }
 
-func TestGate_ConsentPlusAndUsageLog(t *testing.T) {
+func TestGate_ConsentCreditsAndUsageLog(t *testing.T) {
 	e := setup(t, "fake", 5)
-	uid, tok := e.user(t, "09120000004", "سارا احمدی", false)
+	uid, tok := e.user(t, "09120000004", "سارا احمدی", true)
 
 	r := e.do(t, "POST", "/test/assistant", "", "fa", "hi")
 	assert.Equal(t, 401, r.status)
@@ -338,10 +344,16 @@ func TestGate_ConsentPlusAndUsageLog(t *testing.T) {
 	assert.Positive(t, in)
 	assert.Zero(t, cost, "the fake is free")
 
-	// Lab analysis is Plus-only: a free user gets 402 before the consent question.
-	r = e.do(t, "POST", "/test/lab", tok, "fa", "hi")
+	b := e.balance(t, uid)
+	assert.Equal(t, uint32(20), b.PlanTotal, "the trial carries trial_ai_credits")
+	assert.Equal(t, uint32(19), b.PlanRemaining, "one assistant use costs 1 credit")
+
+	// Without a subscription or trial no AI feature runs: 402 before the consent question.
+	_, freeTok := e.user(t, "09120000040", "Mina", false)
+	r = e.do(t, "POST", "/test/lab", freeTok, "fa", "hi")
 	assert.Equal(t, 402, r.status, r.raw)
-	assert.Equal(t, "plus_required", r.body["error_code"])
+	assert.Equal(t, "ai_subscription_required", r.body["error_code"])
+	assert.Equal(t, "lab_analysis", r.body["feature"])
 
 	// Account deletion keeps the cost history without the user.
 	_, err := e.db.Exec("DELETE FROM users WHERE id = ?", uid)
@@ -368,7 +380,7 @@ func TestGate_ExternalOnly(t *testing.T) {
 
 func TestGate_DailyCostCapFailsClosed(t *testing.T) {
 	e := setup(t, "gemini", 0.01) // 10 000 micro-USD
-	_, tok := e.user(t, "09120000007", "Sara", false)
+	_, tok := e.user(t, "09120000007", "Sara", true)
 	require.Equal(t, 200, e.do(t, "PUT", "/api/v1/consents/ai_assistant", tok, "en", `{"granted":true,"version":1}`).status)
 	require.Equal(t, 200, e.do(t, "POST", "/test/assistant", tok, "en", "hi").status)
 
@@ -409,50 +421,124 @@ func TestUsageRecorder_NoContentColumns(t *testing.T) {
 		"audio_bytes", "image_bytes", "cost_micros", "latency_ms", "ok", "created_at"}, cols)
 }
 
-func (e *env) used(t *testing.T, userID uint64, feature string) int {
+func (e *env) balance(t *testing.T, userID uint64) credits.Balance {
 	t.Helper()
-	var n sql.NullInt64
-	err := e.db.QueryRow(`SELECT used FROM plus_usage_counters WHERE user_id = ? AND feature = ?`, userID, feature).Scan(&n)
-	if err == sql.ErrNoRows {
-		return 0
-	}
+	b, err := e.credits.Balance(context.Background(), userID, mustNow())
 	require.NoError(t, err)
-	return int(n.Int64)
+	return b
 }
 
-// B-N6-05b (M3): the Plus use is reserved before the provider runs — parallel requests never exceed the quota —
-// and refunded only when the call failed.
-func TestGate_ReserveFirstQuota(t *testing.T) {
-	e := setupWith(t, "fake", 5, 5, 100)                // no concurrency limit: the quota alone must hold
-	uid, tok := e.user(t, "09120000009", "Sara", false) // free: assistant 5 per month
+func mustNow() time.Time {
+	n, err := time.Parse(time.RFC3339, testNow)
+	if err != nil {
+		panic(err)
+	}
+	return n.In(civildate.Tehran)
+}
+
+// setTrialCredits sets the trial's credits (plus_settings) before the trial's bucket is created.
+func (e *env) setTrialCredits(t *testing.T, n int) {
+	t.Helper()
+	_, err := e.db.Exec("UPDATE plus_settings SET value = ? WHERE `key` = 'trial_ai_credits'", n)
+	require.NoError(t, err)
+}
+
+// B-N6-05b (M3) + goose 00125: the credits are reserved before the provider runs — parallel requests never
+// overspend — and refunded only when the call failed.
+func TestGate_ReserveFirstCredits(t *testing.T) {
+	e := setupWith(t, "fake", 5, 5, 100) // no concurrency limit: the credits alone must hold
+	e.setTrialCredits(t, 5)
+	uid, tok := e.user(t, "09120000009", "Sara", true)
 	require.Equal(t, 200, e.do(t, "PUT", "/api/v1/consents/ai_assistant", tok, "fa", `{"granted":true,"version":1}`).status)
 
 	r := e.do(t, "POST", "/test/assistant", tok, "fa", "RITME-FAKE:error")
 	require.Equal(t, 503, r.status, r.raw)
-	assert.Zero(t, e.used(t, uid, "plus.assistant_unlimited"), "a provider failure gives the use back")
+	assert.Equal(t, uint32(5), e.balance(t, uid).PlanRemaining, "a provider failure gives the credit back")
+	r = e.do(t, "POST", "/test/assistant-invalid", tok, "fa", "hi")
+	require.Equal(t, 422, r.status, r.raw)
+	assert.Equal(t, uint32(5), e.balance(t, uid).PlanRemaining, "an error status gives the credit back")
+	assert.Equal(t, 2, e.count(t, "SELECT COUNT(*) FROM ai_credit_spends WHERE user_id = ? AND status = 'refunded'", uid))
 
 	var wg sync.WaitGroup
-	statuses := make(chan int, 8)
-	for range 8 { // 1 + 8 stays under the assistant burst throttle (10/min)
-		wg.Go(func() { statuses <- e.do(t, "POST", "/test/assistant", tok, "fa", "hi").status })
+	results := make(chan resp, 8)
+	for range 7 { // 2 + 7 stays under the assistant burst throttle (10/min)
+		wg.Go(func() { results <- e.do(t, "POST", "/test/assistant", tok, "fa", "hi") })
 	}
 	wg.Wait()
-	close(statuses)
+	close(results)
 	ok, refused := 0, 0
-	for s := range statuses {
-		switch s {
+	for res := range results {
+		switch res.status {
 		case 200:
 			ok++
 		case 402:
 			refused++
+			assert.Equal(t, "ai_credits_exhausted", res.body["error_code"], res.raw)
+			assert.InDelta(t, 1, res.body["required"], 0)
+			assert.InDelta(t, 0, res.body["balance"], 0)
+			assert.Equal(t, "2026-10-08T10:00:00+03:30", res.body["period_ends_at"])
 		default:
-			t.Errorf("unexpected status %d", s)
+			t.Errorf("unexpected status %d: %s", res.status, res.raw)
 		}
 	}
-	assert.Equal(t, 5, ok, "never more than the quota, however parallel")
-	assert.Equal(t, 3, refused)
-	assert.Equal(t, 5, e.used(t, uid, "plus.assistant_unlimited"))
+	assert.Equal(t, 5, ok, "never more than the credits, however parallel")
+	assert.Equal(t, 2, refused)
+	assert.Zero(t, e.balance(t, uid).PlanRemaining)
+	assert.Equal(t, 5, e.count(t, "SELECT COUNT(*) FROM ai_credit_spends WHERE user_id = ? AND status = 'spent'", uid))
 	assert.Equal(t, 5+1, e.spy.calls(), "refused requests never reach the provider")
+}
+
+// goose 00125: the three credit refusals of the gate, and Gate (no cost) still needs the subscription.
+func TestGate_CreditRefusals(t *testing.T) {
+	e := setup(t, "fake", 5)
+	uid, tok := e.user(t, "09120000041", "Sara", false)
+	_, err := e.credits.AdminGrant(context.Background(), uid, 50, "gift", mustNow())
+	require.NoError(t, err)
+
+	// Extra credits without a subscription: locked, reported, nothing spent.
+	for _, p := range []string{"/test/assistant", "/test/gate"} {
+		r := e.do(t, "POST", p, tok, "en", "hi")
+		require.Equal(t, 402, r.status, p+" "+r.raw)
+		assert.Equal(t, "ai_subscription_required", r.body["error_code"])
+		assert.Equal(t, "assistant", r.body["feature"])
+		assert.InDelta(t, 50, r.body["extra_credits"], 0)
+	}
+	assert.Equal(t, uint32(50), e.balance(t, uid).Extra)
+	assert.Zero(t, e.spy.calls())
+
+	// With a running trial the extra credits are spendable; Gate spends nothing.
+	_, err = e.db.Exec(`INSERT INTO plus_trials (user_id, started_at, ends_at, created_at, updated_at)
+		VALUES (?, '2026-10-01 10:00:00', '2026-10-08 10:00:00', NOW(), NOW())`, uid)
+	require.NoError(t, err)
+	require.Equal(t, 200, e.do(t, "PUT", "/api/v1/consents/ai_assistant", tok, "en", `{"granted":true,"version":1}`).status)
+	r := e.do(t, "POST", "/test/gate", tok, "en", "hi")
+	require.Equal(t, 200, r.status, r.raw)
+	b := e.balance(t, uid)
+	assert.Equal(t, uint32(20), b.PlanRemaining, "Gate spends nothing")
+	assert.Equal(t, uint32(50), b.Extra)
+	assert.Zero(t, e.count(t, "SELECT COUNT(*) FROM ai_credit_spends WHERE user_id = ?", uid))
+
+	// Not enough credits for one use: 402 ai_credits_exhausted with the balance.
+	_, err = e.db.Exec("UPDATE ai_features SET credit_cost = 100 WHERE `key` = 'lab_analysis'")
+	require.NoError(t, err)
+	require.Equal(t, 200, e.do(t, "PUT", "/api/v1/consents/ai_lab_analysis", tok, "en", `{"granted":true,"version":1}`).status)
+	r = e.do(t, "POST", "/test/lab", tok, "en", "hi")
+	require.Equal(t, 402, r.status, r.raw)
+	assert.JSONEq(t, `{"success":false,"message":"`+access.T(access.CodeCreditsExhausted, "en")+`","error_code":"ai_credits_exhausted",
+		"feature":"lab_analysis","required":100,"balance":70,"plan_remaining":20,"extra_credits":50,
+		"period_ends_at":"2026-10-08T10:00:00+03:30"}`, r.raw)
+
+	// A switched-off slot: 403 ai_feature_disabled, before the subscription and the consent.
+	_, err = e.db.Exec("UPDATE ai_features SET is_active = 0 WHERE `key` = 'assistant'")
+	require.NoError(t, err)
+	_, freeTok := e.user(t, "09120000042", "Mina", false)
+	for _, k := range []string{tok, freeTok} {
+		r = e.do(t, "POST", "/test/assistant", k, "en", "hi")
+		require.Equal(t, 403, r.status, r.raw)
+		assert.JSONEq(t, `{"success":false,"message":"`+access.T(access.CodeFeatureDisabled, "en")+`","error_code":"ai_feature_disabled","feature":"assistant"}`, r.raw)
+	}
+	assert.Equal(t, 1, e.spy.calls(), "only the Gate call reached the provider, no refusal did")
+	assert.Equal(t, 70, int(e.balance(t, uid).Spendable()))
 }
 
 // B-N6-05b (M3): one user may run at most MaxConcurrent AI requests at once.

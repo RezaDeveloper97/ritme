@@ -21,7 +21,7 @@ import {
   useReviewRecordDocument,
 } from '@/entities/health-record';
 import { getApiErrorStatus } from '@/shared/api';
-import { type Locale, useRouter } from '@/shared/i18n';
+import type { Locale } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate } from '@/shared/lib/date';
 import { Card, ChipGroup, Icon, IconCircle, PillChip, PrimaryButton, SecondaryButton, StatusPill } from '@/shared/ui';
 
@@ -67,7 +67,6 @@ export function ReadSection({
   onManual: () => void;
 }) {
   const t = useTranslations('record.doc');
-  const router = useRouter();
   const titleId = useId();
   const state = doc.reviewState;
 
@@ -76,7 +75,6 @@ export function ReadSection({
     body = (
       <div className="rec-read-start">
         <p className="rec-read-strong">{t('read.stalled')}</p>
-        <p className="rec-read-sub">{t('read.stalledBody')}</p>
         <div className="rec-read-actions">
           <PrimaryButton icon="refresh" onClick={onRecheck}>
             {t('read.recheck')}
@@ -98,21 +96,6 @@ export function ReadSection({
     body = <ReviewForm doc={doc} />;
   } else if (state === 'confirmed') {
     body = <ConfirmedRows doc={doc} />;
-  } else if (extractError === 'plus') {
-    body = (
-      <div className="rec-read-start">
-        <p className="rec-read-strong">{t('read.plusTitle')}</p>
-        <p className="rec-read-sub">{t('read.plusBody')}</p>
-        <div className="rec-read-actions">
-          <PrimaryButton icon="pencil" onClick={onManual}>
-            {t('read.manual')}
-          </PrimaryButton>
-          <SecondaryButton variant="text" icon="crown" onClick={() => router.push('/plus')}>
-            {t('read.plusCta')}
-          </SecondaryButton>
-        </div>
-      </div>
-    );
   } else {
     const failed = state === 'failed';
     const extra =

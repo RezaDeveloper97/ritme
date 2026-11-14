@@ -98,3 +98,75 @@ func planInvalid(locale string) error {
 func discountInvalid(locale, reason string) error {
 	return failValidation(locale, jsonx.Obj("discount_code", []string{T("discount."+reason, locale)}), "error_code", "discount_"+reason)
 }
+
+// StoreIntentInput is a validated POST /plus/store/intent.
+type StoreIntentInput struct {
+	Store string
+	SKU   string
+}
+
+func validateStoreIntent(body phpval.Map, locale string, now time.Time) (StoreIntentInput, error) {
+	F := validation.F
+	data, err := validate(body, []string{"store", "sku"}, validation.Rules{
+		F("store", "required", "string", "in:bazaar,myket"),
+		F("sku", "required", "string", "max:100"),
+	}, locale, now)
+	if err != nil {
+		return StoreIntentInput{}, err
+	}
+	return StoreIntentInput{Store: str(data, "store"), SKU: str(data, "sku")}, nil
+}
+
+// StorePurchaseInput is one signed store purchase: the exact purchase JSON the store returned and its signature.
+type StorePurchaseInput struct {
+	SignedData string
+	Signature  string
+}
+
+// StoreVerifyInput is a validated POST /plus/store/verify (one purchase) or /plus/store/sync (up to 20).
+type StoreVerifyInput struct {
+	Store     string
+	Purchases []StorePurchaseInput
+}
+
+func validateStoreVerify(body phpval.Map, locale string, now time.Time) (StoreVerifyInput, error) {
+	F := validation.F
+	data, err := validate(body, []string{"store", "signed_data", "signature"}, validation.Rules{
+		F("store", "required", "string", "in:bazaar,myket"),
+		F("signed_data", "required", "string", "max:8192"),
+		F("signature", "required", "string", "max:2048"),
+	}, locale, now)
+	if err != nil {
+		return StoreVerifyInput{}, err
+	}
+	sd, _ := data.Get("signed_data") // untrimmed: the signature covers the exact bytes
+	return StoreVerifyInput{Store: str(data, "store"), Purchases: []StorePurchaseInput{{
+		SignedData: phpval.ToString(sd), Signature: str(data, "signature"),
+	}}}, nil
+}
+
+func validateStoreSync(body phpval.Map, locale string, now time.Time) (StoreVerifyInput, error) {
+	F := validation.F
+	data, err := validate(body, []string{"store", "purchases"}, validation.Rules{
+		F("store", "required", "string", "in:bazaar,myket"),
+		F("purchases", "present", "array", "max:20"),
+		F("purchases.*.signed_data", "required", "string", "max:8192"),
+		F("purchases.*.signature", "required", "string", "max:2048"),
+	}, locale, now)
+	if err != nil {
+		return StoreVerifyInput{}, err
+	}
+	out := StoreVerifyInput{Store: str(data, "store")}
+	raw, _ := data.Get("purchases")
+	list, _ := raw.([]any)
+	for _, item := range list {
+		m, ok := item.(phpval.Map)
+		if !ok {
+			continue
+		}
+		sd, _ := m.Get("signed_data")
+		sig, _ := m.Get("signature")
+		out.Purchases = append(out.Purchases, StorePurchaseInput{SignedData: phpval.ToString(sd), Signature: strings.TrimSpace(phpval.ToString(sig))})
+	}
+	return out, nil
+}

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Seo\Sitemap;
 
+use App\Domain\Content\SiteSections;
 use App\Domain\Seo\Indexing\IndexingRules;
 use App\Support\Cache\CacheAside;
 use App\Support\Cache\CacheKey;
@@ -14,7 +15,8 @@ use Carbon\CarbonImmutable;
  * suffix), PER_PAGE URLs per file. Rendered documents are cached in the `sitemap` namespace, which content observers
  * bump, so a warm request runs no query. Locs are rewritten onto the canonical https origin (app.url).
  * Admin indexing controls (L7-04, IndexingRules): excluded / noindex types are left out (their file 404s), and a
- * per-type priority / changefreq overrides the provider's values. Settings writes bump `sitemap`.
+ * per-type priority / changefreq overrides the provider's values. Providers of a site section switched off in the
+ * admin «صفحه‌ها» settings are left out the same way. Settings writes bump `sitemap`.
  */
 final class Sitemaps
 {
@@ -26,6 +28,7 @@ final class Sitemaps
         private readonly SitemapUrl $urls,
         private readonly CacheAside $cache,
         private readonly IndexingRules $indexing,
+        private readonly SiteSections $sections,
     ) {}
 
     public function index(): string
@@ -33,7 +36,7 @@ final class Sitemaps
         return $this->cache->remember(CacheKey::make('sitemap', 'doc', 'index'), null, function (): string {
             $files = [];
             foreach ($this->registry->all() as $key => $provider) {
-                if ($this->indexing->excludesSitemap($key)) {
+                if ($this->excluded($key)) {
                     continue;
                 }
                 $pages = $this->pageCount($provider);
@@ -56,13 +59,19 @@ final class Sitemaps
     public function file(string $key, int $page = 1): ?string
     {
         $provider = $this->registry->find($key);
-        if ($provider === null || $page < 1 || $this->indexing->excludesSitemap($key)) {
+        if ($provider === null || $page < 1 || $this->excluded($key)) {
             return null;
         }
 
         return $this->cache->remember(CacheKey::make('sitemap', 'doc', $key, $page), null, function () use ($provider, $page): string {
             return $page > max(1, $this->pageCount($provider)) ? '' : $this->xml->urlset($this->entries($provider, $page));
         }) ?: null;
+    }
+
+    /** Excluded by the admin indexing controls, or the provider's site section is switched off. */
+    private function excluded(string $key): bool
+    {
+        return $this->indexing->excludesSitemap($key) || ! $this->sections->sitemapEnabled($key);
     }
 
     /**

@@ -67,8 +67,6 @@ export function ArticlesSheet() {
 
   return (
     <>
-      <p className="ar-subtitle">{t('subtitle')}</p>
-
       <div className="field ar-search">
         <Icon name="search" size={18} stroke="var(--muted-2)" />
         <input

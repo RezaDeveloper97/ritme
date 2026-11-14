@@ -8,7 +8,8 @@
  */
 
 export type OnboardingGoal = 'cycle' | 'ttc' | 'pregnancy' | 'menopause';
-export type OnboardingGender = 'female' | 'male';
+/** `unspecified` («ترجیح می‌دهم نگویم») gets the full experience — it routes exactly like `female`. */
+export type OnboardingGender = 'female' | 'male' | 'unspecified';
 
 export const GOALS: readonly OnboardingGoal[] = ['cycle', 'ttc', 'pregnancy', 'menopause'];
 

@@ -3,7 +3,7 @@
  * account holds and the companion panel home (`GET /api/v1/companion/home`).
  * Camel-cased from the payloads; every section view is `null` without a grant.
  */
-import type { CompanionGrants, CompanionSection, CompanionType } from './types';
+import type { CompanionAction, CompanionGoal, CompanionGrants, CompanionSection, CompanionSignal, CompanionType } from './types';
 
 /** Length of a companion invite code (backend `internal/companion/code.go`). */
 export const COMPANION_CODE_LENGTH = 6;
@@ -18,7 +18,20 @@ export interface ViewerLink {
   /** Sections the owner lets the companion record for (edit grants). */
   canRecordFor: CompanionSection[];
   family: { id: number; sharedChildIds: number[] } | null;
+  /** v2: what the owner wants from the companionship and which support she prefers (orders the cards). */
+  settings: CompanionLinkSettings;
 }
+
+export interface CompanionLinkSettings {
+  goal: CompanionGoal;
+  actionPrefs: CompanionAction[];
+}
+
+/**
+ * Coarse today flags the owner chose to share (v2 «اسکوپ»): `null` = not
+ * shared, `true`/`false` = a bare yes/no for today. Never the logged detail.
+ */
+export type CompanionSignals = Record<CompanionSignal, boolean | null>;
 
 /**
  * Her cycle today, minimised (`companion/shared` cycle view). No lateness:
@@ -78,6 +91,8 @@ export interface CompanionPartner {
   phase: CompanionPhase;
   note: string | null;
   tips: CompanionTip[];
+  /** v2 coarse signals; every key null when the server (or the owner) shares none. */
+  signals: CompanionSignals;
   /** The shared child card (B-N5); always null for now. */
   child: unknown | null;
 }

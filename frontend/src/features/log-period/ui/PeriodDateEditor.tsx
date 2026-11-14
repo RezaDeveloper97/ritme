@@ -227,8 +227,6 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved, intent }
       }
     >
       <div className="epd-body">
-        <p className="epd-sub">{t('dateEditor.subtitle')}</p>
-
         <div className="epd-tiles">
           <div className="epd-tile is-start">
             <span className="epd-tile-k">{t('dateEditor.start')}</span>

@@ -17,7 +17,6 @@ import (
 	pelvicstore "github.com/ritme/backend-go/internal/pelvic/store"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/ratelimit"
-	"github.com/ritme/backend-go/internal/plus"
 	"github.com/ritme/backend-go/internal/voicelog"
 	"github.com/ritme/backend-go/resources/translations"
 )
@@ -33,11 +32,9 @@ func init() {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		languages := i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger)
 		locale := i18n.Middleware(languages)
-		plusSvc := plus.NewService(d.DB, d.Config.Plus, nil, d.Logger) // entitlements + counters only
-		gate := plus.NewGate(plusSvc, clock.Real{})
 		// B-N6-05: usage + cost log, daily cost cap and the consent gate (ai_voice_log, only while the provider
 		// is external — the voice UI has no consent sheet yet; the fake keeps everything in-process).
-		platform := newAIPlatform(d, gate, plusSvc, map[ai.Feature]ratelimit.Reject{ai.FeatureVoiceLog: voicelog.Throttled})
+		platform := newAIPlatform(d, map[ai.Feature]ratelimit.Reject{ai.FeatureVoiceLog: voicelog.Throttled})
 		client := platform.client
 		cat := catalog.NewReader(catalogstore.New(d.DB), d.Cache, 0, d.Logger)
 		svc := voicelog.NewService(client, healthlog.NewService(d.DB)).WithWriters(voicelog.Writers{
@@ -46,7 +43,7 @@ func init() {
 			Pills:   contraception.NewService(d.DB),
 			Bladder: pelvic.NewService(pelvicstore.New(d.DB), cat),
 		})
-		h := voicelog.NewHandlers(svc, plusSvc, gate,
+		h := voicelog.NewHandlers(svc,
 			i18n.NewTranslationStore(translations.FS, d.Config.StoragePath), languages, clock.Real{})
 
 		handlers := append([]any{guard}, platform.guard.Chain(ai.FeatureVoiceLog)...)

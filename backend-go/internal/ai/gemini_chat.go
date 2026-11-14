@@ -32,13 +32,13 @@ Placeholders like [name], [phone], [id], [number] and [email] stand for details 
 // stream cut short still reports what was billed so far. ctx bounds the whole stream (Client.Chat owns it); a
 // silence longer than streamIdle between two lines abandons it too.
 func (g *Gemini) ChatStream(ctx context.Context, req ChatRequest) (<-chan ChatChunk, error) {
-	u := Usage{Provider: config.AIProviderGemini, Model: g.model}
+	u := Usage{Provider: config.AIProviderGemini, Model: g.modelOf(ctx)}
 	body := gRequest{
 		SystemInstruction: &gContent{Parts: []gPart{{Text: req.System + fmt.Sprintf(geminiChatSuffix, req.Language)}}},
 		// Thinking at the model's minimum (B-N6-05b, M1): reasoning tokens are billed as output and are not bounded
 		// by what the user sees; B-N7-06 may raise the budget deliberately (it is counted either way).
 		GenerationConfig: map[string]any{"temperature": 0.4, "maxOutputTokens": req.MaxOutputTokens,
-			"thinkingConfig": map[string]any{"thinkingBudget": g.thinkingBudget()}},
+			"thinkingConfig": map[string]any{"thinkingBudget": thinkingBudget(g.modelOf(ctx))}},
 	}
 	for _, m := range req.Messages {
 		role := "user"
@@ -61,7 +61,7 @@ func (g *Gemini) ChatStream(ctx context.Context, req ChatRequest) (<-chan ChatCh
 	if err != nil {
 		return nil, fmt.Errorf("%w: encode request", ErrUpstream)
 	}
-	endpoint := g.baseURL + "/v1beta/models/" + url.PathEscape(g.model) + ":streamGenerateContent?alt=sse"
+	endpoint := g.baseURL + "/v1beta/models/" + url.PathEscape(g.modelOf(ctx)) + ":streamGenerateContent?alt=sse"
 	// sctx is cancelled by the idle timer (or when the stream goroutine ends); ctx stays the caller's.
 	sctx, scancel := context.WithCancel(ctx)
 	hreq, err := http.NewRequestWithContext(sctx, http.MethodPost, endpoint, bytes.NewReader(raw))

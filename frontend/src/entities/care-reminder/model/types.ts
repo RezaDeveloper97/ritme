@@ -17,6 +17,37 @@ export type MedicationForm = (typeof MEDICATION_FORMS)[number];
 export const MEDICATION_UNITS = ['mg', 'mcg', 'ml', 'iu', 'drop'] as const;
 export type MedicationUnit = (typeof MEDICATION_UNITS)[number];
 
+/** Dose units of the dose-block flow (API `doses[].unit`). */
+export const DOSE_UNITS = ['pill', 'capsule', 'drop', 'ml', 'spoon', 'puff', 'injection'] as const;
+export type DoseUnit = (typeof DOSE_UNITS)[number];
+
+export const MEALS = ['before', 'after'] as const;
+export type Meal = (typeof MEALS)[number];
+
+export const FREQUENCY_UNITS = ['day', 'hour'] as const;
+export type FrequencyUnit = (typeof FREQUENCY_UNITS)[number];
+
+/** Allowed `every` values: day → 1..30, hour → one of these. */
+export const HOUR_EVERY_OPTIONS = [1, 2, 3, 4, 6, 8, 12] as const;
+export const DAY_EVERY_MAX = 30;
+
+/** «هر {every} {unit}». */
+export interface MedicationFrequency {
+  every: number;
+  unit: FrequencyUnit;
+}
+
+/** One dose block: when, how much, and the optional meal relation. */
+export interface MedicationDose {
+  /** `HH:MM`. */
+  time: string;
+  amount: number;
+  unit: DoseUnit;
+  /** Server-localized unit word («قرص»), when sent. */
+  unitLabel: string | null;
+  meal: Meal | null;
+}
+
 export const MEDICATION_DURATIONS = ['ongoing', 'until_date', 'pregnancy_end'] as const;
 export type MedicationDuration = (typeof MEDICATION_DURATIONS)[number];
 
@@ -53,6 +84,10 @@ export interface Medication {
   amount: number;
   duration: MedicationDuration;
   notify: boolean;
+  /** null for an old medication saved with the weekday form. */
+  frequency: MedicationFrequency | null;
+  /** [] for an old medication. */
+  doses: MedicationDose[];
   startsOn: string | null;
   endsOn: string | null;
   isActive: boolean;
@@ -102,6 +137,10 @@ export interface TodayDose {
   form: MedicationForm;
   slot: string;
   taken: boolean;
+  amount: number | null;
+  unit: string | null;
+  unitLabel: string | null;
+  meal: Meal | null;
 }
 
 export interface NextAppointment {
@@ -139,4 +178,7 @@ export interface CareEnums {
   kinds: CareOption<AppointmentKind>[];
   topics: CareOption<AppointmentTopic>[];
   remindBefore: CareOption<RemindBefore>[];
+  doseUnits: CareOption<DoseUnit>[];
+  meals: CareOption<Meal>[];
+  frequencyUnits: CareOption<FrequencyUnit>[];
 }

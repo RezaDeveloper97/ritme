@@ -58,7 +58,7 @@ func mapProfile(r store.ListEngineInputProfilesRow) engine.Input {
 	if r.PeriodDuration.Valid && r.PeriodDuration.Int16 > 0 {
 		in.Declared.PeriodLength = engine.Some(int(r.PeriodDuration.Int16))
 	}
-	in.Declared.Manual = !r.LengthsAuto // lengths_auto = 0 (no cycle_preferences row reads as 1)
+	in.Declared.Manual = !r.LengthsAuto // lengths_auto = 0 (no cycle_preferences row reads as 0: a suggestion waits for the user)
 
 	in.BirthDate = optDay(r.Birthday)
 	// E-27: a teen age band without a birthday is treated as < 18. Every band (10_12 | 13_15 | 16_17) is a minor.

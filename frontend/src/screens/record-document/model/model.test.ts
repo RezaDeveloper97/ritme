@@ -11,8 +11,9 @@ const failed = (status: number, data: unknown) =>
 
 describe('extractErrorOf', () => {
   it('maps the AI gate answers', () => {
-    expect(extractErrorOf(failed(402, { error_code: 'plus_required' }))).toBe('plus');
-    expect(extractErrorOf(failed(429, { error_code: 'plus_quota_exceeded' }))).toBe('plus');
+    expect(extractErrorOf(failed(402, { error_code: 'ai_subscription_required' }))).toBe('gate');
+    expect(extractErrorOf(failed(402, { error_code: 'ai_credits_exhausted' }))).toBe('gate');
+    expect(extractErrorOf(failed(403, { error_code: 'ai_feature_disabled' }))).toBe('gate');
     expect(extractErrorOf(failed(403, { error_code: 'consent_required' }))).toBe('consent');
     expect(extractErrorOf(failed(422, { errors: { file_ids: ['x'] } }))).toBe('noFiles');
     expect(extractErrorOf(failed(409, { error_code: 'extraction_running' }))).toBe('conflict');

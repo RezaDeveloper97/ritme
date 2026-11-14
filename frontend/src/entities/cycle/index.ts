@@ -3,6 +3,7 @@ export {
   deriveCyclePredictions,
   normalizePhase,
   calcMainPhase,
+  calcToPhase,
   calcInFertileWindow,
   calcInPmsWindow,
   cycleDayMarker,
@@ -29,7 +30,7 @@ export {
   MAX_FUTURE_CYCLES,
 } from './model/monthPaint';
 export type { MonthDayPaint } from './model/monthPaint';
-export { cycleMarkerStyle, cycleMarkerBg } from './model/markers';
+export { cycleMarkerStyle, cycleMarkerBg, markerIntensityByDate } from './model/markers';
 export { CycleValuesCard } from './ui/CycleValuesCard';
 export type { CycleValuesCardProps, CycleValuesSuggestion } from './ui/CycleValuesCard';
 export type {

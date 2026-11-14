@@ -108,6 +108,10 @@ services:
       PAYMENT_HTTP_TIMEOUT_SECONDS: ${PAYMENT_HTTP_TIMEOUT_SECONDS:-15}
       ZARINPAL_MERCHANT_ID: ${ZARINPAL_MERCHANT_ID:-}
       ZARINPAL_SANDBOX: ${ZARINPAL_SANDBOX:-false}
+      BAZAAR_PACKAGE_NAME: ${BAZAAR_PACKAGE_NAME:-web.ritme.app}
+      BAZAAR_RSA_PUBLIC_KEY: ${BAZAAR_RSA_PUBLIC_KEY:-}
+      MYKET_PACKAGE_NAME: ${MYKET_PACKAGE_NAME:-web.ritme.app}
+      MYKET_RSA_PUBLIC_KEY: ${MYKET_RSA_PUBLIC_KEY:-}
       # AI: unset = none in production (AI features answer 503). gemini + a
       # PAID-tier key in the server .env to switch it on.
       AI_PROVIDER: ${AI_PROVIDER:-}
@@ -117,10 +121,24 @@ services:
       AI_PRICES: ${AI_PRICES:-gemini-flash-latest=0.30/2.50/1.00,gemini-2.5-flash=0.30/2.50/1.00,gemini-2.5-pro=1.25/10.00/1.25}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-flash-latest}
+      # ArvanCloud AI gateway (AI credits, goose 00125): address + key from the server .env only.
+      ARVAN_AI_BASE_URL: ${ARVAN_AI_BASE_URL:-}
+      ARVAN_AI_API_KEY: ${ARVAN_AI_API_KEY:-}
       # Companion invites: unset = none in production (the owner shares the code
       # herself); `gateway` sends through Kavenegar.
       COMPANION_SMS_PROVIDER: ${COMPANION_SMS_PROVIDER:-}
       COMPANION_CODE_PEPPER: ${COMPANION_CODE_PEPPER:-}
+      # Web Push for medication reminders (internal/care): a VAPID pair from `api vapid-keys`, server .env only.
+      # Empty = no web push (GET /push/config answers null and the sender does not start).
+      VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+      VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:support@ritme.app}
+      # «یادآور پیامکی» (Ritme Plus, internal/remindersms): none (default) | fake | gateway; templates live at Kavenegar.
+      REMINDER_SMS_PROVIDER: ${REMINDER_SMS_PROVIDER:-none}
+      KAVENEGAR_TEMPLATE_MED_REMINDER: ${KAVENEGAR_TEMPLATE_MED_REMINDER:-med-reminder}
+      KAVENEGAR_TEMPLATE_APPOINTMENT_REMINDER: ${KAVENEGAR_TEMPLATE_APPOINTMENT_REMINDER:-appointment-reminder}
+      KAVENEGAR_TEMPLATE_REMINDER_NEUTRAL: ${KAVENEGAR_TEMPLATE_REMINDER_NEUTRAL:-}
+      REMINDER_SMS_DAILY_CAP: ${REMINDER_SMS_DAILY_CAP:-8}
       KAVENEGAR_TEMPLATE_COMPANION_INVITE: ${KAVENEGAR_TEMPLATE_COMPANION_INVITE:-companion-invite}
       KAVENEGAR_TEMPLATE_COMPANION_INVITE_NEUTRAL: ${KAVENEGAR_TEMPLATE_COMPANION_INVITE_NEUTRAL:-}
       SHARE_CODE_PEPPER: ${SHARE_CODE_PEPPER:-}

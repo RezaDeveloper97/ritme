@@ -11,12 +11,21 @@ import {
   type CompanionArticle,
   type CompanionHome,
   type CompanionPartner,
+  type CompanionSignals,
   type SharedAppointment,
   type SharedCycleView,
   type SharedMedication,
   type ViewerLink,
 } from '../model/companion-side';
-import { ACCESS_LEVELS, COMPANION_SECTIONS, type CompanionGrants, type CompanionSection } from '../model/types';
+import {
+  ACCESS_LEVELS,
+  COMPANION_GOALS,
+  COMPANION_SECTIONS,
+  COMPANION_SIGNALS,
+  type CompanionGrants,
+  type CompanionSection,
+} from '../model/types';
+import { actionPrefsSchema } from './schema';
 
 /*
  * The companion's routes (B-N4-02 accept / links / leave, B-N4-03 home), Go
@@ -41,6 +50,29 @@ const grantsSchema = z.record(z.string(), z.unknown()).transform((raw): Companio
 const num = z.number().nullable().catch(null);
 const str = z.string().nullable().catch(null);
 
+/** v2 link settings as the member sees them (goal + preferred actions); defaults for an older server. */
+const settingsSchema = z
+  .object({ goal: z.enum(COMPANION_GOALS).catch('unknown'), action_prefs: actionPrefsSchema })
+  .nullable()
+  .catch(null)
+  .optional()
+  .transform((s) => ({ goal: s?.goal ?? ('unknown' as const), actionPrefs: s?.action_prefs ?? [] }));
+
+/** v2 coarse signals: only a literal boolean is read, anything else is «not shared». */
+const signalsSchema = z
+  .record(z.string(), z.unknown())
+  .nullable()
+  .catch(null)
+  .optional()
+  .transform((raw): CompanionSignals => {
+    const out = {} as CompanionSignals;
+    for (const s of COMPANION_SIGNALS) {
+      const v = raw?.[s];
+      out[s] = typeof v === 'boolean' ? v : null;
+    }
+    return out;
+  });
+
 export const viewerLinkSchema = z
   .object({
     id: z.number(),
@@ -54,6 +86,7 @@ export const viewerLinkSchema = z
       .nullable()
       .catch(null)
       .optional(),
+    settings: settingsSchema,
   })
   .transform(
     (l): ViewerLink => ({
@@ -66,6 +99,7 @@ export const viewerLinkSchema = z
         (COMPANION_SECTIONS as readonly string[]).includes(s),
       ),
       family: l.family ? { id: l.family.id, sharedChildIds: l.family.shared_child_ids ?? [] } : null,
+      settings: l.settings,
     }),
   );
 
@@ -145,6 +179,7 @@ const partnerSchema = z
       .array(z.object({ key: z.string(), title: z.string(), body: str.optional() }))
       .catch([]),
     child: z.unknown().optional(),
+    signals: signalsSchema,
   })
   .transform(
     (p): CompanionPartner => ({
@@ -159,6 +194,7 @@ const partnerSchema = z
       note: p.note ?? null,
       tips: p.tips.map((t) => ({ key: t.key, title: t.title, body: t.body ?? null })),
       child: p.child ?? null,
+      signals: p.signals,
     }),
   );
 
@@ -275,4 +311,55 @@ export function acceptErrorKind(error: unknown): AcceptErrorKind {
   if (status === 422 || status === 404) return 'invalid';
   if (status === 429) return 'throttled';
   return 'generic';
+}
+
+/**
+ * What accepting a code would share (`POST /family/invites/preview`, Go only, T-M11-08). Only the fields the
+ * «تایید اتصال» screen needs are kept; the code itself is never stored.
+ */
+export interface InvitePreview {
+  /** The owner's first name (`owner.first_name`); null when hidden or missing. */
+  ownerFirstName: string | null;
+  role: string | null;
+  /** Shared domain codes (levels dropped — the member screen shows none of them). */
+  domains: string[];
+  expiresAt: string | null;
+}
+
+const invitePreviewSchema = z
+  .object({
+    owner: z.object({ first_name: str.optional() }).nullable().catch(null).optional(),
+    // The v2 contract named it flat; read either shape.
+    owner_first_name: str.optional(),
+    role: str.optional(),
+    domains: z
+      .array(z.union([z.object({ domain: z.string() }).transform((d) => d.domain), z.string()]))
+      .catch([])
+      .optional(),
+    expires_at: str.optional(),
+  })
+  .transform(
+    (p): InvitePreview => ({
+      ownerFirstName: (p.owner?.first_name ?? p.owner_first_name ?? '').trim() || null,
+      role: p.role ?? null,
+      domains: p.domains ?? [],
+      expiresAt: p.expires_at ?? null,
+    }),
+  );
+
+/** POST /family/invites/preview {code} — throttled and refused (422) exactly like accept; nothing is written. */
+export async function fetchInvitePreview(code: string): Promise<InvitePreview> {
+  const { data } = await apiClient.post<ApiEnvelope<unknown>>('/family/invites/preview', { code });
+  return invitePreviewSchema.parse(data.data ?? {});
+}
+
+/** The preview as a mutation: it is a POST answered per typed code, never cached. */
+export function useInvitePreview() {
+  return useMutation<InvitePreview, unknown, string>({ mutationFn: fetchInvitePreview });
+}
+
+/** A preview the server does not have (Laravel production: 404 / 405) — skip straight to accept. */
+export function isPreviewUnsupported(error: unknown): boolean {
+  const status = getApiErrorStatus(error);
+  return status === 404 || status === 405;
 }

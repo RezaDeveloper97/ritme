@@ -2,18 +2,19 @@
 
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { clsx } from 'clsx';
 
-import { Icon } from '@/shared/ui';
+import { type IconName, RadioCardGroup, type Tone } from '@/shared/ui';
 import { OnbFrame } from '@/features/auth';
 
 import { useSaveOnboardingStep } from '../api/onboarding';
 import type { OnboardingGender } from '../model/flow';
 import { StepScreen, type StepContext } from './StepScreen';
 
-const OPTIONS: readonly { value: OnboardingGender; icon: 'female' | 'male' }[] = [
-  { value: 'female', icon: 'female' },
-  { value: 'male', icon: 'male' },
+/** companion-v2 `ob-gender`: «ترجیح می‌دهم نگویم» takes the full (woman-path) experience. */
+const OPTIONS: readonly { value: OnboardingGender; icon: IconName; tone: Tone }[] = [
+  { value: 'female', icon: 'female', tone: 'bloom' },
+  { value: 'male', icon: 'male', tone: 'data' },
+  { value: 'unspecified', icon: 'moreH', tone: 'brand' },
 ];
 
 function GenderForm({ ctx }: { ctx: StepContext }) {
@@ -35,30 +36,26 @@ function GenderForm({ ctx }: { ctx: StepContext }) {
       subtitle={t('gender.subtitle')}
       primary={{ label: t('continue'), onClick: submit, disabled: !gender, loading: save.isPending }}
     >
-      <div className="onb2-gender" role="radiogroup" aria-label={t('gender.title')}>
-        {OPTIONS.map((o) => (
-          <button
-            key={o.value}
-            type="button"
-            role="radio"
-            aria-checked={gender === o.value}
-            className={clsx('onb2-gender-card', `is-${o.value}`)}
-            onClick={() => setGender(o.value)}
-          >
-            <span className="onb2-gender-disc" aria-hidden>
-              <Icon name={o.icon} size={30} strokeWidth={2} />
-            </span>
-            <span className="onb2-gender-label">{te(o.value)}</span>
-          </button>
-        ))}
-      </div>
-      <p className="onb2-note is-center">{t('gender.maleNote')}</p>
+      <RadioCardGroup
+        label={t('gender.title')}
+        className="cmp2-gender"
+        value={gender}
+        onChange={setGender}
+        options={OPTIONS.map((o) => ({
+          value: o.value,
+          title: te(o.value),
+          description: t(`gender.desc.${o.value}`),
+          icon: o.icon,
+          iconTone: o.tone,
+        }))}
+      />
+      <p className="onb2-note is-center">{t('gender.note')}</p>
       {save.isError ? <p className="onb2-error" role="alert">{t('saveError')}</p> : null}
     </OnbFrame>
   );
 }
 
-/** nbl_Onb_Gender — a man continues to the partner-code screen. */
+/** nbl_Onb_Gender (companion-v2 `ob-gender`) — a man continues to the partner-code screen; «ترجیح می‌دهم نگویم» like a woman. */
 export function GenderStep() {
   return <StepScreen step="gender">{(ctx) => <GenderForm ctx={ctx} />}</StepScreen>;
 }

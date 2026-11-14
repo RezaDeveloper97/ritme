@@ -4,9 +4,18 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 
-import { formatToman, planFromParam, usePlusPlans, usePlusStatus, type PlusPlan } from '@/entities/plus';
+import {
+  formatToman,
+  planFromParam,
+  plansForChannel,
+  storeAvailable,
+  usePlusPlans,
+  usePlusStatus,
+  type PlusPlan,
+} from '@/entities/plus';
 import { track } from '@/shared/analytics';
 import { useDirection, useRouter, type Locale } from '@/shared/i18n';
+import { useBillingChannel } from '@/shared/billing';
 import { formatNumber } from '@/shared/lib/date';
 import {
   EmptyState,
@@ -34,6 +43,7 @@ export function PlansPage() {
   const query = usePlusPlans();
   const status = usePlusStatus();
   const [chosen, setChosen] = useState<number | null>(null);
+  const { channel, ready } = useBillingChannel();
 
   useEffect(() => {
     track({ name: 'plus_paywall_view', props: { surface: 'other' } });
@@ -43,13 +53,15 @@ export function PlansPage() {
     if (navMode === 'teen') router.replace('/profile');
   }, [navMode, router]);
 
-  const plans = query.data?.plans ?? [];
+  // Store builds sell only what the store has a SKU for (and only if the server has that store on).
+  const unavailable = !!query.data && channel !== 'web' && !storeAvailable(query.data, channel);
+  const plans = !query.data || unavailable ? [] : channel === 'web' ? query.data.plans : plansForChannel(query.data.plans, channel);
   const selected = plans.find((p) => p.id === chosen) ?? planFromParam(plans, params.get('plan'));
   const trialDays = query.data?.trialDays ?? 0;
-  const showTrial = trialDays > 0 && (status.data?.trialAvailable ?? false);
+  const showTrial = trialDays > 0 && (status.data?.trialAvailable ?? false) && channel === 'web';
 
   let body;
-  if (query.isPending) {
+  if (query.isPending || !ready) {
     body = (
       <SkeletonGroup label={t('loading')} className="plus-plans">
         <Skeleton shape="card" />
@@ -70,6 +82,8 @@ export function PlansPage() {
         }
       />
     );
+  } else if (unavailable) {
+    body = <EmptyState icon="crown" title={t('plans.storeUnavailableTitle')} body={t('plans.storeUnavailableBody')} />;
   } else if (!plans.length) {
     body = <EmptyState icon="crown" title={t('plans.empty')} />;
   } else {
@@ -147,6 +161,7 @@ function PlanCards({ plans, value, onChange }: { plans: PlusPlan[]; value: numbe
       {plans.map((plan, index) => {
         const checked = plan.id === value;
         const price = formatToman(plan.price, loc);
+        const minutes = plan.durationMinutes != null;
         return (
           <button
             key={plan.id}
@@ -166,20 +181,27 @@ function PlanCards({ plans, value, onChange }: { plans: PlusPlan[]; value: numbe
             <span className="plus-plan-main">
               <span className="plus-plan-head">
                 <b className="plus-plan-title">{plan.title}</b>
-                {plan.savingsPercent > 0 ? (
+                {!minutes && plan.savingsPercent > 0 ? (
                   <span className="plus-save">{t('plans.save', { percent: formatNumber(plan.savingsPercent, loc) })}</span>
                 ) : null}
               </span>
               <span className="plus-plan-sub">
-                {plan.durationMonths <= 1
-                  ? t('plans.monthly', { price })
-                  : t('plans.every', { price, months: formatNumber(plan.durationMonths, loc) })}
+                {minutes
+                  ? t('plans.minutesPrice', { price, minutes: plan.durationMinutes ?? 0 })
+                  : plan.durationMonths <= 1
+                    ? t('plans.monthly', { price })
+                    : t('plans.every', { price, months: formatNumber(plan.durationMonths, loc) })}
               </span>
+              {plan.aiCredits > 0 ? (
+                <span className="plus-plan-credits">{t('plans.credits', { count: formatNumber(plan.aiCredits, loc) })}</span>
+              ) : null}
             </span>
-            <span className="plus-plan-price">
-              <b className="plus-plan-num">{formatToman(plan.monthlyPrice, loc)}</b>
-              <span className="plus-plan-unit">{t('plans.perMonth')}</span>
-            </span>
+            {minutes ? null : (
+              <span className="plus-plan-price">
+                <b className="plus-plan-num">{formatToman(plan.monthlyPrice, loc)}</b>
+                <span className="plus-plan-unit">{t('plans.perMonth')}</span>
+              </span>
+            )}
           </button>
         );
       })}

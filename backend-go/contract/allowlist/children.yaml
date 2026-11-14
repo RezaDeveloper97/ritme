@@ -72,3 +72,49 @@ entries:
     where: data.partners[*].symptoms
     deviation: D-194
     reason: the symptoms card is removed (F-03)
+  # D-208 («ریتمی همراه» v2, Go only): the /companions owner link gains goal / signals / action_prefs and the member
+  # link gains settings {goal, action_prefs} in this case's companion setup steps.
+  - case: shared_with_spouse
+    where: data.goal
+    deviation: D-208
+    reason: companion v2 additive field (goal)
+  - case: shared_with_spouse
+    where: data.signals
+    deviation: D-208
+    reason: companion v2 additive field (signals)
+  - case: shared_with_spouse
+    where: data.action_prefs
+    deviation: D-208
+    reason: companion v2 additive field (action_prefs)
+  - case: shared_with_spouse
+    where: data.companion.goal
+    deviation: D-208
+    reason: companion v2 additive field (goal)
+  - case: shared_with_spouse
+    where: data.companion.signals
+    deviation: D-208
+    reason: companion v2 additive field (signals)
+  - case: shared_with_spouse
+    where: data.companion.action_prefs
+    deviation: D-208
+    reason: companion v2 additive field (action_prefs)
+  - case: shared_with_spouse
+    where: data.settings
+    deviation: D-208
+    reason: companion v2 additive field (settings)
+  - case: shared_with_spouse
+    where: data[*].goal
+    deviation: D-208
+    reason: companion v2 additive field (goal)
+  - case: shared_with_spouse
+    where: data[*].signals
+    deviation: D-208
+    reason: companion v2 additive field (signals)
+  - case: shared_with_spouse
+    where: data[*].action_prefs
+    deviation: D-208
+    reason: companion v2 additive field (action_prefs)
+  - case: shared_with_spouse
+    where: data[*].settings
+    deviation: D-208
+    reason: companion v2 additive field (settings)

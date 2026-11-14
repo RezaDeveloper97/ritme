@@ -21,6 +21,8 @@ package companion
 import (
 	"errors"
 	"slices"
+
+	"github.com/ritme/backend-go/internal/family/invites"
 )
 
 // Type is the relation of the companion to the owner.
@@ -49,6 +51,8 @@ const (
 	StatusInvited Status = "invited"
 	StatusActive  Status = "active"
 	StatusRevoked Status = "revoked"
+	// StatusAwaitingOwner is an accepted high-impact code invite waiting for the owner's confirmation (D-196, F-11).
+	StatusAwaitingOwner Status = invites.StatusAwaitingOwner
 )
 
 // Section is a part of the owner's data a grant covers.
@@ -210,27 +214,27 @@ var (
 var (
 	// ErrNotFound: no such link, or the caller is not a party to it (existence is not revealed).
 	ErrNotFound = errors.New("companion: not found")
-	// ErrInviteInvalid: malformed or unknown code.
-	ErrInviteInvalid = errors.New("companion: invalid invite code")
-	// ErrInviteExpired: the 24 h window has passed.
-	ErrInviteExpired = errors.New("companion: invite expired")
+	// ErrInviteInvalid: malformed or unknown code. The invite errors are the invite service's (internal/family/invites).
+	ErrInviteInvalid = invites.ErrInvalid
+	// ErrInviteExpired: the invite window (24 h code, 7 days phone) has passed.
+	ErrInviteExpired = invites.ErrExpired
 	// ErrInviteUsed: already accepted, renewed or revoked (one-time).
-	ErrInviteUsed = errors.New("companion: invite already used")
+	ErrInviteUsed = invites.ErrUsed
 	// ErrInviteLocked: too many failed attempts on this invite.
-	ErrInviteLocked = errors.New("companion: invite locked")
+	ErrInviteLocked = invites.ErrLocked
 	// ErrInvitePhoneMismatch: the invite is bound to another mobile number (counts as a failed attempt).
-	ErrInvitePhoneMismatch = errors.New("companion: invite is for another number")
+	ErrInvitePhoneMismatch = invites.ErrPhoneMismatch
 	// ErrSelfInvite: the owner cannot be her own companion.
-	ErrSelfInvite = errors.New("companion: cannot invite yourself")
+	ErrSelfInvite = invites.ErrSelf
 	// ErrAlreadyLinked: the account already has a link with this owner.
-	ErrAlreadyLinked = errors.New("companion: already linked")
+	ErrAlreadyLinked = invites.ErrAlreadyLinked
 	// ErrSpouseExists: the owner already has an invited or active spouse.
 	ErrSpouseExists = errors.New("companion: spouse already linked")
 	// ErrTooManyCompanions: the owner reached MaxOpenCompanions.
 	ErrTooManyCompanions = errors.New("companion: too many companions")
 	// ErrInviteNotAllowed: the owner's life mode no longer allows this link type (CB-TEEN-01: a partner / spouse
 	// invite of an owner now in teen mode, or a parent invite of an owner who left teen mode).
-	ErrInviteNotAllowed = errors.New("companion: invite not allowed for the owner's mode")
+	ErrInviteNotAllowed = invites.ErrNotAllowed
 	// ErrNotPending: the operation needs an invited (not yet accepted) link.
 	ErrNotPending = errors.New("companion: link is not pending")
 )

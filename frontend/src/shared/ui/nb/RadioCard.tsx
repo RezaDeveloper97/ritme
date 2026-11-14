@@ -3,6 +3,7 @@
 import { useId, type ReactNode } from 'react';
 import { clsx } from 'clsx';
 
+import { Art3d, type Art3dName } from '../Art3d';
 import type { IconName } from '../Icon';
 import { IconCircle } from './IconCircle';
 import { useRovingRadio } from './radio-group';
@@ -14,6 +15,8 @@ export interface RadioCardOption<V extends string> {
   description?: ReactNode;
   icon?: IconName;
   iconTone?: Tone;
+  /** 3D illustration shown instead of the icon disc (feature choices: a life mode, a goal). */
+  art?: Art3dName;
   disabled?: boolean;
 }
 
@@ -58,7 +61,9 @@ export function RadioCardGroup<V extends string>({ options, value, onChange, lab
             onClick={() => onChange(option.value)}
             onKeyDown={(event) => index >= 0 && roving.onKeyDown(event, index)}
           >
-            {option.icon ? <IconCircle icon={option.icon} tone={option.iconTone ?? 'brand'} size="lg" /> : null}
+            {option.art ? (
+              <Art3d name={option.art} size={52} className="nb-rcard-art" />
+            ) : option.icon ? <IconCircle icon={option.icon} tone={option.iconTone ?? 'brand'} size="lg" /> : null}
             <span className="nb-rcard-text">
               <span id={titleId} className="nb-rcard-title">
                 {option.title}

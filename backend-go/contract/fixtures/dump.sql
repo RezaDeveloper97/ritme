@@ -202,6 +202,150 @@ INSERT INTO `affirmations` VALUES
 (7,'{\"fa\":\"\\u0645\\u0631\\u0627\\u0642\\u0628\\u062a \\u0627\\u0632 \\u062e\\u0648\\u062f\\u0645 \\u06cc\\u06a9 \\u0627\\u0646\\u062a\\u062e\\u0627\\u0628 \\u0642\\u062f\\u0631\\u062a\\u0645\\u0646\\u062f \\u0627\\u0633\\u062a.\",\"en\":\"Caring for myself is a powerful choice.\"}',NULL,1,7,'2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `affirmations` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `ai_credit_grants`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ai_credit_grants` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `kind` varchar(16) NOT NULL,
+  `subscription_id` bigint(20) unsigned DEFAULT NULL,
+  `trial_id` bigint(20) unsigned DEFAULT NULL,
+  `invoice_id` bigint(20) unsigned DEFAULT NULL,
+  `amount` int(10) unsigned NOT NULL,
+  `remaining` int(10) unsigned NOT NULL,
+  `note` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ai_credit_grants_subscription_id_unique` (`subscription_id`),
+  UNIQUE KEY `ai_credit_grants_trial_id_unique` (`trial_id`),
+  UNIQUE KEY `ai_credit_grants_invoice_id_unique` (`invoice_id`),
+  KEY `ai_credit_grants_user_id_kind_index` (`user_id`,`kind`),
+  CONSTRAINT `ai_credit_grants_invoice_id_foreign` FOREIGN KEY (`invoice_id`) REFERENCES `plus_invoices` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `ai_credit_grants_subscription_id_foreign` FOREIGN KEY (`subscription_id`) REFERENCES `plus_subscriptions` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `ai_credit_grants_trial_id_foreign` FOREIGN KEY (`trial_id`) REFERENCES `plus_trials` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `ai_credit_grants_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `ai_credit_grants` WRITE;
+/*!40000 ALTER TABLE `ai_credit_grants` DISABLE KEYS */;
+/*!40000 ALTER TABLE `ai_credit_grants` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `ai_credit_packs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ai_credit_packs` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `code` varchar(64) NOT NULL,
+  `title` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`title`)),
+  `badge` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`badge`)),
+  `credits` int(10) unsigned NOT NULL,
+  `price_rials` bigint(20) unsigned NOT NULL,
+  `is_highlighted` tinyint(1) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `sort_order` int(10) unsigned NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ai_credit_packs_code_unique` (`code`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `ai_credit_packs` WRITE;
+/*!40000 ALTER TABLE `ai_credit_packs` DISABLE KEYS */;
+INSERT INTO `ai_credit_packs` VALUES
+(1,'credits_50','{\"fa\":\"۵۰ اعتبار\",\"en\":\"50 credits\"}',NULL,50,490000,0,1,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(2,'credits_150','{\"fa\":\"۱۵۰ اعتبار\",\"en\":\"150 credits\"}','{\"fa\":\"محبوب‌ترین\",\"en\":\"Most popular\"}',150,1290000,1,1,2,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(3,'credits_400','{\"fa\":\"۴۰۰ اعتبار\",\"en\":\"400 credits\"}',NULL,400,2990000,0,1,3,'2026-09-23 06:30:00','2026-09-23 06:30:00');
+/*!40000 ALTER TABLE `ai_credit_packs` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `ai_credit_spends`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ai_credit_spends` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `feature` varchar(64) NOT NULL,
+  `credits` int(10) unsigned NOT NULL,
+  `plan_credits` int(10) unsigned NOT NULL DEFAULT 0,
+  `extra_credits` int(10) unsigned NOT NULL DEFAULT 0,
+  `allocations` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`allocations`)),
+  `status` varchar(16) NOT NULL DEFAULT 'spent',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `ai_credit_spends_user_id_created_at_index` (`user_id`,`created_at`),
+  KEY `ai_credit_spends_feature_created_at_index` (`feature`,`created_at`),
+  CONSTRAINT `ai_credit_spends_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `ai_credit_spends` WRITE;
+/*!40000 ALTER TABLE `ai_credit_spends` DISABLE KEYS */;
+/*!40000 ALTER TABLE `ai_credit_spends` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `ai_features`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ai_features` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `key` varchar(64) NOT NULL,
+  `title` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`title`)),
+  `model_id` bigint(20) unsigned DEFAULT NULL,
+  `fallback_model_id` bigint(20) unsigned DEFAULT NULL,
+  `credit_cost` int(10) unsigned NOT NULL DEFAULT 1,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `sort_order` int(10) unsigned NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ai_features_key_unique` (`key`),
+  KEY `ai_features_model_id_foreign` (`model_id`),
+  KEY `ai_features_fallback_model_id_foreign` (`fallback_model_id`),
+  CONSTRAINT `ai_features_fallback_model_id_foreign` FOREIGN KEY (`fallback_model_id`) REFERENCES `ai_models` (`id`) ON DELETE SET NULL,
+  CONSTRAINT `ai_features_model_id_foreign` FOREIGN KEY (`model_id`) REFERENCES `ai_models` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `ai_features` WRITE;
+/*!40000 ALTER TABLE `ai_features` DISABLE KEYS */;
+INSERT INTO `ai_features` VALUES
+(1,'assistant','{\"fa\":\"دستیار سلامت\",\"en\":\"Health assistant\"}',1,NULL,1,1,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(2,'voice_log','{\"fa\":\"ثبت صوتی\",\"en\":\"Voice logging\"}',1,NULL,1,1,2,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(3,'lab_analysis','{\"fa\":\"تحلیل آزمایش\",\"en\":\"Lab analysis\"}',1,NULL,5,1,3,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(4,'doc_extract','{\"fa\":\"خواندن مدارک\",\"en\":\"Document reading\"}',1,NULL,3,1,4,'2026-09-23 06:30:00','2026-09-23 06:30:00');
+/*!40000 ALTER TABLE `ai_features` ENABLE KEYS */;
+UNLOCK TABLES;
+DROP TABLE IF EXISTS `ai_models`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ai_models` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `code` varchar(64) NOT NULL,
+  `provider` varchar(16) NOT NULL,
+  `upstream_model` varchar(128) NOT NULL,
+  `title` varchar(128) NOT NULL,
+  `capabilities` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`capabilities`)),
+  `input_price_milli` int(10) unsigned NOT NULL DEFAULT 0,
+  `output_price_milli` int(10) unsigned NOT NULL DEFAULT 0,
+  `audio_price_milli` int(10) unsigned NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ai_models_provider_upstream_model_unique` (`provider`,`upstream_model`),
+  UNIQUE KEY `ai_models_code_unique` (`code`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+LOCK TABLES `ai_models` WRITE;
+/*!40000 ALTER TABLE `ai_models` DISABLE KEYS */;
+INSERT INTO `ai_models` VALUES
+(1,'gemini-flash','gemini','gemini-flash-latest','Gemini Flash','[\"chat\",\"vision\",\"audio\",\"json\"]',300,2500,1000,1,'2026-09-23 06:30:00','2026-09-23 06:30:00');
+/*!40000 ALTER TABLE `ai_models` ENABLE KEYS */;
+UNLOCK TABLES;
 DROP TABLE IF EXISTS `ai_usage_logs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -1996,6 +2140,12 @@ CREATE TABLE `companions` (
   `expires_at` timestamp NULL DEFAULT NULL,
   `urgent_sms` tinyint(1) NOT NULL DEFAULT 0,
   `owner_confirmed_at` timestamp NULL DEFAULT NULL,
+  `goal` varchar(16) DEFAULT NULL,
+  `share_pain` tinyint(1) NOT NULL DEFAULT 0,
+  `share_mood` tinyint(1) NOT NULL DEFAULT 0,
+  `share_energy` tinyint(1) NOT NULL DEFAULT 0,
+  `share_sleep` tinyint(1) NOT NULL DEFAULT 0,
+  `action_prefs` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `companions_owner_id_status_index` (`owner_id`,`status`),
   KEY `companions_companion_user_id_status_owner_id_index` (`companion_user_id`,`status`,`owner_id`),
@@ -2247,6 +2397,25 @@ CREATE TABLE `cycle_preferences` (
 
 LOCK TABLES `cycle_preferences` WRITE;
 /*!40000 ALTER TABLE `cycle_preferences` DISABLE KEYS */;
+INSERT INTO `cycle_preferences` VALUES
+(1,1001,1,'2026-09-01 00:00:00','2026-09-01 00:00:00'),
+(2,1002,1,'2026-09-01 00:00:00','2026-09-01 00:00:00'),
+(3,1003,1,'2026-09-01 00:00:00','2026-09-01 00:00:00'),
+(4,1004,1,'2026-09-01 00:00:00','2026-09-01 00:00:00'),
+(5,1005,1,'2026-09-01 00:00:00','2026-09-01 00:00:00'),
+(6,1006,1,'2026-09-01 00:00:00','2026-09-01 00:00:00'),
+(7,1007,1,'2026-09-01 00:00:00','2026-09-01 00:00:00'),
+(8,1008,1,'2026-09-01 00:00:00','2026-09-01 00:00:00'),
+(9,1009,1,'2026-09-01 00:00:00','2026-09-01 00:00:00'),
+(10,1010,1,'2026-09-01 00:00:00','2026-09-01 00:00:00'),
+(11,1011,1,'2026-09-01 00:00:00','2026-09-01 00:00:00'),
+(12,1012,1,'2026-09-01 00:00:00','2026-09-01 00:00:00'),
+(13,1013,1,'2026-09-01 00:00:00','2026-09-01 00:00:00'),
+(14,1014,1,'2026-09-01 00:00:00','2026-09-01 00:00:00'),
+(15,1015,1,'2026-09-01 00:00:00','2026-09-01 00:00:00'),
+(16,1016,1,'2026-09-01 00:00:00','2026-09-01 00:00:00'),
+(17,1017,1,'2026-09-01 00:00:00','2026-09-01 00:00:00'),
+(18,1018,1,'2026-09-01 00:00:00','2026-09-01 00:00:00');
 /*!40000 ALTER TABLE `cycle_preferences` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `cycle_skips`;
@@ -4969,7 +5138,11 @@ CREATE TABLE `plus_invoices` (
   `reference` varchar(32) NOT NULL,
   `user_id` bigint(20) unsigned NOT NULL,
   `plan_id` bigint(20) unsigned DEFAULT NULL,
+  `kind` varchar(16) NOT NULL DEFAULT 'plan',
+  `credit_pack_id` bigint(20) unsigned DEFAULT NULL,
+  `credits` int(10) unsigned DEFAULT NULL,
   `duration_months` smallint(5) unsigned NOT NULL,
+  `duration_minutes` int(10) unsigned DEFAULT NULL,
   `status` varchar(16) NOT NULL DEFAULT 'pending',
   `currency` varchar(3) NOT NULL DEFAULT 'IRR',
   `subtotal_rials` bigint(20) unsigned NOT NULL,
@@ -4991,6 +5164,8 @@ CREATE TABLE `plus_invoices` (
   KEY `plus_invoices_plan_id_foreign` (`plan_id`),
   KEY `plus_invoices_user_id_status_index` (`user_id`,`status`),
   KEY `plus_invoices_discount_code_id_status_index` (`discount_code_id`,`status`),
+  KEY `plus_invoices_credit_pack_id_foreign` (`credit_pack_id`),
+  CONSTRAINT `plus_invoices_credit_pack_id_foreign` FOREIGN KEY (`credit_pack_id`) REFERENCES `ai_credit_packs` (`id`) ON DELETE SET NULL,
   CONSTRAINT `plus_invoices_discount_code_id_foreign` FOREIGN KEY (`discount_code_id`) REFERENCES `plus_discount_codes` (`id`) ON DELETE SET NULL,
   CONSTRAINT `plus_invoices_plan_id_foreign` FOREIGN KEY (`plan_id`) REFERENCES `plus_plans` (`id`) ON DELETE SET NULL,
   CONSTRAINT `plus_invoices_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
@@ -5010,8 +5185,10 @@ CREATE TABLE `plus_plans` (
   `title` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`title`)),
   `badge` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`badge`)),
   `duration_months` smallint(5) unsigned NOT NULL,
+  `duration_minutes` int(10) unsigned DEFAULT NULL,
   `price_rials` bigint(20) unsigned NOT NULL,
   `monthly_display_rials` bigint(20) unsigned DEFAULT NULL,
+  `ai_credits` int(10) unsigned NOT NULL DEFAULT 0,
   `is_highlighted` tinyint(1) NOT NULL DEFAULT 0,
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
   `sort_order` int(10) unsigned NOT NULL DEFAULT 0,
@@ -5025,11 +5202,41 @@ CREATE TABLE `plus_plans` (
 LOCK TABLES `plus_plans` WRITE;
 /*!40000 ALTER TABLE `plus_plans` DISABLE KEYS */;
 INSERT INTO `plus_plans` VALUES
-(1,'plus_1m','{\"fa\":\"۱ ماهه\",\"en\":\"1 month\"}',NULL,1,990000,NULL,0,1,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
-(2,'plus_3m','{\"fa\":\"۳ ماهه\",\"en\":\"3 months\"}','{\"fa\":\"محبوب‌ترین\",\"en\":\"Most popular\"}',3,2370000,NULL,1,1,2,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
-(3,'plus_6m','{\"fa\":\"۶ ماهه\",\"en\":\"6 months\"}',NULL,6,3900000,NULL,0,1,3,'2026-09-23 06:30:00','2026-09-23 06:30:00');
+(1,'plus_1m','{\"fa\":\"۱ ماهه\",\"en\":\"1 month\"}',NULL,1,NULL,990000,NULL,100,0,1,1,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(2,'plus_3m','{\"fa\":\"۳ ماهه\",\"en\":\"3 months\"}','{\"fa\":\"محبوب‌ترین\",\"en\":\"Most popular\"}',3,NULL,2370000,NULL,300,1,1,2,'2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(3,'plus_6m','{\"fa\":\"۶ ماهه\",\"en\":\"6 months\"}',NULL,6,NULL,3900000,NULL,600,0,1,3,'2026-09-23 06:30:00','2026-09-23 06:30:00');
 /*!40000 ALTER TABLE `plus_plans` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `plus_store_products`;
+CREATE TABLE `plus_store_products` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `store` varchar(16) NOT NULL,
+  `sku` varchar(100) NOT NULL,
+  `kind` varchar(16) NOT NULL,
+  `plan_id` bigint(20) unsigned DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `plus_store_products_store_sku_unique` (`store`,`sku`),
+  KEY `plus_store_products_plan_id_foreign` (`plan_id`),
+  CONSTRAINT `plus_store_products_plan_id_foreign` FOREIGN KEY (`plan_id`) REFERENCES `plus_plans` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+DROP TABLE IF EXISTS `plus_store_purchases`;
+CREATE TABLE `plus_store_purchases` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `store` varchar(16) NOT NULL,
+  `sku` varchar(100) NOT NULL,
+  `purchase_token` varchar(191) NOT NULL,
+  `order_id` varchar(191) DEFAULT NULL,
+  `purchase_time` datetime NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `plus_store_purchases_store_purchase_token_unique` (`store`,`purchase_token`),
+  KEY `plus_store_purchases_user_id_foreign` (`user_id`),
+  CONSTRAINT `plus_store_purchases_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 DROP TABLE IF EXISTS `plus_receipts`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -5068,13 +5275,14 @@ CREATE TABLE `plus_settings` (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `plus_settings_key_unique` (`key`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 LOCK TABLES `plus_settings` WRITE;
 /*!40000 ALTER TABLE `plus_settings` DISABLE KEYS */;
 INSERT INTO `plus_settings` VALUES
-(1,'trial_offer_percent','50','2026-09-23 06:30:00','2026-09-23 06:30:00');
+(1,'trial_offer_percent','50','2026-09-23 06:30:00','2026-09-23 06:30:00'),
+(2,'trial_ai_credits','20','2026-09-23 06:30:00','2026-09-23 06:30:00');
 /*!40000 ALTER TABLE `plus_settings` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `plus_subscriptions`;

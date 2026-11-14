@@ -52,6 +52,8 @@ export interface NotificationSettings {
   groups: CategoryGroup[];
   quietHours: { enabled: boolean; start: string; end: string };
   neutralCopy: boolean;
+  /** Plus: an SMS for medication doses and doctor visits too. Absent from an older server → true. */
+  smsReminders: boolean;
 }
 
 /** A partial PUT body — omitted keys keep their stored value. */
@@ -59,6 +61,7 @@ export interface SettingsPatch {
   categories?: Partial<Record<CategoryCode, boolean>>;
   quiet_hours?: { enabled?: boolean; start?: string; end?: string };
   neutral_copy?: boolean;
+  sms_reminders?: boolean;
 }
 
 const isCategory = (code: string): code is CategoryCode => (KNOWN_CATEGORIES as readonly string[]).includes(code);
@@ -83,6 +86,7 @@ export const settingsSchema = z
       })
       .default({}),
     neutral_copy: z.boolean().default(true),
+    sms_reminders: z.boolean().default(true),
   })
   .transform(
     (raw): NotificationSettings => ({
@@ -93,6 +97,7 @@ export const settingsSchema = z
       }),
       quietHours: raw.quiet_hours,
       neutralCopy: raw.neutral_copy,
+      smsReminders: raw.sms_reminders,
     }),
   );
 
@@ -106,6 +111,7 @@ export function applyPatch(s: NotificationSettings, patch: SettingsPatch): Notif
     })),
     quietHours: { ...s.quietHours, ...patch.quiet_hours },
     neutralCopy: patch.neutral_copy ?? s.neutralCopy,
+    smsReminders: patch.sms_reminders ?? s.smsReminders,
   };
 }
 

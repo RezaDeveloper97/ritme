@@ -18,6 +18,7 @@ final readonly class StageCardData
         public ?string $text = null,
         public ?string $where = null,
         public ?string $cta = null,
+        public bool $onSite = false,
     ) {}
 
     /**

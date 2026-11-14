@@ -6,6 +6,8 @@ package store
 
 import (
 	"context"
+	"database/sql"
+	"time"
 
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
@@ -13,18 +15,37 @@ import (
 type Querier interface {
 	// The due date of the user's active pregnancy (pregnancy mode on); drives duration = pregnancy_end.
 	ActivePregnancyDueDate(ctx context.Context, userID uint64) (civildate.NullDate, error)
+	// 1 = this process handles the row (pushes it or leaves it silent); 0 = another one already did.
+	ClaimNotificationPush(ctx context.Context, arg ClaimNotificationPushParams) (int64, error)
+	// 1 = this process pushes the dose; 0 = another one already did.
+	ClaimReminderPush(ctx context.Context, arg ClaimReminderPushParams) (int64, error)
+	// 1 = this process handles the occurrence; 0 = another one already did.
+	ClaimReminderSMS(ctx context.Context, arg ClaimReminderSMSParams) (int64, error)
+	CountPushSubscriptions(ctx context.Context, userID uint64) (int64, error)
+	// The SMS a user was sent since a moment (the per-day cap).
+	CountReminderSMSSince(ctx context.Context, arg CountReminderSMSSinceParams) (int64, error)
 	DeleteAppointment(ctx context.Context, arg DeleteAppointmentParams) (int64, error)
 	DeleteIntake(ctx context.Context, arg DeleteIntakeParams) (int64, error)
 	DeleteMedication(ctx context.Context, arg DeleteMedicationParams) (int64, error)
+	DeleteOldestPushSubscription(ctx context.Context, userID uint64) error
+	DeletePushSubscription(ctx context.Context, arg DeletePushSubscriptionParams) (int64, error)
+	// A push service answered 404 / 410: the subscription is gone.
+	DeletePushSubscriptionByID(ctx context.Context, id uint64) error
 	GetAppointment(ctx context.Context, arg GetAppointmentParams) (Reminder, error)
 	GetIntake(ctx context.Context, arg GetIntakeParams) (ReminderIntake, error)
 	GetMedication(ctx context.Context, arg GetMedicationParams) (Reminder, error)
+	GetUserMobile(ctx context.Context, id uint64) (sql.NullString, error)
 	InsertAppointment(ctx context.Context, arg InsertAppointmentParams) (int64, error)
 	// Care reminders: doses taken (reminder_intakes, T-M3-01). One row per (reminder, day, slot).
 	// Idempotent tick: a second tick of the same dose keeps the first taken_at.
 	InsertIntake(ctx context.Context, arg InsertIntakeParams) (int64, error)
 	InsertMedication(ctx context.Context, arg InsertMedicationParams) (int64, error)
+	// Appointments whose visit is inside the window (the caller derives remind-at and skips cancelled ones).
+	ListActiveAppointmentsOfUsers(ctx context.Context, arg ListActiveAppointmentsOfUsersParams) ([]Reminder, error)
 	ListActiveMedications(ctx context.Context, userID uint64) ([]Reminder, error)
+	// Reminders by SMS for Ritme Plus (goose 00122, internal/remindersms). The sender passes the Plus users in; nothing
+	// here reads a plus_ table.
+	ListActiveMedicationsOfUsers(ctx context.Context, userIds []uint64) ([]Reminder, error)
 	// Care reminders: doctor appointments (T-M3-02). Rows live in `reminders` with type = 'appointment';
 	// the structured fields are in `meta` (internal/care). Every query is scoped by user_id.
 	// Soonest first; the scope (upcoming/past/all) is applied by internal/care.
@@ -32,16 +53,29 @@ type Querier interface {
 	// Appointments at or after a moment, soonest first (GET /care/today's next_appointment);
 	// cancelled ones are skipped by internal/care.
 	ListAppointmentsFrom(ctx context.Context, arg ListAppointmentsFromParams) ([]Reminder, error)
+	// The doses the user ticked in a date range (GET /care/upcoming).
+	ListIntakesBetween(ctx context.Context, arg ListIntakesBetweenParams) ([]ListIntakesBetweenRow, error)
 	// Every dose the user took on one day (GET /care/today); uses INDEX (user_id, intake_date).
 	ListIntakesOnDate(ctx context.Context, arg ListIntakesOnDateParams) ([]ListIntakesOnDateRow, error)
 	// Care reminders: medications (T-M3-01). Rows live in `reminders` with type = 'medication';
 	// the structured fields are in `meta` (internal/care). Every query is scoped by user_id.
 	ListMedications(ctx context.Context, userID uint64) ([]Reminder, error)
+	ListPushSubscriptions(ctx context.Context, userID uint64) ([]PushSubscription, error)
+	// Active medications of every user with at least one push subscription (the sender's working set).
+	ListPushableMedications(ctx context.Context) ([]Reminder, error)
+	// Inbox rows the push sender has not handled yet (goose 00123), oldest first, after the cursor.
+	ListUnpushedNotifications(ctx context.Context, arg ListUnpushedNotificationsParams) ([]ListUnpushedNotificationsRow, error)
+	MarkReminderSMSSent(ctx context.Context, arg MarkReminderSMSSentParams) error
+	PruneReminderPushes(ctx context.Context, sentAt time.Time) error
+	PruneReminderSMS(ctx context.Context, sentAt time.Time) error
 	UpdateAppointment(ctx context.Context, arg UpdateAppointmentParams) error
 	UpdateMedication(ctx context.Context, arg UpdateMedicationParams) error
 	// A PUT that only flips is_active / notify (review #6, T-M2-34): no full re-validation, so legacy
 	// rows (POST /reminders: no starts_on / times) can be toggled too.
 	UpdateMedicationSwitches(ctx context.Context, arg UpdateMedicationSwitchesParams) error
+	// Web Push for medication reminders (goose 00121): subscriptions and the doses already pushed.
+	// One row per browser endpoint; a browser that changes account moves to the new user.
+	UpsertPushSubscription(ctx context.Context, arg UpsertPushSubscriptionParams) error
 }
 
 var _ Querier = (*Queries)(nil)

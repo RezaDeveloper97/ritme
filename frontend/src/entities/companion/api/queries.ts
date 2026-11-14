@@ -8,9 +8,11 @@ import { isAuthenticated } from '@/shared/session';
 import type {
   CompanionAuditEntry,
   CompanionGrants,
+  CompanionPreferences,
   CreateCompanionInput,
   CreatedCompanion,
   OwnerCompanion,
+  UpdateCompanionPreferencesInput,
 } from '../model/types';
 import { auditSchema, createdCompanionSchema, ownerCompanionListSchema, ownerCompanionSchema } from './schema';
 
@@ -52,8 +54,19 @@ export async function createCompanion(input: CreateCompanionInput): Promise<Crea
   if (input.displayName?.trim()) body.display_name = input.displayName.trim();
   if (input.phone?.trim()) body.phone = input.phone.trim();
   if (input.childIds?.length) body.child_ids = input.childIds;
+  Object.assign(body, preferencesBody(input.preferences));
   const { data } = await apiClient.post<ApiEnvelope<unknown>>('/companions', body);
   return createdCompanionSchema.parse(data.data);
+}
+
+/** snake_case body of the v2 preferences; only the given fields are sent. */
+function preferencesBody(prefs: Partial<CompanionPreferences> | undefined): Record<string, unknown> {
+  const body: Record<string, unknown> = {};
+  if (!prefs) return body;
+  if (prefs.goal) body.goal = prefs.goal;
+  if (prefs.signals) body.signals = prefs.signals;
+  if (prefs.actionPrefs) body.action_prefs = prefs.actionPrefs;
+  return body;
 }
 
 export function useCompanions(enabled = true) {
@@ -118,6 +131,14 @@ export function useUpdateCompanionGrants(id: number) {
 export function useUpdateCompanionChildren(id: number) {
   return useCompanionWrite(async (childIds: number[]) => {
     const { data } = await apiClient.put<ApiEnvelope<unknown>>(`/companions/${id}/children`, { child_ids: childIds });
+    return ownerCompanionSchema.parse(data.data);
+  });
+}
+
+/** PUT /companions/{id}/preferences — goal, signal scope and preferred actions (v2); partial, Go only. */
+export function useUpdateCompanionPreferences(id: number) {
+  return useCompanionWrite(async (prefs: UpdateCompanionPreferencesInput) => {
+    const { data } = await apiClient.put<ApiEnvelope<unknown>>(`/companions/${id}/preferences`, preferencesBody(prefs));
     return ownerCompanionSchema.parse(data.data);
   });
 }

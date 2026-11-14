@@ -25,6 +25,7 @@ final class SiteNavigation
     public function __construct(
         private readonly Router $router,
         private readonly UrlGenerator $url,
+        private readonly SiteSections $sections,
     ) {}
 
     public function url(StaticPage $page, string $fragment = '', bool $absolute = false): string
@@ -43,13 +44,31 @@ final class SiteNavigation
     {
         $active = NavItem::forRoute($routeName);
 
-        return array_map(fn (NavItem $item): NavLinkData => new NavLinkData(
-            label: $item->label(),
-            url: $this->url($item->page()),
-            active: $item === $active,
-            current: $routeName !== null && $item->page()->routeName() === $routeName,
-            chevron: $item->hasChevron(),
-        ), NavItem::cases());
+        $links = [];
+        foreach (NavItem::cases() as $item) {
+            $page = $this->navTarget($item);
+            if ($page === null) {
+                continue;
+            }
+
+            $links[] = new NavLinkData(
+                label: $item->label(),
+                url: $this->url($page, $item->fragment()),
+                active: $item === $active,
+                current: $routeName !== null && $item->fragment() === '' && $page->routeName() === $routeName,
+                chevron: $item->hasChevron(),
+            );
+        }
+
+        return $links;
+    }
+
+    /** The page a nav item opens, or null when it is switched off in the admin «صفحه‌ها» settings. */
+    private function navTarget(NavItem $item): ?StaticPage
+    {
+        $page = $item->page();
+
+        return $this->sections->pageEnabled($page) ? $page : null;
     }
 
     /**
@@ -63,41 +82,42 @@ final class SiteNavigation
     }
 
     /**
-     * Footer link columns (AUDIT §2.1 + corrections: tool anchors, /terms). Enamad and socials come from settings.
+     * Footer link columns (Nov 2026 redesign: مرحله‌ها · ریتمی · اعتماد). Enamad and socials come from settings.
      *
      * @return list<FooterColumnData>
      */
     public function footer(): array
     {
-        $link = fn (StaticPage $page, ?string $label = null, string $fragment = ''): LinkData => new LinkData($label ?? $page->label(), $this->url($page, $fragment));
+        // Links into switched-off sections become null and are dropped below, then columns left empty.
+        $link = fn (StaticPage $page, ?string $label = null, string $fragment = ''): ?LinkData => $this->sections->pageEnabled($page)
+            ? new LinkData($label ?? $page->label(), $this->url($page, $fragment))
+            : null;
 
-        return [
-            new FooterColumnData('مرحله‌ها', array_map(static fn (StaticPage $page): LinkData => $link($page), StaticPage::stages())),
-            new FooterColumnData('خدمات', [
-                $link(StaticPage::Services, 'پزشک و ماما'),
-                $link(StaticPage::Directory),
-                $link(StaticPage::Shop),
-                $link(StaticPage::DirectoryBusiness),
-            ]),
-            new FooterColumnData('ابزارها', [
-                $link(StaticPage::Tools, 'محاسبه تاریخ زایمان', 'due-date'),
-                $link(StaticPage::Tools, 'محاسبه تخمک‌گذاری', 'fertility'),
-                $link(StaticPage::Tools, 'ساک بیمارستان', 'hospital-bag'),
-                $link(StaticPage::Tools, 'لیست سیسمونی', 'sisemoni'),
-            ]),
-            new FooterColumnData('ریتمی', [
+        $columns = [
+            'مرحله‌ها' => array_map(static fn (StaticPage $page): ?LinkData => $link($page), StaticPage::stages()),
+            'ریتمی' => [
                 $link(StaticPage::About),
                 $link(StaticPage::SocialResponsibility),
                 $link(StaticPage::Plus),
                 $link(StaticPage::Blog),
                 $link(StaticPage::Contact),
-            ]),
-            new FooterColumnData('اعتماد', [
+            ],
+            'اعتماد' => [
                 $link(StaticPage::Privacy),
                 $link(StaticPage::Faq),
                 $link(StaticPage::Terms),
-            ]),
+            ],
         ];
+
+        $visible = [];
+        foreach ($columns as $title => $links) {
+            $links = array_values(array_filter($links));
+            if ($links !== []) {
+                $visible[] = new FooterColumnData($title, $links);
+            }
+        }
+
+        return $visible;
     }
 
     /**

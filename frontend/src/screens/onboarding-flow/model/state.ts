@@ -8,7 +8,7 @@ const nullableList = z.array(z.string()).nullable().catch(null);
 
 export const onboardingStateSchema = z.object({
   name: z.string().nullable().catch(null),
-  gender: z.enum(['female', 'male']).nullable().catch(null),
+  gender: z.enum(['female', 'male', 'unspecified']).nullable().catch(null),
   goal: z.string().nullable().catch(null),
   /** `mode` is the effective life stage: `pregnancy` only while a pregnancy is active. */
   life_stage: z.object({ mode: z.string().catch('cycle') }).catch({ mode: 'cycle' }),
@@ -56,7 +56,7 @@ export const MEDICATIONS = ['contraceptive_pill', 'iud', 'hormonal_medication'] 
 /** Body of `PUT /onboarding/steps/{step}` per step. */
 export interface StepBodies {
   name: { name: string };
-  gender: { gender: 'female' | 'male' };
+  gender: { gender: 'female' | 'male' | 'unspecified' };
   goal: { goal: string };
   cycle: { last_period_start?: string | null; period_duration?: number | null; cycle_duration?: number | null };
   menopause: { stage: MenopauseStage; last_period?: string | null; surgical?: boolean | null; hrt?: boolean | null };

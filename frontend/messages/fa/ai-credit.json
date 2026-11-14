@@ -1,0 +1,16 @@
+{
+  "unit": "{count} اعتبار",
+  "meter": {
+    "label": "اعتبار این دوره",
+    "of": "{remaining} از {total}",
+    "spoken": "{remaining} اعتبار از {total} مانده",
+    "renews": "تا {date} فرصت داری"
+  },
+  "card": {
+    "title": "اعتبار هوشمند",
+    "left": "{count} اعتبار مانده",
+    "noSubscription": "برای استفاده از امکانات هوشمند اشتراک لازم است",
+    "locked": "{count} اعتبار اضافه‌ات محفوظ است",
+    "action": "مصرف اعتبار"
+  }
+}

@@ -84,7 +84,7 @@ func (k Key) String() (string, error) {
 	b = append(b, k.Scope...)
 	b = append(b, ':')
 	b = hex.AppendEncode(b, sum[:16])
-	return unsafe.String(unsafe.SliceData(b), len(b)), nil // b is never written again
+	return unsafe.String(unsafe.SliceData(b), len(b)), nil //nolint:gosec // G103: b is never written again
 }
 
 // Cache is the engine cache. A nil *Cache or a disabled one always computes.

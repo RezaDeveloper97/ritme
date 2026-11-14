@@ -10,5 +10,14 @@
     "today": "Today",
     "yesterday": "Yesterday",
     "daysAgo": "{days, plural, one {# day ago} other {# days ago}}"
+  },
+  "bell": {
+    "count": "Notifications: {count, number} new",
+    "urgent": "Notifications: {count, number} new, {urgent, number} urgent"
+  },
+  "sections": {
+    "alerts": "Health alerts",
+    "notifications": "Notifications",
+    "history": "Past alerts"
   }
 }

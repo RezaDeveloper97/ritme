@@ -22,6 +22,7 @@ info:
     **Auth.** Passport-compatible RS256 Bearer tokens, 365-day lifetime; see `POST /api/v1/auth/refresh-session`.
 servers: [{url: /, description: Same origin}]
 tags:
+  - {name: AI credits, description: "AI credits (D-209, goose 00125): AI features spend credits and need a running subscription. Period credits come with the plan or the trial; extra credits (packs, admin grants) never expire and are locked without a subscription"}
   - {name: Modules, description: "Admin kill-switches for whole app modules (app_modules). A disabled module is hidden from onboarding and the app, and its routes answer 403 error_code=module_disabled"}
   - {name: Insurance, description: "Insurance self-tracking (Go only, CB-INS-01): policy, coverage caps, claims with a timeline she maintains, questionnaire drafts prefilled from her record. Nothing is sent to an insurer"}
   - {name: Shop, description: "Shop catalog (B-N10-03): admin-managed categories and link-out products, per-day click counter, no health data"}
@@ -68,7 +69,7 @@ tags:
   - {name: Home, description: "Home page sections, task and challenge toggles"}
   - {name: Notifications, description: In-app notifications}
   - {name: System, description: Liveness and the public upload disk}
-  - {name: Labs, description: "Lab analysis (Go only, bloom B-N6-06): upload a lab sheet (photos / PDF, encrypted at rest), AI extraction as a job, verify / edit / add markers, plain-language interpretation (AI with rules fallback, non-diagnostic), marker catalog, trends across labs, feedback. Upload is Plus (plus.lab_ai) behind the AI gate. Owner only; never logged"}
+  - {name: Labs, description: "Lab analysis (Go only, bloom B-N6-06): upload a lab sheet (photos / PDF, encrypted at rest), AI extraction as a job, verify / edit / add markers, plain-language interpretation (AI with rules fallback, non-diagnostic), marker catalog, trends across labs, feedback. Upload spends AI credits behind the AI gate (D-209). Owner only; never logged"}
   - {name: Files, description: "Generic encrypted file storage (Go only, CB-CORE-05, D-59): record / claim documents, place photos / licences, product images. Encrypted at rest, owner-scoped, short-lived signed download links; public purposes (images only) served without auth. Never logged"}
   - {name: Vitals, description: "Vitals (Go only, bloom B-N6-01): timed blood pressure, glucose and heart-rate readings classified on read (ACC/AHA 2017, ADA 2025, AHA), log-sheet day values merged in read-only, 7/14/30/90-day reports, weekly measurement plan with opt-in reminders, urgent modal over BP 180/120 or glucose 54 mg/dL. Never logged"}
   - {name: HealthRecord, description: "Health record «پرونده سلامت من» (Go only, bloom B-N6-03, D-64): owner-only summary aggregated from profile, conditions, care meds, cycle engine, merged vitals, pregnancies, checkups and labs; user-owned blood type, allergies and hand-added pregnancies. A loss shows only as an ended pregnancy. No companion access. Never logged"}
@@ -1748,8 +1749,11 @@ paths:
                   success: {type: boolean}
                   data:
                     type: object
-                    required: [forms, units, durations, kinds, topics, remind_before]
+                    required: [forms, units, durations, kinds, topics, remind_before, dose_units, meals, frequency_units]
                     properties:
+                      dose_units: {type: array, items: {$ref: "#/components/schemas/CareEnumItem"}, description: "Units of a dose amount (`pill|capsule|drop|ml|spoon|puff|injection`)."}
+                      meals: {type: array, items: {$ref: "#/components/schemas/CareEnumItem"}, description: "`before|after` a meal."}
+                      frequency_units: {type: array, items: {$ref: "#/components/schemas/CareEnumItem"}, description: "`day|hour`."}
                       forms: {type: array, items: {$ref: "#/components/schemas/CareEnumItem"}}
                       units: {type: array, items: {$ref: "#/components/schemas/CareEnumItem"}}
                       durations: {type: array, items: {$ref: "#/components/schemas/CareEnumItem"}}
@@ -1765,7 +1769,62 @@ paths:
                   kinds: [{value: in_person, label: نوبت پزشک}, {value: phone, label: مشاوره تلفنی}, {value: online, label: مشاوره آنلاین}]
                   topics: [{value: ultrasound, label: سونوگرافی}, {value: checkup, label: معاینه}, {value: lab, label: آزمایش}, {value: consult, label: مشاوره}, {value: vaccine, label: واکسن}, {value: other, label: سایر}]
                   remind_before: [{value: 1h, label: ۱ ساعت قبل}, {value: 3h, label: ۳ ساعت قبل}, {value: 1d, label: ۱ روز قبل}, {value: 2d, label: ۲ روز قبل}]
+                  dose_units: [{value: pill, label: قرص}, {value: capsule, label: کپسول}, {value: drop, label: قطره}, {value: ml, label: میلی‌لیتر}, {value: spoon, label: قاشق}, {value: puff, label: پاف}, {value: injection, label: آمپول}]
+                  meals: [{value: before, label: قبل از غذا}, {value: after, label: بعد از غذا}]
+                  frequency_units: [{value: day, label: روز}, {value: hour, label: ساعت}]
         '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/care/upcoming:
+    get:
+      tags: [Care]
+      summary: Upcoming medication and appointment reminders, rendered
+      description: |
+        The reminders that fire in the next `hours`, soonest first, at most 64 — what the Android shell arms as local
+        alarms (its WebView has no Push API); the Web Push sender announces the same doses. `kind: medication` = one
+        item per dose of every **active** medication with `notify` on; `kind: appointment` = the reminder of an
+        **active**, scheduled appointment at `scheduled_at` − `remind_before`. Left out: doses already ticked,
+        reminders inside the user's quiet hours and a kind whose notification category («داروها» / «نوبت پزشک») is
+        off. `title` / `body` already went through «متن خنثی» (`neutral_copy`): with it on they carry no health data.
+        Times are Tehran wall-clock; `at_ms` is the same instant in epoch milliseconds.
+      operationId: getCareUpcoming
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: hours, in: query, required: false, schema: {type: integer, minimum: 1, maximum: 168, default: 48}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Upcoming reminders
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [generated_at, items]
+                    properties:
+                      generated_at: {type: string, description: "`Y-m-d H:i:s`, Tehran."}
+                      items:
+                        type: array
+                        maxItems: 64
+                        items:
+                          type: object
+                          required: [id, kind, reminder_id, date, slot, at, at_ms, title, body, url]
+                          properties:
+                            id: {type: string, description: "`<reminder>:<Y-m-d>:<HH:MM>`, stable per dose / per visit time (a rescheduled appointment gets a new id).", examples: ["12:2026-11-10:20:00"]}
+                            kind: {type: string, enum: [medication, appointment]}
+                            reminder_id: {type: integer}
+                            date: {allOf: [{$ref: "#/components/schemas/Date"}], description: "The dose day; for an appointment the day of the visit."}
+                            slot: {type: string, description: "The dose time `HH:MM`; for an appointment the time of the visit."}
+                            at: {type: string, description: "When the reminder fires, `Y-m-d H:i:s`, Tehran."}
+                            at_ms: {type: integer, format: int64}
+                            title: {type: string}
+                            body: {type: string}
+                            url: {type: string, description: "In-app path opened on tap.", examples: [/fa/reminders]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
   /api/v1/care/today:
     get:
       tags: [Care]
@@ -1803,13 +1862,17 @@ paths:
                         type: array
                         items:
                           type: object
-                          required: [reminder_id, title, form, slot, taken]
+                          required: [reminder_id, title, form, slot, taken, amount, unit, unit_label, meal]
                           properties:
                             reminder_id: {type: integer}
                             title: {type: string}
                             form: {type: string, enum: [tablet, capsule, syrup, injection, drops]}
                             slot: {type: string, pattern: "^\\d{2}:\\d{2}$"}
                             taken: {type: boolean}
+                            amount: {type: [integer, "null"], description: "The dose of an interval-schedule medication (`doses`); null for a weekday-schedule one — same for `unit`, `unit_label`, `meal`."}
+                            unit: {type: [string, "null"]}
+                            unit_label: {type: [string, "null"]}
+                            meal: {type: [string, "null"], enum: [before, after, null]}
                       taken_count: {type: integer, minimum: 0}
                       total: {type: integer, minimum: 0}
                       next_appointment:
@@ -3050,6 +3113,349 @@ paths:
                       status: {$ref: "#/components/schemas/PlusStatus"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/plus/credit-packs:
+    get:
+      tags: [Plus, AI credits]
+      summary: Credit packs (public)
+      description: |
+        The active packs of extra AI credits in display order (admin data, D-209). Prices are integer rials before VAT;
+        `vat_rate_bps` applies at checkout. Extra credits never expire; they are spendable only while a subscription
+        or the trial runs.
+      operationId: listCreditPacks
+      security: []
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The packs
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [currency, vat_rate_bps, packs]
+                    properties:
+                      currency: {type: string, const: IRR}
+                      vat_rate_bps: {type: integer, minimum: 0, maximum: 10000}
+                      packs: {type: array, items: {$ref: "#/components/schemas/AICreditPack"}}
+              example:
+                success: true
+                data:
+                  currency: IRR
+                  vat_rate_bps: 1000
+                  packs:
+                    - {id: 1, code: credits_50, title: ۵۰ اعتبار, badge: null, credits: 50, price: 490000, is_highlighted: false}
+  /api/v1/plus/credit-packs/checkout:
+    post:
+      tags: [Plus, AI credits]
+      summary: Price a credit pack or create its invoice and payment
+      description: |
+        Same flow as POST /plus/checkout (D-209): `preview: true` → `{quote}`, nothing written; otherwise a pending
+        invoice (`kind: credit_pack`, no plan, no discount) and `payment`. POST /plus/verify settles it and grants the
+        pack's credits exactly once (replays and concurrent verifies grant nothing more; an amount mismatch grants
+        nothing). An unknown or inactive pack is 422 on `pack_id`. **403** `teen_commercial_blocked` for a teen-mode
+        account, preview included. Any amount or `plan_id` in the body is ignored.
+      operationId: creditPackCheckout
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pack_id]
+              properties:
+                pack_id: {type: integer, minimum: 1}
+                preview: {type: [boolean, "null"]}
+            example: {pack_id: 2}
+      responses:
+        '200':
+          description: "A quote (preview) or the invoice and payment"
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    oneOf:
+                      - type: object
+                        required: [quote]
+                        properties:
+                          quote:
+                            type: object
+                            required: [pack, currency, subtotal, vat_rate_bps, vat, total]
+                            properties:
+                              pack: {$ref: "#/components/schemas/AICreditPack"}
+                              currency: {type: string, const: IRR}
+                              subtotal: {type: integer}
+                              vat_rate_bps: {type: integer}
+                              vat: {type: integer}
+                              total: {type: integer}
+                      - type: object
+                        required: [invoice, payment]
+                        properties:
+                          invoice: {$ref: "#/components/schemas/PlusInvoice"}
+                          payment: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/PlusPayment"}]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/TeenCommercialBlocked"}
+        '422': {$ref: "#/components/responses/PlusFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+        '503': {$ref: "#/components/responses/PlusPaymentUnavailable"}
+  /api/v1/ai/credits:
+    get:
+      tags: [AI credits]
+      summary: The caller's AI credit balance and the price of each feature
+      description: |
+        Period credits (the plan's or the trial's, spent first, gone at `period_ends_at`) and extra credits (never
+        expire; `locked` without a subscription). `spendable` = what a use may take now (0 without a running
+        subscription or trial). `features` lists the AI feature slots declared in code with their admin-set
+        `credit_cost` (D-209).
+      operationId: getAICredits
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: The balance
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: "#/components/schemas/AICreditBalance"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/ai/credits/usage:
+    get:
+      tags: [AI credits]
+      summary: The caller's AI credit usage
+      description: |
+        The last `days` (30) days since `since` (Tehran midnight) by feature and by day (refunded uses do not count),
+        and one page of the spend history, newest first: pass `next` as `before` for the following page (null at
+        the end).
+      operationId: getAICreditUsage
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: before, in: query, required: false, schema: {type: integer, minimum: 1}, description: "History cursor (the previous page's `next`)"}
+      responses:
+        '200':
+          description: The usage
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [days, since, total, by_feature, by_day, history]
+                    properties:
+                      days: {type: integer}
+                      since: {$ref: "#/components/schemas/IsoDateTime"}
+                      total: {type: integer, minimum: 0}
+                      by_feature:
+                        type: array
+                        items:
+                          type: object
+                          required: [feature, title, uses, credits]
+                          properties:
+                            feature: {type: string}
+                            title: {type: string}
+                            uses: {type: integer}
+                            credits: {type: integer}
+                      by_day:
+                        type: array
+                        items:
+                          type: object
+                          required: [date, credits]
+                          properties:
+                            date: {$ref: "#/components/schemas/Date"}
+                            credits: {type: integer}
+                      history:
+                        type: object
+                        required: [items, next]
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              type: object
+                              required: [id, feature, title, credits, at]
+                              properties:
+                                id: {type: integer}
+                                feature: {type: string}
+                                title: {type: string}
+                                credits: {type: integer}
+                                at: {$ref: "#/components/schemas/IsoDateTime"}
+                          next: {type: [integer, "null"]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/plus/store/intent:
+    post:
+      tags: [Plus]
+      summary: Prepare an Android store purchase
+      description: |
+        Store builds of the Android app (Café Bazaar, Myket) buy Plus through the store's in-app billing, never the web
+        gateway. This checks that `sku` is sellable to the caller on `store` (an active plan, or the trial SKU while
+        the trial is still available) and returns the `payload` to pass to the store purchase call as the developer
+        payload. The store signs it into the purchase; verify accepts only purchases carrying the caller's payload.
+      operationId: plusStoreIntent
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [store, sku]
+              properties:
+                store: {type: string, enum: [bazaar, myket]}
+                sku: {type: string, maxLength: 100}
+      responses:
+        '200':
+          description: The payload for the store purchase
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [store, sku, kind, payload]
+                    properties:
+                      store: {type: string}
+                      sku: {type: string}
+                      kind: {type: string, enum: [plan, trial]}
+                      payload: {type: string}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/PlusFailed"}
+        '422': {$ref: "#/components/responses/PlusFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+        '503': {$ref: "#/components/responses/PlusPaymentUnavailable"}
+  /api/v1/plus/store/verify:
+    post:
+      tags: [Plus]
+      summary: Redeem an Android store purchase
+      description: |
+        Checks one purchase returned by the store billing library — `signed_data` is the exact purchase JSON
+        (`originalJson`), `signature` its base64 SHA1withRSA signature — against the store's RSA key, the package
+        name, the purchase state and the caller's payload, then grants what the SKU maps to: a plan period (an invoice
+        and receipt with gateway = the store) or the one Plus trial. A purchase token belongs to the first account
+        that redeems it (409 `store_purchase_owned` for any other). Idempotent per (token, purchase time): a replay
+        answers 200 with `already_verified: true` and adds no time.
+      operationId: plusStoreVerify
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [store, signed_data, signature]
+              properties:
+                store: {type: string, enum: [bazaar, myket]}
+                signed_data: {type: string, maxLength: 8192}
+                signature: {type: string, maxLength: 2048}
+      responses:
+        '200':
+          description: The redeemed purchase and the status
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [kind, sku, invoice, already_verified, status]
+                    properties:
+                      kind: {type: string, enum: [plan, trial]}
+                      sku: {type: string}
+                      invoice: {type: [object, "null"], description: The paid invoice of a plan purchase (null for the trial or a replay)}
+                      already_verified: {type: boolean}
+                      status: {$ref: "#/components/schemas/PlusStatus"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/PlusFailed"}
+        '409': {$ref: "#/components/responses/PlusFailed"}
+        '422': {$ref: "#/components/responses/PlusFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+        '503': {$ref: "#/components/responses/PlusPaymentUnavailable"}
+  /api/v1/plus/store/sync:
+    post:
+      tags: [Plus]
+      summary: Sync the app's store purchases
+      description: |
+        The store build sends its active store purchases on open (restore after a reinstall, subscription renewals).
+        Each is redeemed like /plus/store/verify; rejected ones (bad signature, other account, unknown SKU, trial
+        used) are counted in `rejected` and never fail the call.
+      operationId: plusStoreSync
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [store, purchases]
+              properties:
+                store: {type: string, enum: [bazaar, myket]}
+                purchases:
+                  type: array
+                  maxItems: 20
+                  items:
+                    type: object
+                    required: [signed_data, signature]
+                    properties:
+                      signed_data: {type: string, maxLength: 8192}
+                      signature: {type: string, maxLength: 2048}
+      responses:
+        '200':
+          description: How many purchases added time, how many were rejected, and the status
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [restored, rejected, status]
+                    properties:
+                      restored: {type: integer, minimum: 0}
+                      rejected: {type: integer, minimum: 0}
+                      status: {$ref: "#/components/schemas/PlusStatus"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+        '503': {$ref: "#/components/responses/PlusPaymentUnavailable"}
   /api/v1/payments/{provider}/return:
     get:
       tags: [Payments]
@@ -3665,9 +4071,9 @@ paths:
         words may mean (the review's «مطمئن نیستیم» chooser, at most 4, each with the value it would get); empty
         when unambiguous. The recording is held only in memory and zeroed right after transcription; transcript and
         values are never stored or logged. Per-user throttles first, right after auth (6 per minute and 60 per hour,
-        B-N6-05b), then Plus-gated (`plus.voice_log`; free users get 402 before anything is read), then the AI gate
-        (consent while the provider is external, global and per-user daily cost caps, at most 2 AI requests of one
-        user at once). The Plus use is reserved before the recording is processed and given back when the request
+        B-N6-05b), then the AI gate (a running subscription and enough credits, else 402 `ai_subscription_required` / `ai_credits_exhausted` before anything is read, D-209;
+        consent while the provider is external, global and per-user daily cost caps, at most 2 AI requests of one
+        user at once). The credits are reserved before the recording is processed and given back when the request
         fails; a silent recording (empty transcript, no suggestions) keeps it — the provider was paid for it.
       operationId: postLogVoice
       security:
@@ -3748,12 +4154,12 @@ paths:
                         - {category: mood, param: moods, item: sad, value: true, label: "غمگین"}
                         - {category: symptoms, param: general, item: fatigue, value: "yes", label: "خستگی"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
-        '402': {$ref: "#/components/responses/PlusRequired"}
+        '402': {$ref: "#/components/responses/AIPaymentRequired"}
+        '403': {$ref: "#/components/responses/AIForbidden"}
         '422': {$ref: "#/components/responses/ValidationFailed"}
         '429':
           description: |
-            Throttled (`error_code: too_many_requests`, `retry_after` seconds, 6/minute and 60/hour per user), a
-            monthly Plus quota spent (`plus_quota_exceeded`, see PlusQuotaExceeded; voice logging is unlimited today),
+            Throttled (`error_code: too_many_requests`, `retry_after` seconds, 6/minute and 60/hour per user),
             the user's daily AI cost cap spent (`ai_user_budget_exhausted`, B-N6-05b; resets at Tehran midnight) or
             another AI request of the user still running (`ai_busy`, `Retry-After: 5`).
           headers:
@@ -9910,7 +10316,11 @@ paths:
     get:
       tags: [Notifications]
       summary: "List the user's notifications"
-      description: Paginated list of in-app notifications (newest first) plus the unread count for the header bell.
+      description: >-
+        Paginated list of in-app notifications (newest first) plus the unread count for the header bell. Go only: every
+        new row is also sent once by Web Push to the browsers the user subscribed (`POST /push/subscriptions`) — unless
+        it is already read, its notification category (`companion` / `learning`) is off or it is older than 12 hours;
+        inside quiet hours the push waits for the end of the window, and with `neutral_copy` on it only says «اعلان تازه».
       operationId: getHomeNotifications
       security:
         - {bearerAuth: []}
@@ -13819,7 +14229,7 @@ paths:
               type: object
               properties:
                 name: {type: string, maxLength: 255}
-                gender: {type: string, enum: [female, male]}
+                gender: {type: string, enum: [female, male, unspecified], description: "unspecified («ترجیح می‌دهم نگویم») = the female path; only male is the companion path"}
                 goal: {type: string, enum: [cycle, ttc, pregnancy, menopause]}
                 last_period_start: {oneOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]}
                 period_duration: {type: [integer, "null"], minimum: 1, maximum: 15}
@@ -14214,6 +14624,7 @@ paths:
                     - {code: other, items: [{code: learning, enabled: true}, {code: companion, enabled: true}, {code: articles, enabled: false}]}
                   quiet_hours: {enabled: true, start: "23:00", end: "08:00"}
                   neutral_copy: true
+                  sms_reminders: true
         '401': {$ref: "#/components/responses/Unauthenticated"}
     put:
       tags: [Profile]
@@ -14243,6 +14654,7 @@ paths:
                     start: {type: string, pattern: "^[0-2][0-9]:[0-5][0-9]$"}
                     end: {type: string, pattern: "^[0-2][0-9]:[0-5][0-9]$"}
                 neutral_copy: {type: boolean}
+                sms_reminders: {type: boolean}
             example: {categories: {fertile_window: true}, quiet_hours: {enabled: true, start: "22:30", end: "07:00"}, neutral_copy: true}
       responses:
         '200':
@@ -17117,7 +17529,7 @@ paths:
                           - type: object
                             required: [gender, life_mode, ivf_iui, track_contraception, chronic_illnesses, gyn_conditions, medications, menopause_stage, menopause_last_period, menopause_surgical, menopause_hrt, onboarding_started_at, onboarding_completed_at, created_at, updated_at]
                             properties:
-                              gender: {type: [string, "null"], enum: [female, male, null]}
+                              gender: {type: [string, "null"], enum: [female, male, unspecified, null]}
                               life_mode: {type: [string, "null"], enum: [cycle, ttc, pregnancy, postpartum, menopause, teen, null]}
                               ivf_iui: {type: boolean}
                               track_contraception: {type: boolean}
@@ -17856,7 +18268,7 @@ paths:
     get:
       tags: [PregnancyV2]
       summary: One week of the week-by-week page
-      description: Admin-defined details (pregnancy_week_details) in the request language, date range, bookmark, tasks with done state and the week tip.
+      description: Admin-defined details (pregnancy_week_details) in the request language, date range, tasks with done state and the week tip.
       operationId: getPregnancyV2Week
       security:
         - {bearerAuth: []}
@@ -17875,7 +18287,7 @@ paths:
                   success: {type: boolean}
                   data:
                     type: object
-                    required: [week, trimester, title, relation, range, bookmarked, done_task_keys, details, tasks, tip]
+                    required: [week, trimester, title, relation, range, done_task_keys, details, tasks, tip]
                     properties:
                       week: {type: integer}
                       trimester: {type: integer}
@@ -17885,7 +18297,6 @@ paths:
                       range: {$ref: "#/components/schemas/PregnancyV2Range"}
                       range_label: {type: string}
                       size_line: {type: [string, "null"]}
-                      bookmarked: {type: boolean}
                       done_task_keys: {type: array, items: {type: string}}
                       details:
                         type: object
@@ -17924,7 +18335,7 @@ paths:
   /api/v1/pregnancy/v2/weeks/{n}/state:
     put:
       tags: [PregnancyV2]
-      summary: Bookmark a week / set its done tasks
+      summary: Set a week's done tasks
       description: Partial update — an omitted key keeps its value. Unknown and duplicate task keys are dropped.
       operationId: putPregnancyV2WeekState
       security:
@@ -17939,7 +18350,6 @@ paths:
             schema:
               type: object
               properties:
-                bookmarked: {type: boolean}
                 done_task_keys: {type: array, items: {type: string}, maxItems: 50}
       responses:
         '200':
@@ -17954,10 +18364,9 @@ paths:
                   message: {type: string}
                   data:
                     type: object
-                    required: [week, bookmarked, done_task_keys]
+                    required: [week, done_task_keys]
                     properties:
                       week: {type: integer}
-                      bookmarked: {type: boolean}
                       done_task_keys: {type: array, items: {type: string}}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/ModelNotFound"}
@@ -18317,6 +18726,22 @@ paths:
                           required: [link, partner_name, cycle, pregnancy, meds, appointments, phase, note, tips, child]
                           properties:
                             link: {$ref: "#/components/schemas/CompanionLink"}
+                            settings: {$ref: "#/components/schemas/CompanionLinkSettings"}
+                            signals:
+                              description: |
+                                «ریتمی همراه» v2 (Go only). Per signal: null = the owner does not share it (or the card
+                                may not show it: the signals ride on the effective cycle read, so a paused / out-of-mode /
+                                ungranted cycle section makes every signal null); a boolean = a coarse «today» (Tehran
+                                day) yes/no from the owner's health log — pain: any pain location; energy: low; sleep:
+                                poor quality or a short night. Never a count, code, severity or text. There is no `mood`
+                                key: mood is never shared with a member (SPEC §1.7), whatever the owner's share_mood says.
+                              type: object
+                              required: [pain, energy, sleep]
+                              additionalProperties: false
+                              properties:
+                                pain: {type: [boolean, "null"]}
+                                energy: {type: [boolean, "null"]}
+                                sleep: {type: [boolean, "null"]}
                             partner_name: {type: [string, "null"]}
                             cycle:
                               description: "FamilyCyclePhase (null without an effective grant, T-M11-06)"
@@ -18443,6 +18868,9 @@ paths:
         `GET /teen/linked`.
         Throttles: the shared write budget (60/min) and 20 invites + renewals per hour (429). 503
         `companion_unavailable` in production without `COMPANION_CODE_PEPPER`.
+        Ritme Plus: a `partner` / `spouse` invite needs the `plus.companion` entitlement — a well-formed request from a
+        free account answers **402** `plus_required` (feature `plus.companion`) and creates nothing. A `parent` invite
+        is free, and a teen-mode owner is never shown the paywall (it gets `teen_parent_only`).
       operationId: postCompanions
       security:
         - {bearerAuth: []}
@@ -18460,6 +18888,17 @@ paths:
                 phone: {type: [string, "null"], description: "Mobile (09xxxxxxxxx; Persian digits and +98 accepted). Binds the invite and sends the SMS."}
                 grants: {$ref: "#/components/schemas/CompanionGrantsInput"}
                 child_ids: {type: [array, "null"], maxItems: 20, items: {type: integer, minimum: 1}}
+                goal: {oneOf: [{$ref: "#/components/schemas/CompanionGoal"}, {type: "null"}], description: "«ریتمی همراه» v2 (Go only); default unknown"}
+                signals:
+                  type: [object, "null"]
+                  description: "«ریتمی همراه» v2 (Go only): consent per signal; default all off"
+                  additionalProperties: false
+                  properties:
+                    pain: {type: [boolean, "null"]}
+                    mood: {type: [boolean, "null"]}
+                    energy: {type: [boolean, "null"]}
+                    sleep: {type: [boolean, "null"]}
+                action_prefs: {type: [array, "null"], maxItems: 5, items: {type: string, enum: [food, gift, time, calm, help]}, description: "«ریتمی همراه» v2 (Go only): ordered, deduped; default []"}
             example: {type: spouse, display_name: علی, phone: "09121234567", grants: {meds: edit, appointments: edit, cycle: view, pregnancy: view}}
       responses:
         '201':
@@ -18479,6 +18918,7 @@ paths:
                       companion: {$ref: "#/components/schemas/CompanionOwnerLink"}
                       invite: {$ref: "#/components/schemas/CompanionInvite"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+        '402': {$ref: "#/components/responses/PlusRequired"}
         '422': {$ref: "#/components/responses/CompanionFailed"}
         '429': {$ref: "#/components/responses/CompanionThrottled"}
         '503': {$ref: "#/components/responses/CompanionUnavailable"}
@@ -18705,6 +19145,418 @@ paths:
                 required: [success, message]
                 properties: {success: {type: boolean, const: false}, message: {type: string}}
         '429': {$ref: "#/components/responses/CompanionThrottled"}
+  /api/v1/family/members:
+    post:
+      tags: [Companion]
+      summary: Invite a family member (v6)
+      description: |
+        Go only (T-M11-08, D-196; SPEC §1.7, F-11, F-13). The owner picks a relation (`role`) and a quick start
+        (`template`: cycle_buddy | meds_appointments | full_family | custom — custom seeds the role's defaults), edits rows
+        (`grants` {domain: off|view|nudge|write}, plus `children` off|write), an optional end date (`expires_at`, the whole
+        day included; a carer defaults to EDD + 42 days when pregnant, delivery + 42 days postpartum, else 30 days), the
+        urgent switch (`urgent_alert`) and its neutral SMS (`urgent_sms`), an optional mutual request
+        (`mutual_request.domains` ⊆ appointments, meds) and the consent text version she saw (`consent_version`, the
+        `family_sharing` text version, currently 1; another value is 422). A link `invited` and one invite: a 6-char code living 24 h, or bound to
+        `phone` for 7 days (also texted through the SMS adapter when it delivers; an existing account with that number
+        gets it as a pending acceptance). Grants go through `Grants.Apply` (422 `level_not_allowed` above the registry's
+        caps) with a `family_sharing` consent event. Nothing is visible to anyone before acceptance. Throttled with the
+        /companions invite budget (20/hour). 503 without an invite pepper outside local/testing/contract.
+      operationId: postFamilyMembers
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role, template, consent_version]
+              properties:
+                role: {type: string, enum: [partner, other_parent, carer, friend]}
+                template: {type: string, enum: [cycle_buddy, meds_appointments, full_family, custom]}
+                grants:
+                  type: object
+                  additionalProperties: {type: string, enum: ['off', view, nudge, write]}
+                children: {type: [string, 'null'], enum: ['off', write, null]}
+                expires_at: {type: [string, 'null'], format: date}
+                urgent_alert: {type: [boolean, 'null']}
+                urgent_sms: {type: [boolean, 'null']}
+                mutual_request:
+                  type: [object, 'null']
+                  properties:
+                    domains: {type: array, maxItems: 2, items: {type: string, enum: [appointments, meds]}}
+                phone: {type: [string, 'null'], maxLength: 20}
+                display_name: {type: [string, 'null'], maxLength: 100}
+                consent_version: {type: integer}
+      responses:
+        '201':
+          description: Invite created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [link, invite]
+                    properties:
+                      link:
+                        type: object
+                        required: [id, role, template, status, display_name, expires_at, urgent_sms, grants, children, mutual_request]
+                        properties:
+                          id: {type: integer}
+                          role: {type: string}
+                          template: {type: string}
+                          status: {type: string, const: invited}
+                          display_name: {type: [string, 'null']}
+                          expires_at: {type: [string, 'null'], format: date-time}
+                          urgent_sms: {type: boolean}
+                          grants: {type: array, items: {$ref: "#/components/schemas/FamilyDomainLevel"}}
+                          children: {type: [string, 'null'], enum: [write, limited, null]}
+                          mutual_request:
+                            oneOf:
+                              - {type: 'null'}
+                              - {type: object, required: [domains], properties: {domains: {type: array, items: {type: string}}}}
+                      invite:
+                        type: object
+                        required: [code, channel, expires_at, phone, sms_sent]
+                        properties:
+                          code: {type: string, pattern: '^[A-HJ-NP-Z2-9]{6}$'}
+                          channel: {type: string, enum: [code, phone]}
+                          expires_at: {type: string, format: date-time}
+                          phone: {type: [string, 'null'], description: masked}
+                          sms_sent: {type: boolean}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/FamilyInviteFailed"}
+        '429': {$ref: "#/components/responses/CompanionThrottled"}
+        '503': {$ref: "#/components/responses/CompanionUnavailable"}
+  /api/v1/family/members/{linkId}/confirm:
+    post:
+      tags: [Companion]
+      summary: Confirm an accepted high-impact invite (v6)
+      description: "Go only (T-M11-08, F-11). The owner confirms a link in `awaiting_owner` (a code-only invite that includes any write level, child write, the urgent alert, vitals or shared children): it becomes `active`; the member saw nothing before. The window is 24 h from the acceptance and ends at the link's end date; after it (or for any other link) 404, and the daily sweep revokes the link (`revoked_by = expired`)."
+      operationId: postFamilyMemberConfirm
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: linkId, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Confirmed
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [id, status, owner_confirmed_at]
+                    properties:
+                      id: {type: integer}
+                      status: {type: string, const: active}
+                      owner_confirmed_at: {type: string, format: date-time}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/FamilyNotFound"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
+  /api/v1/family/members/{linkId}/cancel:
+    post:
+      tags: [Companion]
+      summary: Cancel an invite (v6)
+      description: "Go only (T-M11-08). The owner withdraws an `invited` or `awaiting_owner` link at any time (revoked, `revoked_by = owner`; open invites, grants and share requests end). 404 for any other link."
+      operationId: postFamilyMemberCancel
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: linkId, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Cancelled
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [id, status]
+                    properties: {id: {type: integer}, status: {type: string, const: revoked}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/FamilyNotFound"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
+  /api/v1/family/invites/pending:
+    get:
+      tags: [Companion]
+      summary: My pending invite acceptances (v6)
+      description: "Go only (T-M11-08, F-11). Phone invites bound to the caller's account (sent to her number before or after she signed up), newest first, each with the same summary as a preview and its `link_id` — answered with `{link_id}` on accept / decline, no code needed (the code's attempt lock never blocks this, CMP-L8). `Cache-Control: private, no-store`."
+      operationId: getFamilyInvitesPending
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      responses:
+        '200':
+          description: Pending acceptances
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {type: array, items: {$ref: "#/components/schemas/FamilyInvitePreview"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/family/invites/preview:
+    post:
+      tags: [Companion]
+      summary: Preview an invite code (v6)
+      description: |
+        Go only (T-M11-08, D-196, FAM-L3). What accepting the code would share: the owner's first name, the role, the
+        domains with their levels, the children level, the mutual request and whether the owner still has to confirm
+        (`owner_confirmation`). A preview is another code oracle, so it has exactly the accept guards: the same per-account
+        (10/hour) and per-IP (30/hour) budget as `POST /companions/accept` and `/family/invites/accept`, the same global
+        failed-code breaker, the same generic 422 `invite_invalid` for every refusal and the same minimum response time
+        (CMP-L2). Nothing is written (a wrong-account try of a phone-bound code counts once per account).
+      operationId: postFamilyInvitesPreview
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, required: [code], properties: {code: {type: string, maxLength: 32}}}
+      responses:
+        '200':
+          description: Preview
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/FamilyInvitePreview"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/FamilyInviteFailed"}
+        '429': {$ref: "#/components/responses/CompanionThrottled"}
+        '503': {$ref: "#/components/responses/CompanionUnavailable"}
+  /api/v1/family/invites/accept:
+    post:
+      tags: [Companion]
+      summary: Accept an invite (v6)
+      description: |
+        Go only (T-M11-08, D-196, F-11). `{code}` or `{link_id}` (a pending acceptance). The link becomes `active`, or
+        `awaiting_owner` when a code-only invite includes any write level, child write, the urgent alert, vitals or (a
+        /companions spouse invite) shared children — the member sees nothing until the owner confirms. `mutual` ({domain: level}, within the owner's mutual request) creates an independent
+        reverse link caller → owner with the caller's grants and consent; accepting without it is allowed. Same guards
+        and generic refusal as preview.
+      operationId: postFamilyInvitesAccept
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code: {type: [string, 'null'], maxLength: 32}
+                link_id: {type: [integer, 'null']}
+                mutual:
+                  type: [object, 'null']
+                  additionalProperties: {type: string, enum: ['off', view, nudge, write]}
+      responses:
+        '200':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [link, mutual_link]
+                    properties:
+                      link:
+                        type: object
+                        required: [id, status]
+                        properties: {id: {type: integer}, status: {type: string, enum: [active, awaiting_owner]}}
+                      mutual_link:
+                        oneOf:
+                          - {type: 'null'}
+                          - {type: object, required: [id, status], properties: {id: {type: integer}, status: {type: string, const: active}}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/FamilyInviteFailed"}
+        '429': {$ref: "#/components/responses/CompanionThrottled"}
+        '503': {$ref: "#/components/responses/CompanionUnavailable"}
+  /api/v1/family/invites/decline:
+    post:
+      tags: [Companion]
+      summary: Decline an invite (v6)
+      description: "Go only (T-M11-08, F-12). `{code}` or `{link_id}`: the link is revoked with `revoked_by = declined`, hidden from lists and kept for audit and KPIs. Same guards and generic refusal as preview."
+      operationId: postFamilyInvitesDecline
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code: {type: [string, 'null'], maxLength: 32}
+                link_id: {type: [integer, 'null']}
+      responses:
+        '200':
+          description: Declined
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {type: 'null'}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/FamilyInviteFailed"}
+        '429': {$ref: "#/components/responses/CompanionThrottled"}
+        '503': {$ref: "#/components/responses/CompanionUnavailable"}
+  /api/v1/family/share-requests:
+    get:
+      tags: [Companion]
+      summary: Share requests (v6)
+      description: "Go only (T-M11-08, SPEC §1.7 share_request). `box=in` (default): live requests asked of the caller (she is the data owner and decides); `box=out`: the caller's own requests, newest first, any status (`expired` for a lapsed pending one). `Cache-Control: private, no-store`."
+      operationId: getFamilyShareRequests
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: box, in: query, required: false, schema: {type: string, enum: [in, out]}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Requests
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data: {type: array, items: {$ref: "#/components/schemas/FamilyShareRequest"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+    post:
+      tags: [Companion]
+      summary: Ask for more access (v6)
+      description: "Go only (T-M11-08). Either side of a family link asks the other for more access to the other's data (`domains` {domain: view|nudge|write}). 404 when the two are not linked (no account oracle); 422 `level_not_allowed` above the registry's caps for the relation; **429** when a domain was asked of the same person in the last 7 days. Nothing changes until the data owner approves."
+      operationId: postFamilyShareRequests
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [to_user_id, domains]
+              properties:
+                to_user_id: {type: integer}
+                domains:
+                  type: object
+                  additionalProperties: {type: string, enum: [view, nudge, write]}
+      responses:
+        '201':
+          description: Request sent
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/FamilyShareRequest"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/FamilyNotFound"}
+        '422': {$ref: "#/components/responses/FamilyInviteFailed"}
+        '429': {$ref: "#/components/responses/FamilyShareRequestThrottled"}
+  /api/v1/family/share-requests/{id}/approve:
+    post:
+      tags: [Companion]
+      summary: Approve a share request (v6)
+      description: "Go only (T-M11-08). Only the data owner (the request's recipient): the requested levels are merged into her link to the requester (never lowering a level) or such a link is created, through `Grants.Apply` (activity diff and consent). Another user's, a decided or an expired request is 404 and nothing changes."
+      operationId: postFamilyShareRequestApprove
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Approved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [id, status, link_id]
+                    properties: {id: {type: integer}, status: {type: string, const: accepted}, link_id: {type: integer}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/FamilyNotFound"}
+        '422': {$ref: "#/components/responses/FamilyInviteFailed"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
+  /api/v1/family/share-requests/{id}/decline:
+    post:
+      tags: [Companion]
+      summary: Decline a share request (v6)
+      description: "Go only (T-M11-08). Only the data owner; nothing else changes. 404 otherwise."
+      operationId: postFamilyShareRequestDecline
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      responses:
+        '200':
+          description: Declined
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [id, status]
+                    properties: {id: {type: integer}, status: {type: string, const: declined}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/FamilyNotFound"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
   /api/v1/companions/links:
     get:
       tags: [Companion]
@@ -18933,6 +19785,43 @@ paths:
       responses:
         '200':
           description: Shared children updated
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data: {$ref: "#/components/schemas/CompanionOwnerLink"}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '404': {$ref: "#/components/responses/CompanionNotFound"}
+        '422': {$ref: "#/components/responses/CompanionFailed"}
+        '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/companions/{id}/preferences:
+    put:
+      tags: [Companion]
+      summary: Change a companion's «ریتمی همراه» settings (owner)
+      description: |
+        Go only («ریتمی همراه» v2; Laravel answers 404). Partial update of the owner's settings of one of her invited
+        or active links: only the sent keys change (`signals` key by key). 404 for another account's, a revoked or an
+        unknown link (no existence oracle). Recorded in the audit trail as `grants_changed` without values; an empty
+        body changes and records nothing. Throttle: the shared write budget (60/min).
+      operationId: putCompanionsPreferences
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/CompanionPreferencesInput"}
+            example: {goal: support, signals: {pain: true, mood: true}, action_prefs: [calm, food]}
+      responses:
+        '200':
+          description: Settings updated
           content:
             application/json:
               schema:
@@ -19181,9 +20070,9 @@ paths:
         `category` (blood | hormone | thyroid | urine | other), optional `title` (≤ 120), `taken_on` (Y-m-d, not in the
         future) and `fasting` (boolean). Photos are re-encoded (WebP, EXIF / GPS dropped); every page is stored
         AES-256-GCM encrypted in private storage (LAB_FILE_KEY; production without it answers 503
-        `lab_storage_unavailable`). Gate order (B-N6-05b): per-user throttles (4/minute, 20/hour), Plus `plus.lab_ai`
-        (10 per month; free users 402 before the body is read), consent `ai_lab_analysis` (403), global / per-user AI
-        cost caps, at most 2 AI requests at once, then one Plus use is reserved — given back when this request fails or
+        `lab_storage_unavailable`). Gate order (B-N6-05b): per-user throttles (4/minute, 20/hour), subscription + credits
+        (402 `ai_subscription_required` / `ai_credits_exhausted` before the body is read, D-209), consent `ai_lab_analysis` (403), global / per-user AI
+        cost caps, at most 2 AI requests at once, then the credits are reserved — given back when this request fails or
         when the extraction fails for good (blank / unusable sheets only while the month's extraction calls stay within 30). At most 25 pages per user per 24 h, counted from the append-only AI usage log (429 `lab_daily_limit`). At most 4 uploads are processed at once per instance (503 `lab_busy`).
         The extraction runs as a job: 202 with the lab `queued` (the client polls `GET /labs/{id}/status`); on the
         contract stack (QUEUE_CONNECTION=sync) it has already run (`needs_review` or `failed`).
@@ -19212,8 +20101,8 @@ paths:
             application/json:
               schema: {$ref: "#/components/schemas/LabEnvelope"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
-        '402': {$ref: "#/components/responses/PlusRequired"}
-        '403': {$ref: "#/components/responses/ConsentRequired"}
+        '402': {$ref: "#/components/responses/AIPaymentRequired"}
+        '403': {$ref: "#/components/responses/AIForbidden"}
         '422': {$ref: "#/components/responses/LabValidationFailed"}
         '429':
           description: |
@@ -21097,8 +21986,8 @@ paths:
         CB-REC-02 (nbl_Rec_Doc «اطلاعات خوانده‌شده از سند»). Queues the AI extraction of the document's files (the first
         5) with the kind's schema (date, centre, doctor; imaging: modality, gestational age, due date, findings;
         visit, prescription with medicine rows, hospital, other). The AI gate runs first, in the B-N6-05b order:
-        throttles → `plus.doc_ai` (20 / month; free users get 402 and fill the fields in by hand with PUT) → versioned
-        consent `ai_documents` (403) → cost caps / concurrency → one reserved Plus use, given back when the request or
+        throttles → subscription + credits (402 `ai_subscription_required` / `ai_credits_exhausted`, D-209; the fields can still be filled in by hand with PUT) → versioned
+        consent `ai_documents` (403) → cost caps / concurrency → the reserved credits, given back when the request or
         the extraction fails. 202 with the document: `review_state` `pending` (the job runs on the workers; poll
         GET /health-record/documents/{id}), or already `needs_review` / `failed` when the queue runs inline.
         Values are suggestions with a confidence until the user confirms them (POST …/review or PUT `confirm`).
@@ -21121,8 +22010,8 @@ paths:
                   message: {type: string}
                   data: {$ref: "#/components/schemas/RecordDocument"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
-        '402': {$ref: "#/components/responses/PlusRequired"}
-        '403': {$ref: "#/components/responses/ConsentRequired"}
+        '402': {$ref: "#/components/responses/AIPaymentRequired"}
+        '403': {$ref: "#/components/responses/AIForbidden"}
         '404': {$ref: "#/components/responses/RecordDocumentNotFound"}
         '409': {$ref: "#/components/responses/RecordExtractionConflict"}
         '422': {$ref: "#/components/responses/HealthRecordValidationFailed"}
@@ -23354,7 +24243,7 @@ paths:
     get:
       tags: [Assistant]
       summary: Assistant clinic hub
-      description: "«کلینیک دستیار ریتمی» (bloom B-N7-06, D-83): active departments, the monthly quota of `plus.assistant_unlimited` (free 5 model answers, Plus unlimited; null without the Plus service), the 5 newest conversations, the profile sharing state and the emergency number."
+      description: "«کلینیک دستیار ریتمی» (bloom B-N7-06, D-83): active departments, `quota` = the caller's AI credits in the old quota shape (`limit` = period credits, `remaining` = spendable, `allowed` = a subscription runs and one message is affordable; D-209), the 5 newest conversations, the profile sharing state and the emergency number."
       operationId: assistantHub
       security:
         - {bearerAuth: []}
@@ -23603,8 +24492,8 @@ paths:
         Body `{text (≤ 2000), photo_id?}` (an own `assistant_photo`). Validation and ownership are checked first (422 /
         404). The text is then checked server-side against the emergency terms (admin-editable `assistant_safety_terms`
         plus a built-in floor): a match stores the message and the 115 card and streams `meta`, `card`, `done` — no model
-        call, no consent and no quota needed. Otherwise the AI gate runs (throttles 10/minute 120/hour, Plus
-        `plus.assistant_unlimited` 402/429, consent `ai_assistant` 403, cost caps, 2 running requests) and one use is
+        call, no consent and no quota needed. Otherwise the AI gate runs (throttles 10/minute 120/hour, subscription +
+        credits 402 (D-209), consent `ai_assistant` 403, cost caps, 2 running requests) and the message's credits are
         reserved (given back when the model fails before its first word).
 
         Response `text/event-stream` (200). Events, each `data:` a JSON object:
@@ -23637,8 +24526,8 @@ paths:
             text/event-stream:
               schema: {type: string}
         '401': {$ref: "#/components/responses/Unauthenticated"}
-        '402': {$ref: "#/components/responses/PlusRequired"}
-        '403': {$ref: "#/components/responses/ConsentRequired"}
+        '402': {$ref: "#/components/responses/AIPaymentRequired"}
+        '403': {$ref: "#/components/responses/AIForbidden"}
         '404': {$ref: "#/components/responses/AssistantError"}
         '422': {$ref: "#/components/responses/ValidationFailed"}
         '429':
@@ -23683,7 +24572,8 @@ paths:
                       photos_count: {type: integer}
                       triage_levels: {type: array, items: {type: string}}
         '401': {$ref: "#/components/responses/Unauthenticated"}
-        '403': {$ref: "#/components/responses/ConsentRequired"}
+        '402': {$ref: "#/components/responses/AIPaymentRequired"}
+        '403': {$ref: "#/components/responses/AIForbidden"}
         '404': {$ref: "#/components/responses/AssistantError"}
         '422': {$ref: "#/components/responses/AssistantError"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
@@ -24762,6 +25652,113 @@ paths:
         '422': {$ref: "#/components/responses/InsuranceValidationFailed"}
         '409': {$ref: "#/components/responses/InsuranceConflict"}
         '429': {$ref: "#/components/responses/WriteThrottled"}
+  /api/v1/push/config:
+    get:
+      tags: [Care]
+      summary: Web Push public key
+      description: "The VAPID public key a browser subscribes with (`PushManager.subscribe({applicationServerKey})`); null when web push is not configured on this server (`VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY`)."
+      operationId: getPushConfig
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      responses:
+        '200':
+          description: Push configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [public_key]
+                    properties:
+                      public_key: {type: [string, "null"]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+  /api/v1/push/subscriptions:
+    post:
+      tags: [Care]
+      summary: Subscribe this browser to reminders
+      description: |
+        Stores the browser's `PushSubscription.toJSON()`; due medication doses and new in-app notifications (`GET /home/notifications`) are then pushed to it. Idempotent per
+        endpoint; a browser belongs to the last account that subscribed it; at most 10 per user (the oldest is dropped).
+        The endpoint must be an https URL of a known push service (FCM, Mozilla, WNS, Apple) — 422 on `endpoint`
+        otherwise; malformed keys → 422 on `keys`. The push payload is JSON `{title, body, url, tag}`.
+      operationId: storePushSubscription
+      security:
+        - {bearerAuth: []}
+      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [endpoint, keys]
+              properties:
+                endpoint: {type: string, maxLength: 2000}
+                keys:
+                  type: object
+                  required: [p256dh, auth]
+                  properties:
+                    p256dh: {type: string, maxLength: 255}
+                    auth: {type: string, maxLength: 255}
+      responses:
+        '200':
+          description: Subscribed
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [subscribed]
+                    properties:
+                      subscribed: {type: boolean}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+    delete:
+      tags: [Care]
+      summary: Unsubscribe this browser
+      description: "`endpoint` in the JSON body or the query string. Idempotent."
+      operationId: destroyPushSubscription
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {name: endpoint, in: query, required: false, schema: {type: string, maxLength: 2000}}
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                endpoint: {type: string, maxLength: 2000}
+      responses:
+        '200':
+          description: Unsubscribed
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  message: {type: string}
+                  data:
+                    type: object
+                    required: [subscribed]
+                    properties:
+                      subscribed: {type: boolean}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
 components:
   securitySchemes:
     bearerAuth:
@@ -25740,6 +26737,40 @@ components:
               message: {type: string}
               error_code: {type: string, const: too_many_requests}
               retry_after: {type: integer, minimum: 0}
+    FamilyInviteFailed:
+      description: "Family invite / share-request 422 (controller body `{success: false, message, errors?, error_code?}` in the request language): field errors, `invite_invalid` (every code refusal — unknown, expired, used, locked, another number, the owner's own, already linked, the owner's mode no longer allowing the link — so a code's existence is never revealed), `level_not_allowed` (above the registry's caps), `limit_reached`, `teen_parent_only`, `mutual_exists`, `link_pending`"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              errors:
+                type: object
+                additionalProperties: {type: array, items: {type: string}}
+              error_code: {type: string, enum: [invite_invalid, level_not_allowed, limit_reached, teen_parent_only, mutual_exists, link_pending]}
+    FamilyNotFound:
+      description: "Unknown link or request, or one that is not the caller's — existence is never revealed"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties: {success: {type: boolean, const: false}, message: {type: string}}
+    FamilyShareRequestThrottled:
+      description: "A domain was already asked of the same person within 7 days (one per domain per pair per 7 days), or the per-account write budget"
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message]
+            properties:
+              success: {type: boolean, const: false}
+              message: {type: string}
+              error_code: {type: string}
+              retry_after: {type: integer, minimum: 0}
     CompanionUnavailable:
       description: "Production without `COMPANION_CODE_PEPPER`: invites cannot be created, renewed or accepted (fail closed)"
       content:
@@ -25808,6 +26839,62 @@ components:
               success: {type: boolean, const: false}
               message: {type: string}
               error_code: {type: string, enum: [ai_unavailable, ai_budget_exhausted, ai_failed]}
+    AIPaymentRequired:
+      description: |
+        AI gate (D-209): `ai_subscription_required` — no running subscription or trial (`extra_credits` = the kept,
+        locked extra credits); `ai_credits_exhausted` — the use costs `required` credits but only `balance` are
+        spendable (`plan_remaining` period credits renew at `period_ends_at`, null when none runs; `extra_credits`).
+        The client shows the subscription page or the credit packs. Never a 401, so the session is kept. A use that
+        fails afterwards (handler error or status ≥ 400) gets its credits back.
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - type: object
+                required: [success, message, error_code, feature, extra_credits]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, const: ai_subscription_required}
+                  feature: {type: string, description: "AI feature slot (assistant, voice_log, lab_analysis, doc_extract, …)"}
+                  extra_credits: {type: integer, minimum: 0}
+              - type: object
+                required: [success, message, error_code, feature, required, balance, plan_remaining, extra_credits, period_ends_at]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, const: ai_credits_exhausted}
+                  feature: {type: string}
+                  required: {type: integer, minimum: 0}
+                  balance: {type: integer, minimum: 0}
+                  plan_remaining: {type: integer, minimum: 0}
+                  extra_credits: {type: integer, minimum: 0}
+                  period_ends_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+          example: {success: false, message: You need an active subscription to use smart features., error_code: ai_subscription_required, feature: voice_log, extra_credits: 0}
+    AIForbidden:
+      description: |
+        AI gate: the feature's consent is missing or outdated (`consent_required`, see ConsentRequired), or the admin
+        turned the feature off (`ai_feature_disabled` {feature}, D-209).
+      content:
+        application/json:
+          schema:
+            oneOf:
+              - type: object
+                required: [success, message, error_code, consent, version, reason]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, const: consent_required}
+                  consent: {type: string}
+                  version: {type: integer}
+                  reason: {type: string, enum: [missing, outdated]}
+              - type: object
+                required: [success, message, error_code, feature]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, const: ai_feature_disabled}
+                  feature: {type: string}
     PlusRequired:
       description: |
         The feature needs Ritme Plus (B-N2-06 gate, `error_code: plus_required`): `reason` `locked` = not in the free
@@ -25828,7 +26915,7 @@ components:
               resets_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
           example: {success: false, message: This feature is part of Ritme Plus., error_code: plus_required, feature: plus.deep_analysis, reason: locked, limit: null, resets_at: null}
     PlusQuotaExceeded:
-      description: "A Plus or trial user spent a monthly quota (`error_code: plus_quota_exceeded`, e.g. plus.lab_ai 10/month); it renews at `resets_at`"
+      description: "A Plus or trial user spent a monthly quota (`error_code: plus_quota_exceeded`, a limited Plus feature); it renews at `resets_at`"
       content:
         application/json:
           schema:
@@ -30165,6 +31252,49 @@ components:
             expires_at: {$ref: "#/components/schemas/IsoDateTime"}
             phone: {type: [string, "null"], description: "Masked: 0912****567", examples: ["0912****567"]}
         family: {$ref: "#/components/schemas/CompanionFamily"}
+        goal: {$ref: "#/components/schemas/CompanionGoal"}
+        signals: {$ref: "#/components/schemas/CompanionSignalScope"}
+        action_prefs: {$ref: "#/components/schemas/CompanionActionPrefs"}
+    CompanionGoal:
+      type: string
+      enum: [cycle, support, low_energy, quality_time, info, unknown]
+      description: "«ریتمی همراه» v2 (Go only; absent on Laravel): what the owner wants from the link. Default unknown."
+    CompanionSignalScope:
+      type: object
+      description: "«ریتمی همراه» v2 (Go only): the owner's separate consent per coarse day signal, every key present; all false by default. `mood` is stored and echoed but never reaches a member (SPEC §1.7)."
+      required: [pain, mood, energy, sleep]
+      additionalProperties: false
+      properties:
+        pain: {type: boolean}
+        mood: {type: boolean}
+        energy: {type: boolean}
+        sleep: {type: boolean}
+    CompanionActionPrefs:
+      type: array
+      description: "«ریتمی همراه» v2 (Go only): suggestion kinds the owner picked, in her order, distinct; default []"
+      maxItems: 5
+      items: {type: string, enum: [food, gift, time, calm, help]}
+    CompanionLinkSettings:
+      type: object
+      description: "«ریتمی همراه» v2 (Go only): what the member sees of the owner's preferences (never the signal consents). Defaults (unknown, []) while awaiting_owner."
+      required: [goal, action_prefs]
+      properties:
+        goal: {$ref: "#/components/schemas/CompanionGoal"}
+        action_prefs: {$ref: "#/components/schemas/CompanionActionPrefs"}
+    CompanionPreferencesInput:
+      type: object
+      description: "«ریتمی همراه» v2 preference keys, each optional (absent or null = unchanged / default). Unknown goal, non-boolean signal, unknown signal key, unknown or more than 5 action kinds → 422 on the field. Repeated action kinds are deduped keeping the first one's place."
+      properties:
+        goal: {oneOf: [{$ref: "#/components/schemas/CompanionGoal"}, {type: "null"}]}
+        signals:
+          type: [object, "null"]
+          additionalProperties: false
+          properties:
+            pain: {type: [boolean, "null"]}
+            mood: {type: [boolean, "null"]}
+            energy: {type: [boolean, "null"]}
+            sleep: {type: [boolean, "null"]}
+        action_prefs: {type: [array, "null"], maxItems: 5, items: {type: string, enum: [food, gift, time, calm, help]}}
     CompanionLink:
       type: object
       required: [id, type, owner, accepted_at, grants, can_record_for, family]
@@ -30175,8 +31305,9 @@ components:
           type: object
           required: [id, name]
           properties:
-            id: {type: integer, description: "Pass as `for_user_id` on the care routes"}
+            id: {type: [integer, "null"], description: "Pass as `for_user_id` on the care routes; null (and `name` the first name only) while `status` is awaiting_owner"}
             name: {type: [string, "null"]}
+        status: {type: string, enum: [awaiting_owner], description: "Only on an accept that waits for the owner's confirmation (D-196, F-11): nothing is shared yet"}
         accepted_at: {oneOf: [{$ref: "#/components/schemas/IsoDateTime"}, {type: "null"}]}
         grants:
           description: "The sections the member effectively holds right now (T-M11-06): no `none` rows, nothing paused or out of the owner's mode, never `symptoms` (F-03)"
@@ -30185,6 +31316,7 @@ components:
           additionalProperties: {type: string, enum: [view, edit, none], description: "view | edit (`none` only in pre-v6 recorded goldens, D-194)"}
         can_record_for: {type: array, items: {type: string, enum: [meds, appointments]}}
         family: {$ref: "#/components/schemas/CompanionFamily"}
+        settings: {$ref: "#/components/schemas/CompanionLinkSettings"}
     FamilyCyclePhase:
       type: object
       additionalProperties: false
@@ -30465,7 +31597,7 @@ components:
         not_causal: {type: boolean, const: true}
     PlusPlan:
       type: object
-      required: [id, code, title, badge, duration_months, price, monthly_price, savings_percent, is_highlighted]
+      required: [id, code, title, badge, duration_months, price, monthly_price, savings_percent, is_highlighted, ai_credits]
       properties:
         id: {type: integer}
         code: {type: string}
@@ -30476,6 +31608,14 @@ components:
         monthly_price: {type: integer, description: Rials per month}
         savings_percent: {type: integer, minimum: 0, maximum: 100}
         is_highlighted: {type: boolean}
+        ai_credits: {type: integer, minimum: 0, description: "AI credits granted per subscription period (D-209)"}
+        duration_minutes:
+          type: [integer, "null"]
+          description: Only on GET /plus/plans. Set for developer test plans (`mtest`, 5) — the period is this many minutes instead of `duration_months`.
+        store_skus:
+          type: object
+          additionalProperties: {type: string}
+          description: Only on GET /plus/plans. The plan's SKU per Android store (`bazaar`, `myket`); `{}` = web only.
     PlusPlans:
       type: object
       required: [currency, vat_rate_bps, trial_days, plans]
@@ -30483,6 +31623,11 @@ components:
         currency: {type: string, const: IRR}
         vat_rate_bps: {type: integer, minimum: 0, maximum: 10000}
         trial_days: {type: integer, minimum: 1}
+        store_channels:
+          type: array
+          items: {type: string, enum: [bazaar, myket]}
+          description: Android stores whose in-app billing is configured on this server.
+        store_trial_sku: {type: [string, "null"], description: The store SKU that starts the one Plus trial.}
         plans: {type: array, items: {$ref: "#/components/schemas/PlusPlan"}}
     PlusPlanRef:
       type: object
@@ -30498,8 +31643,8 @@ components:
       properties:
         key:
           type: string
-          description: "Stable key; known today: plus.deep_analysis, plus.lab_ai, plus.assistant_unlimited, plus.pdf_share, plus.visit_discount, plus.voice_log, plus.doc_ai (more may be added)"
-          examples: [plus.lab_ai]
+          description: "Stable key; known today: plus.deep_analysis, plus.pdf_share, plus.visit_discount, plus.analysis_long_range, plus.sms_reminders, plus.companion (more may be added; AI features spend credits instead, D-209)"
+          examples: [plus.deep_analysis]
         allowed: {type: boolean, description: May use it now}
         unlimited: {type: boolean}
         limit: {type: [integer, "null"], description: "Uses per month; null = unlimited, 0 = locked"}
@@ -30667,6 +31812,63 @@ components:
                 amount: {type: integer}
                 paid_at: {$ref: "#/components/schemas/IsoDateTime"}
         discount_source: {type: [string, "null"], enum: [code, trial_offer, null]}
+        kind: {type: string, enum: [plan, credit_pack], description: "What the invoice buys (D-209)"}
+        credits: {type: [integer, "null"], description: "Credits of a credit-pack invoice; null for a plan"}
+        credit_pack:
+          oneOf:
+            - type: "null"
+            - type: object
+              required: [id, code, title, credits]
+              properties:
+                id: {type: integer}
+                code: {type: string}
+                title: {type: string, description: Localized}
+                credits: {type: integer}
+    AICreditPack:
+      type: object
+      required: [id, code, title, badge, credits, price, is_highlighted]
+      properties:
+        id: {type: integer}
+        code: {type: string}
+        title: {type: string, description: Localized}
+        badge: {type: [string, "null"], description: Localized}
+        credits: {type: integer, minimum: 1}
+        price: {type: integer, description: Rials before VAT}
+        is_highlighted: {type: boolean}
+    AICreditBalance:
+      type: object
+      required: [can_use, period, period_ends_at, plan, extra, spendable, features]
+      properties:
+        can_use: {type: boolean, description: A subscription or the trial runs (nothing is spendable otherwise)}
+        period: {type: [string, "null"], enum: [plus, trial, null]}
+        period_ends_at: {oneOf: [{type: "null"}, {$ref: "#/components/schemas/IsoDateTime"}]}
+        plan:
+          type: object
+          required: [total, used, remaining]
+          description: The running period's credits (they expire with it, no carry-over)
+          properties:
+            total: {type: integer, minimum: 0}
+            used: {type: integer, minimum: 0}
+            remaining: {type: integer, minimum: 0}
+        extra:
+          type: object
+          required: [remaining, locked]
+          description: Extra credits (packs, admin grants) — never expire; `locked` = kept but not spendable without a subscription
+          properties:
+            remaining: {type: integer, minimum: 0}
+            locked: {type: boolean}
+        spendable: {type: integer, minimum: 0}
+        features:
+          type: array
+          items:
+            type: object
+            required: [key, title, credit_cost, available, affordable]
+            properties:
+              key: {type: string, examples: [assistant]}
+              title: {type: string, description: Localized}
+              credit_cost: {type: integer, minimum: 0, description: Credits per use (admin data)}
+              available: {type: boolean, description: The feature is on and has a model}
+              affordable: {type: boolean, description: "available, a subscription runs and spendable ≥ credit_cost"}
     PlusPayment:
       type: object
       required: [gateway, authority, redirect_url]
@@ -31048,7 +32250,7 @@ components:
       required: [name, gender, goal, life_stage, cycle, menopause, conditions, health, started_at, completed_at, completed]
       properties:
         name: {type: [string, "null"]}
-        gender: {type: [string, "null"], enum: [female, male, null]}
+        gender: {type: [string, "null"], enum: [female, male, unspecified, null]}
         goal: {type: [string, "null"], description: "the stored life mode (cycle / ttc / pregnancy / menopause from the Goal step)"}
         life_stage: {$ref: "#/components/schemas/LifeStage"}
         cycle:
@@ -31131,7 +32333,7 @@ components:
               cycle_day: {type: integer, minimum: 0}
     NotificationSettings:
       type: object
-      required: [groups, quiet_hours, neutral_copy]
+      required: [groups, quiet_hours, neutral_copy, sms_reminders]
       properties:
         groups:
           type: array
@@ -31156,6 +32358,7 @@ components:
             start: {type: string, pattern: "^[0-2][0-9]:[0-5][0-9]$"}
             end: {type: string, pattern: "^[0-2][0-9]:[0-5][0-9]$"}
         neutral_copy: {type: boolean, description: "«متن خنثی» = discreet notifications (CB-PRIV-01): push, web push and SMS copy is neutral («یادآور امروز»)."}
+        sms_reminders: {type: boolean, description: "«یادآور پیامکی» (default on): Ritme Plus subscribers (`plus.sms_reminders`) also get their medication doses and appointment reminders by SMS, behind the same category switches, quiet hours and neutral copy, at most a few per day. Without Plus the switch has no effect."}
     ContraceptionMethodCode:
       type: string
       enum: [combined_pill, progestin_pill, copper_iud, hormonal_iud, injection, implant, condom, other]
@@ -32923,7 +34126,7 @@ components:
       properties: {value: {type: string}, label: {type: string}}
     MedicationInput:
       type: object
-      description: "Medication fields. POST requires `title`, `form`, `times`; PUT sends any subset."
+      description: "Medication fields. POST requires `title` and either `doses` (the interval schedule: the server derives `times`, `weekdays`, `amount` and, when not sent, `form`) or `form` + `times` (the weekday schedule); PUT sends any subset. A PUT with `times` and no `doses` turns an interval schedule back into a weekday one."
       properties:
         title: {type: string, maxLength: 255, examples: [فولیک اسید]}
         for_user_id: {type: integer, minimum: 1, description: "«ثبت برای …» (B-N4-02): record / edit in this owner's list as her companion with an edit grant on meds (403 `companion_forbidden` otherwise; the owner gets an in-app notice, the write is audited). The answer is then `MemberMedication` (T-M9-02). Omitted or own id = own list."}
@@ -32941,10 +34144,84 @@ components:
         notify: {type: boolean, default: true}
         notes: {type: [string, "null"], maxLength: 2000}
         is_active: {type: boolean, default: true}
+        frequency:
+          description: "With `doses`. Default every 1 day. `day`: every 1–30 days counted from `starts_on`; `hour`: every 1, 2, 3, 4, 6, 8 or 12 hours around the clock, from each dose's `time` (422 on `frequency.every` otherwise)."
+          anyOf: [{$ref: "#/components/schemas/MedicationFrequency"}, {type: "null"}]
+        doses:
+          type: [array, "null"]
+          minItems: 1
+          maxItems: 6
+          description: "Distinct `time`s (422 on `doses.N.time`)."
+          items:
+            type: object
+            required: [time, amount, unit]
+            properties:
+              time: {type: string, pattern: "^\\d{2}:\\d{2}$"}
+              amount: {type: integer, minimum: 1, maximum: 99}
+              unit: {type: string, enum: [pill, capsule, drop, ml, spoon, puff, injection]}
+              meal: {type: [string, "null"], enum: [before, after, null]}
+    MedicationFrequency:
+      type: object
+      required: [every, unit]
+      properties:
+        every: {type: integer, minimum: 1, maximum: 30}
+        unit: {type: string, enum: [day, hour]}
+    MedicationDose:
+      type: object
+      required: [time, amount, unit, unit_label, meal]
+      properties:
+        time: {type: string, description: "`HH:MM`; with an hourly frequency the first intake of the chain."}
+        amount: {type: integer}
+        unit: {type: string}
+        unit_label: {type: [string, "null"], description: "The unit in the request language."}
+        meal: {type: [string, "null"], enum: [before, after, null]}
+    FamilyDomainLevel:
+      type: object
+      required: [domain, level]
+      properties:
+        domain: {type: string, enum: [cycle_phase, pregnancy, appointments, fetal_activity, vitals, meds, urgent_alert, household, ttc_fertility, teen_period_week, teen_kit, teen_notes]}
+        level: {type: string, enum: [view, nudge, write]}
+    FamilyInvitePreview:
+      type: object
+      required: [link_id, owner, role, template, domains, children, mutual_request, owner_confirmation, expires_at]
+      properties:
+        link_id: {type: [integer, 'null'], description: "set for a pending acceptance only"}
+        owner:
+          type: object
+          required: [first_name]
+          properties: {first_name: {type: [string, 'null']}}
+        role: {type: [string, 'null']}
+        template: {type: [string, 'null']}
+        domains: {type: array, items: {$ref: "#/components/schemas/FamilyDomainLevel"}}
+        children: {type: [string, 'null'], enum: [write, limited, null]}
+        mutual_request:
+          oneOf:
+            - {type: 'null'}
+            - {type: object, required: [domains], properties: {domains: {type: array, items: {type: string, enum: [appointments, meds]}}}}
+        owner_confirmation: {type: boolean}
+        expires_at: {type: [string, 'null'], format: date-time}
+    FamilyShareRequest:
+      type: object
+      required: [id, from, to, domains, status, expires_at, decided_at, created_at]
+      properties:
+        id: {type: integer}
+        from:
+          type: object
+          required: [id, name]
+          properties: {id: {type: integer}, name: {type: [string, 'null']}}
+        to:
+          type: object
+          required: [id, name]
+          properties: {id: {type: integer}, name: {type: [string, 'null']}}
+        domains: {type: array, items: {$ref: "#/components/schemas/FamilyDomainLevel"}}
+        status: {type: string, enum: [pending, accepted, declined, expired]}
+        expires_at: {type: string, format: date-time}
+        decided_at: {type: [string, 'null'], format: date-time}
+        created_at: {type: [string, 'null'], format: date-time}
     MemberMedication:
       type: object
       description: "What a family member (companion) sees of the owner's medication — the meds section items and every `for_user_id` show / store / update answer (T-M9-02, D-133). An explicit allow-list: never her notes, a free-text subtitle, dose or unit; an unknown form / unit / non-numeric dose is null."
-      required: [id, type, title, form, dose, unit, unit_label, times, weekdays, starts_on, ends_on, is_active]
+      required: [id, type, title, form, dose, unit, unit_label, times, weekdays, frequency, doses, starts_on, ends_on, is_active]
       properties:
         id: {type: integer}
         type: {type: string, const: medication}
@@ -32955,6 +34232,10 @@ components:
         unit_label: {type: [string, "null"], description: "The unit in the request language."}
         times: {type: array, items: {type: string}}
         weekdays: {type: array, items: {type: integer, minimum: 0, maximum: 6}}
+        frequency:
+          description: "The interval schedule; null = a weekday-schedule medication (`weekdays` + `times`)."
+          anyOf: [{$ref: "#/components/schemas/MedicationFrequency"}, {type: "null"}]
+        doses: {type: array, items: {$ref: "#/components/schemas/MedicationDose"}, description: "Sorted by time; empty for a weekday-schedule medication."}
         starts_on:
           anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]
         ends_on:
@@ -32963,7 +34244,7 @@ components:
       additionalProperties: false
     Medication:
       type: object
-      required: [id, type, title, subtitle, notes, form, dose, unit, times, weekdays, amount, duration, notify, starts_on, ends_on, is_active, recurrence, recurrence_time, created_at, updated_at]
+      required: [id, type, title, subtitle, notes, form, dose, unit, times, weekdays, amount, duration, notify, frequency, doses, starts_on, ends_on, is_active, recurrence, recurrence_time, created_at, updated_at]
       properties:
         id: {type: integer}
         type: {type: string, const: medication}
@@ -32978,6 +34259,10 @@ components:
         amount: {type: integer}
         duration: {type: string, enum: [ongoing, until_date, pregnancy_end]}
         notify: {type: boolean}
+        frequency:
+          description: "The interval schedule; null = a weekday-schedule medication (`weekdays` + `times`)."
+          anyOf: [{$ref: "#/components/schemas/MedicationFrequency"}, {type: "null"}]
+        doses: {type: array, items: {$ref: "#/components/schemas/MedicationDose"}, description: "Sorted by time; empty for a weekday-schedule medication."}
         starts_on:
           anyOf: [{$ref: "#/components/schemas/Date"}, {type: "null"}]
         ends_on:
@@ -33003,6 +34288,8 @@ components:
         amount: 1
         duration: pregnancy_end
         notify: true
+        frequency: null
+        doses: []
         starts_on: "2026-09-23"
         ends_on: "2027-03-08"
         is_active: true

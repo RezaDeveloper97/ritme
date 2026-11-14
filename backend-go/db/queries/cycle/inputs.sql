@@ -16,7 +16,7 @@ SELECT
   p.cycle_duration,
   p.onboarding_last_period_start,
   p.user_goal,
-  COALESCE(cp.lengths_auto, 1) AS lengths_auto,
+  COALESCE(cp.lengths_auto, 0) AS lengths_auto, -- no row = manual: a suggestion never applies itself
   lp.life_mode,
   lp.medications,
   CAST(pg.id IS NOT NULL AS UNSIGNED) AS pregnancy_active,

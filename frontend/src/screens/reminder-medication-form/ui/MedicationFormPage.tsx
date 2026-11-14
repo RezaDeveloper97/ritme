@@ -4,13 +4,7 @@ import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 
-import {
-  MEDICATION_FORMS,
-  MEDICATION_UNITS,
-  type Medication,
-  type MedicationDuration,
-  type MedicationUnit,
-} from '@/entities/care-reminder';
+import type { Medication, MedicationDuration } from '@/entities/care-reminder';
 import {
   isCompanionForbidden,
   parseForUserId,
@@ -20,6 +14,7 @@ import {
   useRecordFor,
 } from '@/entities/companion';
 import { useUserMode } from '@/entities/message';
+import { canAsk, NotificationExplainerSheet } from '@/features/push-notifications';
 import { useCurrentUser } from '@/entities/user';
 import {
   useCreateMedication,
@@ -30,7 +25,6 @@ import {
 import { ApiError, getApiErrorStatus, getApiLimitMessage } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import {
-  calendarSystem,
   formatDayMonth,
   formatLongDate,
   formatNumber,
@@ -38,7 +32,6 @@ import {
   toApiDate,
   today,
 } from '@/shared/lib/date';
-import { toAsciiDigits } from '@/shared/lib/phone';
 import {
   Icon,
   PrimaryButton,
@@ -50,39 +43,37 @@ import {
 } from '@/shared/ui';
 
 import {
-  AMOUNT_MAX,
-  AMOUNT_MIN,
+  addDose,
+  canSubmit,
   defaultDuration,
+  type DoseBlock,
+  type DoseFieldErrors,
   durationOptions,
   emptyForm,
   type FieldErrors,
   type FormField,
   fromMedication,
   mapServerErrors,
+  MAX_DOSES,
   type MedicationFormState,
-  replaceTime,
+  patchDose,
+  removeDose,
   returnHref,
-  setTimesCount,
   slotLabel,
-  slotPeriod,
-  TIMES_OPTIONS,
-  toggleWeekday,
+  toggleMeal,
   validateForm,
-  weekdayOrder,
-  weekdaySummary,
 } from '../model/form';
-import { DateSheet, DeleteSheet, DurationSheet, TimeSheet } from './Pickers';
+import { DateSheet, DeleteSheet, DosageSheet, DurationSheet, FrequencySheet, TimeSheet } from './Pickers';
 
 type OpenSheet =
-  | { kind: 'time'; index: number }
+  | { kind: 'time'; key: string }
+  | { kind: 'dosage'; key: string }
+  | { kind: 'frequency' }
   | { kind: 'start' }
   | { kind: 'duration' }
   | { kind: 'delete' }
   | { kind: 'recordFor' }
   | null;
-
-const isKnownUnit = (u: string): u is MedicationUnit =>
-  (MEDICATION_UNITS as readonly string[]).includes(u);
 
 // ── Small presentational bits ───────────────────────────────────
 
@@ -102,6 +93,43 @@ function FieldError({ id, message }: { id: string; message?: string }) {
 function Switch({ on, label, onClick }: { on: boolean; label: string; onClick: () => void }) {
   return (
     <NbSwitch compact className="rmd-hit" checked={on} label={label} onCheckedChange={() => onClick()} />
+  );
+}
+
+/** A schedule / dose tile: small label + chevron on line one, the value (or a muted placeholder) on line two. */
+function Tile({
+  label,
+  value,
+  placeholder,
+  invalid,
+  ltr,
+  describedBy,
+  onClick,
+}: {
+  label: string;
+  value: string | null;
+  placeholder: string;
+  invalid?: boolean;
+  ltr?: boolean;
+  describedBy?: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="cfm-tile"
+      data-invalid={invalid || undefined}
+      aria-describedby={describedBy}
+      onClick={onClick}
+    >
+      <span className="cfm-tile-h">
+        {label}
+        <Icon name="chevronDown" size={16} strokeWidth={2} />
+      </span>
+      <span className={clsx('cfm-tile-v', !value && 'is-empty')} dir={value && ltr ? 'ltr' : undefined}>
+        {value ?? placeholder}
+      </span>
+    </button>
   );
 }
 
@@ -165,7 +193,6 @@ function Shell({ from, edit, children }: { from?: string; edit: boolean; childre
         <SkyLayer />
         <ScreenHeader
           title={edit ? t('medicationForm.editTitle') : t('medicationForm.title')}
-          subtitle={t('medicationForm.subtitle')}
           onBack={() => router.push(returnHref(from))}
           backLabel={t('back')}
         />
@@ -187,6 +214,7 @@ function MedicationForm({
 }) {
   const t = useTranslations('care');
   const tf = useTranslations('care.medicationForm');
+  const tc = useTranslations('care');
   const tr = useTranslations('companions.recordFor');
   const locale = useLocale() as Locale;
   const router = useRouter();
@@ -214,8 +242,11 @@ function MedicationForm({
     );
   }, [edit, pregnancy]);
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [doseErrors, setDoseErrors] = useState<DoseFieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [sheet, setSheet] = useState<OpenSheet>(null);
+  // «روشن کردن اعلان‌ها»: asked once, in context, right after a save with the notify switch on.
+  const [askNotify, setAskNotify] = useState<{ proceed: () => void } | null>(null);
   const [sheetKey, setSheetKey] = useState(0);
 
   const create = useCreateMedication();
@@ -227,6 +258,11 @@ function MedicationForm({
     setState((s) => ({ ...s, [key]: value }));
     const field = key as FormField;
     if (errors[field]) setErrors((e) => ({ ...e, [field]: undefined }));
+  };
+  const setDoses = (next: DoseBlock[]) => {
+    setState((s) => ({ ...s, doses: next }));
+    setDoseErrors({});
+    if (errors.doses) setErrors((e) => ({ ...e, doses: undefined }));
   };
   const openSheet = (next: NonNullable<OpenSheet>) => {
     setSheetKey((k) => k + 1);
@@ -240,13 +276,22 @@ function MedicationForm({
     const result = validateForm(state);
     if (!result.ok) {
       const next: FieldErrors = {};
-      for (const [field, key] of Object.entries(result.errors)) {
+      for (const [field, key] of Object.entries(result.errors.fields)) {
         next[field as FormField] = tf(`errors.${key}`);
       }
+      const nextDoses: DoseFieldErrors = {};
+      for (const [i, e] of Object.entries(result.errors.doses)) {
+        nextDoses[Number(i)] = {
+          time: e.time ? tf(`errors.${e.time}`) : undefined,
+          amount: e.amount ? tf(`errors.${e.amount}`) : undefined,
+        };
+      }
       setErrors(next);
+      setDoseErrors(nextDoses);
       return;
     }
     setErrors({});
+    setDoseErrors({});
     // A new medication with someone to record for: ask «برای چه کسی؟» first;
     // the sheet's CTA comes back here confirmed.
     if (!edit && recordFor.showPicker && !confirmed) {
@@ -255,10 +300,15 @@ function MedicationForm({
     }
     const target = delegatedEdit ? forUserId : edit ? null : recordFor.target;
     const targetName = recordFor.chosen?.name ?? null;
-    const onSaved = () => {
+    const afterSave = () => {
       if (!target) return back();
       recordFor.onSaved();
       setSavedFor({ name: targetName });
+    };
+    const onSaved = () => {
+      // Only for her own record, with reminders on, while the permission is still askable.
+      if (target || !state.notify) return afterSave();
+      void canAsk().then((ask) => (ask ? setAskNotify({ proceed: afterSave }) : afterSave()));
     };
     const onError = (error: unknown) => {
       // The owner revoked the grant meanwhile: say so and refresh the links.
@@ -283,7 +333,8 @@ function MedicationForm({
       if (error instanceof ApiError && error.response?.status === 422) {
         const mapped = mapServerErrors(error.response.data);
         setErrors(mapped.fields);
-        setFormError(mapped.unknown ?? (Object.keys(mapped.fields).length ? null : t('saveError')));
+        setDoseErrors(mapped.doses);
+        setFormError(mapped.unknown ?? (Object.keys(mapped.fields).length || Object.keys(mapped.doses).length ? null : t('saveError')));
         return;
       }
       setFormError(t('saveError'));
@@ -302,25 +353,27 @@ function MedicationForm({
 
   // ── Derived display ───────────────────────────────────────────
   const num = (v: string | number) => formatNumber(v, locale);
-  const summary = weekdaySummary(state.weekdays);
-  const summaryText =
-    summary.kind === 'everyDay'
-      ? tf('everyDay')
-      : summary.kind === 'none'
-        ? tf('noDays')
-        : tf('daysPerWeek', { count: summary.count });
+  const freq = state.frequency;
+  const freqText =
+    freq.unit === 'hour'
+      ? tc('frequencySummary.hours', { n: num(freq.every) })
+      : freq.every === 1
+        ? tc('frequencySummary.day')
+        : tc('frequencySummary.days', { n: num(freq.every) });
+  const hourMode = freq.unit === 'hour';
   const startDate = fromApiDate(state.startsOn);
   const startText =
     state.startsOn === todayApi
       ? tf('todayWithDate', { date: formatDayMonth(startDate, locale) })
       : formatLongDate(startDate, locale);
+  const doseText = (d: DoseBlock) =>
+    d.amount !== null && d.unit !== null
+      ? tc('doseLine', { amount: num(d.amount), unit: tc(`doseUnits.${d.unit}`) })
+      : null;
   const durationText =
     state.duration === 'until_date' && state.endsOn
       ? tf('untilDate', { date: formatLongDate(fromApiDate(state.endsOn), locale) })
       : tf(`durations.${state.duration}`);
-  const unitOptions: string[] = isKnownUnit(state.unit)
-    ? [...MEDICATION_UNITS]
-    : [state.unit, ...MEDICATION_UNITS];
   const described = (field: FormField) => (errors[field] ? `med-err-${field}` : undefined);
 
   if (savedFor) {
@@ -354,7 +407,7 @@ function MedicationForm({
         </p>
       )}
 
-      {/* ── Card 1: what ── */}
+      {/* ── 1. Medicine info ── */}
       <Card>
         <label className="cfm-group">
           <span className="cfm-label">{tf('name')}</span>
@@ -371,168 +424,101 @@ function MedicationForm({
           </span>
           <FieldError id="med-err-title" message={errors.title} />
         </label>
-
-        <div className="cfm-two is-dose">
-          <label className="cfm-group">
-            <span className="cfm-label">{tf('dose')}</span>
-            <span className="cfm-field">
-              <input
-                // Shown in the locale's digits; stored and sent as ASCII.
-                value={num(state.dose)}
-                inputMode="decimal"
-                maxLength={50}
-                aria-invalid={!!errors.dose}
-                aria-describedby={described('dose')}
-                onChange={(e) => set('dose', toAsciiDigits(e.target.value).replace(/٫/g, '.'))}
-              />
-            </span>
-            <FieldError id="med-err-dose" message={errors.dose} />
-          </label>
-          <label className="cfm-group">
-            <span className="cfm-label">{tf('unit')}</span>
-            <span className="cfm-field">
-              <select value={state.unit} onChange={(e) => set('unit', e.target.value)}>
-                {unitOptions.map((u) => (
-                  <option key={u} value={u}>
-                    {isKnownUnit(u) ? tf(`units.${u}`) : u}
-                  </option>
-                ))}
-              </select>
-            </span>
-            <FieldError id="med-err-unit" message={errors.unit} />
-          </label>
-        </div>
-
-        <div className="cfm-group is-loose">
-          <span className="cfm-label" id="med-form-label">{tf('form')}</span>
-          <div role="radiogroup" aria-labelledby="med-form-label" className="cfm-chips">
-            {MEDICATION_FORMS.map((f) => (
-              <button
-                key={f}
-                type="button"
-                role="radio"
-                aria-checked={state.form === f}
-                className="cfm-chip"
-                onClick={() => set('form', f)}
-              >
-                {tf(`forms.${f}`)}
-              </button>
-            ))}
-          </div>
-        </div>
       </Card>
 
-      {/* ── Card 2: when ── */}
+      {/* ── 2. Schedule ── */}
       <Card>
-        <div className="cfm-group is-loose">
-          <span className="cfm-label" id="med-times-label">{tf('timesPerDay')}</span>
-          <div className="cfm-chips is-row" role="radiogroup" aria-labelledby="med-times-label">
-            {TIMES_OPTIONS.map((n) => (
-              <button
-                key={n}
-                type="button"
-                role="radio"
-                aria-checked={state.times.length === n}
-                className="cfm-chip is-count"
-                onClick={() => set('times', setTimesCount(state.times, n))}
-              >
-                {tf('timesOption', { count: num(n) })}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="cfm-group is-loose" role="group" aria-labelledby="med-slots-label">
-          <span className="cfm-label" id="med-slots-label">{tf('slotTimes')}</span>
-          <div className="cfm-slots">
-            {state.times.map((slot, i) => (
-              <div key={i} className="cfm-slot">
-                <span className="cfm-slot-n">{tf('slotLabel', { n: num(i + 1) })}</span>
-                <span className="cfm-slot-p">{t(`slotPeriod.${slotPeriod(slot)}`)}</span>
-                <button
-                  type="button"
-                  className="cfm-slot-btn"
-                  dir="ltr"
-                  aria-label={`${tf('slotLabel', { n: num(i + 1) })} ${num(slotLabel(slot))}`}
-                  onClick={() => openSheet({ kind: 'time', index: i })}
-                >
-                  {num(slotLabel(slot))}
-                </button>
-              </div>
-            ))}
-          </div>
-          <FieldError id="med-err-times" message={errors.times} />
-        </div>
-
-        <div className="cfm-group is-loose">
-          <span className="cfm-label" id="med-days-label">{tf('weekdays')}</span>
-          <div className="cfm-days" role="group" aria-labelledby="med-days-label">
-            {weekdayOrder(calendarSystem(locale) === 'jalali').map((d) => (
-              <button
-                key={d}
-                type="button"
-                aria-pressed={state.weekdays.includes(d)}
-                className="cfm-day"
-                onClick={() => set('weekdays', toggleWeekday(state.weekdays, d))}
-              >
-                {tf(`weekdayShort.${d}`)}
-              </button>
-            ))}
-          </div>
-          <p className="cfm-caption" aria-live="polite">
-            {summaryText}
-          </p>
-          <FieldError id="med-err-weekdays" message={errors.weekdays} />
-        </div>
-
-        <div className="cfm-group is-loose">
-          <span className="cfm-label">{tf('amount')}</span>
-          <div className="cfm-stepper">
-            <span className="cfm-stepper-v" aria-live="polite">
-              <span className="cfm-stepper-n">{num(state.amount)}</span>
-              <span className="cfm-stepper-u">{tf(`forms.${state.form}`)}</span>
-            </span>
-            <button
-              type="button"
-              className="cfm-stepper-btn"
-              aria-label={tf('decrease')}
-              disabled={state.amount <= AMOUNT_MIN}
-              onClick={() => set('amount', state.amount - 1)}
-            >
-              <span aria-hidden>−</span>
-            </button>
-            <button
-              type="button"
-              className="cfm-stepper-btn"
-              aria-label={tf('increase')}
-              disabled={state.amount >= AMOUNT_MAX}
-              onClick={() => set('amount', state.amount + 1)}
-            >
-              <span aria-hidden>+</span>
-            </button>
-          </div>
-          <FieldError id="med-err-amount" message={errors.amount} />
-        </div>
-      </Card>
-
-      {/* ── Card 3: how long ── */}
-      <Card tight>
-        <div className="cfm-set">
-          <span className="cfm-set-body">
-            <span className="cfm-set-t">{tf('startsOn')}</span>
-            <span className="cfm-set-s">{startText}</span>
-          </span>
-          <button
-            type="button"
-            className="cfm-round"
-            aria-label={`${tf('startsOn')}: ${tf('pickDate')}`}
+        <h2 className="cfm-label">{tf('sectionSchedule')}</h2>
+        <div className="cfm-tiles">
+          <Tile
+            label={tf('startsOn')}
+            value={startText}
+            placeholder={tf('pickDate')}
+            invalid={!!errors.startsOn}
+            describedBy={described('startsOn')}
             onClick={() => openSheet({ kind: 'start' })}
-          >
-            <Icon name="calendar" size={18} strokeWidth={1.8} />
-          </button>
+          />
+          <Tile
+            label={tf('frequency')}
+            value={freqText}
+            placeholder={tf('frequencyPlaceholder')}
+            invalid={!!errors.frequency}
+            describedBy={described('frequency')}
+            onClick={() => openSheet({ kind: 'frequency' })}
+          />
         </div>
         <FieldError id="med-err-startsOn" message={errors.startsOn} />
+        <FieldError id="med-err-frequency" message={errors.frequency} />
+      </Card>
 
+      {/* ── 3. Dose blocks ── */}
+      <Card>
+        <h2 className="cfm-label">{tf('sectionDose')}</h2>
+        {state.doses.map((d, i) => {
+          const err = doseErrors[i];
+          return (
+            <div key={d.key} className="cfm-dose" role="group" aria-label={tf('doseBlock', { n: num(i + 1) })}>
+              {i > 0 && (
+                <div className="cfm-dose-head">
+                  <span className="cfm-dose-n">{tf('doseBlock', { n: num(i + 1) })}</span>
+                  <button
+                    type="button"
+                    className="cfm-dose-remove"
+                    aria-label={tf('removeDose', { n: num(i + 1) })}
+                    onClick={() => setDoses(removeDose(state.doses, d.key))}
+                  >
+                    <Icon name="x" size={16} strokeWidth={2} />
+                  </button>
+                </div>
+              )}
+              <div className="cfm-tiles">
+                <Tile
+                  label={tf('dose')}
+                  value={doseText(d)}
+                  placeholder={tf('dosePlaceholder')}
+                  invalid={!!err?.amount}
+                  describedBy={err?.amount ? `med-err-dose-${i}-amount` : undefined}
+                  onClick={() => openSheet({ kind: 'dosage', key: d.key })}
+                />
+                <Tile
+                  label={hourMode ? tf('firstDose') : tf('time')}
+                  value={d.time ? num(slotLabel(d.time)) : null}
+                  placeholder={tf('timePlaceholder')}
+                  ltr
+                  invalid={!!err?.time}
+                  describedBy={err?.time ? `med-err-dose-${i}-time` : undefined}
+                  onClick={() => openSheet({ kind: 'time', key: d.key })}
+                />
+              </div>
+              <FieldError id={`med-err-dose-${i}-amount`} message={err?.amount} />
+              <FieldError id={`med-err-dose-${i}-time`} message={err?.time} />
+              <div className="cfm-chips" role="group" aria-label={tf('mealGroup')}>
+                {(['before', 'after'] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    className="cfm-chip"
+                    aria-pressed={d.meal === m}
+                    onClick={() => setDoses(patchDose(state.doses, d.key, { meal: toggleMeal(d.meal, m) }))}
+                  >
+                    {tc(`meals.${m}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+        <FieldError id="med-err-doses" message={errors.doses} />
+        {state.doses.length < MAX_DOSES && (
+          <button type="button" className="cfm-link" onClick={() => setDoses(addDose(state.doses))}>
+            {tf('addDose')}
+          </button>
+        )}
+      </Card>
+
+      {/* ── 4. More ── */}
+      <Card tight>
+        <h2 className="cfm-label">{tf('sectionMore')}</h2>
         <div className="cfm-set">
           <span className="cfm-set-body">
             <span className="cfm-set-t">{tf('duration')}</span>
@@ -579,9 +565,6 @@ function MedicationForm({
         </p>
       )}
 
-      <PrimaryButton loading={saving} disabled={delegatedEdit && !recordFor.canEdit} onClick={() => onSave()}>
-        {saving ? tf('saving') : tf('save')}
-      </PrimaryButton>
       {edit && !delegatedEdit && (
         <button type="button" className="cfm-delete" onClick={() => openSheet({ kind: 'delete' })}>
           <Icon name="trash" size={16} />
@@ -589,14 +572,49 @@ function MedicationForm({
         </button>
       )}
 
+      <div className="cfm-sticky">
+        <PrimaryButton
+          loading={saving}
+          disabled={!canSubmit(state) || (delegatedEdit && !recordFor.canEdit)}
+          onClick={() => onSave()}
+        >
+          {saving ? tf('saving') : edit ? tf('saveChanges') : tf('create')}
+        </PrimaryButton>
+      </div>
+
       {sheet?.kind === 'time' && (
         <TimeSheet
           key={sheetKey}
           open
-          value={state.times[sheet.index] ?? '08:00'}
+          value={state.doses.find((d) => d.key === sheet.key)?.time ?? '08:00'}
           onClose={close}
           onPick={(slot) => {
-            set('times', replaceTime(state.times, sheet.index, slot));
+            setDoses(patchDose(state.doses, sheet.key, { time: slot }));
+            close();
+          }}
+        />
+      )}
+      {sheet?.kind === 'dosage' && (
+        <DosageSheet
+          key={sheetKey}
+          open
+          amount={state.doses.find((d) => d.key === sheet.key)?.amount ?? null}
+          unit={state.doses.find((d) => d.key === sheet.key)?.unit ?? null}
+          onClose={close}
+          onPick={(amount, unit) => {
+            setDoses(patchDose(state.doses, sheet.key, { amount, unit }));
+            close();
+          }}
+        />
+      )}
+      {sheet?.kind === 'frequency' && (
+        <FrequencySheet
+          key={sheetKey}
+          open
+          value={state.frequency}
+          onClose={close}
+          onPick={(frequency) => {
+            set('frequency', frequency);
             close();
           }}
         />
@@ -645,6 +663,14 @@ function MedicationForm({
           error={formError}
         />
       )}
+      <NotificationExplainerSheet
+        open={askNotify !== null}
+        onDone={() => {
+          const next = askNotify;
+          setAskNotify(null);
+          next?.proceed();
+        }}
+      />
       {sheet?.kind === 'delete' && (
         <DeleteSheet
           key={sheetKey}

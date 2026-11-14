@@ -1,0 +1,65 @@
+{
+  "case": "ai-credits/balance_new_user.none",
+  "steps": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/ai/credits",
+        "persona": "no_profile",
+        "now": "2026-09-23T10:00:00+03:30"
+      },
+      "status": 200,
+      "headers": {
+        "content-type": "application/json"
+      },
+      "body": {
+        "success": true,
+        "data": {
+          "can_use": false,
+          "period": null,
+          "period_ends_at": null,
+          "plan": {
+            "total": 0,
+            "used": 0,
+            "remaining": 0
+          },
+          "extra": {
+            "remaining": 0,
+            "locked": false
+          },
+          "spendable": 0,
+          "features": [
+            {
+              "key": "assistant",
+              "title": "دستیار سلامت",
+              "credit_cost": 1,
+              "available": true,
+              "affordable": false
+            },
+            {
+              "key": "voice_log",
+              "title": "ثبت صوتی",
+              "credit_cost": 1,
+              "available": true,
+              "affordable": false
+            },
+            {
+              "key": "lab_analysis",
+              "title": "تحلیل آزمایش",
+              "credit_cost": 5,
+              "available": true,
+              "affordable": false
+            },
+            {
+              "key": "doc_extract",
+              "title": "خواندن مدارک",
+              "credit_cost": 3,
+              "available": true,
+              "affordable": false
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

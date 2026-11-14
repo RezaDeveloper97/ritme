@@ -1,30 +1,75 @@
 import {
+  type CompanionAction,
+  type CompanionGoal,
   type CompanionGrants,
-  type CompanionType,
+  type CompanionSignal,
+  type CompanionSignalScope,
+  COMPANION_SIGNALS,
   type CreateCompanionInput,
   emptyGrants,
 } from '@/entities/companion';
 
 /*
- * The «افزودن همدم» wizard (Hamdam_Type → Access → Children → Invite → Done).
- * Client state only — nothing is sent until the invite step. The invite code
- * that comes back is held by the component, never here.
+ * «ریتمی همراه» v2 invite (companion-v2 design): intro + consent → goal
+ * (+ «همسرم است» → children) → scope (per-section access) → preferred actions (+ optional name /
+ * phone) → generating (POST /companions) → code → preview. Client state only —
+ * nothing is sent before the generating step. The invite code that comes back
+ * is held by the component, never here.
  */
 
-export type InviteStep = 'type' | 'access' | 'children' | 'invite' | 'done';
+export type InviteStep = 'intro' | 'goal' | 'children' | 'scope' | 'actions' | 'generating' | 'code' | 'preview';
 
 export interface InviteDraft {
-  type: CompanionType | null;
-  /** Starts with every section on `none` (CLAUDE.md §11: most private by default). */
+  /** «با به اشتراک‌گذاشتن … موافقم» — the intro CTA stays disabled until ticked. */
+  consent: boolean;
+  /** null = nothing picked yet; sent as `unknown`. */
+  goal: CompanionGoal | null;
+  /** «همسرم است»: creates a `spouse` link (family + shared children) instead of a `partner`. */
+  spouse: boolean;
+  /** Per-section access («نبیند · فقط دیدن · دیدن و ویرایش»), picked on the scope step. */
   grants: CompanionGrants;
+  /** Coarse signals: not asked in the wizard (edited on the companion's detail screen) — all off (CLAUDE.md §11). */
+  signals: CompanionSignalScope;
+  /** Preferred support kinds, in the order she picked them. */
+  actionPrefs: CompanionAction[];
   name: string;
   phone: string;
   /** The owner's own children to share (spouse only, `child_ids` on create). */
   childIds: number[];
 }
 
+/**
+ * The signals the owner is actually offered. `mood` stays out until the product decides otherwise: SPEC §1.7 /
+ * family.md §4 keep mood «never shared, any role», the Go member payload omits it, and a switch that changes
+ * nothing for the member would be a misleading consent. The API still accepts the key, so nothing breaks when it
+ * is allowed again — remove the filter and the switch appears.
+ */
+export const OFFERED_SIGNALS: readonly CompanionSignal[] = COMPANION_SIGNALS.filter((s) => s !== 'mood');
+
+export function emptySignals(): CompanionSignalScope {
+  return Object.fromEntries(COMPANION_SIGNALS.map((s) => [s, false])) as CompanionSignalScope;
+}
+
 export function initialDraft(): InviteDraft {
-  return { type: null, grants: emptyGrants(), name: '', phone: '', childIds: [] };
+  return {
+    consent: false,
+    goal: null,
+    spouse: false,
+    grants: inviteGrants(),
+    signals: emptySignals(),
+    actionPrefs: [],
+    name: '',
+    phone: '',
+    childIds: [],
+  };
+}
+
+/**
+ * Where the scope step starts: the cycle section at `view` (what «ریتمی همراه» is about), every other
+ * section on `none` until she opens it herself.
+ */
+export function inviteGrants(): CompanionGrants {
+  return { ...emptyGrants(), cycle: 'view' };
 }
 
 /** Add / remove one child id (order kept, no duplicates). */
@@ -32,39 +77,70 @@ export function toggleChildId(ids: readonly number[], id: number): number[] {
   return ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id];
 }
 
+/** Add / remove one preferred action, keeping the order she picked them in. */
+export function toggleAction(prefs: readonly CompanionAction[], action: CompanionAction): CompanionAction[] {
+  return prefs.includes(action) ? prefs.filter((a) => a !== action) : [...prefs, action];
+}
+
 /** Same set of ids, order ignored (children editor «dirty» check). */
 export function sameChildIds(a: readonly number[], b: readonly number[]): boolean {
   return a.length === b.length && a.every((id) => b.includes(id));
 }
 
-/** The numbered steps for a type: the children step exists only for a spouse. */
-export function numberedSteps(type: CompanionType | null): InviteStep[] {
-  return type === 'partner' ? ['type', 'access'] : ['type', 'access', 'children'];
+/** Same signal scope (preferences editor «dirty» check). */
+export function sameSignals(a: CompanionSignalScope, b: CompanionSignalScope): boolean {
+  return COMPANION_SIGNALS.every((s) => a[s] === b[s]);
 }
 
-/** The step after `step` (the invite form follows the last numbered step). */
-export function nextStep(step: InviteStep, type: CompanionType | null): InviteStep {
+/** Same preferred actions, order included (the companion sees them in this order). */
+export function sameActions(a: readonly CompanionAction[], b: readonly CompanionAction[]): boolean {
+  return a.length === b.length && a.every((x, i) => b[i] === x);
+}
+
+/** The signals she switched on, in the canonical order (preview rows). */
+export function sharedSignals(scope: CompanionSignalScope): CompanionSignal[] {
+  return OFFERED_SIGNALS.filter((s) => scope[s]);
+}
+
+/** The step after `step`; the children step exists only for a spouse. */
+export function nextStep(step: InviteStep, draft: Pick<InviteDraft, 'spouse'>): InviteStep {
   switch (step) {
-    case 'type':
-      return 'access';
-    case 'access':
-      return type === 'spouse' ? 'children' : 'invite';
+    case 'intro':
+      return 'goal';
+    case 'goal':
+      return draft.spouse ? 'children' : 'scope';
     case 'children':
-      return 'invite';
+      return 'scope';
+    case 'scope':
+      return 'actions';
+    case 'actions':
+      return 'generating';
+    case 'generating':
+      return 'code';
     default:
-      return 'done';
+      return 'preview';
   }
 }
 
-/** Where the header's back button goes; `null` = leave the wizard. */
-export function previousStep(step: InviteStep, type: CompanionType | null): InviteStep | null {
+/**
+ * Where the header's back button goes; `null` = leave the wizard. Once the
+ * invite exists (code / preview) going back past it would only create a
+ * second one, so the code step leaves and the preview returns to the code.
+ */
+export function previousStep(step: InviteStep, draft: Pick<InviteDraft, 'spouse'>): InviteStep | null {
   switch (step) {
-    case 'access':
-      return 'type';
+    case 'goal':
+      return 'intro';
     case 'children':
-      return 'access';
-    case 'invite':
-      return type === 'spouse' ? 'children' : 'access';
+      return 'goal';
+    case 'scope':
+      return draft.spouse ? 'children' : 'goal';
+    case 'actions':
+      return 'scope';
+    case 'generating':
+      return 'actions';
+    case 'preview':
+      return 'code';
     default:
       return null;
   }
@@ -100,16 +176,24 @@ export function phoneProblem(phone: string): boolean {
   return phone.trim() !== '' && normalizeMobile(phone) === null;
 }
 
-/** POST /companions body; `withPhone: false` = «فقط کد بساز» (no SMS even if a number was typed). */
-export function draftToInput(draft: InviteDraft, withPhone: boolean): CreateCompanionInput | null {
-  if (!draft.type) return null;
-  const phone = withPhone ? normalizeMobile(draft.phone) : null;
+/**
+ * POST /companions body: the per-section access she picked, plus the v2 preferences.
+ * `null` until the consent is given or while the typed phone is not a mobile.
+ */
+export function draftToInput(draft: InviteDraft): CreateCompanionInput | null {
+  if (!draft.consent || phoneProblem(draft.phone)) return null;
+  const phone = normalizeMobile(draft.phone);
   return {
-    type: draft.type,
-    grants: draft.grants,
+    type: draft.spouse ? 'spouse' : 'partner',
+    grants: { ...draft.grants },
     ...(draft.name.trim() ? { displayName: draft.name.trim().slice(0, 100) } : {}),
     ...(phone ? { phone } : {}),
-    // Only a spouse shares children; a partner draft that went back from the children step drops them.
-    ...(draft.type === 'spouse' && draft.childIds.length ? { childIds: [...draft.childIds] } : {}),
+    // Only a spouse shares children; a draft that switched «همسرم است» off again drops them.
+    ...(draft.spouse && draft.childIds.length ? { childIds: [...draft.childIds] } : {}),
+    preferences: {
+      goal: draft.goal ?? 'unknown',
+      signals: { ...draft.signals },
+      actionPrefs: [...draft.actionPrefs],
+    },
   };
 }

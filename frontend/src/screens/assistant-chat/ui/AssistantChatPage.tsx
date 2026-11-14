@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 
 import {
@@ -16,17 +16,15 @@ import {
   type ConversationPage,
 } from '@/entities/assistant';
 import { ChatThread, Composer, itemsOf, useChat, type ChatItem } from '@/features/assistant-chat';
-import { isAssistantFairUse } from '@/entities/plus';
+import { useAiGate } from '@/features/ai-gate';
 import { getApiErrorStatus } from '@/shared/api';
-import { useRouter, type Locale } from '@/shared/i18n';
-import { formatDayMonth, fromApiDate } from '@/shared/lib/date';
-import { Card, EmptyState, HeaderButton, Icon, IconCircle, PrimaryButton, ScreenHeader, SkyLayer } from '@/shared/ui';
+import { useRouter } from '@/shared/i18n';
+import { Card, EmptyState, HeaderButton, Icon, PrimaryButton, ScreenHeader, SkyLayer } from '@/shared/ui';
 
 function ChatBody({ page }: { page: ConversationPage }) {
   const t = useTranslations('assistant');
   const router = useRouter();
-  const tp = useTranslations('plus.limits.assistant');
-  const loc = useLocale() as Locale;
+  const gate = useAiGate('assistant');
   const errText = useAssistantError();
   const consent = useAssistantConsent('ai_assistant');
   const { conversation: c, department: d } = page;
@@ -34,7 +32,7 @@ function ChatBody({ page }: { page: ConversationPage }) {
     page.messages.length > 0
       ? itemsOf(page.messages)
       : [{ key: 'intro', role: 'assistant', text: d.intro ?? d.tagline ?? '', card: null, chips: d.quick_replies, triage: null, hasPhoto: false, state: 'complete' }];
-  const chat = useChat(c.id, initial, c.emergency);
+  const chat = useChat(c.id, initial, c.emergency, { onError: gate.handleError, onSuccess: gate.refresh });
   const needsConsent = chat.needsConsent || (consent.data ? consent.data.needs_consent && !consent.data.granted : false);
 
   // A first message stashed by the hub / lab link is sent once, as soon as the consent allows it.
@@ -47,7 +45,9 @@ function ChatBody({ page }: { page: ConversationPage }) {
     if (draft) void chat.send(draft);
   }, [canSend, c.id, chat]);
 
-  const send = (text: string, photoId: number | null = null) => void chat.send(text, photoId);
+  const send = (text: string, photoId: number | null = null) => {
+    if (gate.guard()) void chat.send(text, photoId);
+  };
   const summaryReady = page.messages.length >= 2 || chat.items.some((i) => i.role === 'assistant' && i.text && i.key !== 'intro');
 
   return (
@@ -61,21 +61,7 @@ function ChatBody({ page }: { page: ConversationPage }) {
       />
       <div className="scroll as-chat-scroll">
         <ChatThread items={chat.items} busy={chat.busy} onChip={(x) => send(x)} />
-        {chat.denial && isAssistantFairUse(chat.denial) ? (
-          <Card className="as-paywall" role="status">
-            <IconCircle icon="clock" tone="warm" size="md" />
-            <p className="as-text">
-              {tp('fairUse', { date: chat.denial.resetsAt ? formatDayMonth(fromApiDate(chat.denial.resetsAt.slice(0, 10)), loc) : '' })}
-            </p>
-          </Card>
-        ) : chat.denial ? (
-          <Card className="as-paywall" role="alert">
-            <IconCircle icon="crown" tone="warm" size="md" />
-            <p className="as-text">{chat.denial.kind === 'locked' ? t('paywall.locked') : t('paywall.quota', { limit: chat.denial.limit ?? 5 })}</p>
-            <PrimaryButton block onClick={() => router.push('/plus')}>{t('paywall.cta')}</PrimaryButton>
-          </Card>
-        ) : null}
-        {chat.errorCode && !chat.denial ? (
+        {chat.errorCode ? (
           <div className="as-fail" role="alert">
             <Icon name="warning" size={16} />
             <span>{errText(null, chat.errorCode === 'network' ? 'ai_failed' : chat.errorCode)}</span>
@@ -88,8 +74,8 @@ function ChatBody({ page }: { page: ConversationPage }) {
       <div className="as-dock">
         <Composer
           busy={chat.busy}
-          disabled={needsConsent || !!chat.denial}
-          restore={chat.denial || chat.needsConsent ? chat.failedText : null}
+          disabled={needsConsent}
+          restore={chat.gated || chat.needsConsent ? chat.failedText : null}
           onSend={send}
           onStop={chat.stop}
         />

@@ -8,6 +8,7 @@ import {
   clearOnboardingPending,
   getOnboardingPending,
   requestPersistentStorage,
+  runBeforeLogout,
   setAuthToken,
   setOnboardingPending,
 } from '@/shared/session';
@@ -127,6 +128,8 @@ export function useLogout() {
   const queryClient = useQueryClient();
   return useMutation<void, unknown, void>({
     mutationFn: async () => {
+      // Device cleanups that still need the token (push subscription, native alarms).
+      await runBeforeLogout();
       await apiClient.post('/auth/logout').catch(() => undefined);
     },
     onSettled: () => {

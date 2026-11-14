@@ -127,10 +127,11 @@ services:
       # default_server blocks.
       - ${STAGE_CONF:-./deploy/stage-off.conf}:/etc/nginx/conf.d/zz-stage.conf:ro
       - ./deploy/vhost-stage.inc:/etc/nginx/conf.d/vhost-stage.inc:ro
-      # ── betatest.ritme.app (laravel-site, compose project `ritme-site`) ──
+      # ── ritme.app / www / betatest.ritme.app (laravel-site, compose project `ritme-site`) ──
       # Same selector trick: empty placeholder by default; laravel-site/deploy-betatest.sh
       # sets SITE_CONF=./deploy/site-ssl.conf in the server .env.
       - ${SITE_CONF:-./deploy/site-off.conf}:/etc/nginx/conf.d/zz-site.conf:ro
+      - ./deploy/site-app.inc:/etc/nginx/conf.d/zz-site-app.inc:ro
       # ── beta.ritme.app (public beta, compose project `ritme-beta`) ──
       # Same selector trick: empty placeholder by default; deploy-beta.sh sets
       # BETA_CONF=./deploy/beta-ssl.conf in the server .env.

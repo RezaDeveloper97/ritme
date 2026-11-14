@@ -226,7 +226,6 @@ export function FeedFinishBar({ timer }: { timer: FeedTimerState }) {
   const running = !!timer.active;
   return (
     <div className="bfl-foot">
-      {!running ? <p className="bfl-foot-hint">{t(timer.type === 'breast' ? 'feed.hintBreast' : 'feed.hintTimer')}</p> : null}
       <PrimaryButton className="bfl-finish" onClick={timer.finish} disabled={!running} loading={running && timer.action.isPending}>
         {t('feed.finish')}
       </PrimaryButton>

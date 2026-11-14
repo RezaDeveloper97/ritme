@@ -358,7 +358,6 @@ function MethodSummary({ method }: { method: ContraceptionMethod }) {
             icon="bellRing"
             iconTone="brand"
             title={t('other.reminders')}
-            description={t('other.remindersSub')}
             onClick={() => router.push('/contraception/other')}
           />
         </ListGroup>

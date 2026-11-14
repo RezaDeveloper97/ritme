@@ -61,4 +61,14 @@ return [
         ],
         'continue' => 'ادامه',
     ],
+
+    // Nov 2026 stage design (pages/stages/redesign.blade.php).
+    'redesign' => [
+        'see' => 'ببین چه دارد',
+        'features_eyebrow' => 'امکانات ریتمی',
+        'readings_more' => 'همه مقاله‌ها',
+        'faq_title' => 'سؤالات متداول',
+        'download_title' => 'ریتمی را رایگان نصب کن',
+        'download_lead' => 'بخش‌های اصلی همیشه رایگان. داده‌ات فقط مال خودت است.',
+    ],
 ];

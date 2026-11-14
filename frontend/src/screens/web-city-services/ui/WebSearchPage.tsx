@@ -16,7 +16,7 @@ import {
 } from '@/entities/city-service';
 import { type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
-import { Card, EmptyState, Icon, Skeleton, SkeletonGroup } from '@/shared/ui';
+import { Card, CheckTick, EmptyState, Icon, Skeleton, SkeletonGroup } from '@/shared/ui';
 import { isMapEnabled, NeshanMap, type MapBbox, type MapPin } from '@/shared/ui/map';
 import { DirectoryCard } from '@/widgets/directory-filters';
 
@@ -232,7 +232,8 @@ export function WebSearchPage() {
             </div>
           </fieldset>
           <label className="wcs-check">
-            <input type="checkbox" checked={filters.openNow} onChange={(e) => applyFilters({ ...filters, openNow: e.target.checked })} />
+            <input type="checkbox" className="nb-check-native" checked={filters.openNow} onChange={(e) => applyFilters({ ...filters, openNow: e.target.checked })} />
+            <span className="nb-check-box" aria-hidden><CheckTick on={filters.openNow} /></span>
             {t('filters.openNow')}
           </label>
           {(options.data?.amenities ?? []).length > 0 ? (
@@ -240,7 +241,8 @@ export function WebSearchPage() {
               <legend>{t('filters.amenities')}</legend>
               {(options.data?.amenities ?? []).map((a) => (
                 <label key={a.code} className="wcs-check">
-                  <input type="checkbox" checked={filters.amenities.includes(a.code)} onChange={() => toggleAmenity(a.code)} />
+                  <input type="checkbox" className="nb-check-native" checked={filters.amenities.includes(a.code)} onChange={() => toggleAmenity(a.code)} />
+                  <span className="nb-check-box" aria-hidden><CheckTick on={filters.amenities.includes(a.code)} /></span>
                   {a.name ?? a.code}
                 </label>
               ))}
@@ -250,7 +252,8 @@ export function WebSearchPage() {
             <legend>{t('filters.sort')}</legend>
             {sorts.map((s) => (
               <label key={s} className="wcs-check">
-                <input type="radio" name="wcs-sort" checked={filters.sort === s} onChange={() => applyFilters({ ...filters, sort: s })} />
+                <input type="radio" name="wcs-sort" className="nb-check-native" checked={filters.sort === s} onChange={() => applyFilters({ ...filters, sort: s })} />
+                <span className="nb-radio-dot" aria-hidden />
                 {t(`filters.sorts.${s}`)}
               </label>
             ))}

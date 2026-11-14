@@ -62,6 +62,7 @@ func SettingsJSON(p Preferences) *jsonx.OrderedMap {
 			"end", FormatClock(p.QuietEnd),
 		),
 		"neutral_copy", p.NeutralCopy,
+		"sms_reminders", p.Enabled(SMSReminders),
 	)
 }
 
@@ -88,6 +89,7 @@ func updateRules() validation.Rules {
 		F("quiet_hours.start", "sometimes", "date_format:H:i"),
 		F("quiet_hours.end", "sometimes", "date_format:H:i"),
 		F("neutral_copy", "sometimes", "boolean"),
+		F("sms_reminders", "sometimes", "boolean"),
 	}
 	for _, g := range Groups {
 		for _, cat := range g.Categories {
@@ -131,6 +133,9 @@ func Apply(p Preferences, body phpval.Map, locale string, now time.Time) (Prefer
 	}
 	if val, ok := phpval.Get(body, "neutral_copy"); ok {
 		out.NeutralCopy = phpval.Truthy(val)
+	}
+	if val, ok := phpval.Get(body, "sms_reminders"); ok {
+		out.Categories[SMSReminders] = phpval.Truthy(val)
 	}
 	return out, nil
 }

@@ -12,8 +12,6 @@
     "subtitle": "Smart guidance · no medical diagnosis",
     "greeting": "Hi, how can I help today?",
     "placeholder": "e.g. “the spots on my face got darker after pregnancy”",
-    "quota": "{remaining, number} of {limit, number} free chats left this month",
-    "quotaSpent": "This month's free chats are used up; go unlimited with Plus",
     "plus": "Ritme Plus",
     "knows": "The assistant uses your profile",
     "knowsNone": "The assistant knows nothing from your profile for now; turn sharing on whenever you like.",
@@ -23,7 +21,9 @@
     "all": "All",
     "emptyTitle": "No chats yet",
     "emptyBody": "Pick a department or type your question.",
-    "urgent": "Is it an emergency?"
+    "urgent": "Is it an emergency?",
+    "noSubscription": "The assistant needs a subscription",
+    "credits": "Credit usage"
   },
   "emergency": {
     "title": "This may be an emergency",
@@ -79,11 +79,6 @@
     "storage_unavailable": "Photos cannot be stored right now. Please try again later.",
     "photo_type": "Only JPG, PNG or WebP photos are accepted.",
     "photo_too_large": "The photo must be smaller than 5 MB."
-  },
-  "paywall": {
-    "locked": "This opens with Ritme Plus.",
-    "quota": "This month's free chats ({limit}) are used up. Ask without limits with Ritme Plus.",
-    "cta": "See Ritme Plus"
   },
   "consent": {
     "accept": "I agree, continue"

@@ -2,7 +2,8 @@
   "enums": {
     "gender": {
       "female": "Female",
-      "male": "Male"
+      "male": "Male",
+      "unspecified": "Prefer not to say"
     },
     "goal": {
       "cycle": "Track my cycle",
@@ -72,9 +73,14 @@
       "hint": "You can change it later in settings."
     },
     "gender": {
-      "title": "What's your gender?",
-      "subtitle": "We'll set up the right path for you based on your answer.",
-      "maleNote": "If you're a man, Ritme Companion helps you stand by your partner."
+      "title": "Which do you identify with most?",
+      "subtitle": "This helps us shape Ritme around you.",
+      "desc": {
+        "female": "Cycle tracking, insights and managing companions",
+        "male": "Learning content and the companion experience",
+        "unspecified": "The full experience, no limits"
+      },
+      "note": "This only sets the path of your experience, not what content you can reach."
     },
     "goal": {
       "title": "Why did you install Ritme?",

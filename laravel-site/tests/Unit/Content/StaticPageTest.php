@@ -6,11 +6,11 @@ use App\Domain\Content\Enums\HeaderVariant;
 use App\Domain\Content\Enums\NavItem;
 use App\Domain\Content\Enums\StaticPage;
 
-it('puts the dark header on exactly the ten audited pages', function (): void {
+it('puts the dark header on exactly the pages not yet redesigned', function (): void {
     $dark = array_values(array_filter(StaticPage::cases(), static fn (StaticPage $page): bool => $page->headerVariant() === HeaderVariant::Dark));
 
     expect(array_map(static fn (StaticPage $page): string => $page->value, $dark))->toEqualCanonicalizing([
-        'home', 'stage.cycle', 'stage.ttc', 'stage.pregnancy', 'stage.postpartum', 'stage.menopause', 'stage.teen',
+        'stage.postpartum', 'stage.menopause', 'stage.teen',
         'about', 'privacy', 'social-responsibility',
     ]);
 });
@@ -19,14 +19,14 @@ it('maps pages to the active nav item from the audit', function (string $route, 
     expect(StaticPage::from($route)->navItem())->toBe($item);
 })->with([
     ['home', NavItem::Home],
-    ['stage.teen', NavItem::Stages],
-    ['directory.business', NavItem::Services],
-    ['shop.cart', NavItem::Shop],
+    ['stage.teen', NavItem::Features],
+    ['directory.business', null],
+    ['shop.cart', null],
     ['blog.index', NavItem::Blog],
-    ['tools', NavItem::Tools],
+    ['tools', null],
     ['about', NavItem::About],
     ['contact', null],
-    ['faq', null],
+    ['faq', NavItem::Faq],
     ['plus', null],
     ['privacy', null],
     ['social-responsibility', null],
@@ -36,17 +36,18 @@ it('resolves the active item of parameterised routes by prefix', function (?stri
     expect(NavItem::forRoute($route))->toBe($item);
 })->with([
     ['blog.show', NavItem::Blog],
-    ['directory.place', NavItem::Services],
-    ['shop.product', NavItem::Shop],
-    ['stage.anything', NavItem::Stages],
+    ['directory.place', null],
+    ['shop.product', null],
+    ['stage.anything', NavItem::Features],
     ['unknown', null],
     [null, null],
     ['', null],
 ]);
 
-it('links «مرحله‌ها» to the first stage with a decorative chevron only there', function (): void {
-    expect(NavItem::Stages->page())->toBe(StaticPage::Cycle)
-        ->and(array_values(array_filter(NavItem::cases(), static fn (NavItem $item): bool => $item->hasChevron())))->toBe([NavItem::Stages]);
+it('links «امکانات» to the home feature grid and has no chevrons', function (): void {
+    expect(NavItem::Features->page())->toBe(StaticPage::Home)
+        ->and(NavItem::Features->fragment())->toBe('features')
+        ->and(array_filter(NavItem::cases(), static fn (NavItem $item): bool => $item->hasChevron()))->toBe([]);
 });
 
 it('builds breadcrumb trails from home through the parents', function (): void {

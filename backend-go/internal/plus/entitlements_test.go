@@ -18,6 +18,18 @@ func find(t *testing.T, es []Entitlement, k Key) Entitlement {
 	return Entitlement{}
 }
 
+// The production entitlements are all «unlimited on Plus, locked for free»; the quota arithmetic of ResolveOne
+// (limits, fair-use caps) is kept for future keys and tested on locally built definitions.
+const (
+	testLimited Key = "plus.test_limited"
+	testFairUse Key = "plus.test_fair_use"
+)
+
+var (
+	limitedDef = Definition{Key: testLimited, Plus: Quota{Enabled: true, Limit: 10}, Free: Quota{Enabled: true, Limit: 1}}
+	fairUseDef = Definition{Key: testFairUse, Plus: Quota{Enabled: true, FairUse: 300}, Free: Quota{Enabled: true, Limit: 5}}
+)
+
 func TestDefinitions_KeysAreUniqueAndNamespaced(t *testing.T) {
 	seen := map[Key]bool{}
 	for _, d := range Definitions() {
@@ -26,91 +38,89 @@ func TestDefinitions_KeysAreUniqueAndNamespaced(t *testing.T) {
 		assert.Regexp(t, `^plus\.[a-z_]+$`, string(d.Key))
 		assert.True(t, d.Plus.Enabled, "%s: Plus must include every Plus feature", d.Key)
 	}
-	for _, k := range []Key{DeepAnalysis, VoiceLog, LabAI, AssistantUnlimited, PDFShare, VisitDiscount} {
+	for _, k := range []Key{DeepAnalysis, PDFShare, VisitDiscount, AnalysisLongRange, SMSReminders, Companion} {
 		assert.True(t, seen[k], "%s has no definition", k)
+	}
+	// AI features spend credits (goose 00125): their retired monthly keys must never come back.
+	for _, k := range []Key{"plus.voice_log", "plus.lab_ai", "plus.assistant_unlimited", "plus.doc_ai"} {
+		assert.False(t, seen[k], "%s is retired (AI credits)", k)
 	}
 }
 
 func TestResolve_Plus(t *testing.T) {
-	es := Resolve(TierPlus, map[Key]int{LabAI: 3, AssistantUnlimited: 40})
-	lab := find(t, es, LabAI)
-	assert.Equal(t, Entitlement{Key: LabAI, Allowed: true, Limit: 10, Used: 3, Remaining: 7}, lab)
-	assert.Equal(t, Entitlement{Key: AssistantUnlimited, Allowed: true, Unlimited: true, FairUse: true, Limit: 300, Used: 40, Remaining: 260},
-		find(t, es, AssistantUnlimited))
-	for _, k := range []Key{DeepAnalysis, VoiceLog, PDFShare, VisitDiscount, AnalysisLongRange} {
-		e := find(t, es, k)
-		assert.True(t, e.Allowed && e.Unlimited, k)
+	for _, e := range Resolve(TierPlus, map[Key]int{DeepAnalysis: 40}) {
+		assert.True(t, e.Allowed && e.Unlimited, e.Key)
+		assert.Zero(t, e.Limit, e.Key)
 	}
+	assert.Equal(t, 40, find(t, Resolve(TierPlus, map[Key]int{DeepAnalysis: 40}), DeepAnalysis).Used)
 }
 
 func TestResolve_TrialGetsPlusQuotas(t *testing.T) {
-	assert.Equal(t, Resolve(TierPlus, map[Key]int{LabAI: 2}), Resolve(TierTrial, map[Key]int{LabAI: 2}))
+	assert.Equal(t, Resolve(TierPlus, map[Key]int{DeepAnalysis: 2}), Resolve(TierTrial, map[Key]int{DeepAnalysis: 2}))
+	defs := []Definition{limitedDef, fairUseDef}
+	assert.Equal(t, ResolveAll(defs, TierPlus, map[Key]int{testLimited: 2}), ResolveAll(defs, TierTrial, map[Key]int{testLimited: 2}))
 }
 
-func TestResolve_LabAIQuotaSpent(t *testing.T) {
-	lab := find(t, Resolve(TierPlus, map[Key]int{LabAI: 10}), LabAI)
-	assert.False(t, lab.Allowed)
-	assert.Equal(t, 0, lab.Remaining)
-	over := find(t, Resolve(TierPlus, map[Key]int{LabAI: 12}), LabAI) // e.g. counted before a downgrade
+func TestResolve_LimitedQuotaSpent(t *testing.T) {
+	e := ResolveOne(TierPlus, limitedDef, 10)
+	assert.False(t, e.Allowed)
+	assert.Equal(t, 0, e.Remaining)
+	over := ResolveOne(TierPlus, limitedDef, 12) // e.g. counted before a downgrade
 	assert.Equal(t, 0, over.Remaining)
 	assert.False(t, over.Allowed)
 }
 
 func TestResolve_Free(t *testing.T) {
-	es := Resolve(TierFree, map[Key]int{AssistantUnlimited: 4, LabAI: 1, DeepAnalysis: 2})
-	for _, k := range []Key{DeepAnalysis, VoiceLog, PDFShare, VisitDiscount, DocAI, AnalysisLongRange} {
-		e := find(t, es, k)
-		assert.False(t, e.Allowed, k)
-		assert.False(t, e.Unlimited, k)
-		assert.Zero(t, e.Limit, k)
+	es := Resolve(TierFree, map[Key]int{DeepAnalysis: 2})
+	for _, d := range Definitions() {
+		e := find(t, es, d.Key)
+		assert.False(t, e.Allowed, d.Key)
+		assert.False(t, e.Unlimited, d.Key)
+		assert.Zero(t, e.Limit, d.Key)
 	}
 	assert.Equal(t, 2, find(t, es, DeepAnalysis).Used, "usage is still reported")
-	a := find(t, es, AssistantUnlimited)
-	assert.Equal(t, Entitlement{Key: AssistantUnlimited, Allowed: true, Limit: 5, Used: 4, Remaining: 1}, a)
-	a = find(t, Resolve(TierFree, map[Key]int{AssistantUnlimited: 5}), AssistantUnlimited)
-	assert.False(t, a.Allowed)
+	assert.Equal(t, Entitlement{Key: testFairUse, Allowed: true, Limit: 5, Used: 4, Remaining: 1}, ResolveOne(TierFree, fairUseDef, 4))
+	assert.False(t, ResolveOne(TierFree, fairUseDef, 5).Allowed)
 }
 
-// TestResolve_Table is the plan of T-M10-29 (D-178): every key × tier at a few usage points.
+// TestResolve_Table: every quota shape × tier at a few usage points.
 func TestResolve_Table(t *testing.T) {
 	type want struct {
 		allowed, unlimited, fairUse bool
 		limit, remaining            int
 	}
+	analysis, _ := Lookup(AnalysisLongRange)
+	deep, _ := Lookup(DeepAnalysis)
 	cases := []struct {
-		key  Key
+		def  Definition
 		tier Tier
 		used int
 		want want
 	}{
-		// A-03: lab AI 1 per month free, 10 Plus.
-		{LabAI, TierFree, 0, want{allowed: true, limit: 1, remaining: 1}},
-		{LabAI, TierFree, 1, want{limit: 1}},
-		{LabAI, TierPlus, 9, want{allowed: true, limit: 10, remaining: 1}},
-		{LabAI, TierPlus, 10, want{limit: 10}},
-		{LabAI, TierTrial, 0, want{allowed: true, limit: 10, remaining: 10}},
-		// A-04: assistant 5 free, Plus «unlimited» with a fair-use cap of 300.
-		{AssistantUnlimited, TierFree, 4, want{allowed: true, limit: 5, remaining: 1}},
-		{AssistantUnlimited, TierFree, 5, want{limit: 5}},
-		{AssistantUnlimited, TierPlus, 0, want{allowed: true, unlimited: true, fairUse: true, limit: 300, remaining: 300}},
-		{AssistantUnlimited, TierPlus, 299, want{allowed: true, unlimited: true, fairUse: true, limit: 300, remaining: 1}},
-		{AssistantUnlimited, TierPlus, 300, want{unlimited: true, fairUse: true, limit: 300}},
-		{AssistantUnlimited, TierTrial, 301, want{unlimited: true, fairUse: true, limit: 300}},
+		{limitedDef, TierFree, 0, want{allowed: true, limit: 1, remaining: 1}},
+		{limitedDef, TierFree, 1, want{limit: 1}},
+		{limitedDef, TierPlus, 9, want{allowed: true, limit: 10, remaining: 1}},
+		{limitedDef, TierPlus, 10, want{limit: 10}},
+		{limitedDef, TierTrial, 0, want{allowed: true, limit: 10, remaining: 10}},
+		{fairUseDef, TierFree, 4, want{allowed: true, limit: 5, remaining: 1}},
+		{fairUseDef, TierFree, 5, want{limit: 5}},
+		{fairUseDef, TierPlus, 0, want{allowed: true, unlimited: true, fairUse: true, limit: 300, remaining: 300}},
+		{fairUseDef, TierPlus, 299, want{allowed: true, unlimited: true, fairUse: true, limit: 300, remaining: 1}},
+		{fairUseDef, TierPlus, 300, want{unlimited: true, fairUse: true, limit: 300}},
+		{fairUseDef, TierTrial, 301, want{unlimited: true, fairUse: true, limit: 300}},
 		// D-178: the 1-year (and all-time) analysis range.
-		{AnalysisLongRange, TierFree, 0, want{}},
-		{AnalysisLongRange, TierPlus, 0, want{allowed: true, unlimited: true}},
-		{AnalysisLongRange, TierTrial, 0, want{allowed: true, unlimited: true}},
-		{DeepAnalysis, TierFree, 0, want{}},
-		{DeepAnalysis, TierPlus, 50, want{allowed: true, unlimited: true}},
-		{DocAI, TierFree, 0, want{}},
-		{DocAI, TierPlus, 20, want{limit: 20}},
+		{analysis, TierFree, 0, want{}},
+		{analysis, TierPlus, 0, want{allowed: true, unlimited: true}},
+		{analysis, TierTrial, 0, want{allowed: true, unlimited: true}},
+		{deep, TierFree, 0, want{}},
+		{deep, TierPlus, 50, want{allowed: true, unlimited: true}},
 	}
 	for _, tc := range cases {
-		e := find(t, Resolve(tc.tier, map[Key]int{tc.key: tc.used}), tc.key)
+		e := ResolveOne(tc.tier, tc.def, tc.used)
 		got := want{allowed: e.Allowed, unlimited: e.Unlimited, fairUse: e.FairUse, limit: e.Limit, remaining: e.Remaining}
-		assert.Equal(t, tc.want, got, "%s %s used=%d", tc.key, tc.tier, tc.used)
+		assert.Equal(t, tc.want, got, "%s %s used=%d", tc.def.Key, tc.tier, tc.used)
 		assert.Equal(t, tc.used, e.Used)
-		assert.Equal(t, tc.want.fairUse && !tc.want.allowed, e.AtFairUseCap(), "%s %s used=%d", tc.key, tc.tier, tc.used)
+		assert.Equal(t, tc.want.fairUse && !tc.want.allowed, e.AtFairUseCap(), "%s %s used=%d", tc.def.Key, tc.tier, tc.used)
 	}
 }
 
@@ -124,21 +134,24 @@ func TestQuota_Cap(t *testing.T) {
 func TestResolveAll_UsesTheGivenDefinitions(t *testing.T) {
 	defs := Definitions()
 	for i := range defs {
-		if defs[i].Key == LabAI {
+		if defs[i].Key == DeepAnalysis {
 			defs[i].Free = Quota{Enabled: true, Limit: 3}
 		}
 	}
-	lab := find(t, ResolveAll(defs, TierFree, map[Key]int{LabAI: 2}), LabAI)
-	assert.Equal(t, Entitlement{Key: LabAI, Allowed: true, Limit: 3, Used: 2, Remaining: 1}, lab)
-	assert.Equal(t, 1, find(t, Resolve(TierFree, nil), LabAI).Limit, "Resolve keeps the code default")
+	e := find(t, ResolveAll(defs, TierFree, map[Key]int{DeepAnalysis: 2}), DeepAnalysis)
+	assert.Equal(t, Entitlement{Key: DeepAnalysis, Allowed: true, Limit: 3, Used: 2, Remaining: 1}, e)
+	assert.False(t, find(t, Resolve(TierFree, nil), DeepAnalysis).Allowed, "Resolve keeps the code default")
 }
 
 func TestLookup(t *testing.T) {
-	d, ok := Lookup(LabAI)
+	d, ok := Lookup(Companion)
 	require.True(t, ok)
-	assert.Equal(t, 10, d.QuotaFor(TierTrial).Limit)
+	assert.True(t, d.QuotaFor(TierTrial).Enabled)
+	assert.False(t, d.QuotaFor(TierFree).Enabled)
 	_, ok = Lookup("plus.nope")
 	assert.False(t, ok)
+	_, ok = Lookup("plus.lab_ai")
+	assert.False(t, ok, "retired AI key")
 }
 
 func TestDefinitions_IsACopy(t *testing.T) {

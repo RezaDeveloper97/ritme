@@ -52,7 +52,6 @@
       "status": "Request status"
     },
     "needsAction": "{count, plural, one {A claim is missing documents} other {# claims are missing documents}}",
-    "needsActionHint": "Complete the claim's documents to carry on.",
     "remainingTitle": "Coverage left this year",
     "details": "Details",
     "left": "{left} of {total} left",
@@ -302,7 +301,6 @@
     },
     "record": {
       "title": "Note a step",
-      "hint": "Note any step your insurer told you about, right here.",
       "step": "Which step?",
       "date": "Date",
       "save": "Save",
