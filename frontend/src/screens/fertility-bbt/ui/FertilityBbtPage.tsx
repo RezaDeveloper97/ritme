@@ -19,6 +19,7 @@ import {
 } from "@/features/manage-reminders";
 import { BbtChart } from "@/widgets/bbt-chart";
 import { type Locale, Link, useDirection, useRouter } from "@/shared/i18n";
+import { pilot } from "@/shared/pilot";
 import { formatNumber, toApiDate, today } from "@/shared/lib/date";
 import { AppSheet } from "@/shared/sheet";
 import {
@@ -110,7 +111,7 @@ export function FertilityBbtPage({ range: rawRange }: { range?: string }) {
           title={t("bbt.empty.title")}
           body={t("bbt.empty.body")}
           action={
-            <Link href={LOG_HREF} className="nb-btn is-primary is-block">
+            <Link href={LOG_HREF} className="nb-btn is-primary is-block" {...pilot("fertility.bbt-log")}>
               {t("bbt.empty.cta")}
             </Link>
           }
@@ -192,7 +193,7 @@ export function FertilityBbtPage({ range: rawRange }: { range?: string }) {
                 {data.tip.title ?? t("bbt.tip.title")}
               </h2>
               <p className="ttc-tip-card-body">{data.tip.body}</p>
-              <Link href={INSIGHTS_HREF} className="ttc-link">
+              <Link href={INSIGHTS_HREF} className="ttc-link" {...pilot("fertility.bbt-insights")}>
                 {t("bbt.openInsights")}
                 <Icon
                   name={dir === "rtl" ? "chevronLeft" : "chevronRight"}
@@ -234,6 +235,7 @@ export function FertilityBbtPage({ range: rawRange }: { range?: string }) {
             label={t("bbt.tabsLabel")}
             value={String(range) as `${BbtRange}`}
             tabs={rangeTabs}
+            pilot={(v) => pilot(`fertility.bbt-range:${v}`)}
             onChange={(v) =>
               router.replace(v === "1" ? "/fertility/bbt" : `/fertility/bbt?range=${v}`)
             }
@@ -325,6 +327,7 @@ function ReminderButton() {
         disabled={busy}
         onClick={toggle}
         className="nb-btn is-block ttc-reminder-btn"
+        {...pilot("fertility.bbt-reminder")}
       >
         <Icon name={existing ? "bellRing" : "moon"} size={18} />
         {busy && !reminders.isPending

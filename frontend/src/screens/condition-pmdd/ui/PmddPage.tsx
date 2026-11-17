@@ -18,6 +18,7 @@ import {
 import { getApiSaveErrorMessage } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber, toApiDate, today } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import {
   Card,
   EmptyState,
@@ -158,6 +159,7 @@ function PmddForm({ date, items, day }: { date: string; items: PmddItem[]; day: 
               }}
               locale={locale}
               label={<b className="cpm-q-title">{item.title}</b>}
+              pilot={pilot(`programs.pmdd-q:${item.code}`, 'choice')}
             />
           </div>
         ))}
@@ -173,7 +175,7 @@ function PmddForm({ date, items, day }: { date: string; items: PmddItem[]; day: 
             ? t('saved')
             : t('progress', { done: formatNumber(done, locale), total: formatNumber(items.length, locale) })}
         </p>
-        <PrimaryButton loading={save.isPending} disabled={!done || (!dirty && saved)} onClick={submit}>
+        <PrimaryButton loading={save.isPending} disabled={!done || (!dirty && saved)} onClick={submit} {...pilot('programs.pmdd-save')}>
           {t('save')}
         </PrimaryButton>
       </div>
@@ -193,7 +195,7 @@ function JoinCard() {
           {getApiSaveErrorMessage(enrol.error, t('saveError'))}
         </p>
       ) : null}
-      <PrimaryButton loading={enrol.isPending} onClick={() => enrol.mutate('pmdd')}>
+      <PrimaryButton loading={enrol.isPending} onClick={() => enrol.mutate('pmdd')} {...pilot('programs.pmdd-join')}>
         {t('join')}
       </PrimaryButton>
     </Card>

@@ -19,6 +19,7 @@ import type { Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { AppSheet } from '@/shared/sheet';
 import { ChipGroup, Icon, PillChip, PrimaryButton, ProgressBar, TileButton } from '@/shared/ui';
+import { pilot, pilotOption } from '@/shared/pilot';
 
 import { addFiles, type DraftError, type DraftFile, overallProgress, type PickError, validateDraft } from '../model/draft';
 
@@ -188,9 +189,9 @@ function UploadForm({ onCreated }: { onCreated: (doc: RecordDocument) => void })
         <h3 id={`${titleId}-kind`} className="rec-up-label">
           {t('kind')}
         </h3>
-        <ChipGroup label={t('kind')}>
+        <ChipGroup label={t('kind')} pilot={pilot('rec.doc-kind', 'choice')}>
           {DOCUMENT_KINDS.map((k) => (
-            <PillChip key={k} pressed={kind === k} onPressedChange={() => setKind(k)} disabled={busy}>
+            <PillChip key={k} {...pilotOption(k)} pressed={kind === k} onPressedChange={() => setKind(k)} disabled={busy}>
               {tk(k)}
             </PillChip>
           ))}
@@ -211,6 +212,7 @@ function UploadForm({ onCreated }: { onCreated: (doc: RecordDocument) => void })
           placeholder={t('titlePlaceholder')}
           disabled={busy}
           onChange={(e) => setTitle(e.target.value)}
+          {...pilot('rec.doc-title', 'text')}
         />
       </label>
 
@@ -221,6 +223,7 @@ function UploadForm({ onCreated }: { onCreated: (doc: RecordDocument) => void })
         clearLabel={td('clearDate')}
         disabled={busy}
         onChange={setDate}
+        pilotId="rec.doc-date"
       />
 
       <p className="rec-up-hint">{t('hint')}</p>

@@ -81,6 +81,7 @@ type adapter struct {
 	logParser   LogParser
 	chatter     Chatter
 	extractor   Extractor
+	scripter    Scripter
 	lister      ModelLister
 }
 
@@ -156,6 +157,7 @@ type Options struct {
 	LogParser   LogParser
 	Chatter     Chatter
 	Extractor   Extractor
+	Scripter    Scripter
 	Recorder    Recorder
 	Limiter     Limiter // nil = no cap (tests); New always sets the DB budget when one is given in Deps
 	Pricer      Pricer
@@ -173,6 +175,7 @@ type Adapter struct {
 	LogParser   LogParser
 	Chatter     Chatter
 	Extractor   Extractor
+	Scripter    Scripter
 	Lister      ModelLister
 }
 
@@ -180,10 +183,11 @@ type Adapter struct {
 func NewClientWith(o Options) *Client {
 	c := &Client{provider: o.Provider, recorder: o.Recorder, limiter: o.Limiter, pricer: o.Pricer,
 		chatMax: o.ChatMaxDuration, router: o.Router, adapters: map[string]adapter{}, now: time.Now,
-		def: adapter{transcriber: o.Transcriber, logParser: o.LogParser, chatter: o.Chatter, extractor: o.Extractor}}
+		def: adapter{transcriber: o.Transcriber, logParser: o.LogParser, chatter: o.Chatter, extractor: o.Extractor,
+			scripter: o.Scripter}}
 	for id, a := range o.Adapters {
 		c.adapters[id] = adapter{transcriber: a.Transcriber, logParser: a.LogParser, chatter: a.Chatter, extractor: a.Extractor,
-			lister: a.Lister}
+			scripter: a.Scripter, lister: a.Lister}
 	}
 	return c
 }
@@ -277,6 +281,38 @@ func (c *Client) ParseLog(ctx context.Context, feature Feature, req LogParseRequ
 		var u Usage
 		out, u, err = cd.a.logParser.ParseLog(cd.ctx, req)
 		u.Feature, u.Op, u.OK = feature, OpParseLog, err == nil
+		c.record(cd.ctx, u, start)
+		if !tryNext(err, i, len(cands)) {
+			break
+		}
+	}
+	return out, err
+}
+
+// PilotScript asks feature's model for an autopilot script (raw JSON text; the caller validates it). The transcript
+// is redacted before the provider sees it; the manifest carries no user data.
+func (c *Client) PilotScript(ctx context.Context, feature Feature, req PilotRequest) (string, error) {
+	if c == nil {
+		return "", ErrUnavailable
+	}
+	cands, err := c.candidates(ctx, feature)
+	if err != nil {
+		return "", err
+	}
+	cands = slices.DeleteFunc(cands, func(cd candidate) bool { return cd.a.scripter == nil })
+	if len(cands) == 0 {
+		return "", ErrUnavailable
+	}
+	if err := c.allow(ctx); err != nil {
+		return "", err
+	}
+	req.Transcript = redactCtx(ctx, req.Transcript)
+	var out string
+	for i, cd := range cands {
+		start := c.now()
+		var u Usage
+		out, u, err = cd.a.scripter.PilotScript(cd.ctx, req)
+		u.Feature, u.Op, u.OK = feature, OpPilot, err == nil
 		c.record(cd.ctx, u, start)
 		if !tryNext(err, i, len(cands)) {
 			break
@@ -382,6 +418,7 @@ func New(d Deps) *Client {
 		}
 		f := NewFake()
 		base.Provider, base.Transcriber, base.LogParser, base.Chatter, base.Extractor = config.AIProviderFake, f, f, f, f
+		base.Scripter = f
 		return NewClientWith(base)
 	case config.AIProviderGemini, config.AIProviderArvan:
 	default:
@@ -399,12 +436,12 @@ func New(d Deps) *Client {
 	base.Adapters = map[string]Adapter{}
 	if d.Config.Gemini.APIKey != "" {
 		g := NewGemini(d.Config.Gemini, client).WithCallTimeout(timeout)
-		base.Adapters[ProviderGemini] = Adapter{Transcriber: g, LogParser: g, Chatter: g, Extractor: g}
+		base.Adapters[ProviderGemini] = Adapter{Transcriber: g, LogParser: g, Chatter: g, Extractor: g, Scripter: g}
 	}
 	if d.Config.Arvan.APIKey != "" && d.Config.Arvan.BaseURL != "" {
 		a := NewOpenAICompat(OpenAICompatConfig{Provider: ProviderArvan, BaseURL: d.Config.Arvan.BaseURL,
 			APIKey: d.Config.Arvan.APIKey, AuthScheme: "apikey"}, client).WithCallTimeout(timeout)
-		base.Adapters[ProviderArvan] = Adapter{LogParser: a, Chatter: a, Extractor: a, Lister: a}
+		base.Adapters[ProviderArvan] = Adapter{Transcriber: a, LogParser: a, Chatter: a, Extractor: a, Scripter: a, Lister: a}
 	}
 	def, ok := base.Adapters[provider]
 	if !ok {
@@ -413,5 +450,6 @@ func New(d Deps) *Client {
 		return nil
 	}
 	base.Provider, base.Transcriber, base.LogParser, base.Chatter, base.Extractor = provider, def.Transcriber, def.LogParser, def.Chatter, def.Extractor
+	base.Scripter = def.Scripter
 	return NewClientWith(base)
 }

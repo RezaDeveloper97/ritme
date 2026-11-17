@@ -4,6 +4,7 @@ import { clsx } from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 
 import type { AnalysisSection } from '@/entities/analysis';
+import { pilot } from '@/shared/pilot';
 import type { Locale } from '@/shared/i18n';
 import { formatDecimal, formatNumber } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
@@ -329,7 +330,7 @@ export function AnalysisTtcHub() {
         title={t('empty.title')}
         body={t('empty.body')}
         action={
-          <PrimaryButton icon="plus" block={false} onClick={() => openSheet('log')}>
+          <PrimaryButton icon="plus" block={false} onClick={() => openSheet('log')} {...pilot('analysis.log')}>
             {t('empty.cta')}
           </PrimaryButton>
         }

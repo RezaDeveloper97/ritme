@@ -13,6 +13,7 @@ import {
   usePlusStatus,
   type PlusPlan,
 } from '@/entities/plus';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { track } from '@/shared/analytics';
 import { useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { useBillingChannel } from '@/shared/billing';
@@ -63,7 +64,7 @@ export function PlansPage() {
   let body;
   if (query.isPending || !ready) {
     body = (
-      <SkeletonGroup label={t('loading')} className="plus-plans">
+      <SkeletonGroup label={t('loading')} className="plus-plans" {...pilot('plus.plan', 'choice')}>
         <Skeleton shape="card" />
         <Skeleton shape="card" />
         <Skeleton shape="card" />
@@ -157,7 +158,7 @@ function PlanCards({ plans, value, onChange }: { plans: PlusPlan[]; value: numbe
     refs.current[next]?.focus();
   };
   return (
-    <div role="radiogroup" aria-label={t('plans.groupLabel')} className="plus-plans">
+    <div role="radiogroup" aria-label={t('plans.groupLabel')} className="plus-plans" {...pilot('plus.plan', 'choice')}>
       {plans.map((plan, index) => {
         const checked = plan.id === value;
         const price = formatToman(plan.price, loc);
@@ -174,6 +175,7 @@ function PlanCards({ plans, value, onChange }: { plans: PlusPlan[]; value: numbe
             tabIndex={index === tabStop ? 0 : -1}
             className="plus-plan"
             onClick={() => onChange(plan.id)}
+            {...pilotOption(String(plan.id))}
             onKeyDown={(event) => onKeyDown(event, index)}
           >
             {plan.badge ? <span className="plus-plan-badge">{plan.badge}</span> : null}

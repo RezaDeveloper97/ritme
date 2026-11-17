@@ -18,6 +18,7 @@ import {
 } from '@/entities/insurance';
 import { Link, type Locale } from '@/shared/i18n';
 import { formatDayMonth, formatLongDate, fromApiDate } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { Icon, type IconName, InfoNote, ProgressBar, SecondaryButton, Skeleton, StatusPill, type Tone } from '@/shared/ui';
 
 import { PolicyHistory } from './PolicyHistory';
@@ -46,7 +47,7 @@ function ClaimRow({ claim }: { claim: InsuranceClaimRow }) {
   const title = claim.title ?? t(`costTypes.${costTypeKey(claim.costType)}`);
   const who = [claim.memberName, formatDayMonth(fromApiDate(claim.serviceDate), locale)].filter(Boolean).join(' · ');
   return (
-    <Link href={`/insurance/claims/${claim.id}`} className="nb-card ins-claim">
+    <Link href={`/insurance/claims/${claim.id}`} className="nb-card ins-claim" {...pilot(`insurance.claim:${claim.id}`)}>
       <span className="ins-claim-text">
         <span className="ins-claim-t">{title}</span>
         <span className="ins-claim-s">{who}</span>
@@ -69,7 +70,7 @@ function RecentClaims({ policyId }: { policyId: number | null }) {
           {t('recentTitle')}
         </h2>
         {policyId === null ? (
-          <Link href="/insurance/claims" className="ins-more">
+          <Link href="/insurance/claims" className="ins-more" {...pilot('insurance.claims-all')}>
             {t('all')}
           </Link>
         ) : null}
@@ -148,7 +149,7 @@ export function InsuranceHome({ state, history, onSelect, onRenewed, onEdit, onS
       {policy.readOnly ? <InfoNote icon="history">{t('pastNote')}</InfoNote> : null}
       {policy.status === 'upcoming' ? <InfoNote icon="calendar">{t('upcomingNote')}</InfoNote> : null}
       {!isCurrent && history?.currentId ? (
-        <SecondaryButton variant="text" icon="shield" onClick={() => onSelect(history.currentId ?? policy.id)}>
+        <SecondaryButton variant="text" icon="shield" onClick={() => onSelect(history.currentId ?? policy.id)} {...pilot('insurance.current')}>
           {t('backToCurrent')}
         </SecondaryButton>
       ) : null}
@@ -156,7 +157,7 @@ export function InsuranceHome({ state, history, onSelect, onRenewed, onEdit, onS
       {isCurrent ? (
         <nav className="ins-actions" aria-label={t('actions.coverage')}>
           {ACTIONS.map((a) => (
-            <Link key={a.key} href={a.href} className="ins-action">
+            <Link key={a.key} href={a.href} className="ins-action" {...pilot(`insurance.action:${a.key}`)}>
               <span className="ins-action-ico" aria-hidden>
                 <Icon name={a.icon} size={20} />
               </span>
@@ -167,7 +168,7 @@ export function InsuranceHome({ state, history, onSelect, onRenewed, onEdit, onS
       ) : null}
 
       {isCurrent && state.needsAction > 0 ? (
-        <Link href="/insurance/claims" className="ins-attn">
+        <Link href="/insurance/claims" className="ins-attn" {...pilot('insurance.attention')}>
           <Icon name="warning" size={20} className="ins-attn-ico" />
           <span className="ins-attn-text">
             <span className="ins-attn-t">{t('needsAction', { count: state.needsAction })}</span>
@@ -182,7 +183,7 @@ export function InsuranceHome({ state, history, onSelect, onRenewed, onEdit, onS
               {t('remainingTitle')}
             </h2>
             {isCurrent ? (
-              <Link href="/insurance/coverage" className="ins-more">
+              <Link href="/insurance/coverage" className="ins-more" {...pilot('insurance.coverage')}>
                 {t('details')}
               </Link>
             ) : null}
@@ -210,7 +211,7 @@ export function InsuranceHome({ state, history, onSelect, onRenewed, onEdit, onS
 
       {policy.canRenew ? (
         <div className="ins-renew">
-          <SecondaryButton icon="refresh" loading={renew.isPending} onClick={() => renew.mutate(policy.id, { onSuccess: (s) => s.policy && onRenewed(s.policy.id) })}>
+          <SecondaryButton icon="refresh" loading={renew.isPending} {...pilot('insurance.renew')} onClick={() => renew.mutate(policy.id, { onSuccess: (s) => s.policy && onRenewed(s.policy.id) })}>
             {t('renew')}
           </SecondaryButton>
           <p className="ins-hint">{t('renewHint')}</p>
@@ -222,11 +223,11 @@ export function InsuranceHome({ state, history, onSelect, onRenewed, onEdit, onS
         </div>
       ) : null}
       {policy.readOnly ? null : (
-        <SecondaryButton variant="text" icon="pencil" onClick={onEdit}>
+        <SecondaryButton variant="text" icon="pencil" onClick={onEdit} {...pilot('insurance.edit')}>
           {t('edit')}
         </SecondaryButton>
       )}
-      <SecondaryButton variant="text" icon="info" onClick={onShowInfo}>
+      <SecondaryButton variant="text" icon="info" onClick={onShowInfo} {...pilot('insurance.info')}>
         {t('howTitle')}
       </SecondaryButton>
       <InfoNote icon="lock">{t('selfTrack')}</InfoNote>

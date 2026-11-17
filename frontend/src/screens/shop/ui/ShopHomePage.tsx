@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useShopCatalogHome } from '@/entities/shop';
 import { getApiErrorStatus } from '@/shared/api';
 import { Link, useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { Card, EmptyState, Icon, PrimaryButton, ScreenHeader, SegmentedTabs, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
 import { CartButton } from './CartButton';
@@ -73,13 +74,14 @@ export function ShopHomePage() {
             tabs={home.roots.map((r) => ({ value: r.slug, label: r.title }))}
             value={home.root.slug}
             onChange={setRoot}
+            pilot={(v) => pilot(`shop-home.root:${v}`)}
           />
         ) : null}
         {home.sub_categories.length ? (
           <ul className="shp-chips" aria-label={t('home.categories')}>
             {home.sub_categories.map((c) => (
               <li key={c.id}>
-                <Link href={`/shop/${c.slug}`} className="shp-chip">
+                <Link href={`/shop/${c.slug}`} className="shp-chip" {...pilot(`shop-home.category:${c.slug}`)}>
                   {c.title}
                 </Link>
               </li>
@@ -107,7 +109,7 @@ export function ShopHomePage() {
                 <h2 id={`shp-sec-${s.category.id}`} className="shp-sec-title">
                   {t('home.bestOf', { name: s.category.title })}
                 </h2>
-                <Link href={`/shop/${s.category.slug}`} className="shp-sec-all">
+                <Link href={`/shop/${s.category.slug}`} className="shp-sec-all" {...pilot(`shop-home.all:${s.category.slug}`)}>
                   {t('home.all')}
                 </Link>
               </div>

@@ -9,6 +9,7 @@ import { getApiErrorStatus } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   Card,
   Checkbox,
@@ -180,7 +181,7 @@ function MonthChips({ data, onPick, t }: { data: MilestonesView; onPick: (m: num
     selected.current?.scrollIntoView({ block: 'nearest', inline: 'center' });
   }, [data.band.months]);
   return (
-    <div className="cms-chips" role="group" aria-label={t('milestones.monthsLabel')}>
+    <div className="cms-chips" role="group" aria-label={t('milestones.monthsLabel')} {...pilot('child.ms-month', 'choice')}>
       {data.bands.map((b) => {
         const on = b.months === data.band.months;
         const { unit, n } = chipUnit(b.months);
@@ -192,6 +193,7 @@ function MonthChips({ data, onPick, t }: { data: MilestonesView; onPick: (m: num
             className={clsx('cms-chip', on && 'is-on', b.current && 'is-current')}
             aria-pressed={on}
             aria-label={b.label}
+            {...pilotOption(String(b.months))}
             onClick={() => onPick(b.months)}
           >
             {t(unit === 'years' ? 'milestones.chipYears' : 'milestones.chipMonths', { n, count: formatNumber(n, locale) })}
@@ -253,6 +255,7 @@ function Checklist({
               checked={it.checked}
               disabled={!canEdit || pending?.code === it.code}
               label={it.title}
+              pilot={pilot(`child.ms-item:${it.code}`)}
               onCheckedChange={(next) => onToggle(it.code, next)}
             />
           ))}

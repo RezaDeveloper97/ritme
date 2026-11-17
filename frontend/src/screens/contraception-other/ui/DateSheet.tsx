@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 import type { Locale } from '@/shared/i18n';
 import { type DateParts, fromApiDate, partsToDate, toApiDate, toParts } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { CalendarPicker, PrimaryButton, SecondaryButton } from '@/shared/ui';
 
@@ -46,13 +47,14 @@ export function DateSheet({
             loading={busy}
             disabled={!parts}
             onClick={() => parts && onPick(toApiDate(partsToDate(parts, locale)))}
+            {...pilot('contraception.date-save')}
           >
             {t('save')}
           </PrimaryButton>
         </div>
       }
     >
-      <CalendarPicker value={parts} onSelect={setParts} />
+      <CalendarPicker value={parts} onSelect={setParts} pilot={pilot('contraception.date', 'calendar')} />
       {error ? (
         <p className="ctr-error is-inline" role="alert">
           {error}

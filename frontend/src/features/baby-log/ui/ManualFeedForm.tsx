@@ -4,6 +4,7 @@ import { useId, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { type Locale } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { LocaleNumberField, SecondaryButton } from '@/shared/ui';
 
 import { manualStart, tehranNow } from '../model/live';
@@ -65,6 +66,7 @@ export function ManualFeedForm({
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((o) => !o)}
+        {...pilot('baby.feed-manual')}
       >
         {t('manual.open')}
       </button>
@@ -72,7 +74,7 @@ export function ManualFeedForm({
         <div id={panelId} className="bfl-manual-body nb-card">
           <label className="fld-label">
             <span className="fld-label-t">{t('manual.time')}</span>
-            <input className="field fld-input" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+            <input className="field fld-input" type="time" {...pilot('baby.feed-manual-time', 'text')} value={time} onChange={(e) => setTime(e.target.value)} />
           </label>
           {type === 'breast' ? (
             <div className="bfl-manual-pair">
@@ -80,6 +82,7 @@ export function ManualFeedForm({
                 label={t('manual.left')}
                 locale={loc}
                 value={left}
+                pilot={pilot('baby.feed-manual-left')}
                 max={MAX_FEED_MINUTES}
                 onChange={(v) => setLeft(clamp(v, MAX_FEED_MINUTES))}
               />
@@ -87,6 +90,7 @@ export function ManualFeedForm({
                 label={t('manual.right')}
                 locale={loc}
                 value={right}
+                pilot={pilot('baby.feed-manual-right')}
                 max={MAX_FEED_MINUTES}
                 onChange={(v) => setRight(clamp(v, MAX_FEED_MINUTES))}
               />
@@ -97,6 +101,7 @@ export function ManualFeedForm({
                 label={t('manual.minutes')}
                 locale={loc}
                 value={minutes}
+                pilot={pilot('baby.feed-manual-minutes')}
                 max={MAX_FEED_MINUTES}
                 onChange={(v) => setMinutes(clamp(v, MAX_FEED_MINUTES))}
               />
@@ -104,6 +109,7 @@ export function ManualFeedForm({
                 label={t('manual.ml')}
                 locale={loc}
                 value={ml}
+                pilot={pilot('baby.feed-manual-ml')}
                 max={MAX_AMOUNT_ML}
                 onChange={(v) => setMl(clamp(v, MAX_AMOUNT_ML))}
               />
@@ -114,7 +120,7 @@ export function ManualFeedForm({
               {t(type === 'breast' ? 'manual.needMinutes' : 'manual.needTime')}
             </p>
           ) : null}
-          <SecondaryButton onClick={save} loading={pending}>
+          <SecondaryButton onClick={save} loading={pending} {...pilot('baby.feed-manual-save')}>
             {t('manual.save')}
           </SecondaryButton>
         </div>

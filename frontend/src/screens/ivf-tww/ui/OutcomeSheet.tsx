@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 
 import { type IvfOutcome, type IvfOutcomeResult, useRecordIvfOutcome } from '@/entities/ivf';
+import { pilot } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { PrimaryButton, SecondaryButton } from '@/shared/ui';
 
@@ -30,7 +31,7 @@ export function OutcomeSheet({
       title={t(`tww.confirm.title.${result}`)}
       footer={
         <div className="tww-sheet-actions">
-          <PrimaryButton loading={record.isPending} onClick={() => record.mutate(result, { onSuccess: onSaved })}>
+          <PrimaryButton loading={record.isPending} onClick={() => record.mutate(result, { onSuccess: onSaved })} {...pilot('ivf.tww-confirm')}>
             {t('tww.confirm.save')}
           </PrimaryButton>
           <SecondaryButton variant="text" disabled={record.isPending} onClick={onClose}>

@@ -15,6 +15,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "autopilot:catalog": "UPDATE_AUTOPILOT_CATALOG=1 vitest run src/app/autopilot/catalog.test.ts",
     "fsd:lint": "steiger ./src",
     "lint:styles": "node scripts/check-styles.mjs",
     "lint:styles:accept": "node scripts/check-styles.mjs --update-baseline",

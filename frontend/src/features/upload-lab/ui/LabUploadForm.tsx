@@ -16,6 +16,7 @@ import {
   PrimaryButton,
   TileButton,
 } from '@/shared/ui';
+import { pilot, pilotOption } from '@/shared/pilot';
 
 import { useUploadLab } from '../api/upload';
 import { uploadErrorOf, type UploadError } from '../model/errors';
@@ -232,9 +233,9 @@ export function LabUploadForm({ limits, onUploaded, onConsentRequired, ai }: Lab
 
         <Card as="section" className="lab-up-card" aria-labelledby="lab-up-type">
           <h2 id="lab-up-type" className="lab-card-title">{t('type')}</h2>
-          <ChipGroup label={t('type')}>
+          <ChipGroup label={t('type')} pilot={pilot('labu.category', 'choice')}>
             {limits.categories.map((c) => (
-              <PillChip key={c} pressed={category === c} onPressedChange={() => setCategory(c)} disabled={busy}>
+              <PillChip key={c} {...pilotOption(c)} pressed={category === c} onPressedChange={() => setCategory(c)} disabled={busy}>
                 {t(`categories.${c}` as 'categories.blood')}
               </PillChip>
             ))}
@@ -247,7 +248,7 @@ export function LabUploadForm({ limits, onUploaded, onConsentRequired, ai }: Lab
         </Card>
 
         <div className="lab-up-pair">
-          <button type="button" className="lab-up-field" onClick={() => setDateOpen(true)} disabled={busy}>
+          <button type="button" className="lab-up-field" onClick={() => setDateOpen(true)} disabled={busy} {...pilot('labu.date')}>
             <span className="lab-up-field-label">{t('date')}</span>
             <span className="lab-up-field-value">{takenOn ? formatLongDate(fromApiDate(takenOn), locale) : t('dateUnset')}</span>
           </button>
@@ -255,6 +256,7 @@ export function LabUploadForm({ limits, onUploaded, onConsentRequired, ai }: Lab
             type="button"
             className="lab-up-field"
             aria-pressed={fasting === true}
+            {...pilot('labu.fasting')}
             onClick={() => setFasting((f) => (f === null ? true : !f))}
             disabled={busy}
           >

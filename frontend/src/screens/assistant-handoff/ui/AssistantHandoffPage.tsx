@@ -6,6 +6,7 @@ import { useState } from 'react';
 
 import { BodySkeleton, LoadError, TriagePill, useAssistantError, useConversation, useHandoff } from '@/entities/assistant';
 import { DoctorAvatar, ModeTag, useBookings, useDoctorTitle, whenLabel } from '@/entities/doctor';
+import { pilot } from '@/shared/pilot';
 import { getApiErrorCode } from '@/shared/api';
 import { Link, useRouter, type Locale } from '@/shared/i18n';
 import { Card, CheckTick, EmptyState, Icon, InfoNote, PrimaryButton, ScreenHeader, SecondaryButton, SkyLayer } from '@/shared/ui';
@@ -40,7 +41,7 @@ export function AssistantHandoffPage({ id }: { id: number }) {
     body = (
       <div className="as-body">
         <Card>
-          <EmptyState icon="checkCircle" title={t('handoff.sentTitle')} body={t('handoff.sentBody')} action={<PrimaryButton onClick={() => router.push('/assistant')}>{t('hub.title')}</PrimaryButton>} />
+          <EmptyState icon="checkCircle" title={t('handoff.sentTitle')} body={t('handoff.sentBody')} action={<PrimaryButton onClick={() => router.push('/assistant')} {...pilot('assistant.open:assistant')}>{t('hub.title')}</PrimaryButton>} />
         </Card>
       </div>
     );
@@ -69,7 +70,7 @@ export function AssistantHandoffPage({ id }: { id: number }) {
               icon="stetho"
               title={t('handoff.noBookingTitle')}
               body={t('handoff.noBookingBody')}
-              action={<PrimaryButton onClick={() => router.push('/services/doctors')}>{t('handoff.findDoctor')}</PrimaryButton>}
+              action={<PrimaryButton onClick={() => router.push('/services/doctors')} {...pilot('assistant.open:services-doctors')}>{t('handoff.findDoctor')}</PrimaryButton>}
             />
           </Card>
         ) : (
@@ -114,7 +115,7 @@ export function AssistantHandoffPage({ id }: { id: number }) {
             </PrimaryButton>
           </>
         ) : null}
-        <SecondaryButton block onClick={() => router.push('/services/doctors')}>{t('handoff.allDoctors')}</SecondaryButton>
+        <SecondaryButton block onClick={() => router.push('/services/doctors')} {...pilot('assistant.open:services-doctors-all')}>{t('handoff.allDoctors')}</SecondaryButton>
         <InfoNote icon="shield">{t('summary.footnote')}</InfoNote>
       </div>
     );

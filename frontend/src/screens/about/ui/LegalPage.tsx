@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
+import { pilot } from '@/shared/pilot';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate } from '@/shared/lib/date';
 import {
@@ -166,6 +167,7 @@ export function LegalPage({ initialTab }: { initialTab?: string }) {
             router.replace(`/profile/legal?tab=${v}`);
           }}
           className="lgl-tabs"
+          pilot={(v) => pilot(`legal.tab:${v}`)}
         />
         <LegalBody key={tab} tab={tab} />
       </div>

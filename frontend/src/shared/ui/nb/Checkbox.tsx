@@ -3,6 +3,8 @@
 import type { ReactNode } from 'react';
 import { clsx } from 'clsx';
 
+import type { PilotAttrs } from '@/shared/pilot';
+
 import { CheckTick } from './CheckTick';
 
 interface CheckboxProps {
@@ -13,6 +15,8 @@ interface CheckboxProps {
   description?: ReactNode;
   disabled?: boolean;
   className?: string;
+  /** Autopilot name: `pilot('…')` (frontend/CLAUDE.md §11.6). */
+  pilot?: PilotAttrs;
 }
 
 /**
@@ -20,9 +24,9 @@ interface CheckboxProps {
  * on) inside its label row — checklist items (Teen kit, Shop_Checklist),
  * terms (Dir_Join). Native input keeps Space, form semantics and SR state.
  */
-export function Checkbox({ checked, onCheckedChange, label, description, disabled, className }: CheckboxProps) {
+export function Checkbox({ checked, onCheckedChange, label, description, disabled, className, pilot }: CheckboxProps) {
   return (
-    <label className={clsx('nb-check', disabled && 'is-disabled', className)}>
+    <label className={clsx('nb-check', disabled && 'is-disabled', className)} {...pilot}>
       <input
         type="checkbox"
         className="nb-check-input"

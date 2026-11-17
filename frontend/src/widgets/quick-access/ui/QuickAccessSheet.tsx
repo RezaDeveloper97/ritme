@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { type Locale } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { formatNumber } from '@/shared/lib/date';
 import { closeSheet } from '@/shared/sheet';
 import { Checkbox, Icon, PrimaryButton } from '@/shared/ui';
@@ -60,6 +61,7 @@ function Editor() {
                 className="qas-check"
                 checked={on}
                 disabled={!on && full}
+                pilot={pilot(`quick-access.pick:${s.id}`)}
                 onCheckedChange={(next) => toggle(s.id, next)}
                 label={t(`items.${s.id}` as 'items.record')}
               />
@@ -69,6 +71,7 @@ function Editor() {
       </ul>
       <div className="qas-actions">
         <PrimaryButton
+          {...pilot('quick-access.save')}
           onClick={() => {
             save(owner, picked);
             closeSheet();

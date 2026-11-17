@@ -20,6 +20,7 @@ import { getApiSaveErrorMessage } from '@/shared/api';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatDecimal, formatNumber, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { pilot } from '@/shared/pilot';
 import {
   Card,
   EmptyState,
@@ -116,7 +117,7 @@ export function IvfScanPage({ date: param }: { date?: string }) {
               title={t('scan.noCycle.title')}
               body={t('scan.noCycle.body')}
               action={
-                <Link href="/ivf" className="nb-btn is-primary is-block">
+                <Link href="/ivf" className="nb-btn is-primary is-block" {...pilot('ivf.scan-home')}>
                   {t('scan.noCycle.action')}
                 </Link>
               }
@@ -188,6 +189,7 @@ function ScanFormView({ date, saved, view, t }: { date: string; saved: IvfScan |
 
         <Card className="ivs-labs">
           <DecimalRow
+            pilotId="scan-endometrium"
             label={t('scan.endometrium.label')}
             value={form.endometrium}
             placeholder={t('scan.endometrium.placeholder')}
@@ -196,6 +198,7 @@ function ScanFormView({ date, saved, view, t }: { date: string; saved: IvfScan |
             onChange={(endometrium) => edit({ ...form, endometrium })}
           />
           <DecimalRow
+            pilotId="scan-e2"
             label={t('scan.e2.label')}
             value={form.e2}
             placeholder={t('scan.e2.placeholder')}
@@ -205,6 +208,7 @@ function ScanFormView({ date, saved, view, t }: { date: string; saved: IvfScan |
                 className="ivs-unit-btn"
                 aria-label={t('scan.e2.unitToggle', { unit: t(`scan.e2.units.${form.e2Unit}`) })}
                 onClick={() => edit({ ...form, e2Unit: form.e2Unit === 'pg_ml' ? 'pmol_l' : 'pg_ml' })}
+                {...pilot('ivf.scan-e2-unit')}
               >
                 {t(`scan.e2.units.${form.e2Unit}`)}
               </button>
@@ -234,7 +238,7 @@ function ScanFormView({ date, saved, view, t }: { date: string; saved: IvfScan |
             {saveError ?? deleteError}
           </p>
         ) : null}
-        <PrimaryButton loading={save.isPending} disabled={!dirty || remove.isPending} onClick={submit}>
+        <PrimaryButton loading={save.isPending} disabled={!dirty || remove.isPending} onClick={submit} {...pilot('ivf.scan-save')}>
           {t('scan.save')}
         </PrimaryButton>
       </div>
@@ -262,6 +266,7 @@ function OvaryColumn({ ovary, form, onChange, t }: { ovary: IvfOvary; form: Scan
             min={0}
             max={IVF_SCAN_LIMITS.follicles}
             onChange={(v) => onChange({ ...form, [ovary]: { ...form[ovary], [bin]: v } })}
+            pilot={pilot(`ivf.scan-follicles:${ovary}.${bin}`, 'stepper')}
             decrementLabel={t('scan.decrease', { ovary: name, bin: label })}
             incrementLabel={t('scan.increase', { ovary: name, bin: label })}
             locale={locale}
@@ -273,6 +278,7 @@ function OvaryColumn({ ovary, form, onChange, t }: { ovary: IvfOvary; form: Scan
 }
 
 function DecimalRow({
+  pilotId,
   label,
   value,
   placeholder,
@@ -280,6 +286,7 @@ function DecimalRow({
   error,
   onChange,
 }: {
+  pilotId: string;
   label: string;
   value: string;
   placeholder: string;
@@ -307,6 +314,7 @@ function DecimalRow({
             aria-invalid={error !== null}
             aria-describedby={error ? `${id}-err` : undefined}
             onChange={(e) => onChange(e.target.value)}
+            {...pilot(`ivf.${pilotId}`, 'text')}
           />
           {suffix}
         </span>

@@ -20,6 +20,7 @@ import {
   type VitalType,
 } from '@/entities/vital';
 import { Link, useDirection, type Locale } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { formatWeekday, formatWeekdayDayMonth, fromApiDate, today } from '@/shared/lib/date';
 import { Card, EmptyState, HubHeader, Icon, PrimaryButton, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
@@ -93,7 +94,7 @@ export function VitalsHubPage() {
           greeting={t('hub.title')}
           actions={
             recordOn ? (
-              <Link href="/record" className="nb-hbtn is-soft" aria-label={t('hub.record')}>
+              <Link href="/record" className="nb-hbtn is-soft" aria-label={t('hub.record')} {...pilot('vt.record')}>
                 <Icon name="note" size={20} strokeWidth={1.8} />
               </Link>
             ) : undefined
@@ -103,7 +104,7 @@ export function VitalsHubPage() {
       </div>
       <nav className="vt-add-bar" aria-label={t('hub.addGroup')}>
         {(['bp', 'hr', 'glucose'] as const).map((type) => (
-          <Link key={type} href={vitalAddPath(type)} className={clsx('vt-add-btn', `is-${type}`)} aria-label={t('hub.addLabel', { type: t(`types.${type}`) })}>
+          <Link key={type} href={vitalAddPath(type)} className={clsx('vt-add-btn', `is-${type}`)} aria-label={t('hub.addLabel', { type: t(`types.${type}`) })} {...pilot(`vt.add:${type}`)}>
             <Icon name="plus" size={16} strokeWidth={2.6} />
             {t(`short.${type}`)}
           </Link>
@@ -127,7 +128,7 @@ function LatestCard({ type, reading, needed }: { type: VitalType; reading: Vital
     reading?.classification?.code === 'very_high' && (reading.glucose?.context === 'random' || reading.glucose?.context === 'bedtime');
   const pill = type === 'glucose' && condition && verdict ? `${condition}${t('common.separator')}${verdict}` : type === 'hr' && condition ? condition : verdict;
   return (
-    <Link href={href} className={clsx('nb-card vt-latest-card', `is-${type}`)} aria-label={reading ? t('hub.openReport', { type: t(`types.${type}`) }) : t('hub.addLabel', { type: t(`types.${type}`) })}>
+    <Link href={href} className={clsx('nb-card vt-latest-card', `is-${type}`)} {...pilot(`vt.latest:${type}`)} aria-label={reading ? t('hub.openReport', { type: t(`types.${type}`) }) : t('hub.addLabel', { type: t(`types.${type}`) })}>
       <span className="vt-latest-head">
         <VitalIcon type={type} />
         <b className="vt-latest-title">{t(`types.${type}`)}</b>
@@ -201,7 +202,7 @@ function PlanCard({ week, onEdit }: { week: PlanWeek; onEdit: () => void }) {
       ) : (
         <p className="vt-card-note">{t('hub.planEmpty')}</p>
       )}
-      <button type="button" className="vt-link-btn" onClick={onEdit}>
+      <button type="button" className="vt-link-btn" onClick={onEdit} {...pilot('vt.plan-edit')}>
         <Icon name={week.items.length ? 'pencil' : 'plus'} size={16} />
         {t(week.items.length ? 'hub.planEdit' : 'hub.planSetup')}
       </button>
@@ -219,7 +220,7 @@ function RecentCard({ readings, glucoseUnit }: { readings: readonly VitalReading
           {t('hub.recentTitle')}
         </h2>
         {readings.length ? (
-          <Link href={vitalReportPath(readings[0].type)} className="vt-head-link">
+          <Link href={vitalReportPath(readings[0].type)} className="vt-head-link" {...pilot('vt.recent-all')}>
             {t('hub.all')}
           </Link>
         ) : null}

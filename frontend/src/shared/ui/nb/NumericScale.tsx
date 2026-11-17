@@ -3,6 +3,8 @@
 import { useId, type ReactNode } from 'react';
 import { clsx } from 'clsx';
 
+import type { PilotAttrs } from '@/shared/pilot';
+
 import type { Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 
@@ -53,6 +55,8 @@ interface NumericScaleBaseProps {
   /** Captions under the first / last cell («بدون درد» · «بدترین درد ممکن»). */
   minLabel?: ReactNode;
   maxLabel?: ReactNode;
+  /** Autopilot name of the group: `pilot('…', 'choice')` (frontend/CLAUDE.md §11.6). */
+  pilot?: PilotAttrs;
   className?: string;
 }
 
@@ -83,6 +87,7 @@ export function NumericScale({
   variant = 'soft',
   tone = 'brand',
   className,
+  pilot,
 }: NumericScaleProps) {
   const labelId = useId();
   const endsId = useId();
@@ -110,6 +115,7 @@ export function NumericScale({
       ) : null}
       <div
         role="radiogroup"
+        {...pilot}
         aria-labelledby={label ? labelId : undefined}
         aria-label={label ? undefined : ariaLabel}
         aria-describedby={hasEnds ? endsId : undefined}
@@ -120,6 +126,7 @@ export function NumericScale({
             key={n}
             ref={roving.refOf(index)}
             type="button"
+            data-pilot-option={String(n)}
             role="radio"
             aria-checked={n === value}
             tabIndex={roving.tabIndexOf(index)}

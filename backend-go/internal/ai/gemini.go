@@ -281,3 +281,22 @@ func (g *Gemini) ParseLog(ctx context.Context, req LogParseRequest) ([]Candidate
 	out, err := decodeCandidates(text)
 	return out, u, err
 }
+
+// PilotScript implements Scripter.
+func (g *Gemini) PilotScript(ctx context.Context, req PilotRequest) (string, Usage, error) {
+	body := gRequest{
+		SystemInstruction: &gContent{Parts: []gPart{{Text: pilotInstruction}}},
+		Contents:          []gContent{{Role: "user", Parts: []gPart{{Text: pilotPrompt(req)}}}},
+		GenerationConfig:  g.taskConfig(ctx, PilotMaxOutputTokens, map[string]any{"responseMimeType": "application/json"}),
+	}
+	raw, err := json.Marshal(body)
+	if err != nil {
+		return "", Usage{Provider: config.AIProviderGemini, Model: g.modelOf(ctx)}, fmt.Errorf("%w: encode request", ErrUpstream)
+	}
+	text, u, err := g.generate(ctx, raw)
+	clear(raw)
+	if err != nil {
+		return "", u, err
+	}
+	return stripJSONFence(text), u, nil
+}

@@ -10,6 +10,7 @@ import {
   type AiCredits,
   type AiUsagePage,
 } from '@/entities/ai-credit';
+import { pilot } from '@/shared/pilot';
 import { useBillingChannel } from '@/shared/billing';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { formatDayMonth, formatLongDate, formatNumber, formatTimeOfDay, fromApiDate, toParts } from '@/shared/lib/date';
@@ -49,7 +50,7 @@ function Hero({ credits }: { credits: AiCredits }) {
         <Art3d name="credits" size={72} />
         <h2 className="cr-hero-title">{t('noSubscription.title')}</h2>
         <p className="cr-hero-text">{t('noSubscription.body')}</p>
-        <PrimaryButton block={false} onClick={() => router.push('/plus')}>
+        <PrimaryButton block={false} onClick={() => router.push('/plus')} {...pilot('credits.open:plus')}>
           {t('noSubscription.cta')}
         </PrimaryButton>
       </Card>
@@ -172,7 +173,7 @@ function HistoryBlock({ usage }: { usage: AiUsagePage[] }) {
         </ListGroup>
       )}
       {more.hasNextPage ? (
-        <SecondaryButton loading={more.isFetchingNextPage} onClick={() => void more.fetchNextPage()}>
+        <SecondaryButton loading={more.isFetchingNextPage} onClick={() => void more.fetchNextPage()} {...pilot('credits.more')}>
           {t('more')}
         </SecondaryButton>
       ) : null}
@@ -224,7 +225,7 @@ export function CreditsUsagePage() {
         <Hero credits={data} />
         <ExtraCard credits={data} />
         {canBuy ? (
-          <PrimaryButton onClick={() => router.push('/plus/credits')}>{t('usage.buy')}</PrimaryButton>
+          <PrimaryButton onClick={() => router.push('/plus/credits')} {...pilot('credits.open:plus-credits')}>{t('usage.buy')}</PrimaryButton>
         ) : null}
         {costs.length ? (
           <section className="cr-sec" aria-labelledby="cr-costs">

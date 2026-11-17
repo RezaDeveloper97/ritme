@@ -6,6 +6,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { type LogPreferences, useLogPreferences } from '@/entities/health-log';
 import type { Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import {
   EmptyState,
@@ -288,10 +289,11 @@ export function CustomizeLog({ lookOf, onExit, mode }: CustomizeLogProps) {
               variant="text"
               block={false}
               onClick={() => setDrafts((prev) => (prev ? { ...prev, draft: prev.base } : prev))}
+              {...pilot('customize.discard')}
             >
               {t('discard')}
             </SecondaryButton>
-            <PrimaryButton block={false} loading={save.isPending} className="lcz-foot-save" onClick={() => doSave()}>
+            <PrimaryButton block={false} loading={save.isPending} className="lcz-foot-save" onClick={() => doSave()} {...pilot('customize.save')}>
               {t('save')}
             </PrimaryButton>
           </div>

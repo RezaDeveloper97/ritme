@@ -22,6 +22,7 @@ import {
   SkyLayer,
   Switch,
 } from '@/shared/ui';
+import { pilot, pilotOption } from '@/shared/pilot';
 
 import { isValidFrom, parseGroup, REPORT_GROUPS, SECTION_PARAM, selectionOf, useReportDraft } from '../model/selection';
 import { ShareLinkSheet } from './ShareLinkSheet';
@@ -83,6 +84,7 @@ export function RecordExportPage() {
             onClick={() => router.push('/record/export/preview')}
             disabled={!ready}
             aria-label={t('previewCard.open')}
+            {...pilot('recx.preview')}
           >
             <span className="rx-thumb" aria-hidden>
               <span className="rx-thumb-bar" />
@@ -104,15 +106,15 @@ export function RecordExportPage() {
 
         <Card className="rx-card">
           <h2 className="rx-card-title">{t('range.title')}</h2>
-          <ChipGroup label={t('range.title')}>
+          <ChipGroup label={t('range.title')} pilot={pilot('recx.range', 'choice')}>
             {REPORT_RANGES.map((r) => (
-              <PillChip key={r} pressed={draft.range === r} onPressedChange={() => pickRange(r)}>
+              <PillChip key={r} {...pilotOption(r)} pressed={draft.range === r} onPressedChange={() => pickRange(r)}>
                 {t(`range.${r}`)}
               </PillChip>
             ))}
           </ChipGroup>
           {draft.range === 'custom' && draft.from ? (
-            <button type="button" className="rx-custom" onClick={() => setPicking(true)}>
+            <button type="button" className="rx-custom" onClick={() => setPicking(true)} {...pilot('recx.custom-from')}>
               {t('range.customFrom', { date: formatLongDate(fromApiDate(draft.from), loc) })}
             </button>
           ) : null}
@@ -129,7 +131,7 @@ export function RecordExportPage() {
                   </span>
                   <span className="rx-toggle-sub">{t(`sections.${g}Sub`)}</span>
                 </span>
-                <Switch checked={draft.groups[g]} onCheckedChange={(on) => draft.toggle(g, on)} labelledBy={`rx-${g}`} />
+                <Switch checked={draft.groups[g]} onCheckedChange={(on) => draft.toggle(g, on)} labelledBy={`rx-${g}`} pilot={pilot(`recx.group:${g}`)} />
               </li>
             ))}
             {draft.groups.pregnancies ? (
@@ -141,7 +143,7 @@ export function RecordExportPage() {
                   </span>
                   <span className="rx-toggle-sub">{t('sections.lossesSub')}</span>
                 </span>
-                <Switch checked={draft.includeLosses} onCheckedChange={draft.setIncludeLosses} labelledBy="rx-losses" />
+                <Switch checked={draft.includeLosses} onCheckedChange={draft.setIncludeLosses} labelledBy="rx-losses" pilot={pilot('recx.losses')} />
               </li>
             ) : null}
           </ul>
@@ -166,6 +168,7 @@ export function RecordExportPage() {
               value={draft.question}
               placeholder={t('question.placeholder')}
               onChange={(e) => draft.setQuestion(e.target.value)}
+              {...pilot('recx.question', 'text')}
             />
           </div>
           {draft.question.length > MAX_REPORT_QUESTION - 60 ? (
@@ -208,6 +211,7 @@ export function RecordExportPage() {
             loading={pdf.busy || (ready && report.isPending)}
             disabled={!ready || !model}
             onClick={() => model && void pdf.run(model)}
+            {...pilot('recx.download')}
           >
             {pdf.busy ? t('downloading') : t('download')}
           </PrimaryButton>
@@ -256,13 +260,13 @@ function CustomRangeSheet({
       size="full"
       title={t('pickTitle')}
       footer={
-        <PrimaryButton disabled={!valid} onClick={() => iso && onPick(iso)}>
+        <PrimaryButton disabled={!valid} onClick={() => iso && onPick(iso)} {...pilot('recx.custom-done')}>
           {t('pickDone')}
         </PrimaryButton>
       }
     >
       <p className="rx-pick-hint">{t('pickHint')}</p>
-      <CalendarPicker value={value} onSelect={setValue} />
+      <CalendarPicker value={value} onSelect={setValue} pilot={pilot('recx.custom-cal', 'calendar')} />
       {value && !valid ? (
         <p className="rx-error" role="alert">
           {t('pickInvalid')}

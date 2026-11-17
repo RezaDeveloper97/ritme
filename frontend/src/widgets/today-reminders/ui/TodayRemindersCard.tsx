@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { type NextAppointment, useCareToday } from '@/entities/care-reminder';
 import { useLogIntake } from '@/features/log-intake';
 import { Link, type Locale } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { formatNumber, fromApiDate, monthName, toParts } from '@/shared/lib/date';
 import { openSheet } from '@/shared/sheet';
 import { CheckTick, Icon, Skeleton } from '@/shared/ui';
@@ -35,7 +36,7 @@ function Header({ t }: { t: T }) {
         </span>
         <h2 className="trm-title">{t('home.title')}</h2>
       </span>
-      <Link href="/reminders" className="trm-all">
+      <Link href="/reminders" className="trm-all" {...pilot('home.reminders-all')}>
         {t('home.all')}
       </Link>
     </div>
@@ -44,7 +45,7 @@ function Header({ t }: { t: T }) {
 
 function AddButton({ t }: { t: T }) {
   return (
-    <button type="button" className="trm-add" onClick={() => openSheet(ADD_SHEET)}>
+    <button type="button" className="trm-add" onClick={() => openSheet(ADD_SHEET)} {...pilot('home.reminder-add')}>
       <Icon name="plus" size={16} strokeWidth={2.4} />
       {t('home.add')}
     </button>
@@ -83,6 +84,7 @@ function DoseRow({
         type="button"
         className="trm-check"
         aria-pressed={row.taken}
+        {...pilot(`home.dose:${row.reminderId}-${row.slot.replace(/[^A-Za-z0-9_.-]/g, '')}`)}
         aria-label={t(row.taken ? 'today.markNotTaken' : 'today.markTaken', { title: row.title })}
         // Optimistic already; blocking only this row while its write is in
         // flight keeps a double-tap from queueing an undo.

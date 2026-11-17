@@ -16,6 +16,7 @@ import {
 } from '@/entities/assistant';
 import { useModuleEnabled } from '@/entities/app-module';
 import { DoctorAvatar, useBookings, useDoctorTitle, useModeLabel, whenLabel } from '@/entities/doctor';
+import { pilot } from '@/shared/pilot';
 import { Link, useRouter, type Locale } from '@/shared/i18n';
 import { Card, EmptyState, HeaderButton, Icon, PrimaryButton, ScreenHeader, SecondaryButton, SegmentedTabs, SkyLayer, StatusPill } from '@/shared/ui';
 
@@ -73,6 +74,7 @@ export function AssistantHistoryPage() {
           onChange={setTab}
           label={t('history.tabsLabel')}
           panelId={() => PANEL_ID}
+          pilot={(v) => pilot(`assistant.history-tab:${v}`)}
         />
         <div id={PANEL_ID} role="tabpanel" aria-label={t(`history.tabs.${tab}`)}>
           {visitsFailed ? (
@@ -80,7 +82,7 @@ export function AssistantHistoryPage() {
           ) : feed.length === 0 ? (
             <Card>
               {items.length === 0 && tab !== 'doctor' ? (
-                <EmptyState icon="history" title={t('history.emptyTitle')} body={t('history.emptyBody')} action={<PrimaryButton onClick={() => router.push('/assistant')}>{t('hub.title')}</PrimaryButton>} />
+                <EmptyState icon="history" title={t('history.emptyTitle')} body={t('history.emptyBody')} action={<PrimaryButton onClick={() => router.push('/assistant')} {...pilot('assistant.open:assistant')}>{t('hub.title')}</PrimaryButton>} />
               ) : (
                 <EmptyState icon="history" title={t('history.emptyTab')} />
               )}
@@ -133,7 +135,7 @@ export function AssistantHistoryPage() {
 
         {feed.length > 0 ? (
           <div className="as-pdf">
-            <SecondaryButton block icon="export" loading={pdf.state === 'working'} onClick={() => void pdf.run()}>
+            <SecondaryButton block icon="export" loading={pdf.state === 'working'} onClick={() => void pdf.run()} {...pilot('assistant.export-pdf')}>
               {pdf.state === 'working' ? t('history.exporting') : t('history.exportPdf')}
             </SecondaryButton>
             {pdf.state === 'error' ? <p className="as-error" role="alert">{t('history.exportError')}</p> : <p className="as-text">{t('history.pdfNote')}</p>}
@@ -168,7 +170,7 @@ export function AssistantHistoryPage() {
           subtitle={t('history.subtitle2')}
           onBack={() => router.push('/assistant')}
           backLabel={t('common.back')}
-          action={<HeaderButton label={t('profile.title')} icon="user" onClick={() => router.push('/assistant/profile')} />}
+          action={<HeaderButton label={t('profile.title')} icon="user" onClick={() => router.push('/assistant/profile')} pilot={pilot('assistant.open:assistant-profile')} />}
         />
         {body}
       </div>

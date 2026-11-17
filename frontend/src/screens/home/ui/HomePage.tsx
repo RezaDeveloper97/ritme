@@ -66,6 +66,7 @@ import { PeriodDateEditor, useEndPeriod, useStartPeriod } from '@/features/log-p
 import { canOfferSkip, SkipPeriodSheet, SkipUndo } from '@/features/skip-period';
 import { getApiErrorCode } from '@/shared/api';
 import { Link, useRouter, type Locale } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import {
   addDays,
   currentHour,
@@ -265,6 +266,7 @@ function WeekStrip({
             className={clsx('home-wday', isToday && 'is-today', isSelected && 'is-selected')}
             onClick={() => onSelect(date)}
             aria-pressed={iso === selectedIso}
+            {...pilot(`home.day:${iso}`)}
             aria-label={formatWeekdayDayMonth(date, loc)}
           >
             <span className="home-wday-name" aria-hidden>{letters[i]}</span>
@@ -395,13 +397,13 @@ function PhaseCard({
       <p className="home-phase-text">{loading ? t('unavailable') : description}</p>
       {showMore && (
         // The sheet reads the phase from live cycle data, never from the URL (§11).
-        <button type="button" className="home-phase-more" onClick={() => openSheet('phase')}>
+        <button type="button" className="home-phase-more" onClick={() => openSheet('phase')} {...pilot('home.phase-more')}>
           {t('phaseCard.more')}
           <Icon name="chevronLeft" size={15} strokeWidth={2.2} className="home-phase-more-chev" />
         </button>
       )}
       {action && (
-        <button type="button" className="home-phase-more" onClick={action.onClick}>
+        <button type="button" className="home-phase-more" onClick={action.onClick} {...pilot('home.phase-action')}>
           {action.label}
           <Icon name="chevronLeft" size={15} strokeWidth={2.2} className="home-phase-more-chev" />
         </button>
@@ -1252,7 +1254,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
               )}
               {ringSub && !noPeriodData && <span className="home-ring-sub">{ringSub}</span>}
               {ttcRing ? (
-                <Link href={logHref} className="home-ring-edit is-ink">
+                <Link href={logHref} className="home-ring-edit is-ink" {...pilot('home.log-today')}>
                   <Icon name="plus" size={16} strokeWidth={2.4} />
                   {tf('home.logToday')}
                 </Link>
@@ -1263,12 +1265,13 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
                     type="button"
                     className="home-ring-cta is-period"
                     onClick={() => startPeriod.mutate()}
+                    {...pilot('home.period-started')}
                     disabled={startPeriod.isPending}
                   >
                     <Icon name="drop" size={16} strokeWidth={2.2} />
                     {t('nb.hero.started')}
                   </button>
-                  <button type="button" className="home-ring-later" onClick={() => dismiss('start')}>
+                  <button type="button" className="home-ring-later" onClick={() => dismiss('start')} {...pilot('home.period-not-yet')}>
                     {t('nb.hero.notYet')}
                   </button>
                   {skipOffered && (
@@ -1284,18 +1287,19 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
                     type="button"
                     className="home-ring-cta"
                     onClick={() => endPeriod.mutate()}
+                    {...pilot('home.period-ended')}
                     disabled={endPeriod.isPending}
                   >
                     <Icon name="check" size={16} strokeWidth={2.4} />
                     {t('nb.hero.ended')}
                   </button>
-                  <button type="button" className="home-ring-later" onClick={() => dismiss('end')}>
+                  <button type="button" className="home-ring-later" onClick={() => dismiss('end')} {...pilot('home.period-still-going')}>
                     {t('nb.hero.stillGoing')}
                   </button>
                 </>
               ) : (
                 // The date editor rises over the home screen itself (§4.1).
-                <button type="button" className="home-ring-edit" onClick={() => setDateEditorOpen(true)}>
+                <button type="button" className="home-ring-edit" onClick={() => setDateEditorOpen(true)} {...pilot('home.edit-period')}>
                   <Icon name="pen" size={16} strokeWidth={2.2} />
                   {noPeriodData ? t('ring.logPeriod') : t('ring.editPeriod')}
                 </button>

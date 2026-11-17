@@ -8,6 +8,7 @@ import {
   COMPANION_SIGNALS,
   type CompanionAction,
   type CompanionAuditEntry,
+  type CompanionGoal,
   type CompanionPreferences,
   type CompanionSignalScope,
   type CompanionGrants,
@@ -38,7 +39,15 @@ const grantsSchema = z
  * production server or an older Go build sends none of them, and the most
  * private reading (nothing shared, no prefs) is the default.
  */
-const goalSchema = z.enum(COMPANION_GOALS).catch('unknown');
+const isGoal = (g: unknown): g is CompanionGoal => (COMPANION_GOALS as readonly unknown[]).includes(g);
+/**
+ * The goals of a link: the `goals` list, or the single `goal` of a server older than the multi-select.
+ * `unknown` is "none picked", so it never enters the list.
+ */
+export function readGoals(goals: unknown, goal: unknown): CompanionGoal[] {
+  const raw = Array.isArray(goals) ? goals : [goal];
+  return raw.filter(isGoal).filter((g, i, all) => g !== 'unknown' && all.indexOf(g) === i);
+}
 export const signalScopeSchema = z
   .record(z.string(), z.unknown())
   .nullable()
@@ -58,13 +67,23 @@ export const actionPrefsSchema = z
     (raw ?? []).filter((a): a is CompanionAction => (COMPANION_ACTIONS as readonly unknown[]).includes(a)),
   );
 export const preferencesSchema = z
-  .object({ goal: z.unknown().optional(), signals: signalScopeSchema, action_prefs: actionPrefsSchema })
+  .object({
+    goal: z.unknown().optional(),
+    goals: z.unknown().optional(),
+    signals: signalScopeSchema,
+    action_prefs: actionPrefsSchema,
+  })
   .transform(
-    (p): CompanionPreferences => ({ goal: goalSchema.parse(p.goal), signals: p.signals, actionPrefs: p.action_prefs }),
+    (p): CompanionPreferences => ({
+      goals: readGoals(p.goals, p.goal),
+      signals: p.signals,
+      actionPrefs: p.action_prefs,
+    }),
   );
 
 const ownerLinkShape = z.object({
   goal: z.unknown().optional(),
+  goals: z.unknown().optional(),
   signals: signalScopeSchema,
   action_prefs: actionPrefsSchema,
   id: z.number(),
@@ -97,7 +116,7 @@ export const ownerCompanionSchema = ownerLinkShape.transform(
     grants: l.grants,
     invite: l.invite ? { expiresAt: l.invite.expires_at, phone: l.invite.phone ?? null } : null,
     family: l.family ? { id: l.family.id, sharedChildIds: l.family.shared_child_ids ?? [] } : null,
-    preferences: { goal: goalSchema.parse(l.goal), signals: l.signals, actionPrefs: l.action_prefs },
+    preferences: { goals: readGoals(l.goals, l.goal), signals: l.signals, actionPrefs: l.action_prefs },
   }),
 );
 

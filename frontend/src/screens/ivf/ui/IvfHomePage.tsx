@@ -18,6 +18,7 @@ import {
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatDecimal, formatNumber, fromApiDate } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { pilot } from '@/shared/pilot';
 import {
   Card,
   EmptyState,
@@ -162,7 +163,7 @@ function OffCard({ t }: { t: T }) {
         title={t('empty.offTitle')}
         body={t('empty.offBody')}
         action={
-          <Link href="/profile/mode" className="nb-btn is-outline is-block">
+          <Link href="/profile/mode" className="nb-btn is-outline is-block" {...pilot('ivf.off-cta')}>
             {t('empty.offCta')}
           </Link>
         }
@@ -180,7 +181,7 @@ function StartCard({ t }: { t: T }) {
         title={t('empty.startTitle')}
         body={t('empty.startBody')}
         action={
-          <Link href="/ivf/cycle/new" className="nb-btn is-primary is-block">
+          <Link href="/ivf/cycle/new" className="nb-btn is-primary is-block" {...pilot('ivf.cycle-start')}>
             {t('empty.startCta')}
           </Link>
         }
@@ -231,7 +232,7 @@ function TimelineCard({ cycle, t }: { cycle: IvfCycle; t: T }) {
         locale={locale}
       />
       {/* CB-IVF-06b: stage + dates editor. */}
-      <Link href="/ivf/cycle" className="ivf-timeline-edit" aria-label={t('cycle.editLabel')}>
+      <Link href="/ivf/cycle" className="ivf-timeline-edit" aria-label={t('cycle.editLabel')} {...pilot('ivf.cycle-edit')}>
         <Icon name="pencil" size={16} />
         {t('cycle.edit')}
       </Link>
@@ -309,6 +310,7 @@ function DoseRow({ dose, busy, onToggle, t }: { dose: IvfDose; busy: boolean; on
           }
           disabled={busy}
           onClick={onToggle}
+          {...pilot(`ivf.dose:${dose.medId}-${dose.slot.replace(/[^0-9A-Za-z]/g, '')}`)}
         >
           {dose.taken ? t('doses.done') : t('doses.log')}
         </button>
@@ -337,6 +339,7 @@ function NextAppointment({ next, t }: { next: IvfNextAppointment; t: T }) {
           title={next.title}
           description={next.prep ? t('next.withPrep', { when, prep: next.prep }) : when}
           onClick={() => router.push(`/reminders/appointment/${next.id}`)}
+          pilot={pilot('ivf.next-appointment')}
         />
       </ListGroup>
     </section>
@@ -359,6 +362,7 @@ function CompanionCard({ companion, t }: { companion: IvfCompanion; t: T }) {
             checked={companion.notify}
             onCheckedChange={(next) => notify.mutate(next)}
             labelledBy="ivf-companion-title"
+            pilot={pilot('ivf.companion-notify')}
             disabled={notify.isPending}
           />
         }
@@ -376,14 +380,14 @@ function CompanionCard({ companion, t }: { companion: IvfCompanion; t: T }) {
 /** Shown as CB-IVF-04/05 land their routes (IVF_SCREENS_READY) — never a 404 link. */
 function QuickActions({ t }: { t: T }) {
   const actions = [
-    IVF_SCREENS_READY.scan ? { href: '/ivf/scan', icon: 'note' as const, label: t('actions.scan') } : null,
-    IVF_SCREENS_READY.tww ? { href: '/ivf/tww', icon: 'clock' as const, label: t('actions.tww') } : null,
+    IVF_SCREENS_READY.scan ? { href: '/ivf/scan', id: 'scan', icon: 'note' as const, label: t('actions.scan') } : null,
+    IVF_SCREENS_READY.tww ? { href: '/ivf/tww', id: 'tww', icon: 'clock' as const, label: t('actions.tww') } : null,
   ].filter((a) => a !== null);
   if (actions.length === 0) return null;
   return (
     <div className="ivf-actions">
       {actions.map((a) => (
-        <Link key={a.href} href={a.href} className="ivf-action">
+        <Link key={a.href} href={a.href} className="ivf-action" {...pilot(`ivf.action:${a.id}`)}>
           <Icon name={a.icon} size={18} />
           {a.label}
         </Link>

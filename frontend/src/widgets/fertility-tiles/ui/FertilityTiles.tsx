@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 
 import { formatBbt, useFertilityToday } from '@/entities/fertility';
 import { Link, type Locale } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { Icon, type IconName, Skeleton, SkeletonGroup } from '@/shared/ui';
 
 type Tone = 'lh' | 'bbt' | 'intercourse';
@@ -35,6 +36,7 @@ function TileLink({ tile }: { tile: Tile }) {
       href={tile.href}
       aria-label={`${tile.aria} — ${tile.value}`}
       className="nb-card ttc-tile"
+      {...pilot(`home.ttc-tile:${tile.tone}`)}
     >
       <span
         aria-hidden

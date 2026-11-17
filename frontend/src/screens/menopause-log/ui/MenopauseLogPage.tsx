@@ -4,7 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { LogDay } from '@/features/log-day';
-import { VoiceLogGated } from '@/widgets/voice-log-slot';
+import { useVoiceLocked, VoiceLogGated } from '@/widgets/voice-log-slot';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import { SkyLayer } from '@/shared/ui';
@@ -24,6 +24,7 @@ export function MenopauseLogPage() {
   const date = param && /^\d{4}-\d{2}-\d{2}$/.test(param) && param <= todayKey ? param : todayKey;
   const dayText = formatDayMonth(fromApiDate(date), locale);
   const goHome = () => router.push('/home');
+  const voiceLocked = useVoiceLocked();
   return (
     <div className="view lday-page mlog-page">
       <SkyLayer />
@@ -35,7 +36,7 @@ export function MenopauseLogPage() {
           dateStrip={false}
           pageHeader={{ title: t('title'), subtitle: date === todayKey ? t('today', { date: dayText }) : dayText }}
           BodyMap={BodyMap}
-          VoiceLog={VoiceLogGated}
+          VoiceLog={VoiceLogGated} voiceLocked={voiceLocked}
           onClose={goHome}
           onSaved={goHome}
         />

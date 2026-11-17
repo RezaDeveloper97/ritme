@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef } from 'react';
 
 import { allMonthNames, type DateParts, formatNumber } from '@/shared/lib/date';
 import type { Locale } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { WheelPicker } from '@/shared/ui';
 
 interface DateWheelsProps {
@@ -16,6 +17,8 @@ interface DateWheelsProps {
   minYear: number;
   /** Last selectable year (inclusive), in the locale's calendar. */
   maxYear: number;
+  /** Autopilot id of the set (`area.name`); the wheels become `<id>:day|month|year`. Unmarked when absent. */
+  pilotId?: string;
 }
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
@@ -28,7 +31,7 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
  * years for `fa`, Gregorian for `en`. Month names and digits both come from the
  * date layer (CLAUDE.md §6, §7) so the two calendars can never be mixed.
  */
-export function DateWheels({ idPrefix, value, onChange, minYear, maxYear }: DateWheelsProps) {
+export function DateWheels({ idPrefix, value, onChange, minYear, maxYear, pilotId }: DateWheelsProps) {
   const loc = useLocale() as Locale;
 
   // WheelPicker binds its scroll handler once on mount, so the callbacks below
@@ -58,6 +61,8 @@ export function DateWheels({ idPrefix, value, onChange, minYear, maxYear }: Date
       <div className="wheel-band" />
       <WheelPicker
         id={`${idPrefix}-day`}
+        pilot={pilotId ? pilot(`${pilotId}:day`, 'wheel') : undefined}
+        pilotValues={pilotId ? Array.from({ length: 31 }, (_, i) => String(i + 1)) : undefined}
         items={days}
         selectedIndex={clamp(value.day - 1, 0, 30)}
         width={56}
@@ -65,6 +70,8 @@ export function DateWheels({ idPrefix, value, onChange, minYear, maxYear }: Date
       />
       <WheelPicker
         id={`${idPrefix}-month`}
+        pilot={pilotId ? pilot(`${pilotId}:month`, 'wheel') : undefined}
+        pilotValues={pilotId ? Array.from({ length: 12 }, (_, i) => String(i + 1)) : undefined}
         items={months}
         selectedIndex={clamp(value.month - 1, 0, 11)}
         width={112}
@@ -72,6 +79,8 @@ export function DateWheels({ idPrefix, value, onChange, minYear, maxYear }: Date
       />
       <WheelPicker
         id={`${idPrefix}-year`}
+        pilot={pilotId ? pilot(`${pilotId}:year`, 'wheel') : undefined}
+        pilotValues={pilotId ? Array.from({ length: maxYear - minYear + 1 }, (_, i) => String(minYear + i)) : undefined}
         items={years}
         selectedIndex={clamp(value.year - minYear, 0, maxYear - minYear)}
         width={80}

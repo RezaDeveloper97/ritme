@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 import type { Locale } from '@/shared/i18n';
 import { type DateParts, formatNumber, fromApiDate, partsToDate, toApiDate, toParts } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { CalendarPicker, PrimaryButton, SecondaryButton, WheelPicker } from '@/shared/ui';
 
@@ -21,7 +22,7 @@ function Footer({ onCancel, onDone, disabled }: { onCancel: () => void; onDone: 
       <SecondaryButton block={false} onClick={onCancel}>
         {t('cancel')}
       </SecondaryButton>
-      <PrimaryButton block={false} onClick={onDone} disabled={disabled}>
+      <PrimaryButton block={false} onClick={onDone} disabled={disabled} {...pilot('contraception.picker-done')}>
         {t('done')}
       </PrimaryButton>
     </div>
@@ -50,6 +51,8 @@ export function TimeSheet({ value, onClose, onPick }: { value: string; onClose: 
           items={HOURS.map((h) => formatNumber(pad(h), locale))}
           selectedIndex={hour}
           onChange={setHour}
+          pilot={pilot('contraception.time-hour', 'wheel')}
+          pilotValues={HOURS.map(pad)}
         />
         <span className="ctr-wheels-sep" aria-hidden>
           :
@@ -59,6 +62,8 @@ export function TimeSheet({ value, onClose, onPick }: { value: string; onClose: 
           items={MINUTES.map((m) => formatNumber(pad(m), locale))}
           selectedIndex={minute}
           onChange={setMinute}
+          pilot={pilot('contraception.time-minute', 'wheel')}
+          pilotValues={MINUTES.map(pad)}
         />
       </div>
       <p className="sr-only">
@@ -96,7 +101,7 @@ export function DateSheet({
         />
       }
     >
-      <CalendarPicker value={parts} onSelect={setParts} />
+      <CalendarPicker value={parts} onSelect={setParts} pilot={pilot('contraception.setup-date', 'calendar')} />
     </AppSheet>
   );
 }

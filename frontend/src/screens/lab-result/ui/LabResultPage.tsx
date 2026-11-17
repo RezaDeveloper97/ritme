@@ -26,6 +26,7 @@ import {
   StatusPill,
   UrgentCard,
 } from '@/shared/ui';
+import { pilot, pilotOption } from '@/shared/pilot';
 
 import { MarkerRow } from './MarkerRow';
 
@@ -101,7 +102,7 @@ export function LabResultPage({ id }: { id: number }) {
       backLabel={t('common.back')}
       action={
         lab.data?.status === 'ready' && recordOn ? (
-          <HeaderButton icon="export" label={t('result.shareDoctor')} onClick={() => router.push('/record/export?section=checkups')} />
+          <HeaderButton icon="export" label={t('result.shareDoctor')} onClick={() => router.push('/record/export?section=checkups')} pilot={pilot('labr.share')} />
         ) : undefined
       }
     />
@@ -162,7 +163,7 @@ export function LabResultPage({ id }: { id: number }) {
           icon="warning"
           title={f.name}
           action={
-            <SecondaryButton block={false} onClick={() => open(f.markerId)}>
+            <SecondaryButton block={false} onClick={() => open(f.markerId)} {...pilot(`labr.flag:${f.markerId}`)}>
               {t('result.flagMore')}
             </SecondaryButton>
           }
@@ -213,7 +214,7 @@ export function LabResultPage({ id }: { id: number }) {
         </div>
       ) : null}
       {data.unconfirmedCount > 0 && data.editable ? (
-        <SecondaryButton icon="check" block={false} onClick={() => router.push(`/labs/${id}/verify`)}>
+        <SecondaryButton icon="check" block={false} onClick={() => router.push(`/labs/${id}/verify`)} {...pilot('labr.confirm-values')}>
           {t('result.confirmValues')}
         </SecondaryButton>
       ) : null}
@@ -245,7 +246,7 @@ export function LabResultPage({ id }: { id: number }) {
             ))}
           </ul>
           {rest.length > NORMAL_PREVIEW ? (
-            <button type="button" className="lab-link is-center" aria-expanded={allNormal} onClick={() => setAllNormal((v) => !v)}>
+            <button type="button" className="lab-link is-center" aria-expanded={allNormal} onClick={() => setAllNormal((v) => !v)} {...pilot('labr.all-normal')}>
               {allNormal ? t('result.showLess') : t('result.showAll', { n: formatNumber(rest.length, locale) })}
             </button>
           ) : null}
@@ -309,13 +310,14 @@ export function LabResultPage({ id }: { id: number }) {
       {data.source === 'upload' ? (
         <div className="lab-feedback">
           <span className="lab-feedback-q">{data.feedback ? t('result.feedbackThanks') : t('result.feedback')}</span>
-          <div className="lab-feedback-btns" role="group" aria-label={t('result.feedback')}>
+          <div className="lab-feedback-btns" role="group" aria-label={t('result.feedback')} {...pilot('labr.feedback', 'choice')}>
             {([true, false] as const).map((helpful) => (
               <button
                 key={String(helpful)}
                 type="button"
                 className="lab-feedback-btn"
                 aria-pressed={data.feedback?.helpful === helpful}
+                {...pilotOption(String(helpful))}
                 aria-label={helpful ? t('result.helpful') : t('result.notHelpful')}
                 disabled={feedback.isPending}
                 onClick={() => feedback.mutate(helpful)}
@@ -331,7 +333,7 @@ export function LabResultPage({ id }: { id: number }) {
 
       <div className="lab-res-manage">
         {data.editable ? (
-          <SecondaryButton variant="text" icon="pencil" onClick={() => router.push(`/labs/${id}/verify`)}>
+          <SecondaryButton variant="text" icon="pencil" onClick={() => router.push(`/labs/${id}/verify`)} {...pilot('labr.edit-values')}>
             {t('result.editValues')}
           </SecondaryButton>
         ) : null}

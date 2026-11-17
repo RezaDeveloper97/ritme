@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 
 import { type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { NumberStepper, PrimaryButton, SegmentedTabs, Skeleton, SkeletonGroup, type SegmentedTab } from '@/shared/ui';
 
 import { babyActionError } from '../api/queries';
@@ -73,6 +74,7 @@ function SideCard({
       onClick={onTap}
       disabled={disabled}
       aria-pressed={state === 'running'}
+      {...pilot(`baby.feed-side:${side}`)}
       aria-label={t('feed.sideAria', { side: t(`side.${side}`), time, state: stateText })}
     >
       {body}
@@ -116,7 +118,7 @@ export function FeedPanel({ timer, readOnly }: { timer: FeedTimerState; readOnly
 
   return (
     <section className="bfl-feed" aria-label={t('feed.region')}>
-      <SegmentedTabs tabs={tabs} value={type} onChange={timer.pickType} label={t('types.label')} />
+      <SegmentedTabs tabs={tabs} value={type} onChange={timer.pickType} label={t('types.label')} pilot={(v) => pilot(`baby.feed-type:${v}`)} />
       {timer.typeLocked ? (
         <p className="bfl-note" role="status">
           {t('feed.typeLocked')}
@@ -148,7 +150,7 @@ export function FeedPanel({ timer, readOnly }: { timer: FeedTimerState; readOnly
           {active ? (
             <span className="bfl-side-state">{t(type === 'pump' ? 'feed.state.pumping' : 'feed.state.running')}</span>
           ) : readOnly ? null : (
-            <button type="button" className="bfl-start" onClick={timer.startTimer} disabled={busy}>
+            <button type="button" className="bfl-start" onClick={timer.startTimer} disabled={busy} {...pilot('baby.feed-start')}>
               {t('feed.startTimer')}
             </button>
           )}
@@ -165,6 +167,7 @@ export function FeedPanel({ timer, readOnly }: { timer: FeedTimerState; readOnly
               incrementLabel={t('feed.amountMore')}
               locale={loc}
               className="bfl-ml"
+              pilot={pilot('baby.feed-amount')}
             />
           )}
         </div>
@@ -226,7 +229,7 @@ export function FeedFinishBar({ timer }: { timer: FeedTimerState }) {
   const running = !!timer.active;
   return (
     <div className="bfl-foot">
-      <PrimaryButton className="bfl-finish" onClick={timer.finish} disabled={!running} loading={running && timer.action.isPending}>
+      <PrimaryButton className="bfl-finish" onClick={timer.finish} disabled={!running} loading={running && timer.action.isPending} {...pilot('baby.feed-finish')}>
         {t('feed.finish')}
       </PrimaryButton>
     </div>

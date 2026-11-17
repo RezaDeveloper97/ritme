@@ -7,6 +7,7 @@ import { useEffect, useRef } from 'react';
 import { V2_MAX_WEEK, V2_MIN_WEEK, weekRelation, type WeekRelation } from '@/entities/pregnancy';
 import { type Locale, Link } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 
 const WEEKS = Array.from({ length: V2_MAX_WEEK - V2_MIN_WEEK + 1 }, (_, i) => V2_MIN_WEEK + i);
 
@@ -63,6 +64,7 @@ export function WeekStrip({ week, currentWeek }: Props) {
                 replace
                 scroll={false}
                 aria-current={on ? 'page' : undefined}
+                {...pilot(`preg.week:${n}`)}
                 className={clsx(
                   'flex h-[54px] w-11 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl text-[12.5px] font-bold no-underline focus-visible:shadow-(--ring) focus-visible:outline-none',
                   CHIP[rel],

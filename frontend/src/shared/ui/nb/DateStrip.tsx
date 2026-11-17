@@ -2,6 +2,8 @@
 
 import { clsx } from 'clsx';
 
+import type { PilotAttrs } from '@/shared/pilot';
+
 import type { Locale } from '@/shared/i18n';
 import {
   formatNumber,
@@ -30,6 +32,8 @@ interface DateStripProps {
   maxDate?: Date;
   /** Accessible name of the strip, e.g. «روزهای این هفته». */
   label: string;
+  /** Autopilot name of the strip: `pilot('…', 'choice')`; each day is an option keyed by its ISO date (§11.6). */
+  pilot?: PilotAttrs;
   className?: string;
 }
 
@@ -50,6 +54,7 @@ export function DateStrip({
   maxDate,
   label,
   className,
+  pilot,
 }: DateStripProps) {
   const days = weekOf(anchor ?? selected, locale);
   const labels = weekdayLabels(locale);
@@ -57,7 +62,7 @@ export function DateStrip({
   const todayKey = today ? toApiDate(today) : null;
   const maxKey = maxDate ? toApiDate(maxDate) : null;
   return (
-    <div role="group" aria-label={label} className={clsx('nb-dates', className)}>
+    <div role="group" aria-label={label} className={clsx('nb-dates', className)} {...pilot}>
       {days.map((day, index) => {
         const key = toApiDate(day);
         const isSelected = key === selectedKey;
@@ -75,6 +80,7 @@ export function DateStrip({
             aria-label={marked && markedLabel ? `${name} · ${markedLabel}` : name}
             disabled={future}
             onClick={() => onSelect(day)}
+            data-pilot-option={key}
           >
             <span className="nb-date-wd" aria-hidden>
               {labels[index]}

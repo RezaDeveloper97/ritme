@@ -19,13 +19,12 @@ import {
 } from '../model/companion-side';
 import {
   ACCESS_LEVELS,
-  COMPANION_GOALS,
   COMPANION_SECTIONS,
   COMPANION_SIGNALS,
   type CompanionGrants,
   type CompanionSection,
 } from '../model/types';
-import { actionPrefsSchema } from './schema';
+import { actionPrefsSchema, readGoals } from './schema';
 
 /*
  * The companion's routes (B-N4-02 accept / links / leave, B-N4-03 home), Go
@@ -50,13 +49,13 @@ const grantsSchema = z.record(z.string(), z.unknown()).transform((raw): Companio
 const num = z.number().nullable().catch(null);
 const str = z.string().nullable().catch(null);
 
-/** v2 link settings as the member sees them (goal + preferred actions); defaults for an older server. */
+/** v2 link settings as the member sees them (goals + preferred actions); defaults for an older server. */
 const settingsSchema = z
-  .object({ goal: z.enum(COMPANION_GOALS).catch('unknown'), action_prefs: actionPrefsSchema })
+  .object({ goal: z.unknown().optional(), goals: z.unknown().optional(), action_prefs: actionPrefsSchema })
   .nullable()
   .catch(null)
   .optional()
-  .transform((s) => ({ goal: s?.goal ?? ('unknown' as const), actionPrefs: s?.action_prefs ?? [] }));
+  .transform((s) => ({ goals: readGoals(s?.goals, s?.goal), actionPrefs: s?.action_prefs ?? [] }));
 
 /** v2 coarse signals: only a literal boolean is read, anything else is «not shared». */
 const signalsSchema = z

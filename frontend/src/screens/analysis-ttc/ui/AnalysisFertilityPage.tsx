@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
+import { pilot } from '@/shared/pilot';
 import { useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { formatDayMonth, formatDecimal, formatNumber, fromApiDate } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
@@ -49,7 +50,7 @@ export function AnalysisFertilityPage() {
         title={t('empty.title')}
         body={t('empty.body')}
         action={
-          <PrimaryButton icon="plus" block={false} onClick={() => openSheet('log')}>
+          <PrimaryButton icon="plus" block={false} onClick={() => openSheet('log')} {...pilot('analysis.log')}>
             {tR('empty.cta')}
           </PrimaryButton>
         }
@@ -103,6 +104,7 @@ export function AnalysisFertilityPage() {
             aria-label={t('prev')}
             disabled={!f.prevStart}
             onClick={() => setCycle(f.prevStart)}
+            {...pilot('analysis.cycle-prev')}
           >
             <Icon name={rtl ? 'chevronRight' : 'chevronLeft'} size={18} strokeWidth={2} />
           </button>
@@ -115,6 +117,7 @@ export function AnalysisFertilityPage() {
             aria-label={t('next')}
             disabled={!f.nextStart}
             onClick={() => setCycle(f.nextStart)}
+            {...pilot('analysis.cycle-next')}
           >
             <Icon name={rtl ? 'chevronLeft' : 'chevronRight'} size={18} strokeWidth={2} />
           </button>

@@ -6,6 +6,7 @@ import { useMemo } from 'react';
 
 import { useLogDay, useLogPreferences, useLogTaxonomy } from '@/entities/health-log';
 import type { Locale } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { formatNumber, toApiDate, today } from '@/shared/lib/date';
 import { openSheet } from '@/shared/sheet';
 import { Card, Icon, IconCircle, type IconName, type Tone } from '@/shared/ui';
@@ -86,6 +87,7 @@ export function TodayLogCard({ streakDays }: { streakDays: number | null }) {
           type="button"
           onClick={() => openSheet('log', `${toApiDate(today())}:${row.key}`)}
           className="ch-log-row"
+          {...pilot(`home.log-row:${row.key}`)}
           aria-label={row.count === 0 ? t('add', { name: row.title }) : `${row.title} · ${row.sub}`}
         >
           <IconCircle icon={row.icon} tone={row.tone} outlined />

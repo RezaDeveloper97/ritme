@@ -33,6 +33,7 @@ import {
   SkyLayer,
   StatusPill,
 } from '@/shared/ui';
+import { pilot } from '@/shared/pilot';
 
 import { type ExtractErrorKind, extractErrorOf } from '../model/errors';
 import { useSignedBlob } from '../model/use-signed-blob';
@@ -215,7 +216,12 @@ function DocumentBody({
       <WhereUsed doc={doc} />
       <div className="rec-doc-actions">
         {firstIndex >= 0 ? (
-          <SecondaryButton icon="download" loading={downloading} onClick={() => void save(doc.files[firstIndex]!, firstIndex + 1)}>
+          <SecondaryButton
+            icon="download"
+            loading={downloading}
+            onClick={() => void save(doc.files[firstIndex]!, firstIndex + 1)}
+            {...pilot('recd.download')}
+          >
             {t('download')}
           </SecondaryButton>
         ) : null}
@@ -317,7 +323,7 @@ function DetailsCard({ doc, onEdit }: { doc: RecordDocument; onEdit: () => void 
         <h2 id={titleId} className="rec-doc-h2">
           {t('details')}
         </h2>
-        <button type="button" className="hrec-edit" onClick={onEdit}>
+        <button type="button" className="hrec-edit" onClick={onEdit} {...pilot('recd.edit')}>
           {t('edit')}
         </button>
       </div>
@@ -393,10 +399,10 @@ function DatingCard({ id, onApply }: { id: number; onApply: () => void }) {
           </p>
         ) : null}
         <div className="rec-read-actions">
-          <PrimaryButton icon="check" onClick={onApply}>
+          <PrimaryButton icon="check" onClick={onApply} {...pilot('recd.dating-apply')}>
             {t('dating.apply')}
           </PrimaryButton>
-          <SecondaryButton variant="text" loading={answer.isPending} onClick={() => answer.mutate('dismiss')}>
+          <SecondaryButton variant="text" loading={answer.isPending} onClick={() => answer.mutate('dismiss')} {...pilot('recd.dating-dismiss')}>
             {t('dating.dismiss')}
           </SecondaryButton>
         </div>

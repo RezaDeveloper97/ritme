@@ -27,6 +27,7 @@ import { useUserProfile } from '@/entities/user';
 import { InviteCodeCard, normalizeMobile } from '@/features/invite-companion';
 import { getApiErrorMessage, getApiErrorStatus, getApiSaveErrorMessage } from '@/shared/api';
 import { useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import {
   EmptyState,
@@ -162,6 +163,7 @@ function Sharing({ data }: { data: TeenToday }) {
                     checked={grants[key] === 'view'}
                     onCheckedChange={(on) => toggle(key, on)}
                     labelledBy={`${rowId}-title`}
+                    pilot={pilot(`teen.share:${key}`)}
                   />
                 }
               />
@@ -189,7 +191,7 @@ function Sharing({ data }: { data: TeenToday }) {
 
       {link ? null : (
         <div className="tnp-footer">
-          <PrimaryButton icon="send" onClick={() => setInviteOpen(true)}>
+          <PrimaryButton icon="send" onClick={() => setInviteOpen(true)} {...pilot('teen.invite-open')}>
             {t('invite.cta')}
           </PrimaryButton>
         </div>
@@ -225,6 +227,7 @@ function NoteEditor({ saved }: { saved: string }) {
       </label>
       <textarea
         id={id}
+        {...pilot('teen.parent-note', 'text')}
         className="tnp-note-input"
         value={value}
         maxLength={NOTE_MAX}
@@ -245,6 +248,7 @@ function NoteEditor({ saved }: { saved: string }) {
           className="tnp-note-save"
           loading={save.isPending}
           disabled={!dirty}
+          {...pilot('teen.parent-note-save')}
           onClick={() => save.mutate(value)}
         >
           {t('save')}
@@ -364,6 +368,7 @@ function InviteSheet({
           </label>
           <input
             id={phoneId}
+            {...pilot('teen.invite-phone', 'text')}
             className="cmp-input is-phone"
             type="tel"
             inputMode="tel"
@@ -389,6 +394,7 @@ function InviteSheet({
           </label>
           <input
             id={nameId}
+            {...pilot('teen.invite-name', 'text')}
             className="cmp-input"
             value={name}
             maxLength={100}

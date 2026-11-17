@@ -230,3 +230,37 @@ cases:
     method: POST
     path: /api/v1/logs/voice/commit
     status: 401
+  # Voice → autopilot (POST /api/v1/logs/voice/pilot): the same recording answered as a UI autopilot script on the
+  # controls of the manifest the client sends. Go only, recorded from Go with the fake provider.
+  - name: pilot_locked
+    locales: en
+    doc: A free user → 402 ai_subscription_required before the recording is read
+    method: POST
+    path: /api/v1/logs/voice/pilot
+    content_type: multipart/form-data; boundary=ritmeB
+    raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"manifest\"\r\n\r\n{\"version\":1,\"guide\":\"g\",\"actions\":[\"set\"],\"routes\":[],\"sheets\":[],\"targets\":[{\"id\":\"log.param:symptoms.digestive\",\"kind\":\"multi\",\"label\":\"Digestive\",\"options\":[{\"value\":\"bloating\",\"label\":\"bloated\"},{\"value\":\"nausea\",\"label\":\"nausea\"}]},{\"id\":\"log.param:mood.moods\",\"kind\":\"multi\",\"label\":\"Mood\",\"options\":[{\"value\":\"bored\",\"label\":\"bored\"},{\"value\":\"happy\",\"label\":\"happy\"}]}]}\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\nContent-Type: audio/ogg\r\n\r\nOggS\0\x02 RITME-FAKE:default\r\n--ritmeB--\r\n"
+    status: 402
+  - name: pilot_trial
+    locales: en
+    doc: During the trial → transcript + a script that sets the two controls the manifest lists; nothing saved
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: POST
+        path: /api/v1/logs/voice/pilot
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"manifest\"\r\n\r\n{\"version\":1,\"guide\":\"g\",\"actions\":[\"set\"],\"routes\":[],\"sheets\":[],\"targets\":[{\"id\":\"log.param:symptoms.digestive\",\"kind\":\"multi\",\"label\":\"Digestive\",\"options\":[{\"value\":\"bloating\",\"label\":\"bloated\"},{\"value\":\"nausea\",\"label\":\"nausea\"}]},{\"id\":\"log.param:mood.moods\",\"kind\":\"multi\",\"label\":\"Mood\",\"options\":[{\"value\":\"bored\",\"label\":\"bored\"},{\"value\":\"happy\",\"label\":\"happy\"}]}]}\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\nContent-Type: audio/ogg\r\n\r\nOggS\0\x02 RITME-FAKE:default\r\n--ritmeB--\r\n"
+        status: 200
+  - name: pilot_no_manifest
+    locales: en
+    doc: Without the manifest part → 422 (the use is given back)
+    steps:
+      - method: POST
+        path: /api/v1/plus/trial/start
+        status: 200
+      - method: POST
+        path: /api/v1/logs/voice/pilot
+        content_type: multipart/form-data; boundary=ritmeB
+        raw_body: "--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\nContent-Type: audio/ogg\r\n\r\nOggS\0\x02 RITME-FAKE:default\r\n--ritmeB--\r\n"
+        status: 422

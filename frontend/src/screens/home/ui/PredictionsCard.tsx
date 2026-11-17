@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 
 import type { CycleRegularity, OvulationSource } from '@/entities/cycle';
 import { Link, type Locale } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { formatNumber } from '@/shared/lib/date';
 import { Card, Icon, IconCircle, StatusPill, type IconName, type Tone } from '@/shared/ui';
 
@@ -115,7 +116,7 @@ export function PredictionsCard({
       <div className="ch-card-head">
         <h2 id="ch-pred-title" className="ch-overline">{t('title')}</h2>
         {/* B-N3-08: «جزئیات» opens the analysis hub; the cycle-length row below keeps /cycle (history). */}
-        <Link href="/analysis" className="ch-link">{t('details')}</Link>
+        <Link href="/analysis" className="ch-link" {...pilot('home.predictions-details')}>{t('details')}</Link>
       </div>
       <ul className="ch-pred-list">
         {rows.map((row) => (

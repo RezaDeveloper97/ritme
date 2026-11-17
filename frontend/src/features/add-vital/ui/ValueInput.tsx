@@ -6,6 +6,7 @@ import { useId, useState } from 'react';
 import type { Locale } from '@/shared/i18n';
 import { formatDecimal } from '@/shared/lib/date';
 import { Icon, type Tone } from '@/shared/ui';
+import { pilot } from '@/shared/pilot';
 
 import { parseLocaleNumber } from '../model/validate';
 
@@ -38,7 +39,10 @@ export function ValueInput({
   errorId,
   hideLabel,
   startAt,
+  pilotId,
 }: {
+  /** Autopilot name of the number field (frontend/CLAUDE.md §11.6). */
+  pilotId: string;
   label: string;
   value: number | null;
   onChange: (value: number | null) => void;
@@ -93,6 +97,7 @@ export function ValueInput({
       aria-invalid={invalid || undefined}
       aria-describedby={errorId}
       maxLength={decimals ? 5 : 3}
+      {...pilot(pilotId, 'number')}
       onChange={(e) => {
         setText(e.target.value);
         onChange(parseLocaleNumber(e.target.value, decimals));

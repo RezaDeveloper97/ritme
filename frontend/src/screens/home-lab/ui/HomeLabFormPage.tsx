@@ -8,6 +8,7 @@ import { LAB_WINDOWS, useCreateLabRequest, useLabServices } from '@/entities/par
 import { getApiErrorMessage } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { addDays, formatLongDate, toApiDate, today } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { Card, Checkbox, EmptyState, Icon, InfoNote, PrimaryButton, ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
 import {
@@ -147,6 +148,7 @@ export function HomeLabFormPage({ serviceId }: { serviceId: number | null }) {
                   aria-invalid={Boolean(errors[key])}
                   aria-describedby={errors[key] ? `hlb-err-${key}` : undefined}
                   onChange={(e) => set(key, e.target.value)}
+                  {...pilot(`home-lab-form.field:${key}`, 'text')}
                 />
               </span>
               {err(key)}
@@ -163,6 +165,7 @@ export function HomeLabFormPage({ serviceId }: { serviceId: number | null }) {
                 aria-invalid={Boolean(errors.address)}
                 aria-describedby={errors.address ? 'hlb-err-address' : undefined}
                 onChange={(e) => set('address', e.target.value)}
+                {...pilot('home-lab-form.field:address', 'text')}
               />
             </span>
             {err('address')}
@@ -172,7 +175,7 @@ export function HomeLabFormPage({ serviceId }: { serviceId: number | null }) {
         <section className="card fld-card flex flex-col gap-3.5">
           <div className="flex flex-col gap-2">
             <span className="fld-label-t text-start">{t('form.day')}</span>
-            <div role="radiogroup" aria-label={t('form.day')} className="fld-chips hlb-days">
+            <div role="radiogroup" aria-label={t('form.day')} className="fld-chips hlb-days" {...pilot('home-lab-form.day', 'choice')}>
               {days.map((d) => {
                 const v = toApiDate(d);
                 return (
@@ -181,6 +184,7 @@ export function HomeLabFormPage({ serviceId }: { serviceId: number | null }) {
                     type="button"
                     role="radio"
                     aria-checked={state.day === v}
+                    {...pilotOption(v)}
                     className={clsx('chip', state.day === v && 'on')}
                     onClick={() => set('day', v)}
                   >
@@ -192,13 +196,14 @@ export function HomeLabFormPage({ serviceId }: { serviceId: number | null }) {
           </div>
           <div className="flex flex-col gap-2">
             <span className="fld-label-t text-start">{t('form.window')}</span>
-            <div role="radiogroup" aria-label={t('form.window')} className="fld-chips">
+            <div role="radiogroup" aria-label={t('form.window')} className="fld-chips" {...pilot('home-lab-form.window', 'choice')}>
               {LAB_WINDOWS.map((w) => (
                 <button
                   key={w}
                   type="button"
                   role="radio"
                   aria-checked={state.window === w}
+                  {...pilotOption(w)}
                   className={clsx('chip', state.window === w && 'on')}
                   onClick={() => set('window', w)}
                 >
@@ -216,6 +221,7 @@ export function HomeLabFormPage({ serviceId }: { serviceId: number | null }) {
                 placeholder={t('form.notePlaceholder')}
                 value={state.note}
                 onChange={(e) => set('note', e.target.value)}
+                {...pilot('home-lab-form.field:note', 'text')}
               />
             </span>
           </label>
@@ -225,10 +231,11 @@ export function HomeLabFormPage({ serviceId }: { serviceId: number | null }) {
           <Checkbox
             checked={state.consentShare}
             onCheckedChange={(v) => set('consentShare', v)}
+            pilot={pilot('home-lab-form.consent-share')}
             label={t('form.consentShare', { partner: service.partner_name })}
           />
           {err('consentShare')}
-          <Checkbox checked={state.consentImport} onCheckedChange={(v) => set('consentImport', v)} label={t('form.consentImport')} />
+          <Checkbox checked={state.consentImport} onCheckedChange={(v) => set('consentImport', v)} pilot={pilot('home-lab-form.consent-import')} label={t('form.consentImport')} />
           <p className="hlb-note">{t('form.retention', { days: fmt.number(services.data.purge_days) })}</p>
         </section>
 

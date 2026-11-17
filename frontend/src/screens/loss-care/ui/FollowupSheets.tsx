@@ -15,6 +15,7 @@ import {
 } from '@/entities/loss';
 import { getApiSaveErrorMessage } from '@/shared/api';
 import type { Locale } from '@/shared/i18n';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   type DateParts,
   diffInDays,
@@ -61,6 +62,7 @@ export function BleedingSheet({ onClose }: { onClose: () => void }) {
         <p className="lsc-sheet-body">{t('sheetBody')}</p>
         <PrimaryButton
           icon="drop"
+          {...pilot('loss.bleeding-log')}
           onClick={() => {
             onClose();
             openSheet('log');
@@ -71,6 +73,7 @@ export function BleedingSheet({ onClose }: { onClose: () => void }) {
         <SecondaryButton
           icon="check"
           loading={save.isPending}
+          {...pilot('loss.bleeding-stopped')}
           onClick={() => save.mutate({ bleedingStopped: true }, { onSuccess: onClose })}
         >
           {t('markStopped')}
@@ -107,6 +110,7 @@ export function BetaSheet({ beta, onClose }: { beta: LossFollowup['beta']; onClo
           <PrimaryButton
             loading={save.isPending}
             disabled={!day.picked || day.past}
+            {...pilot('loss.beta-save')}
             onClick={() => day.picked && save.mutate({ betaNextOn: toApiDate(day.picked) }, { onSuccess: onClose })}
           >
             {t('setReminder')}
@@ -116,12 +120,13 @@ export function BetaSheet({ beta, onClose }: { beta: LossFollowup['beta']; onClo
     >
       <div className="lsc-sheet">
         <p className="lsc-sheet-body">{t('sheetBody')}</p>
-        <CalendarPicker value={day.parts} onSelect={day.setParts} />
+        <CalendarPicker value={day.parts} onSelect={day.setParts} pilot={pilot('loss.beta-date', 'calendar')} />
         <SheetError message={day.past ? t('datePast') : error} />
         <div className="lsc-sheet-actions">
           <SecondaryButton
             icon="check"
             disabled={save.isPending}
+            {...pilot('loss.beta-negative')}
             onClick={() => save.mutate({ betaNegative: true }, { onSuccess: onClose })}
           >
             {t('markNegative')}
@@ -163,6 +168,7 @@ export function VisitSheet({ visit, onClose }: { visit: LossFollowup['visit']; o
           <PrimaryButton
             loading={save.isPending}
             disabled={!day.picked || day.past || !time}
+            {...pilot('loss.visit-save')}
             onClick={() =>
               day.picked && time && save.mutate({ visitAt: visitAt(toApiDate(day.picked), time) }, { onSuccess: onClose })
             }
@@ -174,11 +180,11 @@ export function VisitSheet({ visit, onClose }: { visit: LossFollowup['visit']; o
     >
       <div className="lsc-sheet">
         <p className="lsc-sheet-body">{t('sheetBody')}</p>
-        <CalendarPicker value={day.parts} onSelect={day.setParts} />
+        <CalendarPicker value={day.parts} onSelect={day.setParts} pilot={pilot('loss.visit-date', 'calendar')} />
         <p className="lsc-sheet-label">{t('time')}</p>
-        <ChipGroup label={t('time')} className="lsc-times">
+        <ChipGroup label={t('time')} className="lsc-times" pilot={pilot('loss.visit-time', 'choice')}>
           {times.map((value) => (
-            <PillChip key={value} pressed={time === value} onPressedChange={() => setTime(value)} dir="ltr">
+            <PillChip key={value} {...pilotOption(value)} pressed={time === value} onPressedChange={() => setTime(value)} dir="ltr">
               {formatNumber(value, locale)}
             </PillChip>
           ))}
@@ -259,6 +265,7 @@ export function NoteSheet({ onClose }: { onClose: () => void }) {
         </label>
         <textarea
           id={`${ids}-note`}
+          {...pilot('loss.note', 'text')}
           rows={8}
           value={text}
           placeholder={t('placeholder')}
@@ -305,6 +312,7 @@ export function NoteSheet({ onClose }: { onClose: () => void }) {
             <PrimaryButton
               loading={save.isPending}
               disabled={tooLong || (!text.trim() && !hasSaved)}
+              {...pilot('loss.note-save')}
               onClick={() => save.mutate(text.trim() ? text : null, { onSuccess: onClose })}
             >
               {t('save')}

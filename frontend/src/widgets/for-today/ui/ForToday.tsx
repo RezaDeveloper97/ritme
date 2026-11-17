@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useModuleEnabled } from '@/entities/app-module';
 import { useTodoBoard } from '@/entities/todo';
 import { useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { ListGroup, ListRow, SectionTitle } from '@/shared/ui';
 
 import { openTodayTasks } from '../model/todo-count';
@@ -40,6 +41,7 @@ export function ForToday({ reminders: remindersCard }: { reminders?: ReactNode }
             title={t('todo', { count: todo })}
             description={t('todoSub')}
             onClick={() => router.push('/todo')}
+            pilot={pilot('home.today-tasks')}
           />
         </ListGroup>
       ) : null}

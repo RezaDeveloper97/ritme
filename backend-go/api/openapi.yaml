@@ -4195,6 +4195,126 @@ paths:
                   message: {type: string}
                   error_code: {type: string, enum: [ai_unavailable, ai_failed]}
               example: {success: false, message: "We couldn't understand the recording. Try again or log by hand.", error_code: ai_failed}
+  /api/v1/logs/voice/pilot:
+    post:
+      tags: [Log Taxonomy]
+      summary: Voice logging — a recording answered as a UI autopilot script
+      description: |
+        «بگو، ریتمی پر می‌کند». Uploads one short recording (multipart, field `audio`, same limits and sniffing as
+        `POST /logs/voice`) together with `manifest`: the autopilot agent manifest of the log sheet as JSON
+        (docs/autopilot.md — its `guide`, `actions` and `targets` with the values each accepts; ≤ 48 KB, 1–300
+        targets; it holds nothing about the user). The recording is transcribed by the model of the internal
+        `voice_stt` slot, then the model of the `voice_log` slot writes a version-1 autopilot script from the
+        transcript and the manifest. Neither the manifest nor the model is trusted: the model is sent a manifest
+        rebuilt by the server (its own rules, action `set` only, each target reduced to id, kind, labels ≤ 80
+        characters, option codes and bounds — the client's `guide`, `actions` and unknown fields are dropped; target
+        kinds: single, multi, bool, number, integer, text), and only `set` steps on a target id of that manifest
+        with a value that target accepts (a listed option code, codes of a multi, a boolean, a number inside
+        min..max, a text within maxLength) are returned — at most 40, never a caption. **Nothing is saved and
+        nothing is run here**: the client validates the script again and plays it on the user's own screen; the
+        user saves herself. Same gate, throttles and credit as `POST /logs/voice` (one use of `voice_log`); the
+        credits are given back when the request fails; a silent recording, or an answer of the model that is not a
+        script, returns no steps and keeps them. The recording is held only in memory and zeroed right after
+        transcription; transcript and values are never stored or logged.
+      operationId: postLogVoicePilot
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [audio, manifest]
+              properties:
+                audio: {type: string, format: binary, description: "the recording (≤ 2048 KB)"}
+                manifest: {type: string, description: "the autopilot manifest as JSON text (≤ 48 KB)"}
+                duration_ms: {type: integer, maximum: 60000, description: "client-measured length (informational; > 60 s is refused)"}
+      responses:
+        '200':
+          description: What was heard and the script that fills it in
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean, const: true}
+                  data:
+                    type: object
+                    required: [transcript, language, script]
+                    properties:
+                      transcript: {type: string, description: "≤ 2000 characters; empty when nothing intelligible was said"}
+                      language: {type: string}
+                      script:
+                        type: object
+                        required: [version, steps]
+                        properties:
+                          version: {type: integer, const: 1}
+                          steps:
+                            type: array
+                            maxItems: 40
+                            items:
+                              type: object
+                              required: [do, target, value]
+                              properties:
+                                do: {type: string, const: set}
+                                target: {type: string, description: "a target id of the manifest"}
+                                value: {description: "option code, array of option codes, boolean, number or text"}
+              example:
+                success: true
+                data:
+                  transcript: "یه کم نفخ دارم و بی‌حوصله‌ام"
+                  language: fa
+                  script:
+                    version: 1
+                    steps:
+                      - {do: set, target: "log.param:symptoms.digestive", value: [bloating]}
+                      - {do: set, target: "log.param:mood.moods", value: [bored]}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '402': {$ref: "#/components/responses/AIPaymentRequired"}
+        '403': {$ref: "#/components/responses/AIForbidden"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
+        '429':
+          description: |
+            Throttled (`error_code: too_many_requests`, `retry_after` seconds, 6/minute and 60/hour per user),
+            the user's daily AI cost cap spent (`ai_user_budget_exhausted`, B-N6-05b; resets at Tehran midnight) or
+            another AI request of the user still running (`ai_busy`, `Retry-After: 5`).
+          headers:
+            Retry-After: {schema: {type: integer}}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, error_code]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, enum: [too_many_requests, plus_quota_exceeded, ai_user_budget_exhausted, ai_busy]}
+                  retry_after: {type: integer}
+                  feature: {type: string}
+                  reason: {type: string}
+                  limit: {type: integer}
+                  resets_at: {$ref: "#/components/schemas/IsoDateTime"}
+        '503':
+          description: |
+            `ai_unavailable` — no AI provider is configured; `ai_failed` — the provider failed or timed out
+            (`Retry-After: 10`); `ai_budget_exhausted` — the global daily cost cap is spent. The recording is discarded
+            either way and the reserved use is given back.
+          headers:
+            Retry-After: {schema: {type: integer}}
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message, error_code]
+                properties:
+                  success: {type: boolean, const: false}
+                  message: {type: string}
+                  error_code: {type: string, enum: [ai_unavailable, ai_failed]}
+              example: {success: false, message: "We couldn't understand the recording. Try again or log by hand.", error_code: ai_failed}
   /api/v1/logs/voice/commit:
     post:
       tags: [Log Taxonomy]
@@ -18888,7 +19008,8 @@ paths:
                 phone: {type: [string, "null"], description: "Mobile (09xxxxxxxxx; Persian digits and +98 accepted). Binds the invite and sends the SMS."}
                 grants: {$ref: "#/components/schemas/CompanionGrantsInput"}
                 child_ids: {type: [array, "null"], maxItems: 20, items: {type: integer, minimum: 1}}
-                goal: {oneOf: [{$ref: "#/components/schemas/CompanionGoal"}, {type: "null"}], description: "«ریتمی همراه» v2 (Go only); default unknown"}
+                goals: {type: [array, "null"], maxItems: 6, items: {$ref: "#/components/schemas/CompanionGoal"}, description: "«ریتمی همراه» v2 (Go only): the goals she picked (multi-select); default []. See CompanionPreferencesInput."}
+                goal: {oneOf: [{$ref: "#/components/schemas/CompanionGoal"}, {type: "null"}], description: "«ریتمی همراه» v2 (Go only): a single goal (older clients); ignored when `goals` is sent"}
                 signals:
                   type: [object, "null"]
                   description: "«ریتمی همراه» v2 (Go only): consent per signal; default all off"
@@ -19818,7 +19939,7 @@ paths:
         content:
           application/json:
             schema: {$ref: "#/components/schemas/CompanionPreferencesInput"}
-            example: {goal: support, signals: {pain: true, mood: true}, action_prefs: [calm, food]}
+            example: {goals: [support, quality_time], signals: {pain: true, mood: true}, action_prefs: [calm, food]}
       responses:
         '200':
           description: Settings updated
@@ -31253,12 +31374,18 @@ components:
             phone: {type: [string, "null"], description: "Masked: 0912****567", examples: ["0912****567"]}
         family: {$ref: "#/components/schemas/CompanionFamily"}
         goal: {$ref: "#/components/schemas/CompanionGoal"}
+        goals: {$ref: "#/components/schemas/CompanionGoals"}
         signals: {$ref: "#/components/schemas/CompanionSignalScope"}
         action_prefs: {$ref: "#/components/schemas/CompanionActionPrefs"}
     CompanionGoal:
       type: string
       enum: [cycle, support, low_energy, quality_time, info, unknown]
-      description: "«ریتمی همراه» v2 (Go only; absent on Laravel): what the owner wants from the link. Default unknown."
+      description: "«ریتمی همراه» v2 (Go only; absent on Laravel): what the owner wants from the link. On output the first item of `goals`, or unknown when she picked none — kept for clients older than the multi-select."
+    CompanionGoals:
+      type: array
+      description: "«ریتمی همراه» v2 (Go only): the goals the owner picked, in her order, distinct; default [] (= unknown). cycle / support / low_energy / quality_time combine; `info` only stands alone (dropped beside any of those); `unknown` is the empty list and never appears."
+      maxItems: 4
+      items: {type: string, enum: [cycle, support, low_energy, quality_time, info]}
     CompanionSignalScope:
       type: object
       description: "«ریتمی همراه» v2 (Go only): the owner's separate consent per coarse day signal, every key present; all false by default. `mood` is stored and echoed but never reaches a member (SPEC §1.7)."
@@ -31276,16 +31403,18 @@ components:
       items: {type: string, enum: [food, gift, time, calm, help]}
     CompanionLinkSettings:
       type: object
-      description: "«ریتمی همراه» v2 (Go only): what the member sees of the owner's preferences (never the signal consents). Defaults (unknown, []) while awaiting_owner."
-      required: [goal, action_prefs]
+      description: "«ریتمی همراه» v2 (Go only): what the member sees of the owner's preferences (never the signal consents). Defaults (unknown, [], []) while awaiting_owner."
+      required: [goal, goals, action_prefs]
       properties:
         goal: {$ref: "#/components/schemas/CompanionGoal"}
+        goals: {$ref: "#/components/schemas/CompanionGoals"}
         action_prefs: {$ref: "#/components/schemas/CompanionActionPrefs"}
     CompanionPreferencesInput:
       type: object
-      description: "«ریتمی همراه» v2 preference keys, each optional (absent or null = unchanged / default). Unknown goal, non-boolean signal, unknown signal key, unknown or more than 5 action kinds → 422 on the field. Repeated action kinds are deduped keeping the first one's place."
+      description: "«ریتمی همراه» v2 preference keys, each optional (absent or null = unchanged / default). Unknown goal, non-boolean signal, unknown signal key, unknown or more than 5 action kinds → 422 on the field. Repeated goals and action kinds are deduped keeping the first one's place."
       properties:
-        goal: {oneOf: [{$ref: "#/components/schemas/CompanionGoal"}, {type: "null"}]}
+        goals: {type: [array, "null"], maxItems: 6, items: {$ref: "#/components/schemas/CompanionGoal"}, description: "The multi-select; replaces the whole list ([] clears it). Stored as CompanionGoals: `info` / `unknown` are dropped beside cycle / support / low_energy / quality_time."}
+        goal: {oneOf: [{$ref: "#/components/schemas/CompanionGoal"}, {type: "null"}], description: "A single goal (older clients); ignored when `goals` is sent."}
         signals:
           type: [object, "null"]
           additionalProperties: false

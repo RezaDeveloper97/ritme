@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 
 import { useRouter } from '@/shared/i18n';
 import { Icon, InfoNote, ListGroup, ListRow, ScreenHeader, SkyLayer, StatusPill, type IconName } from '@/shared/ui';
+import { pilot } from '@/shared/pilot';
 
 import { DEVICE_KINDS, readInterest, writeInterest, type DeviceKind } from '../model/interest';
 
@@ -74,6 +75,7 @@ export function DevicesPage() {
                       className={clsx('dvc-notify', on && 'is-on')}
                       aria-pressed={on}
                       onClick={() => toggle(kind)}
+                      {...pilot(`devices.notify:${kind}`)}
                     >
                       {on ? <Icon name="check" size={14} /> : null}
                       {on ? t('devices.interested') : t('devices.notify')}
@@ -87,7 +89,7 @@ export function DevicesPage() {
         </section>
 
         <InfoNote icon="heartLine">{t('devices.manual')}</InfoNote>
-        <button type="button" className="dvc-link" onClick={() => router.push('/vitals')}>
+        <button type="button" className="dvc-link" onClick={() => router.push('/vitals')} {...pilot('devices.vitals')}>
           {t('devices.toVitals')}
         </button>
       </div>

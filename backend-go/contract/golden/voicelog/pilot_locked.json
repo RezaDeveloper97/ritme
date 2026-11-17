@@ -1,0 +1,28 @@
+{
+  "case": "voicelog/pilot_locked",
+  "steps": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "/api/v1/logs/voice/pilot",
+        "persona": "regular",
+        "accept_language": "en",
+        "now": "2026-09-23T10:00:00+03:30",
+        "raw_body": "--ritmeB\r\nContent-Disposition: form-data; name=\"manifest\"\r\n\r\n{\"version\":1,\"guide\":\"g\",\"actions\":[\"set\"],\"routes\":[],\"sheets\":[],\"targets\":[{\"id\":\"log.param:symptoms.digestive\",\"kind\":\"multi\",\"label\":\"Digestive\",\"options\":[{\"value\":\"bloating\",\"label\":\"bloated\"},{\"value\":\"nausea\",\"label\":\"nausea\"}]},{\"id\":\"log.param:mood.moods\",\"kind\":\"multi\",\"label\":\"Mood\",\"options\":[{\"value\":\"bored\",\"label\":\"bored\"},{\"value\":\"happy\",\"label\":\"happy\"}]}]}\r\n--ritmeB\r\nContent-Disposition: form-data; name=\"audio\"; filename=\"voice.ogg\"\r\nContent-Type: audio/ogg\r\n\r\nOggS\u0000\u0002 RITME-FAKE:default\r\n--ritmeB--\r\n"
+      },
+      "status": 402,
+      "headers": {
+        "content-type": "application/json",
+        "x-ratelimit-limit": "6",
+        "x-ratelimit-remaining": "5"
+      },
+      "body": {
+        "success": false,
+        "message": "You need an active subscription to use smart features.",
+        "error_code": "ai_subscription_required",
+        "feature": "voice_log",
+        "extra_credits": 0
+      }
+    }
+  ]
+}

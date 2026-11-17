@@ -7,6 +7,7 @@ import { useCycleToday } from '@/entities/cycle';
 import { PlusDetailLock, usePlusDetailLocked } from '@/entities/plus';
 import { usePhaseContent, type PhaseSectionKey } from '@/entities/phase-content';
 import type { Locale } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { closeSheet } from '@/shared/sheet';
 import { EmptyState, IconCircle, InfoNote, PrimaryButton, Skeleton, SkeletonGroup, type IconName, type Tone } from '@/shared/ui';
@@ -91,6 +92,7 @@ export function PhaseDetailsSheet() {
             aria-controls="phs-panel"
             className="phs-tab"
             onClick={() => setPicked(key)}
+            {...pilot(`phase-details.tab:${key}`)}
           >
             {t(`tabs.${key}`)}
           </button>

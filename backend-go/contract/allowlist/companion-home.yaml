@@ -49,6 +49,10 @@ entries:
     deviation: D-208
     reason: POST /companions companion gains goal (companion v2)
   - case: "*"
+    where: data.companion.goals
+    deviation: D-208
+    reason: POST /companions companion gains goals (companion v2) — the multi-select list
+  - case: "*"
     where: data.companion.signals
     deviation: D-208
     reason: POST /companions companion gains signal consents (companion v2)

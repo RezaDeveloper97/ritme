@@ -3,8 +3,11 @@
 import { useTranslations } from 'next-intl';
 import { useState, type ReactNode } from 'react';
 
+import { pilot } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { PrimaryButton, SearchField } from '@/shared/ui';
+
+import { logPilotId } from '../../model/pilot-targets';
 
 interface DetailPanelProps {
   open: boolean;
@@ -40,7 +43,7 @@ export function DetailPanel({ open, onClose, title, subtitle, action, onAction, 
         </span>
       }
       footer={
-        <PrimaryButton onClick={onAction} loading={busy}>
+        <PrimaryButton onClick={onAction} loading={busy} {...pilot(logPilotId.panelConfirm)}>
           {action === 'save' ? t('panel.save') : t('panel.confirm')}
         </PrimaryButton>
       }

@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 import { BodySkeleton, DoctorAvatar, LoadError, ModeTag, useBookings, useDoctorTitle, whenLabel, type Booking } from '@/entities/doctor';
 import { Link, useRouter, type Locale } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { Card, EmptyState, PrimaryButton, ScreenHeader, SegmentedTabs, SkyLayer, StatusPill } from '@/shared/ui';
 
 type Scope = 'upcoming' | 'past';
@@ -36,7 +37,7 @@ export function DoctorBookingsPage() {
         <EmptyState
           icon="calendar"
           title={t(scope === 'upcoming' ? 'bookings.emptyUpcoming' : 'bookings.emptyPast')}
-          action={scope === 'upcoming' ? <PrimaryButton onClick={() => router.push('/services/doctors')}>{t('bookings.find')}</PrimaryButton> : undefined}
+          action={scope === 'upcoming' ? <PrimaryButton onClick={() => router.push('/services/doctors')} {...pilot('doctor-bookings.find')}>{t('bookings.find')}</PrimaryButton> : undefined}
         />
       </Card>
     );
@@ -67,7 +68,7 @@ export function DoctorBookingsPage() {
       <div className="scroll">
         <ScreenHeader title={t('bookings.title')} onBack={() => router.push('/services/doctors')} backLabel={t('common.back')} />
         <div className="dr-filters">
-          <SegmentedTabs tabs={SCOPES.map((s) => ({ value: s, label: t(`bookings.${s}`) }))} value={scope} onChange={setScope} label={t('bookings.title')} />
+          <SegmentedTabs tabs={SCOPES.map((s) => ({ value: s, label: t(`bookings.${s}`) }))} value={scope} onChange={setScope} label={t('bookings.title')} pilot={(v) => pilot(`doctor-bookings.tab:${v}`)} />
         </div>
         {body}
         <div className="page-tail" />

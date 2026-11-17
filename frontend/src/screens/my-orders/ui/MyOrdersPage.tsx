@@ -6,6 +6,7 @@ import { type ShopOrderSummary, useShopOrders, useShopPrice } from '@/entities/s
 import { getApiErrorStatus } from '@/shared/api';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatNumber } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { Card, EmptyState, Icon, PrimaryButton, ScreenHeader, SecondaryButton, Skeleton, SkeletonGroup, SkyLayer, StatusPill } from '@/shared/ui';
 
 const STATUS_KEYS = ['placed', 'confirmed', 'shipped', 'delivered', 'cancelled'] as const;
@@ -18,7 +19,7 @@ function OrderCard({ o }: { o: ShopOrderSummary }) {
   const sellers = o.shipments.map((s) => s.seller?.name).filter(Boolean).join(' · ');
   return (
     <li>
-      <Link href={`/shop/order/${o.id}`} className="shmy-card">
+      <Link href={`/shop/order/${o.id}`} {...pilot(`my-orders.open:${o.id}`)} className="shmy-card">
         <div className="shmy-head">
           <span className="shmy-code">{t('order.codeOnly', { code: formatNumber(o.code, locale) })}</span>
           <StatusPill tone={o.status === 'cancelled' ? 'neutral' : o.status === 'delivered' ? 'success' : 'brand'}>{t(`order.status.${key}`)}</StatusPill>
@@ -82,7 +83,7 @@ export function MyOrdersPage() {
           icon="box"
           title={t('orders.emptyTitle')}
           body={t('orders.emptyBody')}
-          action={<PrimaryButton onClick={() => router.push('/shop')}>{t('orders.browse')}</PrimaryButton>}
+          action={<PrimaryButton onClick={() => router.push('/shop')} {...pilot('my-orders.browse')}>{t('orders.browse')}</PrimaryButton>}
         />
       </Card>
     );

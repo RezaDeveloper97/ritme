@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
+import { pilot } from '@/shared/pilot';
 import { APP_VERSION } from '@/shared/config';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber, formatYear, todayParts } from '@/shared/lib/date';
@@ -86,12 +87,14 @@ export function AboutPage() {
             iconTone="neutral"
             title={t('terms')}
             onClick={() => router.push('/profile/legal?tab=terms')}
+            pilot={pilot('about.open:terms')}
           />
           <ListRow
             icon="lock"
             iconTone="neutral"
             title={t('privacy')}
             onClick={() => router.push('/profile/legal?tab=privacy')}
+            pilot={pilot('about.open:privacy')}
           />
         </ListGroup>
 

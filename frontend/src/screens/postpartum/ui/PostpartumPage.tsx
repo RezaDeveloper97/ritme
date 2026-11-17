@@ -31,6 +31,7 @@ import {
   today as todayDate,
 } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { openSheet, useSheetStore } from '@/shared/sheet';
 import {
   Card,
@@ -138,7 +139,7 @@ export function PostpartumPage() {
           <Card className="pp-state" role="alert">
             <IconCircle icon="warning" tone="danger" size="lg" />
             <p className="pp-state-text">{t('common.loadError')}</p>
-            <SecondaryButton icon="refresh" block={false} loading={query.isFetching} onClick={() => void query.refetch()}>
+            <SecondaryButton icon="refresh" block={false} loading={query.isFetching} onClick={() => void query.refetch()} {...pilot('pp.retry')}>
               {t('common.retry')}
             </SecondaryButton>
           </Card>
@@ -159,7 +160,7 @@ export function PostpartumPage() {
               title={data.setupRequired ? t('home.setup.title') : t('home.inactive.title')}
               body={data.setupRequired ? t('home.setup.body') : t('home.inactive.body')}
               action={
-                <Link href="/postpartum/setup" className="nb-btn is-primary is-block">
+                <Link href="/postpartum/setup" className="nb-btn is-primary is-block" {...pilot('pp.setup')}>
                   {t('home.setup.cta')}
                 </Link>
               }
@@ -267,7 +268,7 @@ function Hero({ data, status, t }: { data: PostpartumOverview; status: Postpartu
         </ProgressRing>
       </div>
       {inPuerperium && <p className="pp-hero-note">{t('home.heroNote')}</p>}
-      <Link href="/postpartum/recovery" className="pp-hero-cta">
+      <Link href="/postpartum/recovery" className="pp-hero-cta" {...pilot('pp.open:recovery')}>
         <Icon name="mother" size={18} />
         {t('home.logToday')}
       </Link>
@@ -352,12 +353,13 @@ function MoodCard({ t }: { t: T }) {
         actionLabel={t('home.mood.log')}
         onAction={() => openSheet('log')}
       />
-      <div className="pp-mood-chips" role="group" aria-labelledby="pp-mood-title">
+      <div className="pp-mood-chips" role="group" aria-labelledby="pp-mood-title" {...pilot('pp.mood', 'choice')}>
         {MOOD_CHIPS.map((chip) => (
           <button
             key={chip}
             type="button"
             aria-pressed={pressed.has(chip)}
+            {...pilotOption(chip)}
             disabled={day.isPending}
             className={clsx('pp-mchip', `nb-tone-${CHIP_LOOK[chip].tone}`)}
             onClick={() => toggle(chip)}
@@ -393,6 +395,7 @@ function BreastfeedingCard({ data, t }: { data: PostpartumOverview; t: T }) {
             checked={view.checked}
             labelledBy="pp-bf-title"
             describedBy="pp-bf-desc"
+            pilot={pilot('pp.breastfeeding')}
             disabled={save.isPending}
             onCheckedChange={(next) => save.mutate(breastfeedingAnswer(next))}
           />
@@ -441,7 +444,7 @@ function Tiles({ data, t }: { data: PostpartumOverview; t: T }) {
   return (
     <div className="pp-tiles">
       {tiles.map((tile) => (
-        <button key={tile.key} type="button" className={clsx('pp-tile', `nb-tone-${tile.tone}`)} onClick={() => openSheet('log')}>
+        <button key={tile.key} type="button" className={clsx('pp-tile', `nb-tone-${tile.tone}`)} onClick={() => openSheet('log')} {...pilot(`pp.tile:${tile.key}`)}>
           <span className="pp-tile-disc" aria-hidden>
             <Icon name={tile.icon} size={22} strokeWidth={1.8} />
           </span>
@@ -515,7 +518,7 @@ function VisitsCard({ t }: { t: T }) {
         <ChildVaccineRows t={t} />
       </ul>
       {!appointments.isPending && list.length === 0 && (
-        <Link href="/reminders/appointment/new" className="pp-visit-add">
+        <Link href="/reminders/appointment/new" className="pp-visit-add" {...pilot('pp.visit-add')}>
           <Icon name="plus" size={16} />
           {t('home.visits.add')}
         </Link>
@@ -567,6 +570,7 @@ function PostpartumVisitsCard({ data, t }: { data: PostpartumOverview; t: T }) {
           block={false}
           icon={action === 'log' ? 'check' : 'x'}
           loading={save.isPending}
+          {...pilot('pp.visit-today')}
           onClick={() => save.mutate({ postpartumVisit: action === 'log' ? true : null })}
         >
           {action === 'log' ? t('home.postpartumVisits.logToday') : t('home.postpartumVisits.undoToday')}
@@ -610,7 +614,7 @@ function ChildVaccineRows({ t }: { t: T }) {
         if (!next) return null;
         return (
           <li key={c.id}>
-            <Link href={`/children/${c.id}/vaccines`} className="pp-visit">
+            <Link href={`/children/${c.id}/vaccines`} className="pp-visit" {...pilot(`pp.child-vaccines:${c.id}`)}>
               <DateBadge date={fromApiDate(next.dueDate)} tone="bloom" />
               <span className="pp-visit-text">
                 <span className="pp-visit-title">{tc('visits.vaccine', { label: next.label, name: c.name })}</span>

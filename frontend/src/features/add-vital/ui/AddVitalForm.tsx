@@ -40,6 +40,7 @@ import {
   type VitalType,
 } from '@/entities/vital';
 import type { Locale } from '@/shared/i18n';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { Card, ChipGroup, Icon, IconCircle, InfoNote, PillChip, PrimaryButton, StatusPill } from '@/shared/ui';
 
 import { previewGlucoseClass, targetBand } from '../model/preview';
@@ -117,7 +118,7 @@ export function AddVitalForm({ type, latest, header, onDone }: AddVitalFormProps
           {t('add.saveError')}
         </p>
       ) : null}
-      <PrimaryButton loading={create.isPending} onClick={onSave}>
+      <PrimaryButton loading={create.isPending} onClick={onSave} {...pilot('vtadd.save')}>
         {t('add.save')}
       </PrimaryButton>
     </div>
@@ -191,6 +192,7 @@ function NoteField({ type, value, onChange }: { type: VitalType; value: string; 
           maxLength={LIMITS.noteMax}
           placeholder={t(`notePlaceholder.${type}`)}
           onChange={(e) => onChange(e.target.value)}
+          {...pilot('vtadd.note', 'text')}
         />
       </span>
     </label>
@@ -235,6 +237,7 @@ function BpForm({ latest, header, tail, common, footer, submit }: SubFormProps) 
       locale={locale}
       increaseLabel={t('add.increase', { label: t(`add.${key}`) })}
       decreaseLabel={t('add.decrease', { label: t(`add.${key}`) })}
+      pilotId={`vtadd.${key}`}
       invalid={!!err(errors, key)}
       errorId={`vt-err-${key}`}
       startAt={key === 'pulse' ? 70 : undefined}
@@ -277,16 +280,16 @@ function BpForm({ latest, header, tail, common, footer, submit }: SubFormProps) 
 
           <Card as="section" className="vt-card">
             <h2 className="vt-card-title">{t('add.conditions')}</h2>
-            <ChipGroup label={t('add.arm')}>
+            <ChipGroup label={t('add.arm')} pilot={pilot('vtadd.arm', 'choice')}>
               {ARMS.map((a) => (
-                <PillChip key={a} pressed={arm === a} onPressedChange={(on) => setArm(on ? a : null)}>
+                <PillChip key={a} {...pilotOption(a)} pressed={arm === a} onPressedChange={(on) => setArm(on ? a : null)}>
                   {t(`arms.${a}`)}
                 </PillChip>
               ))}
             </ChipGroup>
-            <ChipGroup label={t('add.position')}>
+            <ChipGroup label={t('add.position')} pilot={pilot('vtadd.position', 'choice')}>
               {POSITIONS.map((p) => (
-                <PillChip key={p} pressed={position === p} onPressedChange={(on) => setPosition(on ? p : null)}>
+                <PillChip key={p} {...pilotOption(p)} pressed={position === p} onPressedChange={(on) => setPosition(on ? p : null)}>
                   {t(`positions.${p}`)}
                 </PillChip>
               ))}
@@ -354,9 +357,18 @@ function GlucoseForm({ latest, header, tail, common, footer, submit }: SubFormPr
         {header}
         <div className="vt-form">
           <Card as="section" className="vt-card vt-hero">
-            <div className="vt-unit" role="radiogroup" aria-label={t('add.unit')}>
+            <div className="vt-unit" role="radiogroup" aria-label={t('add.unit')} {...pilot('vtadd.unit', 'choice')}>
               {GLUCOSE_UNITS.map((u) => (
-                <button key={u} type="button" role="radio" aria-checked={unit === u} className="vt-unit-opt" dir="ltr" onClick={() => switchUnit(u)}>
+                <button
+                  key={u}
+                  type="button"
+                  role="radio"
+                  aria-checked={unit === u}
+                  className="vt-unit-opt"
+                  dir="ltr"
+                  onClick={() => switchUnit(u)}
+                  {...pilotOption(u)}
+                >
                   {unitSymbol(u)}
                 </button>
               ))}
@@ -378,6 +390,7 @@ function GlucoseForm({ latest, header, tail, common, footer, submit }: SubFormPr
               decreaseLabel={t('add.decrease', { label: t('types.glucose') })}
               invalid={!!err(errors, 'value')}
               errorId="vt-err-value"
+              pilotId="vtadd.glucose"
             />
             {verdict && cls ? (
               <StatusPill tone={uiTone(cls.tone)} className="vt-verdict">
@@ -389,9 +402,9 @@ function GlucoseForm({ latest, header, tail, common, footer, submit }: SubFormPr
 
           <Card as="section" className="vt-card">
             <h2 className="vt-card-title">{t('add.when')}</h2>
-            <ChipGroup label={t('add.when')}>
+            <ChipGroup label={t('add.when')} pilot={pilot('vtadd.glucose-context', 'choice')}>
               {GLUCOSE_CONTEXTS.map((c) => (
-                <PillChip key={c} pressed={context === c} onPressedChange={() => setContext(c)}>
+                <PillChip key={c} {...pilotOption(c)} pressed={context === c} onPressedChange={() => setContext(c)}>
                   {t(`glucoseContexts.${c}`)}
                 </PillChip>
               ))}
@@ -399,9 +412,9 @@ function GlucoseForm({ latest, header, tail, common, footer, submit }: SubFormPr
           </Card>
           <Card as="section" className="vt-card">
             <h2 className="vt-card-title">{t('add.method')}</h2>
-            <ChipGroup label={t('add.method')}>
+            <ChipGroup label={t('add.method')} pilot={pilot('vtadd.method', 'choice')}>
               {GLUCOSE_METHODS.map((m) => (
-                <PillChip key={m} pressed={method === m} onPressedChange={(on) => setMethod(on ? m : null)}>
+                <PillChip key={m} {...pilotOption(m)} pressed={method === m} onPressedChange={(on) => setMethod(on ? m : null)}>
                   {t(`methods.${m}`)}
                 </PillChip>
               ))}
@@ -457,6 +470,7 @@ function HrForm({ latest, header, tail, common, footer, submit }: SubFormProps) 
               decreaseLabel={t('add.decrease', { label: t('types.hr') })}
               invalid={!!err(errors, 'bpm')}
               errorId="vt-err-bpm"
+              pilotId="vtadd.bpm"
             />
             {verdict ? (
               <StatusPill tone={cls ? uiTone(cls.tone) : 'neutral'} className="vt-verdict">
@@ -467,9 +481,9 @@ function HrForm({ latest, header, tail, common, footer, submit }: SubFormProps) 
           </Card>
           <Card as="section" className="vt-card">
             <h2 className="vt-card-title">{t('add.hrState')}</h2>
-            <ChipGroup label={t('add.hrState')}>
+            <ChipGroup label={t('add.hrState')} pilot={pilot('vtadd.hr-context', 'choice')}>
               {HR_CONTEXTS.map((c) => (
-                <PillChip key={c} pressed={context === c} onPressedChange={() => setContext(c)}>
+                <PillChip key={c} {...pilotOption(c)} pressed={context === c} onPressedChange={() => setContext(c)}>
                   {t(`hrContexts.${c}`)}
                 </PillChip>
               ))}

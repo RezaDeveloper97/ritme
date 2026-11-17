@@ -15,6 +15,7 @@ import {
 import { useLifeStage, useUpdateLifeStage } from '@/entities/user';
 import { getApiSaveErrorMessage } from '@/shared/api';
 import { useRouter } from '@/shared/i18n';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   ChipGroup,
   PillChip,
@@ -122,9 +123,9 @@ function TeenForm({ saved }: { saved: TeenProfile | null }) {
         <h2 id="tob-age" className="tob-q">
           {t('age')}
         </h2>
-        <ChipGroup label={t('age')} className="tob-ages">
+        <ChipGroup label={t('age')} className="tob-ages" pilot={pilot('teen.age', 'choice')}>
           {TEEN_AGE_BANDS.map((band) => (
-            <PillChip key={band} pressed={age === band} onPressedChange={() => setAge(band)}>
+            <PillChip key={band} {...pilotOption(band)} pressed={age === band} onPressedChange={() => setAge(band)}>
               {t(`ages.${band}`)}
             </PillChip>
           ))}
@@ -140,7 +141,7 @@ function TeenForm({ saved }: { saved: TeenProfile | null }) {
         <h2 id="tob-menarche" className="tob-q">
           {t('menarche')}
         </h2>
-        <RadioCardGroup options={options} value={menarche} onChange={setMenarche} label={t('menarche')} />
+        <RadioCardGroup options={options} value={menarche} onChange={setMenarche} label={t('menarche')} pilot={pilot('teen.menarche', 'choice')} />
         {touched && !menarche ? (
           <p className="tob-error" role="alert">
             {t('pickMenarche')}
@@ -154,7 +155,7 @@ function TeenForm({ saved }: { saved: TeenProfile | null }) {
             {getApiSaveErrorMessage(error, t('saveError'))}
           </p>
         ) : null}
-        <PrimaryButton loading={busy} disabled={touched && (!age || !menarche)} onClick={() => void submit()}>
+        <PrimaryButton loading={busy} disabled={touched && (!age || !menarche)} onClick={() => void submit()} {...pilot('teen.onboarding-continue')}>
           {t('continue')}
         </PrimaryButton>
       </div>

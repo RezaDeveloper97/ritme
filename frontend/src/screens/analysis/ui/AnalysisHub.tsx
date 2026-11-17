@@ -7,6 +7,7 @@ import { useMemo, useState } from 'react';
 import { DEFAULT_RANGE, HUB_RANGES, useAnalysisSummary, type AnalysisSummary, type HubRangeKey } from '@/entities/analysis';
 import { isRangeDenial, PlusRangePaywall, usePlusRangeLocked } from '@/entities/plus';
 import { Link, type Locale } from '@/shared/i18n';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { calendarSystem, monthName, todayParts } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { openSheet } from '@/shared/sheet';
@@ -49,7 +50,7 @@ function HubHead() {
   return (
     <header className="an-head">
       <h1 className="an-title">{t('title')}</h1>
-      <Link href={report.href} className="an-report">
+      <Link href={report.href} className="an-report" {...pilot('analysis.report')}>
         <Icon name="note" size={15} strokeWidth={1.8} />
         {t('report', { month: report.month })}
       </Link>
@@ -155,7 +156,7 @@ export function AnalysisHub({ variant }: { variant: HubVariant }) {
             title={t('empty.title')}
             body={t('empty.body')}
             action={
-              <PrimaryButton icon="plus" block={false} onClick={() => openSheet('log')}>
+              <PrimaryButton icon="plus" block={false} onClick={() => openSheet('log')} {...pilot('analysis.log')}>
                 {t('empty.cta')}
               </PrimaryButton>
             }
@@ -185,11 +186,12 @@ export function AnalysisHub({ variant }: { variant: HubVariant }) {
         value={range}
         tabs={HUB_RANGES.map((r) => ({ value: r, label: t(`ranges.${r}`) }))}
         onChange={setRange}
+        pilot={(v) => pilot(`analysis.range:${v}`)}
       />
       {summary && !noData && !paywalled && categories.length > 2 ? (
-        <div className="an-chips" role="group" aria-label={t('filterLabel')}>
+        <div className="an-chips" role="group" aria-label={t('filterLabel')} {...pilot('analysis.filter', 'choice')}>
           {categories.map((c) => (
-            <PillChip key={c} pressed={active === c} onPressedChange={() => setCategory(c)} className="an-chip">
+            <PillChip key={c} pressed={active === c} onPressedChange={() => setCategory(c)} className="an-chip" {...pilotOption(c)}>
               {t(`categories.${c}`)}
             </PillChip>
           ))}

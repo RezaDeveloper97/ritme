@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 
 import { type Locale } from '@/shared/i18n';
 import { formatDecimal, formatNumber } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { Card, IconCircle, PrimaryButton, SecondaryButton, Skeleton } from '@/shared/ui';
 
 import { babyActionError, useSleepAction, useSleepDay } from '../api/queries';
@@ -89,11 +90,11 @@ export function SleepCard({ childId, name, readOnly }: { childId: number; name: 
               : t('sleep.none')}
           </p>
           {readOnly ? null : active ? (
-            <PrimaryButton icon="sun" onClick={() => action.mutate({ kind: 'stop', sleepId: active.id })} loading={action.isPending}>
+            <PrimaryButton icon="sun" onClick={() => action.mutate({ kind: 'stop', sleepId: active.id })} loading={action.isPending} {...pilot('baby.sleep-stop')}>
               {t('sleep.stop')}
             </PrimaryButton>
           ) : (
-            <SecondaryButton icon="moon" onClick={() => action.mutate({ kind: 'start' })} loading={action.isPending}>
+            <SecondaryButton icon="moon" onClick={() => action.mutate({ kind: 'start' })} loading={action.isPending} {...pilot('baby.sleep-start')}>
               {t('sleep.start')}
             </SecondaryButton>
           )}
@@ -106,7 +107,7 @@ export function SleepCard({ childId, name, readOnly }: { childId: number; name: 
       ) : null}
       {readOnly || active ? null : (
         <div className="bfl-manual">
-          <button type="button" className="bfl-link" aria-expanded={open} aria-controls={panelId} onClick={() => setOpen((o) => !o)}>
+          <button type="button" className="bfl-link" aria-expanded={open} aria-controls={panelId} onClick={() => setOpen((o) => !o)} {...pilot('baby.sleep-manual')}>
             {t('sleep.manual')}
           </button>
           {open ? (
@@ -114,11 +115,11 @@ export function SleepCard({ childId, name, readOnly }: { childId: number; name: 
               <div className="bfl-manual-pair">
                 <label className="fld-label">
                   <span className="fld-label-t">{t('sleep.from')}</span>
-                  <input className="field fld-input" type="time" value={from} onChange={(e) => setFrom(e.target.value)} />
+                  <input className="field fld-input" type="time" {...pilot('baby.sleep-from', 'text')} value={from} onChange={(e) => setFrom(e.target.value)} />
                 </label>
                 <label className="fld-label">
                   <span className="fld-label-t">{t('sleep.to')}</span>
-                  <input className="field fld-input" type="time" value={to} onChange={(e) => setTo(e.target.value)} />
+                  <input className="field fld-input" type="time" {...pilot('baby.sleep-to', 'text')} value={to} onChange={(e) => setTo(e.target.value)} />
                 </label>
               </div>
               {invalid ? (
@@ -126,7 +127,7 @@ export function SleepCard({ childId, name, readOnly }: { childId: number; name: 
                   {t('sleep.needTimes')}
                 </p>
               ) : null}
-              <SecondaryButton onClick={saveManual} loading={action.isPending}>
+              <SecondaryButton onClick={saveManual} loading={action.isPending} {...pilot('baby.sleep-manual-save')}>
                 {t('manual.save')}
               </SecondaryButton>
             </div>

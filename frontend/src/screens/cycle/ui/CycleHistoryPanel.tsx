@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useCycleToday } from '@/entities/cycle';
 import { PeriodDateEditor } from '@/features/log-period';
 import { Link, useDirection, type Locale } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { formatDayMonth, fromApiDate, monthName, shiftMonth, toParts, today } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
 import {
@@ -70,7 +71,7 @@ export function CycleHistoryPanel() {
           title={t('history.empty.title')}
           body={t('history.empty.body')}
           action={
-            <PrimaryButton icon="plus" onClick={() => setEditorOpen(true)}>
+            <PrimaryButton icon="plus" onClick={() => setEditorOpen(true)} {...pilot('cycle.add-previous')}>
               {t('history.addPrevious')}
             </PrimaryButton>
           }
@@ -140,7 +141,7 @@ function HistoryBody({ data, onAdd }: { data: CycleHistory; onAdd: () => void })
         </ul>
       </Card>
 
-      <Link href="/cycle/symptoms" className="cyh-link">
+      <Link href="/cycle/symptoms" className="cyh-link" {...pilot('cycle.symptoms')}>
         <span className="cyh-link-t">{t('history.symptomPattern')}</span>
         <Icon name={rtl ? 'chevronLeft' : 'chevronRight'} size={18} />
       </Link>
@@ -160,7 +161,7 @@ function HistoryBody({ data, onAdd }: { data: CycleHistory; onAdd: () => void })
         </li>
       </ul>
 
-      <SecondaryButton icon="plus" onClick={onAdd} className="cyh-add">
+      <SecondaryButton icon="plus" onClick={onAdd} className="cyh-add" {...pilot('cycle.add-previous')}>
         {t('history.addPrevious')}
       </SecondaryButton>
     </>

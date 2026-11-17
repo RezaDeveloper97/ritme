@@ -24,6 +24,7 @@ import { getApiErrorStatus } from '@/shared/api';
 import type { Locale } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate } from '@/shared/lib/date';
 import { Card, ChipGroup, Icon, IconCircle, PillChip, PrimaryButton, SecondaryButton, StatusPill } from '@/shared/ui';
+import { pilot, pilotOption } from '@/shared/pilot';
 
 import type { ExtractErrorKind } from '../model/errors';
 import { confirmedRows } from '../model/format';
@@ -115,7 +116,7 @@ export function ReadSection({
           <PrimaryButton icon={failed ? 'refresh' : 'sparkle'} loading={extracting} disabled={doc.files.length === 0} onClick={onExtract}>
             {failed ? t('read.retry') : t('read.start')}
           </PrimaryButton>
-          <SecondaryButton variant="text" icon="pencil" onClick={onManual}>
+          <SecondaryButton variant="text" icon="pencil" onClick={onManual} {...pilot('recd.manual')}>
             {t('read.manual')}
           </SecondaryButton>
         </div>
@@ -212,9 +213,9 @@ function ReviewForm({ doc }: { doc: RecordDocument }) {
           return (
             <div key={key} className="rec-up-block">
               <span className="rec-up-label">{t('fields.study')}</span>
-              <ChipGroup label={t('fields.study')}>
+              <ChipGroup label={t('fields.study')} pilot={pilot('recd.study', 'choice')}>
                 {IMAGING_STUDIES.map((s) => (
-                  <PillChip key={s} pressed={draft.kind === s} onPressedChange={(on) => set('kind', on ? s : '')}>
+                  <PillChip key={s} {...pilotOption(s)} pressed={draft.kind === s} onPressedChange={(on) => set('kind', on ? s : '')}>
                     {t(`studies.${s}`)}
                   </PillChip>
                 ))}
@@ -232,6 +233,7 @@ function ReviewForm({ doc }: { doc: RecordDocument }) {
                 unsetLabel={tu('dateUnset')}
                 clearLabel={t('clearDate')}
                 onChange={(v) => set(key, v ?? '')}
+                pilotId={`recd.readdate:${key}`}
               />
               {low(key) ? <span className="rec-low">{low(key)}</span> : null}
             </div>
@@ -247,6 +249,7 @@ function ReviewForm({ doc }: { doc: RecordDocument }) {
                 dir="ltr"
                 value={draft[key] ? formatNumber(draft[key]!, locale) : ''}
                 maxLength={2}
+                {...pilot(`recd.readnum:${key}`, 'number')}
                 onChange={(e) => set(key, e.target.value.replace(/[^\d۰-۹٠-٩]/g, ''))}
               />
               {low(key) ? <span className="rec-low">{low(key)}</span> : null}
@@ -262,6 +265,7 @@ function ReviewForm({ doc }: { doc: RecordDocument }) {
             max={500}
             hint={low(key)}
             onChange={(v) => set(key, v)}
+            pilotId={`recd.read:${key}`}
           />
         );
       })}
@@ -290,12 +294,13 @@ function ReviewForm({ doc }: { doc: RecordDocument }) {
                   value={it[f]}
                   max={500}
                   onChange={(v) => setItems((cur) => cur.map((row, j) => (j === i ? { ...row, [f]: v } : row)))}
+                  pilotId={`recd.item:${i}.${f}`}
                 />
               ))}
             </div>
           ))}
           {items.length < 30 ? (
-            <SecondaryButton icon="plus" onClick={() => setItems((cur) => [...cur, emptyItem()])}>
+            <SecondaryButton icon="plus" onClick={() => setItems((cur) => [...cur, emptyItem()])} {...pilot('recd.item-add')}>
               {t('read.addItem')}
             </SecondaryButton>
           ) : null}
@@ -307,7 +312,7 @@ function ReviewForm({ doc }: { doc: RecordDocument }) {
           {error}
         </p>
       ) : null}
-      <PrimaryButton icon="check" loading={review.isPending} onClick={submit}>
+      <PrimaryButton icon="check" loading={review.isPending} onClick={submit} {...pilot('recd.read-confirm')}>
         {t('read.confirm')}
       </PrimaryButton>
     </div>

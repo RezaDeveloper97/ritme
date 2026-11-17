@@ -19,6 +19,7 @@ import {
 import { ApiError, type ApiEnvelope, getApiErrorCode } from '@/shared/api';
 import type { Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { Checkbox, Icon, InfoNote, PrimaryButton, ProgressBar, type RadioCardOption, RadioCardGroup, SecondaryButton, StatusPill } from '@/shared/ui';
 
@@ -180,6 +181,7 @@ export function StepDocs({
         <h2 className="cjn-h">{t('docs.bookingTitle')}</h2>
         <RadioCardGroup
           label={t('docs.bookingTitle')}
+          pilot={pilot('city-join.booking-mode', 'choice')}
           options={modes}
           value={form.bookingMode as JoinBookingMode | null}
           onChange={(v) => setForm((f) => ({ ...f, bookingMode: v }))}
@@ -205,6 +207,7 @@ export function StepDocs({
         <Checkbox
           checked={form.terms}
           onCheckedChange={(v) => setForm((f) => ({ ...f, terms: v }))}
+          pilot={pilot('city-join.terms')}
           label={
             <span>
               {t('docs.termsLead')}
@@ -242,7 +245,7 @@ export function StepDocs({
           {submitError}
         </p>
       ) : null}
-      <PrimaryButton loading={submit.isPending} onClick={() => void send()}>
+      <PrimaryButton loading={submit.isPending} onClick={() => void send()} {...pilot('city-join.submit')}>
         {submit.isPending ? t('docs.submitting') : t('docs.submit')}
       </PrimaryButton>
 

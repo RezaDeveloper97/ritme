@@ -4,9 +4,11 @@ import { useTranslations } from 'next-intl';
 
 import type { LogCategory, LogDayValues } from '@/entities/health-log';
 import { useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { TileButton } from '@/shared/ui';
 
 import { categoryEntries, paramEntries, parseTileKey, type LabelContext } from '../model/draft';
+import { logPilotId } from '../model/pilot-targets';
 import { linkHref, tileLook } from '../model/presentation';
 
 interface QuickTilesProps {
@@ -64,6 +66,7 @@ export function QuickTiles({ tiles, categories, values, labels, openCategory, on
                 sub={subs?.[key]}
                 onClick={() => router.push(href)}
                 className="lday-tile"
+                {...pilot(logPilotId.tile(key))}
               />
             );
           }
@@ -79,6 +82,7 @@ export function QuickTiles({ tiles, categories, values, labels, openCategory, on
               aria-controls={`lday-cat-${code}`}
               onClick={() => onOpen(code)}
               className="lday-tile"
+              {...pilot(logPilotId.tile(key))}
             />
           );
         })}

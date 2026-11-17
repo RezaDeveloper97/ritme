@@ -3,6 +3,7 @@
 import { clsx } from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 
+import { pilot } from '@/shared/pilot';
 import { Link, type Locale } from '@/shared/i18n';
 import { formatDayMonth, formatNumber } from '@/shared/lib/date';
 import { Icon, type Tone } from '@/shared/ui';
@@ -99,7 +100,7 @@ export function CourseCard({ course }: { course: StudentCourse }) {
     return <div className="lrn-cc is-expired">{body}</div>;
   }
   return (
-    <Link href={`/learn/${course.id}`} className="lrn-cc">
+    <Link href={`/learn/${course.id}`} className="lrn-cc" {...pilot(`learn.course:${course.id}`)}>
       {body}
     </Link>
   );

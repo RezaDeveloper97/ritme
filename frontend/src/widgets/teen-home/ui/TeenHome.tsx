@@ -9,6 +9,7 @@ import { useUserProfile } from '@/entities/user';
 import { getApiSaveErrorMessage } from '@/shared/api';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import {
   Card,
   Checkbox,
@@ -61,7 +62,7 @@ export function TeenHome({ actions, today }: { actions?: ReactNode; today?: Reac
         icon="sprout"
         title={t('loadError')}
         action={
-          <PrimaryButton icon="refresh" loading={query.isFetching} onClick={() => void query.refetch()}>
+          <PrimaryButton icon="refresh" loading={query.isFetching} onClick={() => void query.refetch()} {...pilot('teen.retry')}>
             {t('retry')}
           </PrimaryButton>
         }
@@ -156,7 +157,7 @@ function SignsCardView({ data }: { data: TeenToday }) {
       ) : null}
       {card.estimate ? <p className="tnh-estimate">{card.estimate}</p> : null}
       {hasPeriods ? (
-        <Link href="/calendar" className="tnh-link">
+        <Link href="/calendar" className="tnh-link" {...pilot('teen.open:calendar')}>
           {t('calendar')}
         </Link>
       ) : null}
@@ -183,6 +184,7 @@ function KitCard({ kit }: { kit: TeenKit }) {
             key={item.code}
             checked={item.checked}
             label={item.title ?? item.code}
+            pilot={pilot(`teen.kit:${item.code}`)}
             onCheckedChange={(checked) => toggle.mutate({ code: item.code, checked })}
           />
         ))}
@@ -210,7 +212,7 @@ function ParentEntry({ links }: { links: TeenParentLink[] }) {
   const active = links.some((l) => l.status === 'active');
   const invited = !active && links.some((l) => l.status === 'invited');
   return (
-    <Link href={PARENT_HREF} className="tnh-parent">
+    <Link href={PARENT_HREF} className="tnh-parent" {...pilot('teen.open:parent')}>
       <Icon name="heart" size={18} className="tnh-parent-icon" />
       <span className="tnh-parent-text">
         <span className="tnh-parent-label">{t('link')}</span>

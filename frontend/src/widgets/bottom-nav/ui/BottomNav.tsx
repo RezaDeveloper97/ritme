@@ -5,6 +5,7 @@ import { clsx } from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 import type { MouseEvent } from 'react';
 
+import { pilot } from '@/shared/pilot';
 import { isNavRootPath } from '@/shared/config';
 import { Link, usePathname, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
@@ -98,6 +99,7 @@ export function BottomNav({ badges, mode: forcedMode, ivf: forcedIvf, childIds }
         // CB-NAV-03 (IA_Nav «بازگشت»): re-tapping the active tab on its root scrolls the screen back up
         // (from a sub-screen the link itself returns to the root).
         onClick={on && isRootRetap(tab, pathname) ? scrollToTop : undefined}
+        {...pilot(`nav.tab:${tab.key}`)}
       >
         <span className="nbnav-ic-wrap">
           <NavIcon name={tab.icon} />
@@ -121,7 +123,7 @@ export function BottomNav({ badges, mode: forcedMode, ivf: forcedIvf, childIds }
     <nav className="nbnav" aria-label={t('label')}>
       {config.before.map((tab, i) => renderTab(tab, i))}
       {config.fab ? (
-        <button type="button" className="nbnav-fab" aria-label={t('log')} onClick={() => openSheet('log')}>
+        <button type="button" className="nbnav-fab" aria-label={t('log')} onClick={() => openSheet('log')} {...pilot('nav.log')}>
           {/* the whole orb (violet glass, iridescent rim, white plus) is one Canva render — no CSS disc behind it */}
           <Art3d name="fab-plus" size={64} className="nbnav-fab-art" />
         </button>

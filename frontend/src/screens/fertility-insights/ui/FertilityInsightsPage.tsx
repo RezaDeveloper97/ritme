@@ -10,6 +10,7 @@ import {
   useFertilityInsights,
 } from "@/entities/fertility";
 import { type Locale, Link, useRouter } from "@/shared/i18n";
+import { pilot } from "@/shared/pilot";
 import {
   formatDayMonth,
   formatMonthLabel,
@@ -103,7 +104,7 @@ export function FertilityInsightsPage() {
               </>
             }
             action={
-              <PrimaryButton onClick={() => router.push(LOG_HREF)}>
+              <PrimaryButton onClick={() => router.push(LOG_HREF)} {...pilot('fertility.insights-log')}>
                 {t("insights.logCta")}
               </PrimaryButton>
             }
@@ -122,6 +123,7 @@ export function FertilityInsightsPage() {
           type="button"
           className="nb-btn is-block fert-improve"
           onClick={() => setTipsOpen(true)}
+          {...pilot("fertility.insights-tips")}
         >
           <Icon name="sparkle" size={18} />
           {t("insights.improve")}

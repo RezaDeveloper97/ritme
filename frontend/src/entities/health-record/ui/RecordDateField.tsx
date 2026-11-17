@@ -6,6 +6,7 @@ import { useState } from 'react';
 import type { Locale } from '@/shared/i18n';
 import { formatLongDate, fromApiDate, partsToDate, toApiDate, toParts } from '@/shared/lib/date';
 import { CalendarPicker, SecondaryButton } from '@/shared/ui';
+import { pilot } from '@/shared/pilot';
 
 /**
  * An optional date of a record document form (CB-REC-04): a field button that opens the locale's calendar (Jalali
@@ -19,7 +20,10 @@ export function RecordDateField({
   clearLabel,
   disabled,
   onChange,
+  pilotId,
 }: {
+  /** Autopilot name of the field button; the calendar and «clear» derive `-cal` / `-clear` (frontend/CLAUDE.md §11.6). */
+  pilotId?: string;
   label: string;
   value: string | null;
   unsetLabel: string;
@@ -29,15 +33,21 @@ export function RecordDateField({
 }) {
   const locale = useLocale() as Locale;
   const [open, setOpen] = useState(false);
+  // `a.b` → `a.b-cal`; `a.b:key` → `a.b-cal:key`
+  const derived = (suffix: string) => (pilotId ?? '').replace(/(:|$)/, `-${suffix}$1`);
   return (
     <>
-      <button type="button" className="lab-up-field" aria-expanded={open} disabled={disabled} onClick={() => setOpen((o) => !o)}>
+      <button type="button" className="lab-up-field" aria-expanded={open} disabled={disabled}
+        onClick={() => setOpen((o) => !o)}
+        {...(pilotId ? pilot(pilotId) : null)}
+      >
         <span className="lab-up-field-label">{label}</span>
         <span className="lab-up-field-value">{value ? formatLongDate(fromApiDate(value), locale) : unsetLabel}</span>
       </button>
       {open ? (
         <div className="rec-calendar">
           <CalendarPicker
+            pilot={pilotId ? pilot(derived('cal'), 'calendar') : undefined}
             value={value ? toParts(fromApiDate(value), locale) : null}
             onSelect={(p) => {
               onChange(toApiDate(partsToDate(p, locale)));
@@ -46,6 +56,7 @@ export function RecordDateField({
           />
           <SecondaryButton
             variant="text"
+            {...(pilotId ? pilot(derived('clear')) : null)}
             onClick={() => {
               onChange(null);
               setOpen(false);

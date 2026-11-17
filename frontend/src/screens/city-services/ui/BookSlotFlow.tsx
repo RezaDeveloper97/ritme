@@ -16,6 +16,7 @@ import { useCurrentUser } from '@/entities/user';
 import { getApiErrorMessage } from '@/shared/api';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, formatWeekday, fromApiDate } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { Icon, InfoNote, PrimaryButton } from '@/shared/ui';
 
 import { ageFits, groupSlotsByDay, totalMonths } from '../model/book';
@@ -112,7 +113,7 @@ export function BookSlotFlow({
       {rescheduleId === null && services.length > 0 ? (
         <section className="cdb-sec">
           <h3 className="csv-sub">{t('book.service')}</h3>
-          <div role="radiogroup" aria-label={t('book.service')} className="cdb-list">
+          <div role="radiogroup" aria-label={t('book.service')} className="cdb-list" {...pilot('city-book.service', 'choice')}>
             {services.map((s) => {
               const meta = [s.duration_minutes ? t('place.minutes', { n: num(s.duration_minutes) }) : null, s.price_toman !== null ? price(s.price_toman) : null].filter(Boolean);
               return (
@@ -121,6 +122,7 @@ export function BookSlotFlow({
                   type="button"
                   role="radio"
                   aria-checked={serviceId === s.id}
+                  {...pilotOption(String(s.id))}
                   className={clsx('cdb-opt', serviceId === s.id && 'on')}
                   onClick={() => {
                     setServiceId(s.id);
@@ -144,11 +146,11 @@ export function BookSlotFlow({
         <section className="cdb-sec">
           <h3 className="csv-sub">{t('book.child')}</h3>
           {children.isPending ? null : (
-            <div className="cdb-chips" role="radiogroup" aria-label={t('book.child')}>
+            <div className="cdb-chips" role="radiogroup" aria-label={t('book.child')} {...pilot('city-book.child', 'choice')}>
               {owned.map((c) => {
                 const fits = ageFits(totalMonths(c.age), service);
                 return (
-                  <button key={c.id} type="button" role="radio" aria-checked={child?.id === c.id} className={clsx('cdb-child', child?.id === c.id && 'on')} onClick={() => setChildId(c.id)}>
+                  <button key={c.id} type="button" role="radio" aria-checked={child?.id === c.id} {...pilotOption(String(c.id))} className={clsx('cdb-child', child?.id === c.id && 'on')} onClick={() => setChildId(c.id)}>
                     <span className="cdb-av" aria-hidden>
                       {c.initial}
                     </span>
@@ -176,19 +178,19 @@ export function BookSlotFlow({
           <InfoNote icon="info">{t('book.noSlots')}</InfoNote>
         ) : (
           <>
-            <div role="radiogroup" aria-label={t('book.day')} className="cdb-days">
+            <div role="radiogroup" aria-label={t('book.day')} className="cdb-days" {...pilot('city-book.day', 'choice')}>
               {days.slice(0, 14).map((d) => (
-                <button key={d.day} type="button" role="radio" aria-checked={day === d.day} className={clsx('cdb-day', day === d.day && 'on')} onClick={() => setDayPick(d.day)}>
+                <button key={d.day} type="button" role="radio" aria-checked={day === d.day} {...pilotOption(d.day)} className={clsx('cdb-day', day === d.day && 'on')} onClick={() => setDayPick(d.day)}>
                   <small>{dayLabel(d.day)}</small>
                   <strong>{formatDayMonth(fromApiDate(d.day), locale)}</strong>
                 </button>
               ))}
             </div>
             <h3 className="csv-sub">{t('book.time')}</h3>
-            <ul className="cdp-slots">
+            <ul className="cdp-slots" {...pilot('city-book.slot', 'choice')}>
               {dayEntry?.slots.map(({ slot, time }) => (
                 <li key={slot.id}>
-                  <button type="button" className={clsx('cdp-slot', slotId === slot.id && 'on')} aria-pressed={slotId === slot.id} disabled={!bookable(slot)} onClick={() => setSlotId(slot.id)}>
+                  <button type="button" className={clsx('cdp-slot', slotId === slot.id && 'on')} aria-pressed={slotId === slot.id} {...pilotOption(String(slot.id))} disabled={!bookable(slot)} onClick={() => setSlotId(slot.id)}>
                     {num(time)}
                     {!bookable(slot) ? <small>{t('place.full')}</small> : slot.seats_left <= 3 ? <small>{t('place.seatsLeft', { n: num(slot.seats_left) })}</small> : null}
                   </button>
@@ -211,6 +213,7 @@ export function BookSlotFlow({
               value={contactName}
               aria-invalid={nameMissing && contactName.trim() === ''}
               onChange={(e) => setContactName(e.target.value)}
+              {...pilot('city-book.name', 'text')}
             />
           </span>
           {nameMissing && contactName.trim() === '' ? (
@@ -225,7 +228,7 @@ export function BookSlotFlow({
         <label className="fld-label">
           <span className="fld-label-t">{t('book.note')}</span>
           <span className="field csv-area">
-            <textarea rows={3} maxLength={NOTE_MAX} placeholder={t('book.notePlaceholder')} value={note} onChange={(e) => setNote(e.target.value)} />
+            <textarea rows={3} maxLength={NOTE_MAX} placeholder={t('book.notePlaceholder')} value={note} onChange={(e) => setNote(e.target.value)} {...pilot('city-book.note', 'text')} />
           </span>
         </label>
       ) : null}
@@ -268,7 +271,7 @@ export function BookSlotFlow({
           <small>{total !== null ? t('book.amount') : t('book.pay')}</small>
           <strong>{total !== null ? price(total) : t('book.payAtPlace')}</strong>
         </div>
-        <PrimaryButton block={false} disabled={slotId === null} loading={busy} onClick={submit}>
+        <PrimaryButton block={false} disabled={slotId === null} loading={busy} onClick={submit} {...pilot('city-book.submit')}>
           {busy ? t('form.submitting') : rescheduleId !== null ? t('book.sendReschedule') : t('form.submit')}
         </PrimaryButton>
       </div>

@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 
 import { useAppointments } from '@/entities/care-reminder';
 import { Link, type Locale } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { formatNumber, fromApiDate, monthName, toParts } from '@/shared/lib/date';
 import { Icon, Skeleton, SkeletonGroup } from '@/shared/ui';
 
@@ -54,6 +55,7 @@ export function AppointmentSection() {
         addHref="/reminders/appointment/new?kind=in_person"
         addText={t('add')}
         addLabel={t('appointments.add')}
+        pilotKey="appointment"
       />
 
       <div className="rmd-list">
@@ -73,7 +75,7 @@ export function AppointmentSection() {
         {status === 'empty' && <p className="rmd-empty rmd-state">{t('appointments.empty')}</p>}
         {status === 'ready' &&
           (query.data ?? []).map(appointmentRowState).map((row) => (
-            <Link key={row.id} href={`/reminders/appointment/${row.id}`} className="rmd-row rmd-appt">
+            <Link key={row.id} href={`/reminders/appointment/${row.id}`} className="rmd-row rmd-appt" {...pilot(`care.appt:${row.id}`)}>
               <DateTile row={row} locale={locale} />
               <span className="rmd-row-body">
                 <span className="rmd-row-title">

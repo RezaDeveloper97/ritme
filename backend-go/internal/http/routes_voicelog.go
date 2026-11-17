@@ -22,8 +22,10 @@ import (
 )
 
 // Voice logging (B-N3-05, internal/voicelog), Go only — no Laravel route. auth:api, localized, then the AI gate
-// (B-N6-05b order): per-user burst + hourly throttles right after auth, the Plus check (plus.voice_log: 402 for
-// free users before anything is read), consent / cost caps / concurrency, and the reserved Plus use.
+// (B-N6-05b order): per-user burst + hourly throttles right after auth, the credit check (402 without a running
+// subscription or enough credits, before anything is read), consent / cost caps / concurrency, and the reserved use.
+// POST /logs/voice/pilot is the same recording answered as a UI autopilot script (voicelog/pilot.go): same gate,
+// same credit.
 // The AI provider comes from AI_PROVIDER (internal/ai; fake outside production, none in production).
 // CB-VOICE-01: the canvas items (hot flashes, pain diary, pill, bladder diary) are understood too and saved by
 // POST /logs/voice/commit through each domain's own service (no AI there: auth + write throttle only).
@@ -48,6 +50,7 @@ func init() {
 
 		handlers := append([]any{guard}, platform.guard.Chain(ai.FeatureVoiceLog)...)
 		r.Post("/api/v1/logs/voice", locale, append(handlers, h.Voice)...)
+		r.Post("/api/v1/logs/voice/pilot", locale, append(handlers, h.Pilot)...)
 		r.Post("/api/v1/logs/voice/commit", locale, guard, writeThrottle(d), h.Commit)
 	})
 }

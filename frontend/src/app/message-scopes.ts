@@ -24,6 +24,7 @@ import type { MessageNamespace } from '@/shared/i18n';
 export const SHELL_NAMESPACES = [
   'aiCredit', // entities/ai-credit barrel reached from the shell (CreditMeter)
   'aiGate', // features/ai-gate: AiGateSheet mounts in the layout beside PendingConsentsSheet
+  'autopilot', // shared/autopilot: AutopilotHost (pointer + stop bar) mounts in the layout
   'alerts', // the notifications sheet shows the health alerts with their actions (`/alerts` has no screen any more)
   'articles',
   'auth', // T-M10-23: PendingConsentsSheet (features/auth) mounts in the layout, inside the app lock
@@ -59,7 +60,7 @@ const PREGNANCY = ['common', 'nav', 'pregnancy'] as const satisfies readonly Mes
 export const ROUTE_NAMESPACES = {
   home: ['aiCredit', 'articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'companions', 'conditions', 'fertility', 'home', 'homeLab', 'learn', 'log', 'logPeriod', 'loss', 'menopause', 'nav', 'notifications', 'plus', 'profileEdit', 'search', 'teen', 'todo'], // B-N8-03 widgets/learn-home-card; CB-NAV-03 «برای امروز» to-do row (entities/todo barrel); B-N2-08 trial banner + sheet; CB-NAV-02 header search button; CB-MENO-05 menopause home; CB-TEEN-02 teen home; CB-TEEN-03 widgets/linked-teen-card (entities/companion barrel); CB-LOSS-03b care re-entry row (entities/loss)
   calendar: ['calendar', 'common', 'log', 'logPeriod', 'nav', 'vitals'], // vitals: the selected day's readings (DayVitals → entities/vital ReadingRow)
-  log: ['aiCredit', 'aiGate', 'children', 'common', 'logSheet', 'nav', 'plus', 'voiceLog'], // CB-NAV-03: children = widgets/log-later via screens/log; // B-N3-03: /log renders the log sheet v2 as a page
+  log: ['aiCredit', 'aiGate', 'autopilot', 'children', 'common', 'logSheet', 'nav', 'plus', 'voiceLog'], // autopilot = features/voice-log runs the script it gets (shared/autopilot); // CB-NAV-03: children = widgets/log-later via screens/log; // B-N3-03: /log renders the log sheet v2 as a page
   logCustomize: ['common', 'logCustomize', 'logSheet'], // B-N3-04 /log/customize (the log sheet's gear; categoryLook comes via features/log-day)
   cycleSymptoms: ['common', 'cycle', 'logPeriod'], // B-N1-08 /cycle/symptoms (screen slice shares the editor)
   cycleSettings: ['common', 'me'], // B-N1-09 /cycle/settings (copy lives under me.cycleSettings)
@@ -98,7 +99,7 @@ export const ROUTE_NAMESPACES = {
   plusSuccess: ['aiCredit', 'common', 'credits', 'plus'], // B-N2-07 /plus/success + gateway return /plus/return
   plusManage: ['aiCredit', 'common', 'plus'], // B-N2-07 /plus/manage
   pregnancy: ['care', 'common', 'loss', 'nav', 'pregnancyV2', 'search', 'teen', 'todo', 'notifications'], // CB-NAV-04b widgets/quick-access reads entities/teen; CB-NAV-03b «برای امروز» to-do row (widgets/for-today); CB-NAV-02 header search button; B-N5-10 post-loss care row (entities/loss)
-  pregnancyLog: [...PREGNANCY, 'aiCredit', 'aiGate', 'logSheet', 'plus', 'pregnancyV2', 'voiceLog'], // B-N3-06: default tab = log sheet v2 (pregnancy preset)
+  pregnancyLog: [...PREGNANCY, 'aiCredit', 'aiGate', 'autopilot', 'logSheet', 'plus', 'pregnancyV2', 'voiceLog'], // B-N3-06: default tab = log sheet v2 (pregnancy preset)
   pregnancyWeek: ['common', 'nav', 'pregnancyV2'],
   pregnancyKicks: ['common', 'pregnancyTools'], // B-N5-08 /pregnancy/kicks (Log_Kick)
   pregnancyContractions: ['common', 'pregnancyTools'], // B-N5-08 /pregnancy/contractions (Log_Contraction)
@@ -114,6 +115,7 @@ export const ROUTE_NAMESPACES = {
   contraceptionMissed: ['common', 'contraception'], // CB-CONTRA-03 /contraception/missed
   contraceptionOther: ['common', 'contraception'], // CB-CONTRA-03 /contraception/other
   uiKit: ['common'], // dev-only /dev/ui-kit showcase (B-N1-03)
+  autopilotLab: ['autopilot', 'autopilotCatalog', 'common', 'logSheet'], // dev-only /dev/autopilot (script runner + agent manifest; logSheet = features/log-day barrel via widgets/autopilot-manifest)
   services: ['common', 'conditions', 'nav', 'services', 'notifications'], // «خدمات» tab (B-N1-04, hub B-N7-01); CB-COND-07b: entities/condition barrel ships the nudge card
   programs: ['common', 'conditions', 'nav'], // CB-COND-02 /programs (nbl_Cond_Hub, services hub, bottom nav)
   pelvic: ['common', 'nav', 'pelvic'], // CB-PELV-02 /programs/pelvic (nbl_Pelvic_Plan, bottom nav) + /kegel below
@@ -126,7 +128,7 @@ export const ROUTE_NAMESPACES = {
   menopauseHotFlash: ['common', 'menopause'], // CB-MENO-07 /menopause/hot-flash (timer flow, no nav)
   menopauseAlert: ['common', 'menopause'], // CB-MENO-09 /menopause/alert (bleeding alert, back header, no nav)
   menopauseTreatment: ['common', 'menopause'], // CB-MENO-10 /menopause/treatment (treatment & care, back header, no nav)
-  menopauseLog: ['aiCredit', 'aiGate', 'common', 'logSheet', 'menopause', 'plus', 'voiceLog'], // CB-MENO-06 /menopause/log (log sheet v2 menopause preset as a page, no nav)
+  menopauseLog: ['aiCredit', 'aiGate', 'autopilot', 'common', 'logSheet', 'menopause', 'plus', 'voiceLog'], // CB-MENO-06 /menopause/log (log sheet v2 menopause preset as a page, no nav)
   menopauseScore: ['common', 'menopause', 'nav'], // CB-MENO-08 /menopause/score (menopause tab «علائم», bottom nav)
   menopauseScoreQuestionnaire: ['common', 'menopause', 'nav'], // CB-MENO-08 /menopause/score/questionnaire (form, no nav; same screen slice as /menopause/score)
   menopauseReport: ['common', 'healthRecord', 'menopause', 'plus', 'record', 'recordExport'], // CB-MENO-11 /menopause/report (doctor report on bloom's builder, back header, no nav; record: the record-export barrel's CB-REC-05 code page)

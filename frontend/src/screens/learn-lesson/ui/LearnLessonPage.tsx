@@ -18,6 +18,7 @@ import {
   type LessonDetail,
   type StudentLesson,
 } from '@/entities/course';
+import { pilot } from '@/shared/pilot';
 import { Link, useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { useOfflineBlobUrl } from '@/shared/pwa/offline';
@@ -177,6 +178,7 @@ function Scrubber({ media, tone }: { media: Media; tone: 'video' | 'audio' }) {
       value={Math.floor(media.time)}
       onChange={(e) => media.seek(Number(e.currentTarget.value))}
       aria-label={t('player.seek')}
+      {...pilot('lesson.seek', 'text')}
       aria-valuetext={formatClock(media.time)}
     />
   );
@@ -187,13 +189,13 @@ function PlayControls({ media, big }: { media: Media; big?: boolean }) {
   const rtl = useDirection() === 'rtl';
   return (
     <div className={big ? 'lrn-ctrls is-big' : 'lrn-ctrls'}>
-      <button type="button" className="lrn-ctrl" onClick={() => media.skip(-15)} aria-label={t('player.back15')}>
+      <button type="button" className="lrn-ctrl" onClick={() => media.skip(-15)} {...pilot('lesson.skip-back')} aria-label={t('player.back15')}>
         <Icon name={rtl ? 'forward' : 'rewind'} size={28} />
       </button>
-      <button type="button" className="lrn-ctrl is-main" onClick={media.toggle} aria-label={t(media.playing ? 'player.pause' : 'player.play')}>
+      <button type="button" className="lrn-ctrl is-main" onClick={media.toggle} {...pilot('lesson.play')} aria-label={t(media.playing ? 'player.pause' : 'player.play')}>
         <Icon name={media.playing ? 'pause' : 'play'} size={30} fill={media.playing ? 'none' : 'currentColor'} strokeWidth={media.playing ? 3 : 2} />
       </button>
-      <button type="button" className="lrn-ctrl" onClick={() => media.skip(15)} aria-label={t('player.fwd15')}>
+      <button type="button" className="lrn-ctrl" onClick={() => media.skip(15)} {...pilot('lesson.skip-fwd')} aria-label={t('player.fwd15')}>
         <Icon name={rtl ? 'rewind' : 'forward'} size={28} />
       </button>
     </div>
@@ -264,7 +266,7 @@ function NotesBox({ lessonId }: { lessonId: number }) {
   return (
     <label className="lrn-notes">
       <span className="lrn-notes-hint">{t('lesson.notesHint')}</span>
-      <textarea value={text} maxLength={4000} rows={5} onChange={(e) => onChange(e.currentTarget.value)} placeholder={t('lesson.notesPlaceholder')} />
+      <textarea {...pilot('lesson.notes', 'text')} value={text} maxLength={4000} rows={5} onChange={(e) => onChange(e.currentTarget.value)} placeholder={t('lesson.notesPlaceholder')} />
     </label>
   );
 }
@@ -321,7 +323,7 @@ function VideoLesson({ detail, outline, onBack, onAudio }: { detail: LessonDetai
                 <span className="lrn-time">{formatClock(media.time)}</span>
                 <Scrubber media={media} tone="video" />
                 <span className="lrn-time">{formatClock(media.duration)}</span>
-                <button type="button" className="lrn-speed" onClick={media.cycleRate} aria-label={t('player.speed')}>
+                <button type="button" className="lrn-speed" onClick={media.cycleRate} {...pilot('lesson.speed')} aria-label={t('player.speed')}>
                   {speedLabel(media.rate)}
                 </button>
                 <button type="button" className="lrn-stage-icon" onClick={fullscreen} aria-label={t('player.fullscreen')}>
@@ -359,7 +361,7 @@ function VideoLesson({ detail, outline, onBack, onAudio }: { detail: LessonDetai
           </div>
           <div className="lrn-tabs" role="tablist" aria-label={t('lesson.tabsLabel')}>
             {(['about', 'notes', 'files'] as const).map((v) => (
-              <button key={v} type="button" role="tab" aria-selected={tab === v} className="lrn-tab" onClick={() => setTab(v)}>
+              <button key={v} type="button" role="tab" aria-selected={tab === v} className="lrn-tab" onClick={() => setTab(v)} {...pilot(`lesson.tab:${v}`)}>
                 {t(`lesson.tabs.${v}`)}
               </button>
             ))}
@@ -378,7 +380,7 @@ function VideoLesson({ detail, outline, onBack, onAudio }: { detail: LessonDetai
         <div className="page-tail" />
       </div>
       <div className="lrn-footer">
-        <PrimaryButton icon="check" block loading={media.saving} disabled={done || !url} onClick={media.finish}>
+        <PrimaryButton icon="check" block loading={media.saving} disabled={done || !url} onClick={media.finish} {...pilot('lesson.finish')}>
           {t(done ? 'lesson.doneAlready' : 'lesson.markDone')}
         </PrimaryButton>
       </div>
@@ -450,11 +452,11 @@ function AudioLesson({ detail, outline, onBack, onVideo }: { detail: LessonDetai
             <MediaUnavailable ready={ready} failed={pb.isError} onRetry={() => void pb.refetch()} />
           )}
           <div className="lrn-pills is-center">
-            <button type="button" className="lrn-pill" onClick={media.cycleRate} aria-label={t('player.speed')}>
+            <button type="button" className="lrn-pill" onClick={media.cycleRate} {...pilot('lesson.speed')} aria-label={t('player.speed')}>
               <Icon name="clock" size={16} />
               {speedLabel(media.rate)}
             </button>
-            <button type="button" className="lrn-pill" aria-pressed={media.sleepMin > 0} onClick={media.cycleSleep}>
+            <button type="button" className="lrn-pill" aria-pressed={media.sleepMin > 0} onClick={media.cycleSleep} {...pilot('lesson.sleep')}>
               <Icon name="moon" size={16} />
               {media.sleepMin ? t('player.sleepIn', { minutes: formatNumber(media.sleepMin, locale) }) : t('player.sleep')}
             </button>
@@ -525,6 +527,7 @@ function PdfLesson({ detail, onBack }: { detail: LessonDetail; onBack: () => voi
           block
           loading={save.isPending}
           disabled={done || !url}
+          {...pilot('lesson.finish')}
           onClick={() => save.mutate({ lessonId: lesson.id, positionSeconds: 0, percent: 100, completed: true })}
         >
           {t(done ? 'lesson.doneAlready' : 'pdf.markRead')}

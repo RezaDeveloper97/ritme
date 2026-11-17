@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 import { VITAL_TYPES, useSavePlan, useVitalsPlan, type PlanItem, type VitalsPlan } from '@/entities/vital';
 import { Link } from '@/shared/i18n';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { ChipGroup, EmptyState, Icon, InfoNote, PillChip, PrimaryButton, SecondaryButton, Skeleton, SkeletonGroup } from '@/shared/ui';
 
@@ -71,27 +72,28 @@ function PlanForm({ plan, onClose }: { plan: VitalsPlan; onClose: () => void }) 
                   <Icon name="trash" size={18} />
                 </button>
               </div>
-              <ChipGroup label={t('plan.type')}>
+              <ChipGroup label={t('plan.type')} pilot={pilot(`vt.plan-type:${i}`, 'choice')}>
                 {VITAL_TYPES.map((type) => (
-                  <PillChip key={type} pressed={item.type === type} onPressedChange={() => update(i, withType(items, i, type, plan.slots))}>
+                  <PillChip key={type} {...pilotOption(type)} pressed={item.type === type} onPressedChange={() => update(i, withType(items, i, type, plan.slots))}>
                     {t(`short.${type}`)}
                   </PillChip>
                 ))}
               </ChipGroup>
-              <ChipGroup label={t('plan.slot')}>
+              <ChipGroup label={t('plan.slot')} pilot={pilot(`vt.plan-slot:${i}`, 'choice')}>
                 {(plan.slots[item.type] ?? []).map((slot) => (
-                  <PillChip key={slot} pressed={item.slot === slot} onPressedChange={() => update(i, { ...item, slot })}>
+                  <PillChip key={slot} {...pilotOption(slot)} pressed={item.slot === slot} onPressedChange={() => update(i, { ...item, slot })}>
                     {t(`slots.${slot}` as 'slots.morning')}
                   </PillChip>
                 ))}
               </ChipGroup>
-              <div className="vt-plan-weekdays" role="group" aria-label={t('plan.days')}>
+              <div className="vt-plan-weekdays" role="group" aria-label={t('plan.days')} {...pilot(`vt.plan-days:${i}`, 'choice')}>
                 {ALL_DAYS.map((d) => (
                   <button
                     key={d}
                     type="button"
                     className="vt-weekday"
                     aria-pressed={item.days.includes(d)}
+                    {...pilotOption(String(d))}
                     onClick={() => update(i, { ...item, days: toggleDay(item.days, d) })}
                   >
                     {t(`weekdays.${d}` as 'weekdays.0')}
@@ -106,6 +108,7 @@ function PlanForm({ plan, onClose }: { plan: VitalsPlan; onClose: () => void }) 
                     type="time"
                     dir="ltr"
                     value={item.remindAt ?? ''}
+                    {...pilot(`vt.plan-time:${i}`, 'text')}
                     onChange={(e) => update(i, { ...item, remindAt: e.target.value || null })}
                   />
                   {item.remindAt ? (
@@ -125,7 +128,7 @@ function PlanForm({ plan, onClose }: { plan: VitalsPlan; onClose: () => void }) 
         })}
       </ol>
       {next ? (
-        <SecondaryButton icon="plus" onClick={() => setItems((list) => [...list, next])}>
+        <SecondaryButton icon="plus" onClick={() => setItems((list) => [...list, next])} {...pilot('vt.plan-add')}>
           {t('plan.add')}
         </SecondaryButton>
       ) : (
@@ -136,7 +139,7 @@ function PlanForm({ plan, onClose }: { plan: VitalsPlan; onClose: () => void }) 
           {t('plan.error')}
         </p>
       ) : null}
-      <PrimaryButton loading={save.isPending} onClick={submit}>
+      <PrimaryButton loading={save.isPending} onClick={submit} {...pilot('vt.plan-save')}>
         {t('plan.save')}
       </PrimaryButton>
     </div>

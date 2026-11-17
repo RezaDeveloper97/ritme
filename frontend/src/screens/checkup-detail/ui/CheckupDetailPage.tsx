@@ -17,6 +17,7 @@ import {
 import { useUpdateCheckupSettings } from '@/features/manage-custom-checkup';
 import { getApiErrorStatus } from '@/shared/api';
 import { type Locale, Link, useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { formatNumber } from '@/shared/lib/date';
 import { withHandoff } from '@/shared/lib/handoff';
 import { openSheet } from '@/shared/sheet';
@@ -51,6 +52,7 @@ function Header({ detail }: { detail?: CheckupDetail }) {
             aria-label={remind ? t('detail.remindOn') : t('detail.remindOff')}
             disabled={update.isPending || !detail.settings.enabled}
             onClick={() => update.mutate({ id: detail.id, remind: !remind })}
+            {...pilot('ckd.remind')}
           >
             <Icon name={remind ? 'bellRing' : 'bellPlain'} size={20} strokeWidth={1.8} />
           </button>
@@ -103,7 +105,7 @@ function Hero({ detail }: { detail: CheckupDetail }) {
       </div>
       <div className="flex gap-2">
         {detail.readOnly ? null : hasGuide ? (
-          <Link href={GUIDE_HREF} className="btn flex-1 bg-(--surface) text-(--brand-strong)">
+          <Link href={GUIDE_HREF} className="btn flex-1 bg-(--surface) text-(--brand-strong)" {...pilot('ckd.guide')}>
             <Icon name="bookOpen" size={16} />
             {t('detail.openGuide')}
           </Link>
@@ -113,6 +115,7 @@ function Hero({ detail }: { detail: CheckupDetail }) {
             className="btn flex-1 bg-(--surface) text-(--brand-strong)"
             disabled={detail.status === 'disabled'}
             onClick={() => openSheet(MARK_DONE_SHEET, markDoneSheetArg(detail.id))}
+            {...pilot('ckd.mark-done')}
           >
             <Icon name="check" size={16} strokeWidth={2.2} />
             {t('detail.markDone')}
@@ -123,6 +126,7 @@ function Hero({ detail }: { detail: CheckupDetail }) {
             type="button"
             className="btn ck-hero-alt flex-1"
             onClick={() => router.push(withHandoff(BOOK_HREF, bookPrefill(detail)))}
+            {...pilot('ckd.book')}
           >
             <Icon name="calendar" size={16} />
             {t('detail.book')}
@@ -144,6 +148,7 @@ function RecordRow({ detail, record }: { detail: CheckupDetail; record: CheckupR
         aria-label={t('detail.editRecord')}
         disabled={detail.readOnly}
         onClick={() => openSheet(MARK_DONE_SHEET, markDoneSheetArg(detail.id, record.id))}
+        {...pilot(`ckd.record:${record.id}`)}
       >
         <span className="size-2.5 shrink-0 rounded-full bg-(--ck-ink)" aria-hidden />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -239,7 +244,7 @@ export function CheckupDetailPage({ id }: { id: number }) {
           <div className="flex items-center justify-between">
             <h2 className="text-[14px] font-extrabold text-(--ink)">{t('detail.history')}</h2>
             {detail.records.length > 0 && (
-              <Link href={`/checkups/history?type=${detail.id}`} className="text-[12px] font-bold text-(--brand)">
+              <Link href={`/checkups/history?type=${detail.id}`} className="text-[12px] font-bold text-(--brand)" {...pilot('ckd.history')}>
                 {t('detail.historyAll')}
               </Link>
             )}
@@ -256,7 +261,7 @@ export function CheckupDetailPage({ id }: { id: number }) {
         </section>
 
         {detail.isCustom && (
-          <Link href={`/checkups/custom/${detail.id}`} className="nb-btn is-outline is-block">
+          <Link href={`/checkups/custom/${detail.id}`} className="nb-btn is-outline is-block" {...pilot('ckd.edit-custom')}>
             <Icon name="pencil" size={16} />
             {t('custom.editTitle')}
           </Link>

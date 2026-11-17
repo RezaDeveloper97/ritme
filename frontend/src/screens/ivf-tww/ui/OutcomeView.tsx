@@ -5,6 +5,7 @@ import { useId } from 'react';
 
 import type { IvfNextStep, IvfOutcome } from '@/entities/ivf';
 import { useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { IconCircle, InfoNote, ListGroup, ListRow, PrimaryButton, SecondaryButton } from '@/shared/ui';
 
 import { FOLLOW_UP_HREF, followUps } from '../model/tww';
@@ -38,9 +39,9 @@ export function OutcomeView({ outcome }: { outcome: IvfOutcome }) {
       {result === 'positive' ? (
         <div className="tww-outcome-actions">
           {steps.includes('pregnancy_setup') ? (
-            <PrimaryButton onClick={() => go('pregnancy_setup')}>{t('tww.outcome.positive.cta')}</PrimaryButton>
+            <PrimaryButton onClick={() => go('pregnancy_setup')} {...pilot('ivf.tww-next:pregnancy_setup')}>{t('tww.outcome.positive.cta')}</PrimaryButton>
           ) : null}
-          <SecondaryButton variant="text" onClick={() => go('new_cycle')}>
+          <SecondaryButton variant="text" onClick={() => go('new_cycle')} {...pilot('ivf.tww-next:new_cycle')}>
             {t('tww.outcome.positive.later')}
           </SecondaryButton>
         </div>
@@ -59,6 +60,7 @@ export function OutcomeView({ outcome }: { outcome: IvfOutcome }) {
                   title={t('tww.outcome.loss.title')}
                   description={t('tww.outcome.loss.body')}
                   onClick={() => go('loss')}
+                  pilot={pilot('ivf.tww-next:loss')}
                 />
               ) : step === 'new_cycle' ? (
                 <ListRow
@@ -67,6 +69,7 @@ export function OutcomeView({ outcome }: { outcome: IvfOutcome }) {
                   title={t('tww.outcome.newCycle.title')}
                   description={t('tww.outcome.newCycle.body')}
                   onClick={() => go('new_cycle')}
+                  pilot={pilot('ivf.tww-next:new_cycle')}
                 />
               ) : null,
             )}

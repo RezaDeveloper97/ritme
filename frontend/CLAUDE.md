@@ -483,12 +483,14 @@ npm run fsd:lint     # FSD boundary check (e.g. steiger ./src)  ← run before d
 npm run lint:styles  # style gate: no static style props / hex / unknown vars (§10.1)
 npm run lint:styles:accept   # re-baseline after you REDUCE violations
 npm run lint:dark    # dark-mode gate: token parity + contrast in both themes (§10.3)
+npm run autopilot:catalog   # regenerate docs/autopilot-catalog.md from app/autopilot/catalog.ts (§11.6)
 ```
 
 **Definition of done for any change:** `typecheck`, `lint`, `fsd:lint`,
 `lint:styles` and `lint:dark` all pass, and new domain logic has tests. For any
 change that touches UI/colours, additionally run the **`check-colors` skill**
-(§10.2).
+(§10.2). A change that adds a control, a route or a sheet also registers it in the
+autopilot catalog and regenerates its doc (`npm run autopilot:catalog`, §11.6).
 
 `lint:styles` is a **ratchet**: `scripts/styles-baseline.json` records the
 violations each file still carries, and the gate fails only when a file goes
@@ -787,6 +789,69 @@ const start = () => {
 return <AiGate feature="foo"><button onClick={start}>…</button></AiGate>;
 ```
 
+## 11.6 UI autopilot — every control is named and catalogued
+
+The autopilot (`docs/autopilot.md`) runs a JSON script against the live UI like a person: opens the page,
+finds the field, types, presses, saves. A model will write those scripts from what the user says, so the
+app must be able to tell it **what exists**. That only works if every control has a stable name.
+
+- `@/shared/pilot` — the vocabulary: `pilot(id, kind?)`, `pilotOption(code)`, the script schema, the catalog
+  shape, `buildAutopilotManifest`. Pure; any layer may import it.
+- `@/shared/autopilot` — the engine: `runAutopilot(script, options?)`, `AUTOPILOT_CONFIG`
+  (`shared/autopilot/config.ts` is the ONLY place speeds, visuals, interruption and safety are tuned),
+  `<AutopilotHost>` (mounted once in the layout).
+- `src/app/autopilot/catalog.ts` + `groups/*.ts` — **the catalog**: every route, sheet and target, with how to reach it
+  (titles: `messages/*/autopilot-catalog.json`, namespace `autopilotCatalog`).
+  `docs/autopilot-catalog.md` is generated from it (`npm run autopilot:catalog`).
+- `useAutopilotManifest()` (`widgets/autopilot-manifest`) — the manifest sent to the model: the catalog
+  plus this user's log taxonomy.
+
+**The rule: a new interactive control is named and registered in the same change.**
+
+1. Put a target id on it — `<area>.<type>` or `<area>.<type>:<key>`, lower-case, built from stable codes
+   (never a label, a class or a `useId()`): `{...pilot('pay.submit')}`; a chip row is
+   `<ChipGroup pilot={pilot(id, 'choice')}>` with `{...pilotOption(code)}` per chip; `Switch`, `Checkbox`,
+   `Accordion`, `NumberStepper`, `SegmentedTabs` take a `pilot` prop. A new `shared/ui` control accepts
+   `pilot?: PilotAttrs` (or spreads `...rest`).
+2. Register the id (or its `family:*`) in the matching `app/autopilot/groups/*.ts` with its `surface`, a `reveal` if
+   something can hide it, a `titleKey` in `messages/*/autopilot-catalog.json`, and `options` / `min` / `max` when fixed.
+   Destructive, payment and auth controls are NOT named (docs/autopilot.md §7); a button that commits the user to
+   something goes in `safety.confirmTargets`.
+3. A new route or sheet users could ask for goes in the catalog's `routes` / `sheets`.
+4. Fields rendered from data get a manifest builder (see `features/log-day/model/pilot-targets.ts`).
+5. `npm run autopilot:catalog`, then `npm run test` — `app/autopilot/catalog.test.ts` fails on a marked id
+   that isn't catalogued, a catalogued id nobody marks, a missing title, a route/sheet that doesn't exist,
+   or a stale doc.
+
+**Writing it right — check each point before you call a screen done**
+
+| Point | Right | Wrong |
+| ----- | ----- | ----- |
+| Id | `med.dose-unit`, `care.tab:${tab}` — area unique to the screen family, key from an enum / API code / numeric id | a label, a class, an index into a translated list, `useId()`, the areas `nav.` / `sheet.` / `log.` outside their owners |
+| One control, one id | a component reused on several screens keeps one id scheme; if it appears twice on a screen it takes an id-prefix prop (`pilotId`) | two elements on screen with the same `data-pilot` |
+| Where the attribute goes | on the element that receives the click or the value (the `<button>`, the `<input>`, the group for a choice) | on a wrapper `<div>` around a button; on an icon |
+| A choice | group: `pilot(id, 'choice')`; every option: `pilotOption(code)` **and** a real state (`aria-pressed` / `aria-checked` / `aria-selected`) | options without `pilotOption`; a hand-rolled chip with no ARIA state (the engine can't tell on from off) |
+| Something that opens | the toggle carries `aria-expanded`; whatever it hides lists it in `reveal` | a target hidden behind a section, a panel or an inline sheet with no `reveal` |
+| Kind | let the DOM say it; pass a kind only where it can't: `'choice'`, `'number'` (commits on blur), `'stepper'`, `'wheel'` (+ `pilotValues`), `'ruler'`, `'calendar'`, `'select'` | `'text'` on an input that only commits on blur; a wheel without `pilotValues` when the rows mean years or minutes |
+| Catalog entry | exact id: `titleKey` + `surface`; fixed choice: `options` (code + title key); number: `min` / `max` / `unitKey`; data-keyed ids: one `family:*` entry | an exact entry per member of a data-driven list; a `surface` on a route with `[id]` (leave it out) |
+| Options from data | a manifest builder next to the slice (`logTargetsOf`) wired into `useAutopilotManifest` | hard-coding server options in the catalog |
+| Titles | `messages/{fa,en}/autopilot-catalog.json` (namespace `autopilotCatalog`), copied to `backend-go/resources/translations/` | catalog titles in `autopilot.json` — that namespace ships with every page |
+| Risky controls | pay, purchase, delete, revoke, sign-out, app lock, auth, AI submits, chat send, uploads: **no id**. A button that commits the user outside the app: id + `safety.confirmTargets` | naming a destructive control "because the user might ask" |
+
+Then: `npm run autopilot:catalog` and `npm run test`. Drive the new form once from `/dev/autopilot` (the
+"Agent manifest" tab shows what the model will be told) — the catalog test proves the id is registered, not
+that the control can actually be driven.
+
+Hard rules:
+
+- **No values in reports, logs or the manifest** — ids and codes only (§11).
+- **A script is untrusted input**: never widen `safety` (raw CSS selectors, blocked routes) to make one pass.
+- **Drivers use real DOM events**, never React state. If a control can't be driven, add a driver in
+  `shared/autopilot/dom/drivers.ts`; don't special-case a screen.
+- **The engine calls no model.** The request that *produces* a script is an AI call and goes through
+  `useAiGate` (§11.5); `runAutopilot` itself is never gated.
+- Timing, visuals and interruption come from `AUTOPILOT_CONFIG` — no hard-coded delay in a caller.
+
 ---
 
 ## 12. Anti-patterns — do NOT do these
@@ -816,6 +881,7 @@ return <AiGate feature="foo"><button onClick={start}>…</button></AiGate>;
 - ❌ Putting server data into Zustand/`useState` instead of TanStack Query.
 - ❌ Logging or transmitting health data anywhere it isn't strictly required.
 - ❌ Handling a 402 / 403 of an AI endpoint by hand (`plusDenialOf`, a bespoke paywall / quota card), or showing token counts — every AI surface uses `useAiGate` / `<AiGate>` (§11.5); call `handleError` in every catch and `refresh` after success.
+- ❌ An interactive control without a `pilot()` name, or a name that isn't in `app/autopilot/catalog.ts` (§11.6); a label, class or `useId()` used as a target; a script value in a log or report.
 - ❌ Adding abstraction layers preemptively. Introduce structure when a pattern
   repeats (rule of three), not before.
 
@@ -831,4 +897,6 @@ return <AiGate feature="foo"><button onClick={start}>…</button></AiGate>;
    (§7).
 5. Use logical styling for RTL (§12).
 6. Respect §11 for anything touching health data.
+6b. Name every new interactive control with `pilot()` and register it in the autopilot catalog, following the
+   "Writing it right" table in §11.6 — a screen without it is not done.
 7. Before finishing: `typecheck`, `lint`, `fsd:lint`, and tests for new logic.

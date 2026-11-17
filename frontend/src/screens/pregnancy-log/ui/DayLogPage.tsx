@@ -15,6 +15,7 @@ import {
   WATER_MIN,
 } from "@/entities/pregnancy";
 import { type Locale, Link, useRouter } from "@/shared/i18n";
+import { pilot, pilotOption } from "@/shared/pilot";
 import {
   type DateParts,
   formatDayMonth,
@@ -123,7 +124,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
       subtitle={subtitle}
       onBack={() => router.push("/pregnancy")}
       backLabel={t("common.back")}
-      action={<HeaderButton icon="calendar" label={t("log.pickDay")} onClick={() => setPicking(true)} />}
+      action={<HeaderButton icon="calendar" label={t("log.pickDay")} onClick={() => setPicking(true)} pilot={pilot("preg.day-picker")} />}
     />
   );
 
@@ -144,7 +145,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
           <Icon name="warning" size={24} />
         </span>
         <p className="pgn-state-text">{t("common.loadError")}</p>
-        <SecondaryButton icon="refresh" block={false} onClick={() => void query.refetch()}>
+        <SecondaryButton icon="refresh" block={false} onClick={() => void query.refetch()} {...pilot("preg.retry")}>
           {t("common.retry")}
         </SecondaryButton>
       </Card>
@@ -156,7 +157,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
           icon="heart"
           title={t("common.notActive")}
           action={
-            <Link href="/pregnancy/setup" className="nb-btn is-primary is-block">
+            <Link href="/pregnancy/setup" className="nb-btn is-primary is-block" {...pilot("preg.setup")}>
               {t("today.setupCta")}
             </Link>
           }
@@ -172,7 +173,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
           <h2 id="plog-mood" className="pgn-sect-title">
             {t("log.moodTitle")}
           </h2>
-          <div role="group" aria-labelledby="plog-mood" className="nb-chips pgn-chips">
+          <div role="group" aria-labelledby="plog-mood" className="nb-chips pgn-chips" {...pilot("preg.mood", "choice")}>
             {MOODS_DISPLAY_ORDER.map((m) => (
               <PillChip
                 key={m}
@@ -180,6 +181,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
                 tone="brand"
                 className="pgn-chip"
                 pressed={draft.mood === m}
+                {...pilotOption(String(m))}
                 onPressedChange={(on) => edit({ mood: on ? m : null })}
               >
                 {t(`log.moods.${m}`)}
@@ -197,7 +199,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
               <span className="pgn-meta">{t("log.symptomsCount", { count: selected.length })}</span>
             )}
           </div>
-          <div role="group" aria-labelledby="plog-symptoms" className="nb-chips pgn-chips">
+          <div role="group" aria-labelledby="plog-symptoms" className="nb-chips pgn-chips" {...pilot("preg.symptoms", "choice")}>
             {chipSymptoms.map((s) => (
               <PillChip
                 key={s}
@@ -205,6 +207,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
                 tone="warm"
                 className="pgn-chip"
                 pressed={!!draft.symptoms[s]}
+                {...pilotOption(s)}
                 onPressedChange={() => edit({ symptoms: toggleSymptom(draft.symptoms, s) })}
               >
                 {t(`log.symptoms.${s}`)}
@@ -220,6 +223,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
                     role="radiogroup"
                     aria-label={`${t("log.severityLabel")} — ${t(`log.symptoms.${s}`)}`}
                     className="pgn-severity-opts"
+                    {...pilot(`preg.severity:${s}`, "choice")}
                   >
                     {SEVERITIES.map((lv) => (
                       <button
@@ -229,6 +233,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
                         aria-checked={draft.symptoms[s] === lv}
                         onClick={() => edit({ symptoms: setSeverity(draft.symptoms, s, lv) })}
                         className="pgn-severity-opt"
+                        {...pilotOption(lv)}
                       >
                         {t(`log.severities.${lv}`)}
                       </button>
@@ -264,6 +269,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
               type="button"
               className="pgn-step"
               aria-label={t("log.waterLess")}
+              {...pilot("preg.water-less")}
               disabled={draft.water <= WATER_MIN}
               onClick={() => edit({ water: stepWater(draft.water, -1) })}
             >
@@ -273,6 +279,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
               type="button"
               className="pgn-step"
               aria-label={t("log.waterMore")}
+              {...pilot("preg.water-more")}
               disabled={draft.water >= WATER_MAX}
               onClick={() => edit({ water: stepWater(draft.water, 1) })}
             >
@@ -288,6 +295,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
           <div className="pgn-weight">
             <input
               id="plog-weight"
+              {...pilot("preg.weight", "text")}
               inputMode="decimal"
               autoComplete="off"
               placeholder="—"
@@ -312,6 +320,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
         <button
           type="button"
           aria-pressed={spotting}
+          {...pilot("preg.spotting", "toggle")}
           className="pgn-spotting"
           onClick={() => edit({ symptoms: toggleSymptom(draft.symptoms, "spotting") })}
         >
@@ -338,6 +347,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
           </label>
           <textarea
             id="plog-note"
+            {...pilot("preg.note", "text")}
             rows={3}
             value={draft.visitNote}
             placeholder={t("log.notePlaceholder")}
@@ -353,11 +363,11 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
             {t("log.otherLogs")}
           </h2>
           <div className="pgn-other-row">
-            <Link href="/pregnancy/log?tab=weekly" className="pgn-tile is-row">
+            <Link href="/pregnancy/log?tab=weekly" className="pgn-tile is-row" {...pilot("preg.open:weekly")}>
               <IconCircle icon="doctor" tone="data" size="sm" />
               <b className="pgn-tile-label">{t("log.weeklyCheckup")}</b>
             </Link>
-            <Link href="/pregnancy/log?tab=movement" className="pgn-tile is-row">
+            <Link href="/pregnancy/log?tab=movement" className="pgn-tile is-row" {...pilot("preg.open:movement")}>
               <IconCircle icon="heartLine" tone="bloom" size="sm" />
               <b className="pgn-tile-label">{t("log.movement")}</b>
             </Link>
@@ -386,6 +396,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
               className={clsx(saved && "pgn-saved")}
               icon={saved ? "check" : undefined}
               loading={status === "saving"}
+              {...pilot("preg.save")}
               onClick={() => void submit(date, inputFromDraft(draft))}
             >
               {status === "saving" ? t("log.saving") : saved ? t("log.saved") : t("log.save")}
@@ -407,7 +418,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
       </div>
 
       <AppSheet open={picking} onClose={() => setPicking(false)} size="half" title={t("log.pickDay")}>
-        <CalendarPicker value={pickerValue} onSelect={pickDay} />
+        <CalendarPicker value={pickerValue} onSelect={pickDay} pilot={pilot("preg.day-calendar", "calendar")} />
       </AppSheet>
     </div>
   );
@@ -431,7 +442,7 @@ function RaisedAlerts({ alerts }: { alerts: PregnancyAlertV2[] }) {
           </li>
         ))}
       </ul>
-      <button type="button" className="pgn-link" onClick={() => openSheet('notifications')}>
+      <button type="button" className="pgn-link" onClick={() => openSheet('notifications')} {...pilot("preg.open:alerts")}>
         {t("log.seeAlerts")}
       </button>
     </Card>

@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 
 import { useModuleEnabled } from '@/entities/app-module';
 import { type Child, ChildAvatar, useChildren } from '@/entities/child';
+import { pilot } from '@/shared/pilot';
 import { Link } from '@/shared/i18n';
 import { CheckTick, Icon, PrimaryButton, Skeleton, SkeletonGroup } from '@/shared/ui';
 
@@ -95,6 +96,7 @@ function ChildrenPickerList({ value, onChange, disabled, showAdd = true }: Child
               </span>
               <input
                 type="checkbox"
+                {...pilot(`companion.child:${c.id}`)}
                 className="nb-check-native cmp-kid-check"
                 checked={value.includes(c.id)}
                 disabled={disabled}

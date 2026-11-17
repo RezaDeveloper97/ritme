@@ -28,6 +28,7 @@ import {
   Skeleton,
   SkeletonGroup,
 } from '@/shared/ui';
+import { pilot, pilotOption } from '@/shared/pilot';
 
 /* The document screen's sheets (CB-REC-04). They mount outside the screen's scroller, next to `.view`. */
 
@@ -146,7 +147,7 @@ export function EditSheet({ open, doc, onClose }: { open: boolean; doc: RecordDo
           <SecondaryButton block={false} onClick={onClose}>
             {t('cancel')}
           </SecondaryButton>
-          <PrimaryButton block={false} loading={save.isPending} onClick={submit}>
+          <PrimaryButton block={false} loading={save.isPending} onClick={submit} {...pilot('recd.save')}>
             {t('save')}
           </PrimaryButton>
         </div>
@@ -155,22 +156,23 @@ export function EditSheet({ open, doc, onClose }: { open: boolean; doc: RecordDo
       <div className="hrec-sheet">
         <div className="rec-up-block">
           <span className="rec-up-label">{t('fields.kind')}</span>
-          <ChipGroup label={t('fields.kind')}>
+          <ChipGroup label={t('fields.kind')} pilot={pilot('recd.kind', 'choice')}>
             {DOCUMENT_KINDS.map((k) => (
-              <PillChip key={k} pressed={d.kind === k} disabled={pending} onPressedChange={() => set('kind', k)}>
+              <PillChip key={k} {...pilotOption(k)} pressed={d.kind === k} disabled={pending} onPressedChange={() => set('kind', k)}>
                 {tk(k)}
               </PillChip>
             ))}
           </ChipGroup>
           {pending ? <p className="hrec-hint">{t('running')}</p> : null}
         </div>
-        <TextField label={t('fields.title')} value={d.title} onChange={(v) => set('title', v)} />
+        <TextField label={t('fields.title')} value={d.title} onChange={(v) => set('title', v)} pilotId="recd.title" />
         <RecordDateField
           label={t('fields.date')}
           value={d.date}
           unsetLabel={tu('dateUnset')}
           clearLabel={t('clearDate')}
           onChange={(v) => set('date', v)}
+          pilotId="recd.date"
         />
         {d.kind === 'hospital' ? (
           <RecordDateField
@@ -179,11 +181,12 @@ export function EditSheet({ open, doc, onClose }: { open: boolean; doc: RecordDo
             unsetLabel={tu('dateUnset')}
             clearLabel={t('clearDate')}
             onChange={(v) => set('endedOn', v)}
+            pilotId="recd.ended-on"
           />
         ) : null}
-        <TextField label={t('fields.centre')} value={d.centre} onChange={(v) => set('centre', v)} />
-        <TextField label={t('fields.doctor')} value={d.doctor} onChange={(v) => set('doctor', v)} />
-        <TextField label={t('fields.note')} value={d.note} multiline max={MAX_DOCUMENT_NOTE} onChange={(v) => set('note', v)} />
+        <TextField label={t('fields.centre')} value={d.centre} onChange={(v) => set('centre', v)} pilotId="recd.centre" />
+        <TextField label={t('fields.doctor')} value={d.doctor} onChange={(v) => set('doctor', v)} pilotId="recd.doctor" />
+        <TextField label={t('fields.note')} value={d.note} multiline max={MAX_DOCUMENT_NOTE} onChange={(v) => set('note', v)} pilotId="recd.note" />
         {error ? (
           <p className="hrec-error" role="alert">
             {error}
@@ -201,7 +204,10 @@ export function TextField({
   multiline,
   max = MAX_DOCUMENT_TEXT,
   hint,
+  pilotId,
 }: {
+  /** Autopilot name of the input (frontend/CLAUDE.md §11.6). */
+  pilotId?: string;
   label: string;
   value: string;
   onChange: (v: string) => void;
@@ -213,9 +219,9 @@ export function TextField({
     <label className="rec-up-block">
       <span className="rec-up-label">{label}</span>
       {multiline ? (
-        <textarea className="hrec-input rec-textarea" value={value} maxLength={max} rows={3} onChange={(e) => onChange(e.target.value)} />
+        <textarea className="hrec-input rec-textarea" value={value} maxLength={max} rows={3} onChange={(e) => onChange(e.target.value)} {...(pilotId ? pilot(pilotId, 'text') : null)} />
       ) : (
-        <input className="hrec-input" value={value} maxLength={max} onChange={(e) => onChange(e.target.value)} />
+        <input className="hrec-input" value={value} maxLength={max} onChange={(e) => onChange(e.target.value)} {...(pilotId ? pilot(pilotId, 'text') : null)} />
       )}
       {hint ? <span className="rec-low">{hint}</span> : null}
     </label>

@@ -17,6 +17,8 @@ import (
 func preferenceRules() validation.Rules {
 	return validation.Rules{
 		validation.F("goal", "nullable", "string", validation.In(goalStrings()...)),
+		validation.F("goals", "nullable", "array", "max:"+strconv.Itoa(len(Goals))),
+		validation.F("goals.*", "string", validation.In(goalStrings()...)),
 		validation.F("signals", "nullable", "array"),
 		validation.F("signals.pain", "nullable", "boolean"),
 		validation.F("signals.mood", "nullable", "boolean"),
@@ -31,9 +33,24 @@ func preferenceRules() validation.Rules {
 // signals is a 422 on signals.<key>; repeated action kinds are deduped keeping the first one's place.
 func parsePreferences(locale string, body phpval.Map) (PreferencesPatch, error) {
 	var p PreferencesPatch
-	if raw, ok := body.Get("goal"); ok && raw != nil {
-		g := Goal(phpval.ToString(raw))
-		p.Goal = &g
+	// `goals` (the multi-select) wins over the single `goal` an older client still sends.
+	if raw, ok := body.Get("goals"); ok && raw != nil {
+		_, vals := phpval.Entries(raw)
+		goals := make([]Goal, 0, len(vals))
+		for _, v := range vals {
+			goals = append(goals, Goal(phpval.ToString(v)))
+		}
+		goals, err := NormalizeGoals(goals)
+		if err != nil {
+			return p, fieldError(locale, "goals", T("validation.goal_invalid", locale))
+		}
+		p.Goals = &goals
+	} else if raw, ok := body.Get("goal"); ok && raw != nil {
+		goals, err := NormalizeGoals([]Goal{Goal(phpval.ToString(raw))})
+		if err != nil {
+			return p, fieldError(locale, "goal", T("validation.goal_invalid", locale))
+		}
+		p.Goals = &goals
 	}
 	if raw, ok := body.Get("signals"); ok && raw != nil {
 		keys, vals := phpval.Entries(raw)
@@ -66,7 +83,7 @@ func parsePreferences(locale string, body phpval.Map) (PreferencesPatch, error) 
 	return p, nil
 }
 
-// UpdatePreferences is PUT /companions/{id}/preferences {goal?, signals?, action_prefs?}: a partial update of the
+// UpdatePreferences is PUT /companions/{id}/preferences {goals?, goal?, signals?, action_prefs?}: a partial update of the
 // owner's «ریتمی همراه» v2 settings of one of her links (only the sent keys change). 404 for anyone else's link.
 func (h *Handlers) UpdatePreferences(c fiber.Ctx) error {
 	ownerID, err := currentUser(c)
@@ -81,6 +98,7 @@ func (h *Handlers) UpdatePreferences(c fiber.Ctx) error {
 	body := validation.Input(c)
 	v := validation.Make(lang.Default(), locale, body, preferenceRules(), validation.Now(h.now(c)),
 		validation.Messages("goal.in", T("validation.goal_invalid", locale),
+			"goals.*.in", T("validation.goal_invalid", locale),
 			"action_prefs.*.in", T("validation.action_prefs_invalid", locale)))
 	if v.Fails() {
 		return failValidation(locale, v.ErrorBag())
@@ -117,10 +135,19 @@ func actionsJSON(acts []ActionPref) []string {
 	return out
 }
 
-// SettingsJSON is what a member sees of the owner's preferences: the goal and the action kinds, never the signal
-// consents themselves (the home shows a signal's value or null instead).
+// SettingsJSON is what a member sees of the owner's preferences: the goals (`goal` = the first one, for clients older
+// than the multi-select) and the action kinds, never the signal consents themselves (the home shows a signal's value
+// or null instead).
 func SettingsJSON(p Preferences) *jsonx.OrderedMap {
-	return jsonx.Obj("goal", string(p.Goal.orUnknown()), "action_prefs", actionsJSON(p.Actions))
+	return jsonx.Obj("goal", string(p.Goal()), "goals", goalsJSON(p.Goals), "action_prefs", actionsJSON(p.Actions))
+}
+
+func goalsJSON(goals []Goal) []string {
+	out := make([]string, 0, len(goals))
+	for _, g := range goals {
+		out = append(out, string(g))
+	}
+	return out
 }
 
 func goalStrings() []string {

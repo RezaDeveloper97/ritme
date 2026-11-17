@@ -29,11 +29,15 @@ import {
   DisconnectSheet,
   GoalPicker,
   InviteCodeBox,
+  pickedGoals,
   sameActions,
   sameChildIds,
+  sameGoals,
   sameSignals,
+  storedGoals,
   SignalSwitches,
 } from '@/features/invite-companion';
+import { pilot } from '@/shared/pilot';
 import { getApiErrorMessage, getApiErrorStatus } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatLongDate, formatNumber } from '@/shared/lib/date';
@@ -197,6 +201,7 @@ function PendingInvite({ companion }: { companion: OwnerCompanion }) {
             icon="refresh"
             loading={renew.isPending}
             onClick={() => renew.mutate(undefined, { onSuccess: (r) => setFresh(r.invite) })}
+            {...pilot('companion.renew-invite')}
           >
             {t('detail.renew')}
           </SecondaryButton>
@@ -221,12 +226,12 @@ function PreferencesSection({ companion }: { companion: OwnerCompanion }) {
   const save = useUpdateCompanionPreferences(companion.id);
   const server = companion.preferences;
   // null = untouched: each editor shows the server's value.
-  const [goal, setGoal] = useState<CompanionGoal | null>(null);
+  const [goals, setGoals] = useState<CompanionGoal[] | null>(null);
   const [signals, setSignals] = useState<CompanionSignalScope | null>(null);
   const [actions, setActions] = useState<CompanionAction[] | null>(null);
   const [saved, setSaved] = useState(false);
 
-  const goalDirty = goal !== null && goal !== server.goal;
+  const goalDirty = goals !== null && !sameGoals(storedGoals(goals), server.goals);
   const signalsDirty = signals !== null && !sameSignals(signals, server.signals);
   const actionsDirty = actions !== null && !sameActions(actions, server.actionPrefs);
   const dirty = goalDirty || signalsDirty || actionsDirty;
@@ -236,13 +241,13 @@ function PreferencesSection({ companion }: { companion: OwnerCompanion }) {
     if (!dirty || save.isPending) return;
     save.mutate(
       {
-        ...(goalDirty && goal ? { goal } : {}),
+        ...(goalDirty && goals ? { goals: storedGoals(goals) } : {}),
         ...(signalsDirty && signals ? { signals } : {}),
         ...(actionsDirty && actions ? { actionPrefs: actions } : {}),
       },
       {
         onSuccess: () => {
-          setGoal(null);
+          setGoals(null);
           setSignals(null);
           setActions(null);
           setSaved(true);
@@ -257,10 +262,11 @@ function PreferencesSection({ companion }: { companion: OwnerCompanion }) {
       <p className="cmp-lead">{t('detail.prefsLead')}</p>
       <h3 className="cmp2-label">{t('detail.goalTitle')}</h3>
       <GoalPicker
-        value={goal ?? server.goal}
+        value={goals ?? pickedGoals(server.goals)}
+        disabled={save.isPending}
         onChange={(g) => {
           touch();
-          setGoal(g);
+          setGoals(g);
         }}
       />
       <h3 className="cmp2-label">{t('detail.signalsTitle')}</h3>
@@ -283,7 +289,7 @@ function PreferencesSection({ companion }: { companion: OwnerCompanion }) {
         }}
       />
       {dirty ? (
-        <PrimaryButton loading={save.isPending} onClick={onSave}>
+        <PrimaryButton loading={save.isPending} onClick={onSave} {...pilot('companion.prefs-save')}>
           {t('detail.prefsSave')}
         </PrimaryButton>
       ) : null}
@@ -333,7 +339,7 @@ function GrantsSection({ companion }: { companion: OwnerCompanion }) {
         }}
       />
       {dirty ? (
-        <PrimaryButton loading={save.isPending} onClick={onSave}>
+        <PrimaryButton loading={save.isPending} onClick={onSave} {...pilot('companion.access-save')}>
           {t('detail.save')}
         </PrimaryButton>
       ) : null}
@@ -385,7 +391,7 @@ function ChildrenSection({ companion }: { companion: OwnerCompanion }) {
         }}
       />
       {dirty ? (
-        <PrimaryButton loading={save.isPending} onClick={onSave}>
+        <PrimaryButton loading={save.isPending} onClick={onSave} {...pilot('companion.children-save')}>
           {t('detail.childrenSave')}
         </PrimaryButton>
       ) : null}

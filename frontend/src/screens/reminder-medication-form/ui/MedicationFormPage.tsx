@@ -24,6 +24,7 @@ import {
 } from '@/features/manage-medication';
 import { ApiError, getApiErrorStatus, getApiLimitMessage } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   formatDayMonth,
   formatLongDate,
@@ -90,9 +91,9 @@ function FieldError({ id, message }: { id: string; message?: string }) {
   );
 }
 
-function Switch({ on, label, onClick }: { on: boolean; label: string; onClick: () => void }) {
+function Switch({ on, label, onClick, pilotId }: { on: boolean; label: string; onClick: () => void; pilotId: string }) {
   return (
-    <NbSwitch compact className="rmd-hit" checked={on} label={label} onCheckedChange={() => onClick()} />
+    <NbSwitch compact className="rmd-hit" checked={on} label={label} onCheckedChange={() => onClick()} pilot={pilot(pilotId)} />
   );
 }
 
@@ -105,7 +106,9 @@ function Tile({
   ltr,
   describedBy,
   onClick,
+  pilotId,
 }: {
+  pilotId: string;
   label: string;
   value: string | null;
   placeholder: string;
@@ -121,6 +124,7 @@ function Tile({
       data-invalid={invalid || undefined}
       aria-describedby={describedBy}
       onClick={onClick}
+      {...pilot(pilotId)}
     >
       <span className="cfm-tile-h">
         {label}
@@ -420,6 +424,7 @@ function MedicationForm({
               aria-invalid={!!errors.title}
               aria-describedby={described('title')}
               onChange={(e) => set('title', e.target.value)}
+              {...pilot('med.name', 'text')}
             />
           </span>
           <FieldError id="med-err-title" message={errors.title} />
@@ -437,6 +442,7 @@ function MedicationForm({
             invalid={!!errors.startsOn}
             describedBy={described('startsOn')}
             onClick={() => openSheet({ kind: 'start' })}
+            pilotId="med.start"
           />
           <Tile
             label={tf('frequency')}
@@ -445,6 +451,7 @@ function MedicationForm({
             invalid={!!errors.frequency}
             describedBy={described('frequency')}
             onClick={() => openSheet({ kind: 'frequency' })}
+            pilotId="med.frequency"
           />
         </div>
         <FieldError id="med-err-startsOn" message={errors.startsOn} />
@@ -464,6 +471,7 @@ function MedicationForm({
                   <button
                     type="button"
                     className="cfm-dose-remove"
+                    {...pilot(`med.dose-remove:${i}`)}
                     aria-label={tf('removeDose', { n: num(i + 1) })}
                     onClick={() => setDoses(removeDose(state.doses, d.key))}
                   >
@@ -479,6 +487,7 @@ function MedicationForm({
                   invalid={!!err?.amount}
                   describedBy={err?.amount ? `med-err-dose-${i}-amount` : undefined}
                   onClick={() => openSheet({ kind: 'dosage', key: d.key })}
+                  pilotId={`med.dose:${i}`}
                 />
                 <Tile
                   label={hourMode ? tf('firstDose') : tf('time')}
@@ -488,17 +497,19 @@ function MedicationForm({
                   invalid={!!err?.time}
                   describedBy={err?.time ? `med-err-dose-${i}-time` : undefined}
                   onClick={() => openSheet({ kind: 'time', key: d.key })}
+                  pilotId={`med.time:${i}`}
                 />
               </div>
               <FieldError id={`med-err-dose-${i}-amount`} message={err?.amount} />
               <FieldError id={`med-err-dose-${i}-time`} message={err?.time} />
-              <div className="cfm-chips" role="group" aria-label={tf('mealGroup')}>
+              <div className="cfm-chips" role="group" aria-label={tf('mealGroup')} {...pilot(`med.meal:${i}`, 'choice')}>
                 {(['before', 'after'] as const).map((m) => (
                   <button
                     key={m}
                     type="button"
                     className="cfm-chip"
                     aria-pressed={d.meal === m}
+                    {...pilotOption(m)}
                     onClick={() => setDoses(patchDose(state.doses, d.key, { meal: toggleMeal(d.meal, m) }))}
                   >
                     {tc(`meals.${m}`)}
@@ -510,7 +521,7 @@ function MedicationForm({
         })}
         <FieldError id="med-err-doses" message={errors.doses} />
         {state.doses.length < MAX_DOSES && (
-          <button type="button" className="cfm-link" onClick={() => setDoses(addDose(state.doses))}>
+          <button type="button" className="cfm-link" onClick={() => setDoses(addDose(state.doses))} {...pilot('med.dose-add')}>
             {tf('addDose')}
           </button>
         )}
@@ -529,6 +540,7 @@ function MedicationForm({
             className="cfm-pill"
             aria-label={`${tf('duration')}: ${tf('change')}`}
             onClick={() => openSheet({ kind: 'duration' })}
+            {...pilot('med.duration')}
           >
             {tf('change')}
           </button>
@@ -540,7 +552,7 @@ function MedicationForm({
             <span className="cfm-set-t">{tf('notify')}</span>
             <span className="cfm-set-s">{tf('notifyHint')}</span>
           </span>
-          <Switch on={state.notify} label={tf('notify')} onClick={() => set('notify', !state.notify)} />
+          <Switch on={state.notify} label={tf('notify')} onClick={() => set('notify', !state.notify)} pilotId="med.notify" />
         </div>
 
         <label className="cfm-group">
@@ -554,6 +566,7 @@ function MedicationForm({
             aria-invalid={!!errors.notes}
             aria-describedby={described('notes')}
             onChange={(e) => set('notes', e.target.value)}
+            {...pilot('med.notes', 'text')}
           />
           <FieldError id="med-err-notes" message={errors.notes} />
         </label>
@@ -577,6 +590,7 @@ function MedicationForm({
           loading={saving}
           disabled={!canSubmit(state) || (delegatedEdit && !recordFor.canEdit)}
           onClick={() => onSave()}
+          {...pilot('med.save')}
         >
           {saving ? tf('saving') : edit ? tf('saveChanges') : tf('create')}
         </PrimaryButton>

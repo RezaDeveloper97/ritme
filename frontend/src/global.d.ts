@@ -25,6 +25,8 @@ import type enAlerts from '../messages/en/alerts.json';
 import type enVoiceLog from '../messages/en/voice-log.json';
 import type enAiCredit from '../messages/en/ai-credit.json';
 import type enAiGate from '../messages/en/ai-gate.json';
+import type enAutopilot from '../messages/en/autopilot.json';
+import type enAutopilotCatalog from '../messages/en/autopilot-catalog.json';
 import type enCredits from '../messages/en/credits.json';
 import type enVitals from '../messages/en/vitals.json'; // B-N6-02
 import type enTodo from '../messages/en/todo.json'; // B-N6-08
@@ -128,6 +130,8 @@ type Messages = {
   voiceLog: typeof enVoiceLog; // B-N3-05 features/voice-log
   aiCredit: typeof enAiCredit; // entities/ai-credit
   aiGate: typeof enAiGate; // features/ai-gate
+  autopilot: typeof enAutopilot; // shared/autopilot (overlay)
+  autopilotCatalog: typeof enAutopilotCatalog; // app/autopilot/catalog titles — only where the agent manifest is built
   credits: typeof enCredits; // screens/credits-usage + credits-buy
   alerts: typeof enAlerts; // T-M10-15 entities/alert, screens/alerts, home bell
   vitals: typeof enVitals; // B-N6-02 entities/vital, features/add-vital, screens/vitals-*

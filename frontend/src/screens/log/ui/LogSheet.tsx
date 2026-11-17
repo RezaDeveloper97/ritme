@@ -1,7 +1,7 @@
 'use client';
 
 import { LogDay, LogDaySheetTitle } from '@/features/log-day';
-import { VoiceLogGated } from '@/widgets/voice-log-slot';
+import { useVoiceLocked, VoiceLogGated } from '@/widgets/voice-log-slot';
 import { closeSheet, type SheetContentProps } from '@/shared/sheet';
 import { BodyMap } from '@/widgets/body-map';
 import { LogSheet as CompanionLogSheet, LogSheetTitle as CompanionLogSheetTitle, useNavMode } from '@/widgets/bottom-nav';
@@ -18,6 +18,7 @@ export function LogSheet({ arg }: SheetContentProps) {
   const [date, focusKey] = (arg ?? '').split(':');
   const focus = focusKey && /^[a-z_]{1,40}$/.test(focusKey) ? focusKey : undefined;
   const nav = useNavMode();
+  const voiceLocked = useVoiceLocked();
   if (nav.mode === 'companion') return <CompanionLogSheet />;
   return (
     <LogDay
@@ -25,7 +26,7 @@ export function LogSheet({ arg }: SheetContentProps) {
       initialDate={date || undefined}
       focus={focus}
       BodyMap={BodyMap}
-      VoiceLog={VoiceLogGated}
+      VoiceLog={VoiceLogGated} voiceLocked={voiceLocked}
       onSaved={closeSheet}
       // CB-NAV-03 (nbd_Nav_Plus): «برای بعد» + «ثبت برای <child>» (the postpartum preset already has the baby rows).
       extra={<LogLater childRow={nav.mode !== 'postpartum'} />}

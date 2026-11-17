@@ -2,9 +2,11 @@
 
 import { useTranslations } from 'next-intl';
 
+import { pilot } from '@/shared/pilot';
 import { PrimaryButton } from '@/shared/ui';
 
 import type { LogEntry } from '../model/draft';
+import { logPilotId } from '../model/pilot-targets';
 
 interface SummaryFooterProps {
   entries: readonly LogEntry[];
@@ -30,7 +32,7 @@ export function SummaryFooter({ entries, dirty, saving, saveError, justSaved, qu
         </span>
         {list && !saveError ? <span className="lday-foot-list">{list}</span> : null}
       </div>
-      <PrimaryButton block={false} className="lday-foot-save" onClick={onSave} disabled={!dirty} loading={saving}>
+      <PrimaryButton block={false} className="lday-foot-save" onClick={onSave} disabled={!dirty} loading={saving} {...pilot(logPilotId.save)}>
         {saving ? t('footer.saving') : t('footer.save')}
       </PrimaryButton>
     </div>

@@ -20,6 +20,7 @@ import {
   SkeletonGroup,
   SkyLayer,
 } from '@/shared/ui';
+import { pilot, pilotOption } from '@/shared/pilot';
 
 import { MENO_REPORT_MONTHS, type MenoReportMonths, useMenopauseReport } from '../api/menopause-report';
 import { buildMenopauseModel, type MenoRow } from '../model/menopause';
@@ -151,9 +152,9 @@ export function MenopauseReportPage({ from = 'home' }: { from?: MenopauseReportO
           action={<HeaderButton icon="share" label={t('shareLink')} onClick={() => setSharing(true)} />}
         />
 
-        <ChipGroup label={t('rangeLabel')} className="mrp-range">
+        <ChipGroup label={t('rangeLabel')} className="mrp-range" pilot={pilot('mrp.range', 'choice')}>
           {MENO_REPORT_MONTHS.map((m) => (
-            <PillChip key={m} pressed={months === m} onPressedChange={() => setMonths(m)}>
+            <PillChip key={m} {...pilotOption(String(m))} pressed={months === m} onPressedChange={() => setMonths(m)}>
               {t('months', { count: m, n: formatNumber(m, loc) })}
             </PillChip>
           ))}
@@ -174,6 +175,7 @@ export function MenopauseReportPage({ from = 'home' }: { from?: MenopauseReportO
               value={question}
               placeholder={t('questionsPlaceholder')}
               onChange={(e) => setQuestion(e.target.value)}
+              {...pilot('mrp.question', 'text')}
             />
           </div>
           {question.length > MAX_REPORT_QUESTION - 60 ? (
@@ -200,6 +202,7 @@ export function MenopauseReportPage({ from = 'home' }: { from?: MenopauseReportO
             loading={pdf.busy || (!!windowFrom && builder.isPending)}
             disabled={!ready}
             onClick={() => paper && void pdf.run(paper)}
+            {...pilot('mrp.download')}
           >
             {pdf.busy ? t('downloading') : t('download')}
           </PrimaryButton>

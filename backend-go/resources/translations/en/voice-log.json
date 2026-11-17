@@ -1,70 +1,21 @@
 {
-  "title": "Tell us how today went",
-  "lead": "Talk like you would to a friend. We pick out pain, bleeding, sleep, mood and medicines from what you say and show you before anything is saved.",
+  "title": "Say it, Ritme fills it in",
+  "lead": "Tap the circle and tell us about your day like you would tell a friend. The log form fills in while you watch; check it and save it yourself.",
   "start": "Start recording",
-  "startHint": "Tap to start · up to one minute",
+  "stop": "Finish recording",
+  "cancel": "Cancel",
   "requesting": "Waiting for microphone permission…",
+  "hint": {
+    "idle": "Tap and talk",
+    "loading": "One moment…",
+    "listening": "Listening. Tap again when you are done.",
+    "thinking": "Filling in the form with what you said…"
+  },
   "examples": {
     "title": "For example, say",
-    "pain": "“I had a really bad headache today”",
-    "pill": "“I took my iron pill at 9”",
-    "flash": "“I had three hot flashes last night”"
-  },
-  "today": {
-    "title": "Today’s logs",
-    "empty": "Not logged yet"
-  },
-  "record": {
-    "title": "Listening",
-    "recording": "Recording",
-    "paused": "Paused",
-    "processing": "Understanding what you said…",
-    "liveTitle": "Live text",
-    "livePending": "Your words appear here once you stop recording. When you’re done, tap stop.",
-    "listensTitle": "What we listen for",
-    "listens": {
-      "pain": "Pain",
-      "bleeding": "Bleeding",
-      "sleep": "Sleep",
-      "meds": "Medicines",
-      "mood": "Mood",
-      "other": "Other symptoms"
-    },
-    "stop": "Stop and review",
-    "pause": "Pause",
-    "resume": "Resume recording",
-    "cancel": "Cancel"
-  },
-  "review": {
-    "title": "Here’s what we understood",
-    "sub": "Is this right?",
-    "summary": "Summary",
-    "transcript": "Everything you said",
-    "unsure": "Not sure",
-    "which": "Which did you mean?",
-    "edit": "Edit {label} in manual logging",
-    "help": "Tap an item to leave it out of this log; tap again to bring it back.",
-    "add": "Missed something? Add it",
-    "noteTitle": "A note",
-    "noteBody": "If heavy bleeding with strong pain keeps going or makes you dizzy, tell a doctor.",
-    "confirm": "{count, plural, =0 {Nothing selected} one {Confirm and save # item} other {Confirm and save # items}}",
-    "saving": "Saving…",
-    "again": "Say it again",
-    "error": "Couldn’t save; try again."
-  },
-  "targets": {
-    "hot_flash": "Hot flashes",
-    "pain_diary": "Pain diary",
-    "pill": "Pill",
-    "bladder": "Bladder diary"
-  },
-  "saved": {
-    "title": "{count, plural, one {# item saved} other {# items saved}}",
-    "body": "Everything is in today’s log and you can edit it any time.",
-    "reminderTitle": "Faster next time",
-    "reminderBody": "Send a reminder to log your day every night at 21:00?",
-    "reminderError": "Couldn’t save the reminder; try again.",
-    "done": "Back to home"
+    "bleeding": "“My bleeding was heavy today”",
+    "pain": "“I have a headache and I'm tired”",
+    "mood": "“I feel good, calm”"
   },
   "heard": "We heard: “{text}”",
   "empty": {
@@ -86,6 +37,5 @@
     "uploadTitle": "Your recording wasn't sent",
     "uploadBody": "Check your connection and try again.",
     "retry": "Try again"
-  },
-  "separator": ", "
+  }
 }

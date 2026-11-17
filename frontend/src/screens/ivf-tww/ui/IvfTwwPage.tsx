@@ -18,6 +18,7 @@ import {
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatDecimal, formatNumber, fromApiDate } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { openSheet } from '@/shared/sheet';
 import {
   Card,
@@ -136,7 +137,7 @@ export function IvfTwwPage() {
           title={t('tww.noCycleTitle')}
           body={t('tww.noCycleBody')}
           action={
-            <SecondaryButton block={false} onClick={() => router.push('/ivf')}>
+            <SecondaryButton block={false} onClick={() => router.push('/ivf')} {...pilot('ivf.tww-home')}>
               {t('tww.noCycleCta')}
             </SecondaryButton>
           }
@@ -243,12 +244,13 @@ function MoodCard({ tww, t, note }: { tww: IvfTww; t: T; note: string }) {
       <h2 id={`${ids}-mood`} className="tww-card-title">
         {t('tww.mood.title')}
       </h2>
-      <ChipGroup label={t('tww.mood.label')} className="tww-chips">
+      <ChipGroup label={t('tww.mood.label')} className="tww-chips" pilot={pilot('ivf.tww-mood', 'choice')}>
         {IVF_TWW_MOODS.map((mood) => (
           <PillChip
             key={mood}
             pressed={tww.todayMood === mood}
             onPressedChange={(on) => choose(mood, on)}
+            {...pilotOption(mood)}
           >
             {t(`tww.mood.options.${mood}`)}
           </PillChip>
@@ -260,7 +262,7 @@ function MoodCard({ tww, t, note }: { tww: IvfTww; t: T; note: string }) {
         </p>
       ) : null}
       <p className="tww-note">{note}</p>
-      <button type="button" className="tww-link" onClick={() => openSheet('log')}>
+      <button type="button" className="tww-link" onClick={() => openSheet('log')} {...pilot('ivf.tww-symptoms')}>
         <Icon name="pen" size={16} />
         {t('tww.mood.symptoms')}
       </button>
@@ -321,6 +323,7 @@ function LutealMeds({ meds, t }: { meds: readonly IvfLutealMed[]; t: T }) {
             title={t('tww.meds.add')}
             description={t('tww.meds.empty')}
             onClick={() => router.push('/ivf/meds/new')}
+            pilot={pilot('ivf.tww-med-add')}
           />
         )}
       </ListGroup>
@@ -362,16 +365,16 @@ function ResultButtons({ t, onResult }: { t: T; onResult: (result: IvfOutcomeRes
         {t('tww.result.title')}
       </h2>
       <div className="tww-result-row">
-        <button type="button" className="tww-result is-positive" onClick={() => onResult('positive')}>
+        <button type="button" className="tww-result is-positive" onClick={() => onResult('positive')} {...pilot('ivf.tww-result:positive')}>
           <Icon name="heart" size={18} />
           {t('tww.result.positive')}
         </button>
-        <button type="button" className="tww-result" onClick={() => onResult('negative')}>
+        <button type="button" className="tww-result" onClick={() => onResult('negative')} {...pilot('ivf.tww-result:negative')}>
           <Icon name="chat" size={18} />
           {t('tww.result.negative')}
         </button>
       </div>
-      <button type="button" className="tww-link is-quiet" onClick={() => onResult('cancelled')}>
+      <button type="button" className="tww-link is-quiet" onClick={() => onResult('cancelled')} {...pilot('ivf.tww-result:cancelled')}>
         {t('tww.result.cancelled')}
       </button>
     </section>

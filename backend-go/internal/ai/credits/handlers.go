@@ -104,8 +104,12 @@ func (h *Handlers) Show(c fiber.Ctx) error {
 	}
 	list := make([]any, 0, len(feats))
 	for _, f := range feats {
-		if _, declared := ai.SpecOf(f.Key); !declared {
+		spec, declared := ai.SpecOf(f.Key)
+		if !declared {
 			continue // a slot no code uses any more
+		}
+		if spec.Internal {
+			continue // a model slot other features call into (voice_stt): users never see or pay for it
 		}
 		available := f.Active && (len(f.Models) > 0 || !h.external)
 		list = append(list, jsonx.Obj("key", string(f.Key), "title", t.of(string(f.Key)), "credit_cost", f.Cost,

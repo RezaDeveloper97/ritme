@@ -21,6 +21,7 @@ import {
 import { useSaveFertilityDay } from '@/features/log-fertility-day';
 import { getApiErrorStatus } from '@/shared/api';
 import { type Locale, Link, useRouter } from '@/shared/i18n';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { formatDayMonth, formatNumber, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import {
   Card,
@@ -198,9 +199,9 @@ function Section({
  * `v19_TTC_Log` chip: 44 px (touch target), tinted `--brand-soft` + 1.5 px brand
  * outline when on — the soft look of the artboard, not the solid single chip.
  */
-function Chip({ on, label, onClick }: { on: boolean; label: string; onClick: () => void }) {
+function Chip({ on, label, onClick, code }: { on: boolean; label: string; onClick: () => void; code?: string }) {
   return (
-    <PillChip pressed={on} onClick={onClick} className="ttc-chip">
+    <PillChip pressed={on} onClick={onClick} className="ttc-chip" {...(code ? pilotOption(code) : undefined)}>
       {label}
     </PillChip>
   );
@@ -212,12 +213,14 @@ function Chip({ on, label, onClick }: { on: boolean; label: string; onClick: () 
  * chip again clears it.
  */
 function SingleChips<T extends string>({
+  pilotId,
   values,
   value,
   labelOf,
   noneLabel,
   onChange,
 }: {
+  pilotId: string;
   values: readonly T[];
   value: T | null;
   labelOf: (v: T) => string;
@@ -225,11 +228,12 @@ function SingleChips<T extends string>({
   onChange: (v: T | null) => void;
 }) {
   return (
-    <div className="nb-chips">
-      {noneLabel !== undefined && <Chip on={value === null} label={noneLabel} onClick={() => onChange(null)} />}
+    <div className="nb-chips" {...pilot(pilotId, 'choice')}>
+      {noneLabel !== undefined && <Chip on={value === null} label={noneLabel} onClick={() => onChange(null)} code="none" />}
       {values.map((v) => (
         <Chip
           key={v}
+          code={v}
           on={value === v}
           label={labelOf(v)}
           onClick={() => onChange(noneLabel === undefined && value === v ? null : v)}
@@ -336,6 +340,7 @@ function LogForm({ day, date, focus }: { day: FertilityDay; date: string; focus:
       <Card as="section" padding="lg" className="ttc-log-card" aria-label={tl('title')}>
         <Section id="lh" title={tl('lh.title')} highlight={highlight === 'lh'} sectionRef={refFor('lh')}>
           <SingleChips
+            pilotId="fertility.lh"
             values={LH_RESULTS}
             value={state.lh}
             labelOf={(v) => tl(`lh.options.${v}`)}
@@ -361,6 +366,7 @@ function LogForm({ day, date, focus }: { day: FertilityDay; date: string; focus:
                 aria-describedby={bbtError ? bbtErrorId : 'fertility-log-bbt-hint'}
                 onChange={(e) => set('bbtText', e.target.value)}
                 className="ttc-bbt-input"
+                {...pilot('fertility.bbt', 'text')}
               />
             </label>
             <span className="ttc-bbt-unit">{tl('bbt.unit')}</span>
@@ -368,6 +374,7 @@ function LogForm({ day, date, focus }: { day: FertilityDay; date: string; focus:
               type="button"
               className="ttc-bbt-step"
               aria-label={tl('bbt.decrease')}
+              {...pilot('fertility.bbt-down')}
               onClick={() => onStep(-1)}
             >
               <Icon name="minus" size={20} strokeWidth={2.4} />
@@ -376,6 +383,7 @@ function LogForm({ day, date, focus }: { day: FertilityDay; date: string; focus:
               type="button"
               className="ttc-bbt-step"
               aria-label={tl('bbt.increase')}
+              {...pilot('fertility.bbt-up')}
               onClick={() => onStep(1)}
             >
               <Icon name="plus" size={20} strokeWidth={2.4} />
@@ -394,6 +402,7 @@ function LogForm({ day, date, focus }: { day: FertilityDay; date: string; focus:
 
         <Section id="mucus" title={tl('mucus.title')} highlight={highlight === 'mucus'} sectionRef={refFor('mucus')}>
           <SingleChips
+            pilotId="fertility.mucus"
             values={CERVICAL_MUCUS}
             value={state.mucus}
             labelOf={(v) => tl(`mucus.options.${v}`)}
@@ -408,6 +417,7 @@ function LogForm({ day, date, focus }: { day: FertilityDay; date: string; focus:
           sectionRef={refFor('intercourse')}
         >
           <SingleChips
+            pilotId="fertility.intercourse"
             values={INTERCOURSE_TYPES}
             value={state.intercourse}
             labelOf={(v) => tl(`intercourse.options.${v}`)}
@@ -422,10 +432,11 @@ function LogForm({ day, date, focus }: { day: FertilityDay; date: string; focus:
           highlight={highlight === 'symptoms'}
           sectionRef={refFor('symptoms')}
         >
-          <div className="nb-chips">
+          <div className="nb-chips" {...pilot('fertility.symptoms', 'choice')}>
             {FERTILITY_SYMPTOMS.map((s) => (
               <Chip
                 key={s}
+                code={s}
                 on={state.symptoms.includes(s)}
                 label={tl(`symptoms.options.${s}`)}
                 onClick={() => set('symptoms', toggleSymptom(state.symptoms, s))}
@@ -444,6 +455,7 @@ function LogForm({ day, date, focus }: { day: FertilityDay; date: string; focus:
           placeholder={tl('note.placeholder')}
           onChange={(e) => set('note', e.target.value)}
           className="ttc-note"
+          {...pilot('fertility.note', 'text')}
         />
       </Section>
 
@@ -459,7 +471,7 @@ function LogForm({ day, date, focus }: { day: FertilityDay; date: string; focus:
             {toast}
           </p>
         )}
-        <PrimaryButton loading={save.isPending} disabled={!bbtCheck.ok || toast !== null} onClick={onSave}>
+        <PrimaryButton loading={save.isPending} disabled={!bbtCheck.ok || toast !== null} onClick={onSave} {...pilot('fertility.save')}>
           {save.isPending ? tl('saving') : tl('save')}
         </PrimaryButton>
       </div>

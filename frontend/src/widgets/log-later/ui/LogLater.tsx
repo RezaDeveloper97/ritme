@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useModuleEnabled } from '@/entities/app-module';
 import { useChildren } from '@/entities/child';
 import { useDirection, useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { openSheet } from '@/shared/sheet';
 import { Icon, IconCircle } from '@/shared/ui';
 
@@ -39,7 +40,7 @@ export function LogLater({ childRow = true }: { childRow?: boolean }) {
       <h3 id="llt-vitals-title" className="lday-sec-title">
         {t('vitalsTitle')}
       </h3>
-      <button type="button" className="llt-row" onClick={() => openSheet(VITALS_SHEET)}>
+      <button type="button" className="llt-row" onClick={() => openSheet(VITALS_SHEET)} {...pilot('home.later-vitals')}>
         <IconCircle icon="heartLine" tone="bloom" size="md" />
         <span className="llt-row-text">
           <span className="llt-row-title">{t('vitals')}</span>
@@ -53,17 +54,17 @@ export function LogLater({ childRow = true }: { childRow?: boolean }) {
         {t('title')}
       </h3>
       <div className="llt-pair">
-        <button type="button" className="llt-btn" onClick={() => go(APPOINTMENT_NEW)}>
+        <button type="button" className="llt-btn" onClick={() => go(APPOINTMENT_NEW)} {...pilot('home.later-appointment')}>
           <Icon name="calendar" size={18} strokeWidth={1.8} className="llt-ic" />
           <span>{t('appointment')}</span>
         </button>
-        <button type="button" className="llt-btn" onClick={() => openSheet(TODO_ADD_SHEET)}>
+        <button type="button" className="llt-btn" onClick={() => openSheet(TODO_ADD_SHEET)} {...pilot('home.later-task')}>
           <Icon name="todo" size={18} strokeWidth={1.8} className="llt-ic" />
           <span>{t('task')}</span>
         </button>
       </div>
       {child ? (
-        <button type="button" className="llt-row" onClick={() => go(`/children/${child.id}/feeding`)}>
+        <button type="button" className="llt-row" onClick={() => go(`/children/${child.id}/feeding`)} {...pilot('home.later-feeding')}>
           <span className="nb-avatar is-md llt-avatar" aria-hidden>
             <span>{Array.from(child.name.trim())[0] ?? ''}</span>
           </span>

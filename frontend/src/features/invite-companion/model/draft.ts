@@ -5,6 +5,7 @@ import {
   type CompanionSignal,
   type CompanionSignalScope,
   COMPANION_SIGNALS,
+  EXCLUSIVE_COMPANION_GOALS,
   type CreateCompanionInput,
   emptyGrants,
 } from '@/entities/companion';
@@ -22,8 +23,8 @@ export type InviteStep = 'intro' | 'goal' | 'children' | 'scope' | 'actions' | '
 export interface InviteDraft {
   /** «با به اشتراک‌گذاشتن … موافقم» — the intro CTA stays disabled until ticked. */
   consent: boolean;
-  /** null = nothing picked yet; sent as `unknown`. */
-  goal: CompanionGoal | null;
+  /** The goal cards she ticked, in order (see `toggleGoal`); none ticked is sent as «unknown» (an empty list). */
+  goals: CompanionGoal[];
   /** «همسرم است»: creates a `spouse` link (family + shared children) instead of a `partner`. */
   spouse: boolean;
   /** Per-section access («نبیند · فقط دیدن · دیدن و ویرایش»), picked on the scope step. */
@@ -53,7 +54,7 @@ export function emptySignals(): CompanionSignalScope {
 export function initialDraft(): InviteDraft {
   return {
     consent: false,
-    goal: null,
+    goals: [],
     spouse: false,
     grants: inviteGrants(),
     signals: emptySignals(),
@@ -80,6 +81,32 @@ export function toggleChildId(ids: readonly number[], id: number): number[] {
 /** Add / remove one preferred action, keeping the order she picked them in. */
 export function toggleAction(prefs: readonly CompanionAction[], action: CompanionAction): CompanionAction[] {
   return prefs.includes(action) ? prefs.filter((a) => a !== action) : [...prefs, action];
+}
+
+/**
+ * Tick / untick one goal card. The goals that ask the companion for something combine freely; «فقط اطلاع کلی»
+ * and «فعلاً نمی‌دانم» each stand alone, so ticking one of them clears the rest and ticking anything else
+ * clears them.
+ */
+export function toggleGoal(goals: readonly CompanionGoal[], goal: CompanionGoal): CompanionGoal[] {
+  if (goals.includes(goal)) return goals.filter((g) => g !== goal);
+  if (EXCLUSIVE_COMPANION_GOALS.includes(goal)) return [goal];
+  return [...goals.filter((g) => !EXCLUSIVE_COMPANION_GOALS.includes(g)), goal];
+}
+
+/** What the goal cards show for a stored list: an empty list is the «فعلاً نمی‌دانم» card. */
+export function pickedGoals(stored: readonly CompanionGoal[]): CompanionGoal[] {
+  return stored.length ? [...stored] : ['unknown'];
+}
+
+/** The stored list of the ticked cards (`unknown` is the empty list). */
+export function storedGoals(picked: readonly CompanionGoal[]): CompanionGoal[] {
+  return picked.filter((g) => g !== 'unknown');
+}
+
+/** Same goals, order included (the companion's cards follow this order). */
+export function sameGoals(a: readonly CompanionGoal[], b: readonly CompanionGoal[]): boolean {
+  return a.length === b.length && a.every((x, i) => b[i] === x);
 }
 
 /** Same set of ids, order ignored (children editor «dirty» check). */
@@ -191,7 +218,7 @@ export function draftToInput(draft: InviteDraft): CreateCompanionInput | null {
     // Only a spouse shares children; a draft that switched «همسرم است» off again drops them.
     ...(draft.spouse && draft.childIds.length ? { childIds: [...draft.childIds] } : {}),
     preferences: {
-      goal: draft.goal ?? 'unknown',
+      goals: storedGoals(draft.goals),
       signals: { ...draft.signals },
       actionPrefs: [...draft.actionPrefs],
     },

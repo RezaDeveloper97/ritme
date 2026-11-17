@@ -15,6 +15,7 @@ import {
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { Card, IconCircle, SecondaryButton, Skeleton, SkeletonGroup, Switch } from '@/shared/ui';
+import { pilot } from '@/shared/pilot';
 
 import { useRecordHomeSheet } from '../model/sheet-store';
 import { ExtrasSheet } from './ExtrasSheet';
@@ -75,19 +76,19 @@ export function RecordHomeExtras() {
         </>
       ) : null}
       <div className="rec-home-actions">
-        <SecondaryButton icon="box" onClick={() => router.push('/record/timeline')}>
+        <SecondaryButton icon="box" onClick={() => router.push('/record/timeline')} {...pilot('rec.all-docs')}>
           {t('home.allDocuments')}
         </SecondaryButton>
-        <SecondaryButton icon="plus" onClick={() => openSheet('upload')}>
+        <SecondaryButton icon="plus" onClick={() => openSheet('upload')} {...pilot('rec.add-doc')}>
           {t('home.addDocument')}
         </SecondaryButton>
       </div>
       {/* CB-REC-05 (nbl_Rec_Home → Rec_Emergency, Rec_Share): the emergency card and «who sees my record». */}
       <div className="rec-home-actions">
-        <SecondaryButton icon="qr" onClick={() => router.push('/record/emergency')}>
+        <SecondaryButton icon="qr" onClick={() => router.push('/record/emergency')} {...pilot('rec.emergency')}>
           {t('home.emergencyCard')}
         </SecondaryButton>
-        <SecondaryButton icon="lock" onClick={() => router.push('/record/share')}>
+        <SecondaryButton icon="lock" onClick={() => router.push('/record/share')} {...pilot('rec.share')}>
           {t('home.share')}
         </SecondaryButton>
       </div>
@@ -141,6 +142,7 @@ function AllergyCard({ extras }: { extras: RecordExtras }) {
         ) : null}
       </div>
       <Switch
+        pilot={pilot('rec.allergy-card')}
         checked={on}
         label={t('toggle')}
         describedBy={descId}
@@ -167,7 +169,7 @@ function CategoryGrid({ data, onOpen }: { data: RecordCategories; onOpen: (key: 
           const count = countOf(k);
           return (
             <li key={k}>
-              <button type="button" className="rec-tile" onClick={() => onOpen(k)}>
+              <button type="button" className="rec-tile" onClick={() => onOpen(k)} {...pilot(`rec.tile:${k}`)}>
                 <IconCircle icon={look.icon} tone={look.tone} size="md" />
                 <span className="rec-tile-name">{t(k)}</span>
                 <span className="rec-tile-count">{t(`count.${k}`, { count, n: formatNumber(count, locale) })}</span>
@@ -191,7 +193,7 @@ function ReviewCard({ count, onOpen }: { count: number; onOpen: () => void }) {
         <p className="rec-review-title">{t('needsReview', { count, n: formatNumber(count, locale) })}</p>
         <p className="rec-review-sub">{t('needsReviewBody')}</p>
       </div>
-      <button type="button" className="rec-pill-btn" onClick={onOpen}>
+      <button type="button" className="rec-pill-btn" onClick={onOpen} {...pilot('rec.review')}>
         {t('open')}
       </button>
     </Card>

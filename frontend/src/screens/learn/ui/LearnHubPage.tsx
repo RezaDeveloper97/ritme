@@ -12,6 +12,7 @@ import {
   type ContinueCard,
   type CourseFilter,
 } from '@/entities/course';
+import { pilot } from '@/shared/pilot';
 import { Link, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { Avatar, Card, EmptyState, Icon, PrimaryButton, SegmentedTabs, Skeleton, SkeletonGroup, SkyLayer, StatusPill } from '@/shared/ui';
@@ -72,6 +73,7 @@ export function LearnHubPage() {
           onChange={setFilter}
           label={t('hub.filtersLabel')}
           track="surface"
+          pilot={(v) => pilot(`learn.filter:${v}`)}
         />
         {groups.length === 0 ? (
           <EmptyState icon="checkCircle" title={t(filter === 'done' ? 'hub.noneDone' : 'hub.noneLearning')} />
@@ -106,7 +108,7 @@ export function LearnHubPage() {
       <div className="scroll">
         <header className="lrn-hub-head has-action">
           <h1 className="lrn-hub-title">{t('hub.title')}</h1>
-          <Link href="/learn/downloads" className="nb-hbtn" aria-label={t('downloads.title')}>
+          <Link href="/learn/downloads" className="nb-hbtn" aria-label={t('downloads.title')} {...pilot('learn.open:learn-downloads')}>
             <Icon name="download" size={20} />
           </Link>
         </header>
@@ -124,7 +126,7 @@ function ResumeHero({ item }: { item: ContinueCard }) {
   const remaining = minutesOf(item.remainingSeconds);
   const pct = Math.max(0, Math.min(100, item.percent));
   return (
-    <Link href={`/learn/${item.course.id}/${item.lesson.id}`} className="lrn-resume">
+    <Link href={`/learn/${item.course.id}/${item.lesson.id}`} className="lrn-resume" {...pilot('learn.resume')}>
       <span className="lrn-resume-art" aria-hidden>
         <span className="lrn-play-disc">
           <Icon name="play" size={26} fill="currentColor" />

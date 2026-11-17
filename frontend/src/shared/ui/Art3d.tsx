@@ -7,13 +7,15 @@ import type { IconName } from './Icon';
  * features and services — a care tile, a life mode, a shop category — where a picture helps recognition. Controls,
  * states and inline glyphs stay on {@link Icon}: those must follow the text colour and read at 16–20px.
  *
- * Files live in `public/art3d/<name>.webp` (320×320, transparent), generated with Canva.
+ * Files live in `public/art3d/<name>.webp` (320×320, transparent), generated with Canva. `voice-orb` (480×480) is the
+ * round record button of voice logging, generated with Meshy.
  */
 export const ART3D_NAMES = [
   'cycle', 'ttc', 'pregnancy', 'postpartum', 'menopause', 'teen',
   'assistant', 'doctors', 'record', 'labs', 'vitals', 'insurance',
   'pain', 'mood', 'heavy-bleeding', 'pelvic-floor', 'contraception',
   'layette', 'beauty', 'shop', 'learning', 'checkups', 'medication', 'mother-child', 'credits',
+  'voice-orb',
 ] as const;
 export type Art3dName = (typeof ART3D_NAMES)[number];
 

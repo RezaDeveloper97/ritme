@@ -226,7 +226,7 @@ export function MoodPhaseCard({ section }: { section: AnalysisSection<MoodByPhas
   const low = lowestIndex(phases.map((p) => p.goodPct));
   const label = (p: (typeof phases)[number]) => t(`mood.phases.${p.phase}`);
   return (
-    <HubCard title={t('mood.title')} plus locked={section.locked} href="/analysis/correlations">
+    <HubCard title={t('mood.title')} pilotKey="mood" plus locked={section.locked} href="/analysis/correlations">
       {section.locked ? (
         <TeaserBars />
       ) : section.ready && phases.length ? (
@@ -267,7 +267,7 @@ export function SleepMoodCard({ section }: { section: AnalysisSection<Correlatio
   const { t, num } = useHub();
   const c = section.data;
   return (
-    <HubCard title={t('sleep.title')} plus locked={section.locked} href="/analysis/correlations">
+    <HubCard title={t('sleep.title')} pilotKey="sleep" plus locked={section.locked} href="/analysis/correlations">
       {section.locked ? (
         <TeaserLine tone="brand" />
       ) : section.ready && c ? (

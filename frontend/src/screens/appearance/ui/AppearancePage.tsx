@@ -4,6 +4,7 @@ import { clsx } from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 
+import { pilot, pilotOption } from '@/shared/pilot';
 import { useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
@@ -97,7 +98,7 @@ export function AppearancePage() {
           <h2 id="app-theme" className="app-card-title">
             {t('appearance.theme')}
           </h2>
-          <div role="radiogroup" aria-labelledby="app-theme" className="app-themes">
+          <div role="radiogroup" aria-labelledby="app-theme" className="app-themes" {...pilot('appearance.theme', 'choice')}>
             {THEMES.map((theme, index) => (
               <button
                 key={theme}
@@ -110,6 +111,7 @@ export function AppearancePage() {
                 tabIndex={index === tabStop ? 0 : -1}
                 className="app-theme"
                 onClick={() => setPreference(theme)}
+                {...pilotOption(theme)}
                 onKeyDown={(event) => onThemeKey(event, index)}
               >
                 <ThemePreview theme={theme} />
@@ -124,6 +126,7 @@ export function AppearancePage() {
             checked={followSystem}
             onCheckedChange={(next) => setPreference(next ? 'system' : resolved)}
             label={t('appearance.followSystem')}
+            pilot={pilot('appearance.follow-system')}
           />
         </section>
 
@@ -137,6 +140,7 @@ export function AppearancePage() {
             </span>
             <input
               type="range"
+              {...pilot('appearance.text-size', 'text')}
               className="app-range"
               min={0}
               max={TEXT_SCALES.length - 1}
@@ -166,6 +170,7 @@ export function AppearancePage() {
               <Switch
                 checked={reduceOn}
                 labelledBy="app-motion-title"
+                pilot={pilot('appearance.reduce-motion')}
                 // The OS already reduces motion: «off» could not undo it, so the
                 // switch is locked on and the caption says why.
                 disabled={mounted && systemReduced && motion !== 'reduce'}

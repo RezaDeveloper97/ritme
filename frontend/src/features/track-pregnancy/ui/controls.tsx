@@ -4,6 +4,7 @@ import clsx from 'clsx';
 
 import type { ReactNode } from 'react';
 
+import { pilot, pilotOption } from '@/shared/pilot';
 import { Icon, type IconName } from '@/shared/ui';
 
 /**
@@ -55,18 +56,26 @@ export function Chip({
   label,
   onClick,
   tone,
+  option,
+  pilotId,
 }: {
   on: boolean;
   label: string;
   onClick: () => void;
   tone?: 'default' | 'danger';
+  /** Option code inside a `choice` group (`Segmented`, §11.6). */
+  option?: string;
+  /** Autopilot name when the chip is a standalone toggle. */
+  pilotId?: string;
 }) {
   const danger = tone === 'danger';
   return (
     <button
       type="button"
       className={`chip${on ? ' on' : ''}`}
+      aria-pressed={on}
       onClick={onClick}
+      {...(option !== undefined ? pilotOption(option) : pilotId ? pilot(pilotId, 'toggle') : undefined)}
       style={
         on && danger
           ? { background: 'var(--danger)', borderColor: 'var(--danger)', color: 'var(--on-danger)' }
@@ -81,13 +90,14 @@ export function Chip({
 }
 
 // ── iOS-style on/off toggle (RTL-safe knob) ────────────────────
-export function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
+export function Toggle({ on, onClick, pilotId }: { on: boolean; onClick: () => void; pilotId?: string }) {
   return (
     <button
       type="button"
       role="switch"
       aria-checked={on}
       onClick={onClick}
+      {...(pilotId ? pilot(pilotId) : undefined)}
       style={{
         width: 46,
         height: 28,
@@ -132,18 +142,22 @@ export function Segmented({
   options,
   value,
   onChange,
+  pilotId,
 }: {
   options: { value: string; label: string }[];
   value: string | undefined;
   onChange: (value: string | undefined) => void;
+  /** Autopilot name of the group (`pilot(id, 'choice')`, §11.6). */
+  pilotId?: string;
 }) {
   return (
-    <div className="fld-chips">
+    <div className="fld-chips" {...(pilotId ? pilot(pilotId, 'choice') : undefined)}>
       {options.map((opt) => (
         <Chip
           key={opt.value}
           on={value === opt.value}
           label={opt.label}
+          option={pilotId ? opt.value : undefined}
           onClick={() => onChange(value === opt.value ? undefined : opt.value)}
         />
       ))}
@@ -160,7 +174,9 @@ export function NumberField({
   min,
   max,
   step,
+  pilotId,
 }: {
+  pilotId?: string;
   label: string;
   value: number | undefined;
   onChange: (value: number | undefined) => void;
@@ -183,6 +199,7 @@ export function NumberField({
         min={min}
         max={max}
         step={step}
+        {...(pilotId ? pilot(pilotId, 'number') : undefined)}
         onChange={(e) => {
           const v = e.target.value;
           onChange(v === '' ? undefined : Number(v));
@@ -198,7 +215,9 @@ export function NotesField({
   value,
   onChange,
   placeholder,
+  pilotId,
 }: {
+  pilotId?: string;
   label: string;
   value: string | undefined;
   onChange: (value: string | undefined) => void;
@@ -214,6 +233,7 @@ export function NotesField({
         rows={3}
         value={value ?? ''}
         placeholder={placeholder}
+        {...(pilotId ? pilot(pilotId, 'text') : undefined)}
         onChange={(e) => onChange(e.target.value === '' ? undefined : e.target.value)}
       />
     </label>

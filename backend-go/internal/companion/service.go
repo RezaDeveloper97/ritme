@@ -242,7 +242,7 @@ func (s *Service) CreateInvite(ctx context.Context, ownerID uint64, in InviteInp
 		}
 		id, err := q.CreateCompanion(ctx, store.CreateCompanionParams{
 			OwnerID: ownerID, Type: string(in.Type), DisplayName: nstr(in.DisplayName), Now: nt(now),
-			Goal: goalColumn(in.Preferences.Goal), SharePain: in.Preferences.Signals.On(SignalPain),
+			Goal: goalColumn(in.Preferences.Goals), SharePain: in.Preferences.Signals.On(SignalPain),
 			ShareMood: in.Preferences.Signals.On(SignalMood), ShareEnergy: in.Preferences.Signals.On(SignalEnergy),
 			ShareSleep: in.Preferences.Signals.On(SignalSleep), ActionPrefs: actionsColumn(in.Preferences.Actions),
 		})

@@ -9,6 +9,7 @@ import { getApiErrorStatus } from '@/shared/api';
 import { type Locale, useDirection, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { AppSheet, openSheet } from '@/shared/sheet';
 import {
   Card,
@@ -141,7 +142,7 @@ export function ChildLearnPage({ id }: { id: number }) {
   const tips = data.tips.filter((tip) => tip.code !== featured?.code);
   return (
     <Shell header={header}>
-      <div className="cms-chips" role="group" aria-label={t('learn.topicsLabel')}>
+      <div className="cms-chips" role="group" aria-label={t('learn.topicsLabel')} {...pilot('child.learn-topic', 'choice')}>
         {data.topics.map((tp) => {
           const code = tp.code === 'all' ? null : tp.code;
           const on = code === topic;
@@ -151,6 +152,7 @@ export function ChildLearnPage({ id }: { id: number }) {
               type="button"
               className={clsx('cms-chip', on && 'is-on')}
               aria-pressed={on}
+              {...pilotOption(tp.code)}
               onClick={() => setTopic(code)}
             >
               {tp.label}
@@ -160,7 +162,7 @@ export function ChildLearnPage({ id }: { id: number }) {
       </div>
 
       {featured ? (
-        <button type="button" className="clr-featured" onClick={() => setOpen(featured)}>
+        <button type="button" className="clr-featured" onClick={() => setOpen(featured)} {...pilot(`child.tip:${featured.code}`)}>
           <span className="clr-chips">
             <span className="clr-chip">
               <Icon name="sparkle" size={13} />
@@ -188,7 +190,7 @@ export function ChildLearnPage({ id }: { id: number }) {
           <IconCircle icon="bookOpen" tone="brand" size="lg" />
           <p className="chd-state-text">{t('learn.empty')}</p>
           {topic ? (
-            <SecondaryButton block={false} onClick={() => setTopic(null)}>
+            <SecondaryButton block={false} onClick={() => setTopic(null)} {...pilot('child.learn-all')}>
               {t('learn.showAll')}
             </SecondaryButton>
           ) : null}
@@ -236,7 +238,7 @@ function TipRow({ tip, meta: text, onOpen }: { tip: LearnTip; meta: string; onOp
   const rtl = useDirection() === 'rtl';
   const { icon, tone } = look(tip.topic);
   return (
-    <button type="button" className="clr-row" onClick={onOpen}>
+    <button type="button" className="clr-row" onClick={onOpen} {...pilot(`child.tip:${tip.code}`)}>
       <IconCircle icon={icon} tone={tone} size="md" className="clr-row-icon" />
       <span className="clr-row-text">
         <b className="clr-row-title">{tip.title}</b>

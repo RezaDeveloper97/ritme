@@ -18,6 +18,7 @@ import {
 } from '@/entities/pelvic';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   Card,
   ChipGroup,
@@ -135,7 +136,7 @@ function PlanCard({ program, today }: { program: PelvicProgram; today: string })
       {program.completed ? <p className="pv-plan-line">{t('completed')}</p> : null}
       {program.todayDone ? <p className="pv-plan-line is-done">{t('todayDone')}</p> : null}
       {level ? (
-        <PrimaryButton onClick={() => router.push(PELVIC_KEGEL_PATH)}>
+        <PrimaryButton onClick={() => router.push(PELVIC_KEGEL_PATH)} {...pilot('pelvic.session-start')}>
           {t(program.todayDone ? 'again' : 'start', { minutes })}
         </PrimaryButton>
       ) : null}
@@ -160,7 +161,7 @@ function JoinCard() {
           {t('error')}
         </p>
       ) : null}
-      <PrimaryButton loading={start.isPending} onClick={() => start.mutate()}>
+      <PrimaryButton loading={start.isPending} onClick={() => start.mutate()} {...pilot('pelvic.program-join')}>
         {t('action')}
       </PrimaryButton>
     </Card>
@@ -189,7 +190,7 @@ function DiarySections({ diary, utiWarning }: { diary: PelvicDiary; utiWarning: 
           <p id="pv-leak" className="pv-q">
             {t('diary.leak.question')}
           </p>
-          <ChipGroup label={t('diary.leak.question')} className="pv-chips">
+          <ChipGroup label={t('diary.leak.question')} className="pv-chips" pilot={pilot('pelvic.leak', 'choice')}>
             {PELVIC_LEAKS.map((code) => (
               <PillChip
                 key={code}
@@ -201,6 +202,7 @@ function DiarySections({ diary, utiWarning }: { diary: PelvicDiary; utiWarning: 
                   setLeak(next);
                   send({ leak: next });
                 }}
+                {...pilotOption(code)}
               >
                 {t(`diary.leak.${code}`)}
               </PillChip>
@@ -216,6 +218,7 @@ function DiarySections({ diary, utiWarning }: { diary: PelvicDiary; utiWarning: 
             decrementLabel={t('diary.nightVoidsLess')}
             incrementLabel={t('diary.nightVoidsMore')}
             locale={locale}
+            pilot={pilot('pelvic.night-voids', 'stepper')}
             onChange={(value) => {
               setVoids(value);
               send({ night_voids: value });
@@ -229,7 +232,7 @@ function DiarySections({ diary, utiWarning }: { diary: PelvicDiary; utiWarning: 
           {t('uti.title')}
         </h2>
         <Card className="pv-card">
-          <ChipGroup label={t('uti.label')} className="pv-chips">
+          <ChipGroup label={t('uti.label')} className="pv-chips" pilot={pilot('pelvic.uti-symptoms', 'choice')}>
             {PELVIC_UTI_SYMPTOMS.map((code) => (
               <PillChip
                 key={code}
@@ -241,6 +244,7 @@ function DiarySections({ diary, utiWarning }: { diary: PelvicDiary; utiWarning: 
                   setSymptoms(next);
                   send({ uti_symptoms: next });
                 }}
+                {...pilotOption(code)}
               >
                 {t(`uti.${code}`)}
               </PillChip>

@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { JOIN_AGE_RANGES, JOIN_AMENITIES, type JoinApplication, useSaveJoinStep } from '@/entities/city-service';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { ChipGroup, PillChip, PrimaryButton, Switch } from '@/shared/ui';
 
 import {
@@ -61,7 +62,7 @@ export function StepPlace({ app, onNext, onSaveError }: { app: JoinApplication; 
         <label className="fld-label">
           <span className="fld-label-t">{t('place.address')}</span>
           <span className="field cjn-area">
-            <textarea rows={2} maxLength={300} autoComplete="street-address" value={form.address} placeholder={t('place.addressPh')} onChange={(e) => set('address', e.target.value)} />
+            <textarea rows={2} maxLength={300} autoComplete="street-address" value={form.address} placeholder={t('place.addressPh')} onChange={(e) => set('address', e.target.value)} {...pilot('city-join.address', 'text')} />
           </span>
         </label>
       </section>
@@ -74,14 +75,14 @@ export function StepPlace({ app, onNext, onSaveError }: { app: JoinApplication; 
         <label className="fld-label">
           <span className="fld-label-t">{t('place.about')}</span>
           <span className="field cjn-area">
-            <textarea rows={4} maxLength={2000} value={form.about} placeholder={t('place.aboutPh')} onChange={(e) => set('about', e.target.value)} />
+            <textarea rows={4} maxLength={2000} value={form.about} placeholder={t('place.aboutPh')} onChange={(e) => set('about', e.target.value)} {...pilot('city-join.about', 'text')} />
           </span>
         </label>
         <div className="cjn-group">
           <span className="fld-label-t">{t('place.ages')}</span>
-          <ChipGroup label={t('place.ages')}>
+          <ChipGroup label={t('place.ages')} pilot={pilot('city-join.ages', 'choice')}>
             {JOIN_AGE_RANGES.map((code) => (
-              <PillChip key={code} mode="multi" pressed={form.ageRanges.includes(code)} onPressedChange={() => set('ageRanges', toggleItem(form.ageRanges, code))}>
+              <PillChip key={code} mode="multi" pressed={form.ageRanges.includes(code)} onPressedChange={() => set('ageRanges', toggleItem(form.ageRanges, code))} {...pilotOption(code)}>
                 {t(`ages.${code}`)}
               </PillChip>
             ))}
@@ -89,9 +90,9 @@ export function StepPlace({ app, onNext, onSaveError }: { app: JoinApplication; 
         </div>
         <div className="cjn-group">
           <span className="fld-label-t">{t('place.amenities')}</span>
-          <ChipGroup label={t('place.amenities')}>
+          <ChipGroup label={t('place.amenities')} pilot={pilot('city-join.amenities', 'choice')}>
             {JOIN_AMENITIES.map((code) => (
-              <PillChip key={code} mode="multi" pressed={form.amenities.includes(code)} onPressedChange={() => set('amenities', toggleItem(form.amenities, code))}>
+              <PillChip key={code} mode="multi" pressed={form.amenities.includes(code)} onPressedChange={() => set('amenities', toggleItem(form.amenities, code))} {...pilotOption(code)}>
                 {t(`amenities.${code}`)}
               </PillChip>
             ))}
@@ -118,6 +119,7 @@ export function StepPlace({ app, onNext, onSaveError }: { app: JoinApplication; 
                       aria-label={`${t(`days.${DAY_KEYS[day]}`)} ${t('place.from')}`}
                       value={h.open}
                       onChange={(e) => setHours(day, { open: e.target.value })}
+                      {...pilot(`city-join.hours-open:${day}`, 'text')}
                     />
                     <span aria-hidden>–</span>
                     <input
@@ -126,12 +128,13 @@ export function StepPlace({ app, onNext, onSaveError }: { app: JoinApplication; 
                       aria-label={`${t(`days.${DAY_KEYS[day]}`)} ${t('place.to')}`}
                       value={h.close}
                       onChange={(e) => setHours(day, { close: e.target.value })}
+                      {...pilot(`city-join.hours-close:${day}`, 'text')}
                     />
                   </span>
                 ) : (
                   <span className="cjn-closed">{t('place.closed')}</span>
                 )}
-                <Switch compact checked={Boolean(h)} labelledBy={titleId} onCheckedChange={(on) => setHours(day, on ? {} : null)} />
+                <Switch compact checked={Boolean(h)} labelledBy={titleId} onCheckedChange={(on) => setHours(day, on ? {} : null)} pilot={pilot(`city-join.hours-open-day:${day}`)} />
               </li>
             );
           })}
@@ -149,7 +152,7 @@ export function StepPlace({ app, onNext, onSaveError }: { app: JoinApplication; 
           {errorText(save.error)}
         </p>
       ) : null}
-      <PrimaryButton onClick={() => void next()}>{t('next')}</PrimaryButton>
+      <PrimaryButton onClick={() => void next()} {...pilot('city-join.next:place')}>{t('next')}</PrimaryButton>
     </div>
   );
 }

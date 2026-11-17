@@ -11,9 +11,10 @@ import {
   type CompanionSignal,
   type CompanionSignalScope,
 } from '@/entities/companion';
-import { CheckTick, IconCircle, type IconName, RadioCardGroup, Switch, type Tone } from '@/shared/ui';
+import { pilot, pilotOption } from '@/shared/pilot';
+import { CheckTick, IconCircle, type IconName, Switch, type Tone } from '@/shared/ui';
 
-import { OFFERED_SIGNALS, toggleAction } from '../model/draft';
+import { OFFERED_SIGNALS, toggleAction, toggleGoal } from '../model/draft';
 
 /*
  * The three v2 preference editors («هدف همراهی», «چه چیزهایی را ببیند؟»,
@@ -45,28 +46,95 @@ const ACTION_LOOK: Record<CompanionAction, { icon: IconName; tone: Tone }> = {
   help: { icon: 'hand', tone: 'success' },
 };
 
-interface GoalPickerProps {
-  value: CompanionGoal | null;
-  onChange: (goal: CompanionGoal) => void;
+interface CheckCardsProps<T extends string> {
+  label: string;
+  options: readonly T[];
+  value: readonly T[];
+  look: Record<T, { icon: IconName; tone: Tone }>;
+  title: (option: T) => string;
+  description: (option: T) => string;
+  onToggle: (option: T) => void;
+  disabled?: boolean;
+  /** Autopilot id of the group; each card is an option. */
+  pilotId: string;
 }
 
-/** «دوست داری همراهت بیشتر در چه چیزی کنارت باشد؟» — one of six, never a diagnosis. */
-export function GoalPicker({ value, onChange }: GoalPickerProps) {
+/** Many-of-many option cards (a tick box each): the goal and the action pickers. */
+function CheckCards<T extends string>({
+  label,
+  options,
+  value,
+  look,
+  title,
+  description,
+  onToggle,
+  disabled,
+  pilotId,
+}: CheckCardsProps<T>) {
+  const baseId = useId();
+  return (
+    <div role="group" aria-label={label} className="nb-rcards cmp2-opts" {...pilot(pilotId, 'choice')}>
+      {options.map((option) => {
+        const checked = value.includes(option);
+        const titleId = `${baseId}-${option}-t`;
+        const descId = `${baseId}-${option}-d`;
+        return (
+          <button
+            key={option}
+            type="button"
+            role="checkbox"
+            aria-checked={checked}
+            aria-labelledby={titleId}
+            aria-describedby={descId}
+            disabled={disabled}
+            className="nb-rcard cmp2-check-card"
+            onClick={() => onToggle(option)}
+            {...pilotOption(option)}
+          >
+            <IconCircle icon={look[option].icon} tone={look[option].tone} size="lg" />
+            <span className="nb-rcard-text">
+              <span id={titleId} className="nb-rcard-title">
+                {title(option)}
+              </span>
+              <span id={descId} className="nb-rcard-desc">
+                {description(option)}
+              </span>
+            </span>
+            <span className="cmp2-check-box" aria-hidden>
+              <CheckTick on={checked} />
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+interface GoalPickerProps {
+  /** The ticked cards, in the order she picked them (`unknown` / `info` only ever alone — `toggleGoal`). */
+  value: readonly CompanionGoal[];
+  onChange: (goals: CompanionGoal[]) => void;
+  disabled?: boolean;
+}
+
+/** «دوست داری همراهت بیشتر در چه چیزی کنارت باشد؟» — one or more of six, never a diagnosis. */
+export function GoalPicker({ value, onChange, disabled }: GoalPickerProps) {
   const t = useTranslations('companions');
   return (
-    <RadioCardGroup
-      label={t('goalLabel')}
-      className="cmp2-opts"
-      value={value}
-      onChange={onChange}
-      options={COMPANION_GOALS.map((goal) => ({
-        value: goal,
-        title: t(`goals.${goal}.title`),
-        description: t(`goals.${goal}.desc`),
-        icon: GOAL_LOOK[goal].icon,
-        iconTone: GOAL_LOOK[goal].tone,
-      }))}
-    />
+    <>
+      <p className="cmp-lead">{t('goalsHint')}</p>
+      <CheckCards
+        label={t('goalLabel')}
+        options={COMPANION_GOALS}
+        value={value}
+        look={GOAL_LOOK}
+        title={(goal) => t(`goals.${goal}.title`)}
+        description={(goal) => t(`goals.${goal}.desc`)}
+        onToggle={(goal) => onChange(toggleGoal(value, goal))}
+        disabled={disabled}
+        pilotId="companion.goals"
+      />
+    </>
   );
 }
 
@@ -101,6 +169,7 @@ export function SignalSwitches({ value, onChange, disabled }: SignalSwitchesProp
               labelledBy={titleId}
               describedBy={descId}
               disabled={disabled}
+              pilot={pilot(`companion.signal:${signal}`)}
               onCheckedChange={(on) => onChange({ ...value, [signal]: on })}
             />
           </li>
@@ -119,40 +188,17 @@ interface ActionPickerProps {
 /** Many-of-many support kinds as check cards; none is required and the picked order is kept. */
 export function ActionPicker({ value, onChange, disabled }: ActionPickerProps) {
   const t = useTranslations('companions');
-  const baseId = useId();
   return (
-    <div role="group" aria-label={t('actionsLabel')} className="nb-rcards cmp2-opts">
-      {COMPANION_ACTIONS.map((action) => {
-        const checked = value.includes(action);
-        const titleId = `${baseId}-${action}-t`;
-        const descId = `${baseId}-${action}-d`;
-        return (
-          <button
-            key={action}
-            type="button"
-            role="checkbox"
-            aria-checked={checked}
-            aria-labelledby={titleId}
-            aria-describedby={descId}
-            disabled={disabled}
-            className="nb-rcard cmp2-check-card"
-            onClick={() => onChange(toggleAction(value, action))}
-          >
-            <IconCircle icon={ACTION_LOOK[action].icon} tone={ACTION_LOOK[action].tone} size="lg" />
-            <span className="nb-rcard-text">
-              <span id={titleId} className="nb-rcard-title">
-                {t(`actions.${action}.title`)}
-              </span>
-              <span id={descId} className="nb-rcard-desc">
-                {t(`actions.${action}.desc`)}
-              </span>
-            </span>
-            <span className="cmp2-check-box" aria-hidden>
-              <CheckTick on={checked} />
-            </span>
-          </button>
-        );
-      })}
-    </div>
+    <CheckCards
+      label={t('actionsLabel')}
+      options={COMPANION_ACTIONS}
+      value={value}
+      look={ACTION_LOOK}
+      title={(action) => t(`actions.${action}.title`)}
+      description={(action) => t(`actions.${action}.desc`)}
+      onToggle={(action) => onChange(toggleAction(value, action))}
+      disabled={disabled}
+      pilotId="companion.actions"
+    />
   );
 }

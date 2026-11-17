@@ -8,7 +8,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
+	"net/textproto"
 	"sort"
 	"strings"
 	"time"
@@ -19,9 +21,9 @@ import (
 // address ends in /v1, the key travels as `Authorization: apikey <key>`, and the `model` field picks one of the
 // models attached to the gateway — so one adapter serves every model the catalogue lists for it (route.go).
 //
-// It implements Chatter (streaming, photos as data: URLs), LogParser and Extractor (images only — a PDF is refused
-// with ErrUpstream so a fallback model that reads PDFs can take the call). It has no speech-to-text: a feature
-// that needs CapAudio must be routed to a provider that has it.
+// It implements Chatter (streaming, photos as data: URLs), LogParser, Scripter and Extractor (images only — a PDF
+// is refused with ErrUpstream so a fallback model that reads PDFs can take the call), and Transcriber over the
+// OpenAI audio API (POST {base}/audio/transcriptions, multipart) for the speech models attached to the gateway.
 //
 // Like Gemini: the key is only ever in the Authorization header, error bodies are never read into errors (they
 // could echo the request) and nothing of the payload is logged.
@@ -204,6 +206,110 @@ func (o *OpenAICompat) ParseLog(ctx context.Context, req LogParseRequest) ([]Can
 	}
 	out, err := decodeCandidates(text)
 	return out, u, err
+}
+
+// PilotScript implements Scripter.
+func (o *OpenAICompat) PilotScript(ctx context.Context, req PilotRequest) (string, Usage, error) {
+	text, u, err := o.complete(ctx, oaRequest{MaxTokens: PilotMaxOutputTokens, Messages: []oaMessage{
+		{Role: "system", Content: pilotInstruction},
+		{Role: "user", Content: pilotPrompt(req)},
+	}})
+	if err != nil {
+		return "", u, err
+	}
+	return stripJSONFence(text), u, nil
+}
+
+// audioFileName is the upload's file name: speech endpoints pick the decoder from the extension.
+func audioFileName(mime string) string {
+	switch mime {
+	case "audio/webm":
+		return "audio.webm"
+	case "audio/ogg":
+		return "audio.ogg"
+	case "audio/mp4":
+		return "audio.m4a"
+	case "audio/wav":
+		return "audio.wav"
+	case "audio/mpeg":
+		return "audio.mp3"
+	}
+	return "audio"
+}
+
+// Transcribe implements Transcriber over POST {base}/audio/transcriptions (multipart: model, language, file). The
+// one copy of the recording this makes — the multipart body — is zeroed as soon as the request is done. The audio
+// size is always recorded (Usage.AudioBytes, set by the Client); token counts when the model reports them.
+func (o *OpenAICompat) Transcribe(ctx context.Context, req TranscribeRequest) (Transcript, Usage, error) {
+	u := o.usage(ctx)
+	if o.callTimeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, o.callTimeout)
+		defer cancel()
+	}
+	var buf bytes.Buffer
+	// Sized for the whole body up front: a buffer that grows would leave an unwiped partial copy of the audio behind.
+	buf.Grow(len(req.Audio.Data) + len(u.Model) + len(req.Language) + 2048)
+	w := multipart.NewWriter(&buf)
+	_ = w.WriteField("model", u.Model)
+	if req.Language != "" {
+		_ = w.WriteField("language", req.Language)
+	}
+	_ = w.WriteField("response_format", "json")
+	h := textproto.MIMEHeader{}
+	h.Set("Content-Disposition", `form-data; name="file"; filename="`+audioFileName(req.Audio.MIME)+`"`)
+	h.Set("Content-Type", req.Audio.MIME)
+	part, err := w.CreatePart(h)
+	if err == nil {
+		_, err = part.Write(req.Audio.Data)
+	}
+	if err == nil {
+		err = w.Close()
+	}
+	raw := buf.Bytes()
+	defer func() { clear(raw[:cap(raw)]) }()
+	if err != nil {
+		return Transcript{}, u, fmt.Errorf("%w: encode request", ErrUpstream)
+	}
+	hreq, err := http.NewRequestWithContext(ctx, http.MethodPost, o.baseURL+"/audio/transcriptions", bytes.NewReader(raw))
+	if err != nil {
+		return Transcript{}, u, fmt.Errorf("%w: build request", ErrUpstream)
+	}
+	hreq.Header.Set("Content-Type", w.FormDataContentType())
+	hreq.Header.Set("Authorization", o.auth)
+	start := time.Now()
+	res, err := o.http.Do(hreq)
+	u.Latency = time.Since(start)
+	if err != nil {
+		return Transcript{}, u, fmt.Errorf("%w: request failed", ErrUpstream)
+	}
+	defer func() { _ = res.Body.Close() }()
+	data, err := io.ReadAll(io.LimitReader(res.Body, maxGeminiResponse))
+	if err != nil {
+		return Transcript{}, u, fmt.Errorf("%w: read response", ErrUpstream)
+	}
+	if res.StatusCode != http.StatusOK {
+		return Transcript{}, u, fmt.Errorf("%w: status %d", ErrUpstream, res.StatusCode)
+	}
+	// Token-billed speech models (gpt-4o-transcribe) report usage as input_tokens / output_tokens with the audio
+	// share in input_token_details; duration-billed ones (whisper) report none.
+	var out struct {
+		Text  string `json:"text"`
+		Usage *struct {
+			InputTokens  int `json:"input_tokens"`
+			OutputTokens int `json:"output_tokens"`
+			Details      struct {
+				AudioTokens int `json:"audio_tokens"`
+			} `json:"input_token_details"`
+		} `json:"usage"`
+	}
+	if err := json.Unmarshal(data, &out); err != nil {
+		return Transcript{}, u, fmt.Errorf("%w: decode response", ErrUpstream)
+	}
+	if out.Usage != nil {
+		u.InputTokens, u.OutputTokens, u.AudioTokens = out.Usage.InputTokens, out.Usage.OutputTokens, out.Usage.Details.AudioTokens
+	}
+	return Transcript{Text: strings.TrimSpace(out.Text), Language: req.Language}, u, nil
 }
 
 // Extract implements Extractor for images. A PDF cannot travel as an image part: it is refused before any request.

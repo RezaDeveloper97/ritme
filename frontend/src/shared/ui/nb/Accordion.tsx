@@ -3,6 +3,8 @@
 import { useId, useState, type ReactNode } from 'react';
 import { clsx } from 'clsx';
 
+import type { PilotAttrs } from '@/shared/pilot';
+
 import { Icon, type IconName } from '../Icon';
 import { IconCircle } from './IconCircle';
 import { toneClass, type Tone } from './tone';
@@ -20,6 +22,8 @@ interface AccordionProps {
   /** Tints the summary and border in the tone (a category with data). */
   active?: boolean;
   className?: string;
+  /** Autopilot name of the header toggle: `pilot('…')` (frontend/CLAUDE.md §11.6). */
+  pilot?: PilotAttrs;
   children: ReactNode;
 }
 
@@ -34,6 +38,7 @@ export function Accordion({
   onOpenChange,
   active,
   className,
+  pilot,
   children,
 }: AccordionProps) {
   const [inner, setInner] = useState(defaultOpen);
@@ -53,6 +58,7 @@ export function Accordion({
           aria-expanded={isOpen}
           aria-controls={`${id}-panel`}
           onClick={toggle}
+          {...pilot}
         >
           {icon ? <IconCircle icon={icon} tone={tone} size="sm" /> : null}
           <span className="nb-acc-text">

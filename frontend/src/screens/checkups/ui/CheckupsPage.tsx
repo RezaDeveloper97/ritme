@@ -19,6 +19,7 @@ import {
 } from '@/entities/checkup';
 import { useLifeStage } from '@/entities/user';
 import { type Locale, Link, useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { formatNumber } from '@/shared/lib/date';
 import {
   EmptyState,
@@ -119,6 +120,7 @@ function CheckupRow({ item }: { item: CheckupItem }) {
           `ck-tone-${item.tone}`,
           'flex items-center gap-3 p-4 text-start no-underline focus-visible:bg-(--surface-2) focus-visible:outline-none',
         )}
+        {...pilot(`ck.item:${item.id}`)}
       >
         <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-(--ck-soft) text-(--ck-ink)">
           <Icon name={checkupIcon(item.icon, { category: item.category })} size={20} />
@@ -180,7 +182,12 @@ export function CheckupsPage({ initialFilter }: { initialFilter?: string }) {
           onBack={() => router.push('/home')}
           backLabel={t('back')}
           action={
-            <HeaderButton icon="filterLines" label={t('list.planSettings')} onClick={() => setSettingsOpen(true)} />
+            <HeaderButton
+              icon="filterLines"
+              label={t('list.planSettings')}
+              onClick={() => setSettingsOpen(true)}
+              pilot={pilot('ck.settings')}
+            />
           }
         />
 
@@ -202,6 +209,7 @@ export function CheckupsPage({ initialFilter }: { initialFilter?: string }) {
                 onChange={select}
                 label={t('title')}
                 panelId={() => PANEL_ID}
+                pilot={(v) => pilot(`ck.tab:${v}`)}
               />
 
               <div id={PANEL_ID} role="tabpanel" aria-label={t(`list.tabs.${filter}`)} className="flex flex-col gap-4">
@@ -249,7 +257,7 @@ export function CheckupsPage({ initialFilter }: { initialFilter?: string }) {
             </>
           )}
 
-          <Link href="/checkups/custom/new" className="nb-btn is-outline is-block">
+          <Link href="/checkups/custom/new" className="nb-btn is-outline is-block" {...pilot('ck.add-custom')}>
             <Icon name="plus" size={16} strokeWidth={2.2} />
             {t('list.addCustom')}
           </Link>

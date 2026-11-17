@@ -17,6 +17,7 @@ import {
 } from '@/features/manage-custom-checkup';
 import { getApiErrorStatus, getApiSaveErrorMessage } from '@/shared/api';
 import { type Locale, Link, useDirection, useRouter } from '@/shared/i18n';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   type DateParts,
   formatLongDate,
@@ -163,6 +164,7 @@ function CustomForm({ detail }: { detail?: CheckupDetail }) {
               placeholder={tc('namePlaceholder')}
               aria-invalid={titleError}
               aria-describedby={titleError ? 'ck-err-title' : undefined}
+              {...pilot('ckc.title', 'text')}
               onChange={(e) => {
                 set('title', e.target.value);
                 setTitleError(false);
@@ -178,13 +180,14 @@ function CustomForm({ detail }: { detail?: CheckupDetail }) {
 
         <div className="flex flex-col gap-2">
           <span className="fld-label-t text-start">{tc('interval')}</span>
-          <div role="radiogroup" aria-label={tc('interval')} className="fld-chips">
+          <div role="radiogroup" aria-label={tc('interval')} className="fld-chips" {...pilot('ckc.interval', 'choice')}>
             {CUSTOM_INTERVAL_MONTHS.map((m) => (
               <button
                 key={m}
                 type="button"
                 role="radio"
                 aria-checked={state.intervalMonths === m}
+                {...pilotOption(String(m))}
                 className={clsx('chip', state.intervalMonths === m && 'on')}
                 onClick={() => set('intervalMonths', m)}
               >
@@ -196,13 +199,14 @@ function CustomForm({ detail }: { detail?: CheckupDetail }) {
 
         <div className="flex flex-col gap-2">
           <span className="fld-label-t text-start">{tc('performedBy')}</span>
-          <div role="radiogroup" aria-label={tc('performedBy')} className="fld-chips">
+          <div role="radiogroup" aria-label={tc('performedBy')} className="fld-chips" {...pilot('ckc.performer', 'choice')}>
             {CHECKUP_PERFORMERS.map((p) => (
               <button
                 key={p}
                 type="button"
                 role="radio"
                 aria-checked={state.performedBy === p}
+                {...pilotOption(p)}
                 className={clsx('chip', state.performedBy === p && 'on')}
                 onClick={() => set('performedBy', p)}
               >
@@ -217,7 +221,7 @@ function CustomForm({ detail }: { detail?: CheckupDetail }) {
             {tc('lastDone')} <span className="text-(--ink-3)">{tc('optional')}</span>
           </span>
           <span className="flex items-center gap-1.5">
-            <button type="button" className={clsx('chip', state.lastDoneOn && 'on')} onClick={openDate}>
+            <button type="button" className={clsx('chip', state.lastDoneOn && 'on')} onClick={openDate} {...pilot('ckc.last-done')}>
               {state.lastDoneOn ? formatLongDate(fromApiDate(state.lastDoneOn), locale) : tc('pickDate')}
             </button>
             {state.lastDoneOn && (
@@ -243,6 +247,7 @@ function CustomForm({ detail }: { detail?: CheckupDetail }) {
             maxLength={NOTE_MAX}
             value={state.note}
             placeholder={tc('notePlaceholder')}
+            {...pilot('ckc.note', 'text')}
             onChange={(e) => {
               set('note', e.target.value);
               setNoteDirty(true);
@@ -257,7 +262,7 @@ function CustomForm({ detail }: { detail?: CheckupDetail }) {
         </p>
       )}
 
-      <button type="button" className="btn btn-primary w-full" disabled={saving} onClick={onSave}>
+      <button type="button" className="btn btn-primary w-full" disabled={saving} onClick={onSave} {...pilot('ckc.save')}>
         {saving ? tc('saving') : tc('save')}
       </button>
       {edit && (
@@ -285,6 +290,7 @@ function CustomForm({ detail }: { detail?: CheckupDetail }) {
               type="button"
               className="btn btn-primary flex-1"
               disabled={!draftDate}
+              {...pilot('ckc.date-done')}
               onClick={() => {
                 if (draftDate) set('lastDoneOn', toApiDate(partsToDate(draftDate, locale)));
                 setDateOpen(false);
@@ -295,7 +301,7 @@ function CustomForm({ detail }: { detail?: CheckupDetail }) {
           </div>
         }
       >
-        <CalendarPicker value={draftDate} onSelect={setDraftDate} />
+        <CalendarPicker value={draftDate} onSelect={setDraftDate} pilot={pilot('ckc.date', 'calendar')} />
       </AppSheet>
 
       {detail && (

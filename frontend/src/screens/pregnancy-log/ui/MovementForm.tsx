@@ -13,6 +13,7 @@ import {
 import { NotesField, NumberField, PgCard, Segmented } from '@/features/track-pregnancy';
 import { useDirection, type Locale } from '@/shared/i18n';
 import { addDays, diffInDays, formatDayMonth, toApiDate, today } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
 
 type T = ReturnType<typeof useTranslations>;
@@ -100,25 +101,25 @@ export function MovementForm({ t }: { t: T }) {
 
       <div className="plog-stack">
         <PgCard title={t('log.movement.statusLabel')} icon="heart">
-          <Segmented options={statusOptions} value={draft.movement_status || undefined} onChange={(v) => set('movement_status', v ?? '')} />
+          <Segmented options={statusOptions} value={draft.movement_status || undefined} onChange={(v) => set('movement_status', v ?? '')} pilotId="preg.movement-status" />
         </PgCard>
 
         <PgCard title={t('log.movement.count')} icon="chart" hint={t('log.movement.trackingFrom')}>
-          <NumberField label="" value={draft.movement_count} onChange={(v) => set('movement_count', v)} min={0} max={100} placeholder="10" />
+          <NumberField label="" value={draft.movement_count} onChange={(v) => set('movement_count', v)} min={0} max={100} placeholder="10" pilotId="preg.movement-count" />
           <div className="plog-pair is-lower">
             <label className="fld-label">
               <span className="fld-label-t">{t('log.movement.firstTime')}</span>
-              <input className="field fld-input" type="time" value={draft.first_movement_time ?? ''} onChange={(e) => set('first_movement_time', e.target.value || undefined)} />
+              <input className="field fld-input" type="time" {...pilot('preg.movement-first', 'text')} value={draft.first_movement_time ?? ''} onChange={(e) => set('first_movement_time', e.target.value || undefined)} />
             </label>
             <label className="fld-label">
               <span className="fld-label-t">{t('log.movement.lastTime')}</span>
-              <input className="field fld-input" type="time" value={draft.last_movement_time ?? ''} onChange={(e) => set('last_movement_time', e.target.value || undefined)} />
+              <input className="field fld-input" type="time" {...pilot('preg.movement-last', 'text')} value={draft.last_movement_time ?? ''} onChange={(e) => set('last_movement_time', e.target.value || undefined)} />
             </label>
           </div>
         </PgCard>
 
         <PgCard title={t('log.notes')} icon="pencil">
-          <NotesField label="" value={draft.notes} onChange={(v) => set('notes', v)} placeholder={t('log.notesPlaceholder')} />
+          <NotesField label="" value={draft.notes} onChange={(v) => set('notes', v)} placeholder={t('log.notesPlaceholder')} pilotId="preg.movement-notes" />
         </PgCard>
       </div>
 
@@ -130,7 +131,7 @@ export function MovementForm({ t }: { t: T }) {
       )}
       {save.isError && <p className="plog-error">{t('log.saveError')}</p>}
 
-      <button className="btn btn-primary plog-save" onClick={handleSave} disabled={!filled || save.isPending}>
+      <button className="btn btn-primary plog-save" {...pilot('preg.movement-save')} onClick={handleSave} disabled={!filled || save.isPending}>
         {save.isSuccess ? <Icon name="check" size={18} /> : null}
         {saveLabel}
       </button>

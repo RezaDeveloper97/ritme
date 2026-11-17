@@ -6,6 +6,7 @@ import { useShopCart } from '@/entities/shop';
 import { getApiErrorStatus } from '@/shared/api';
 import { Link, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
 
 /**
@@ -22,6 +23,7 @@ export function CartButton() {
     <Link
       href="/shop/cart"
       className="nb-hbtn shp-cartbtn"
+      {...pilot('shop.cart')}
       aria-label={n > 0 ? `${t('cartLink')} · ${formatNumber(n, locale)}` : t('cartLink')}
     >
       <Icon name="bag" size={20} strokeWidth={1.8} />

@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 
 import { type CheckupItem, checkupIcon, formatCheckupMonth, useCheckups } from '@/entities/checkup';
 import { type Locale, Link } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { Icon, Skeleton, SkeletonGroup } from '@/shared/ui';
 
 import { useMenoCheckupGroups, useMenoCheckupsIntro } from '../api/meno';
@@ -80,7 +81,7 @@ function MenoRow({ item }: { item: CheckupItem }) {
 
   return (
     <li>
-      <Link href={`/checkups/${item.id}`} className={clsx(`ck-tone-${item.tone}`, 'mck-row')}>
+      <Link href={`/checkups/${item.id}`} className={clsx(`ck-tone-${item.tone}`, 'mck-row')} {...pilot(`ck.item:${item.id}`)}>
         <span className="mck-row-icon" aria-hidden>
           <Icon name={checkupIcon(item.icon, { category: item.category })} size={20} />
         </span>

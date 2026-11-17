@@ -116,10 +116,21 @@ func TestModelsCRUD(t *testing.T) {
 
 	r := c.Get("/ai/models")
 	require.Equal(t, 200, r.Status, r.Body)
-	require.Len(t, r.Items(), 1)
-	seed := r.Items()[0].(map[string]any)
-	assert.Equal(t, "gemini-flash", seed["code"])
-	assert.EqualValues(t, 4, seed["slots_count"], "the four seeded slots use it")
+	// goose 00125 seeds Gemini Flash, 00127 the speech-to-text model of voice logging.
+	require.Len(t, r.Items(), 2)
+	seeded := map[string]map[string]any{}
+	for _, it := range r.Items() {
+		row := it.(map[string]any)
+		seeded[row["code"].(string)] = row
+	}
+	seed := seeded["gemini-flash"]
+	require.NotNil(t, seed)
+	assert.EqualValues(t, 5, seed["slots_count"], "the four seeded slots use it, and voice_stt as its fallback")
+	stt := seeded["gpt-4o-transcribe"]
+	require.NotNil(t, stt)
+	assert.Equal(t, "arvan", stt["provider"])
+	assert.Equal(t, []any{"audio"}, stt["capabilities"])
+	assert.EqualValues(t, 1, stt["slots_count"], "the voice_stt slot")
 	assert.Equal(t, false, seed["configured"], "no provider key in the test env")
 	assert.Equal(t, []any{"chat", "vision", "audio", "json"}, r.Data()["capabilities"])
 
@@ -191,18 +202,24 @@ func TestFeatureAssignment(t *testing.T) {
 
 	r := c.Get("/ai/features")
 	require.Equal(t, 200, r.Status, r.Body)
-	require.Len(t, r.Items(), 4)
+	require.Len(t, r.Items(), 5)
 	byKey := map[string]map[string]any{}
 	for _, it := range r.Items() {
 		row := it.(map[string]any)
 		byKey[row["key"].(string)] = row
 	}
+	// goose 00127: the internal speech slot of voice logging defaults to GPT-4o Transcribe, Gemini as fallback.
+	stt := byKey["voice_stt"]
+	require.NotNil(t, stt)
+	assert.Equal(t, "gpt-4o-transcribe", stt["model"].(map[string]any)["code"])
+	assert.Equal(t, "gemini-flash", stt["fallback_model"].(map[string]any)["code"])
+	assert.Equal(t, []any{"audio"}, stt["needs"])
 	lab := byKey["lab_analysis"]
 	assert.Equal(t, []any{"vision", "json"}, lab["needs"])
 	assert.Equal(t, true, lab["declared"])
 	assert.Equal(t, true, lab["usable"])
 	assert.Equal(t, []any{float64(gemini)}, lab["usable_model_ids"], "chat-only lacks vision, off is inactive")
-	assert.Len(t, r.Data()["models"], 3)
+	assert.Len(t, r.Data()["models"], 4, "the two seeded models and the two made above")
 
 	labID := e.featureID("lab_analysis")
 	r = c.JSON(fiber.MethodPut, "/ai/features/"+id(labID), map[string]any{"credit_cost": 5, "model_id": chatOnly})
@@ -294,7 +311,7 @@ func TestSync(t *testing.T) {
 		codes = append(codes, a.(map[string]any)["code"].(string))
 	}
 	assert.Equal(t, []string{"llama-3-1-70b", "gpt-4o-mini", "llama-3-1-70b-2"}, codes, "slugged, made unique (gateway order is sorted)")
-	assert.Equal(t, 0, e.Int("SELECT COUNT(*) FROM ai_models WHERE provider = 'arvan' AND is_active = 1"), "inactive")
+	assert.Equal(t, 0, e.Int("SELECT COUNT(*) FROM ai_models WHERE provider = 'arvan' AND is_active = 1 AND code <> 'gpt-4o-transcribe'"), "inactive")
 	assert.Equal(t, `["chat"]`, e.String("SELECT capabilities FROM ai_models WHERE upstream_model = 'gpt-4o-mini'"))
 	assert.Equal(t, 0, e.Int("SELECT input_price_milli + output_price_milli FROM ai_models WHERE upstream_model = 'gpt-4o-mini'"))
 

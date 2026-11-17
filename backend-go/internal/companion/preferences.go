@@ -11,9 +11,9 @@ import (
 	"github.com/ritme/backend-go/internal/companion/store"
 )
 
-// «ریتمی همراه» v2: what the owner wants from a link (goal), which coarse day signals she consents to share (one
-// consent per signal, all off by default) and which kinds of suggestions the companion should see (action_prefs).
-// Stored on the companions row (goose 00117). Nothing here is health data: the signals are scope flags; the day
+// «ریتمی همراه» v2: what the owner wants from a link (goals — one or more), which coarse day signals she consents to
+// share (one consent per signal, all off by default) and which kinds of suggestions the companion should see
+// (action_prefs). Stored on the companions row (goose 00117, 00126). Nothing here is health data: the signals are scope flags; the day
 // values are derived per request by the companion home and never stored.
 
 // Goal is what the owner wants the link to help with.
@@ -35,12 +35,33 @@ var Goals = []Goal{GoalCycle, GoalSupport, GoalLowEnergy, GoalQualityTime, GoalI
 // Valid reports whether g is a known goal.
 func (g Goal) Valid() bool { return slices.Contains(Goals, g) }
 
-// orUnknown is g, or unknown for an empty or unknown code (the wire never carries anything else).
-func (g Goal) orUnknown() Goal {
-	if g.Valid() {
-		return g
+// focus reports whether g names something the companion should do (the goals she may combine). «info» and «unknown»
+// are the two "nothing in particular" answers and never sit beside another goal.
+func (g Goal) focus() bool {
+	return g == GoalCycle || g == GoalSupport || g == GoalLowEnergy || g == GoalQualityTime
+}
+
+// NormalizeGoals validates goals and returns the stored list: distinct, in the order she picked them. Her focus goals
+// win over «info» and «unknown» (those two only stand alone); «unknown» is the empty list, so it is never stored.
+func NormalizeGoals(in []Goal) ([]Goal, error) {
+	focus := make([]Goal, 0, len(in))
+	info := false
+	for _, g := range in {
+		switch {
+		case g == "":
+			// an empty code is "not chosen" (the zero Preferences value)
+		case !g.Valid():
+			return nil, ErrInvalidGoal
+		case g == GoalInfo:
+			info = true
+		case g.focus() && !slices.Contains(focus, g):
+			focus = append(focus, g)
+		}
 	}
-	return GoalUnknown
+	if len(focus) == 0 && info {
+		return []Goal{GoalInfo}, nil
+	}
+	return focus, nil
 }
 
 // Signal is one coarse day signal the owner may share.
@@ -89,19 +110,27 @@ func (a ActionPref) Valid() bool { return slices.Contains(ActionPrefs, a) }
 
 // Preferences are the owner's per-link «ریتمی همراه» settings.
 type Preferences struct {
-	Goal    Goal
+	Goals   []Goal // ordered as chosen, distinct, normalised (NormalizeGoals); empty = unknown
 	Signals SignalScope
 	Actions []ActionPref // ordered as chosen, distinct
 }
 
-// DefaultPreferences are what a new link (and an old row) has: goal unknown, every signal off, no action kinds.
+// DefaultPreferences are what a new link (and an old row) has: no goal (unknown), every signal off, no action kinds.
 func DefaultPreferences() Preferences {
-	return Preferences{Goal: GoalUnknown, Signals: SignalScope{}, Actions: []ActionPref{}}
+	return Preferences{Goals: []Goal{}, Signals: SignalScope{}, Actions: []ActionPref{}}
+}
+
+// Goal is the first goal she picked, or unknown: the single `goal` key clients older than the multi-select read.
+func (p Preferences) Goal() Goal {
+	if len(p.Goals) == 0 {
+		return GoalUnknown
+	}
+	return p.Goals[0]
 }
 
 // PreferencesPatch is a partial update: nil fields stay as they are; a present Signals map changes only its keys.
 type PreferencesPatch struct {
-	Goal    *Goal
+	Goals   *[]Goal
 	Signals SignalScope
 	Actions *[]ActionPref
 }
@@ -131,14 +160,13 @@ func NormalizeActions(in []ActionPref) ([]ActionPref, error) {
 	return out, nil
 }
 
-// Validate checks and normalises the preferences in place (empty goal → unknown, actions deduped).
+// Validate checks and normalises the preferences in place (goals and actions deduped, see NormalizeGoals).
 func (p *Preferences) Validate() error {
-	if p.Goal == "" {
-		p.Goal = GoalUnknown
+	goals, err := NormalizeGoals(p.Goals)
+	if err != nil {
+		return err
 	}
-	if !p.Goal.Valid() {
-		return ErrInvalidGoal
-	}
+	p.Goals = goals
 	for s := range p.Signals {
 		if !s.Valid() {
 			return ErrInvalidSignal
@@ -157,12 +185,12 @@ func (p *Preferences) Validate() error {
 
 // Apply merges a patch onto p and validates the result.
 func (p Preferences) Apply(patch PreferencesPatch) (Preferences, error) {
-	out := Preferences{Goal: p.Goal, Signals: SignalScope{}, Actions: slices.Clone(p.Actions)}
+	out := Preferences{Goals: slices.Clone(p.Goals), Signals: SignalScope{}, Actions: slices.Clone(p.Actions)}
 	for s, on := range p.Signals {
 		out.Signals[s] = on
 	}
-	if patch.Goal != nil {
-		out.Goal = *patch.Goal
+	if patch.Goals != nil {
+		out.Goals = *patch.Goals
 	}
 	for s, on := range patch.Signals {
 		out.Signals[s] = on
@@ -175,15 +203,21 @@ func (p Preferences) Apply(patch PreferencesPatch) (Preferences, error) {
 
 // Empty reports whether the patch changes nothing.
 func (patch PreferencesPatch) Empty() bool {
-	return patch.Goal == nil && len(patch.Signals) == 0 && patch.Actions == nil
+	return patch.Goals == nil && len(patch.Signals) == 0 && patch.Actions == nil
 }
 
 // preferencesOf reads the stored columns (NULL / unknown codes read as the defaults: a code dropped from the enum
 // never breaks a read).
 func preferencesOf(c store.Companion) Preferences {
 	p := DefaultPreferences()
-	if g := Goal(c.Goal.String); c.Goal.Valid && g.Valid() {
-		p.Goal = g
+	stored := make([]Goal, 0, 4)
+	for _, code := range strings.Split(c.Goal.String, ",") {
+		if g := Goal(strings.TrimSpace(code)); g.Valid() {
+			stored = append(stored, g)
+		}
+	}
+	if goals, err := NormalizeGoals(stored); err == nil {
+		p.Goals = goals
 	}
 	p.Signals = SignalScope{SignalPain: c.SharePain, SignalMood: c.ShareMood, SignalEnergy: c.ShareEnergy,
 		SignalSleep: c.ShareSleep}
@@ -204,12 +238,14 @@ func actionsColumn(acts []ActionPref) sql.NullString {
 	return nstr(strings.Join(codes, ","))
 }
 
-// goalColumn stores unknown as NULL, so the default and an old row look the same.
-func goalColumn(g Goal) sql.NullString {
-	if g == GoalUnknown {
-		return sql.NullString{}
+// goalColumn is the stored spelling of the goals (comma-separated, ordered — a row written before the multi-select
+// holds one code and reads the same). No goal is NULL, so the default and an old row look the same.
+func goalColumn(goals []Goal) sql.NullString {
+	codes := make([]string, len(goals))
+	for i, g := range goals {
+		codes[i] = string(g)
 	}
-	return nstr(string(g))
+	return nstr(strings.Join(codes, ","))
 }
 
 // UpdatePreferences merges patch into the preferences of one of ownerID's invited or active links (ErrNotFound for
@@ -235,7 +271,7 @@ func (s *Service) UpdatePreferences(ctx context.Context, ownerID, companionID ui
 			return err
 		}
 		n, err := q.UpdateCompanionPreferences(ctx, store.UpdateCompanionPreferencesParams{
-			Goal: goalColumn(next.Goal), SharePain: next.Signals.On(SignalPain), ShareMood: next.Signals.On(SignalMood),
+			Goal: goalColumn(next.Goals), SharePain: next.Signals.On(SignalPain), ShareMood: next.Signals.On(SignalMood),
 			ShareEnergy: next.Signals.On(SignalEnergy), ShareSleep: next.Signals.On(SignalSleep),
 			ActionPrefs: actionsColumn(next.Actions), Now: nt(now), ID: c.ID, OwnerID: ownerID,
 		})

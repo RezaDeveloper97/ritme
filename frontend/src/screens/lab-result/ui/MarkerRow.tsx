@@ -13,6 +13,7 @@ import {
   stateTone,
 } from '@/entities/lab';
 import type { Locale } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 
 /**
  * One marker of the result: name, value + unit in the state's tone, the state pill, the range bar and «مرجع: …»
@@ -27,7 +28,7 @@ export function MarkerRow({ marker, onOpen }: { marker: LabMarker; onOpen: () =>
   const tone = stateTone(marker.state);
   return (
     <li>
-      <button type="button" className="lab-mrow" onClick={onOpen}>
+      <button type="button" className="lab-mrow" onClick={onOpen} {...pilot(`labr.marker:${marker.id}`)}>
         <span className="lab-mrow-top">
           <span className="lab-mrow-name">{marker.name}</span>
           <span className={`lab-mrow-value nb-tone-${tone}`}>

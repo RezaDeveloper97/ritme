@@ -8,6 +8,7 @@ import { type CityServiceDetail, type CityServiceService, type CityServiceSlot, 
 import { getApiErrorMessage } from '@/shared/api';
 import { Link, type Locale } from '@/shared/i18n';
 import { formatDecimal, formatNumber, formatWeekday, fromApiDate } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { Card, Icon, PrimaryButton, SecondaryButton } from '@/shared/ui';
 
 import { bookable, monthsLabelParts, neshanHref, priceParts, safeWebsite, slotDayOffset, slotParts } from '../model/place';
@@ -160,7 +161,7 @@ export function PlaceServices({
               </div>
               <div className="cdp-svc-side">
                 {s.price_toman !== null ? <strong>{price(s.price_toman)}</strong> : null}
-                <button type="button" className={clsx('cdp-pick', serviceId === s.id && 'on')} aria-pressed={serviceId === s.id} onClick={() => onPick(s.id)}>
+                <button type="button" className={clsx('cdp-pick', serviceId === s.id && 'on')} aria-pressed={serviceId === s.id} {...pilot(`city-detail.service:${s.id}`)} onClick={() => onPick(s.id)}>
                   {t('place.book')}
                 </button>
               </div>
@@ -207,6 +208,7 @@ export function PlaceSlots({
                 type="button"
                 className={clsx('cdp-slot', slotId === s.id && 'on')}
                 aria-pressed={slotId === s.id}
+                {...pilot(`city-detail.slot:${s.id}`)}
                 disabled={!bookable(s)}
                 onClick={() => onPick(s.id)}
               >
@@ -327,10 +329,10 @@ export function PlaceInfo({ l }: { l: CityServiceDetail }) {
         ) : null}
       </dl>
       <p className="cdp-links">
-        <Link href="/city-services/join" className="csv-link">
+        <Link href="/city-services/join" className="csv-link" {...pilot('city-detail.join')}>
           {t('place.owner')}
         </Link>
-        <button type="button" className="csv-link cdb-linkbtn" onClick={() => setReporting((v) => !v)} aria-expanded={reporting}>
+        <button type="button" className="csv-link cdb-linkbtn" onClick={() => setReporting((v) => !v)} aria-expanded={reporting} {...pilot('city-detail.report')}>
           {t('place.report.cta')}
         </button>
       </p>
@@ -355,15 +357,15 @@ function ReportPanel({ id, onClose }: { id: number; onClose: () => void }) {
   }
   return (
     <div className="cdb-review">
-      <div role="radiogroup" aria-label={t('place.report.cta')} className="fld-chips">
+      <div role="radiogroup" aria-label={t('place.report.cta')} className="fld-chips" {...pilot('city-detail.report-reason', 'choice')}>
         {REPORT_REASONS.map((r) => (
-          <button key={r} type="button" role="radio" aria-checked={reason === r} className={clsx('chip', reason === r && 'on')} onClick={() => setReason(r)}>
+          <button key={r} type="button" role="radio" aria-checked={reason === r} {...pilotOption(r)} className={clsx('chip', reason === r && 'on')} onClick={() => setReason(r)}>
             {t(`place.report.reason.${r}`)}
           </button>
         ))}
       </div>
       <span className="field csv-area">
-        <textarea rows={2} maxLength={500} placeholder={t('place.report.note')} value={note} onChange={(e) => setNote(e.target.value)} />
+        <textarea rows={2} maxLength={500} placeholder={t('place.report.note')} value={note} onChange={(e) => setNote(e.target.value)} {...pilot('city-detail.report-note', 'text')} />
       </span>
       {error ? (
         <p role="alert" className="csv-err">
@@ -374,6 +376,7 @@ function ReportPanel({ id, onClose }: { id: number; onClose: () => void }) {
         <PrimaryButton
           block={false}
           loading={report.isPending}
+          {...pilot('city-detail.report-send')}
           onClick={() => {
             setError(null);
             report.mutate({ reason, note }, { onError: (e) => setError(getApiErrorMessage(e) ?? t('place.report.error')) });

@@ -6,6 +6,7 @@ import { useModuleEnabled } from '@/entities/app-module';
 import { useCompanions } from '@/entities/companion';
 import { useLifeStage } from '@/entities/user';
 import { Link, useDirection } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { useSessionFlag } from '@/shared/lib/session-flag';
 import { Icon } from '@/shared/ui';
 
@@ -34,7 +35,7 @@ function Banner({ onDismiss }: { onDismiss: () => void }) {
   const rtl = useDirection() === 'rtl';
   return (
     <div className="cmp2-banner">
-      <Link href="/companions/new" className="cmp2-banner-link">
+      <Link href="/companions/new" className="cmp2-banner-link" {...pilot("companion.open:companions-new")}>
         <span className="cmp2-banner-icon" aria-hidden>
           <Icon name="users" size={22} />
         </span>

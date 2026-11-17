@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { isConditionServiceTile, PROGRAMS_HUB_PATH } from '@/entities/condition';
 import { PELVIC_PATH, PELVIC_SERVICE_TILE } from '@/entities/pelvic';
 import { bookingWhen, type ServiceSection, type ServiceTile, type UpcomingBooking } from '@/entities/service-hub';
+import { pilot } from '@/shared/pilot';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber, monthName, toParts } from '@/shared/lib/date';
 import { Art3d, type Art3dName, Icon, IconCircle, ListGroup, ListRow, SectionTitle, StatusPill } from '@/shared/ui';
@@ -51,7 +52,7 @@ export function SearchLink({ section }: { section: ServiceSection }) {
   return (
     <div className="svc-sec">
       {section.href ? (
-        <Link href={section.href} className="svc-search" aria-label={`${t('search.label')}: ${placeholder}`}>
+        <Link href={section.href} {...pilot('services.search')} className="svc-search" aria-label={`${t('search.label')}: ${placeholder}`}>
           {body}
         </Link>
       ) : (
@@ -109,7 +110,7 @@ function Tile({ tile, className }: { tile: ServiceTile; className: string }) {
       </div>
       <p className="svc-tile-title">
         {live ? (
-          <Link href={tile.href as string} className="svc-tile-hit">
+          <Link href={tile.href as string} className="svc-tile-hit" {...pilot(`services.tile:${tile.code}`)}>
             {title}
           </Link>
         ) : (

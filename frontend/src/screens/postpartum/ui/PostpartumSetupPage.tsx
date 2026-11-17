@@ -16,6 +16,7 @@ import { pregnancyKeys } from '@/entities/pregnancy';
 import { lifeStageKeys, useLifeStage, writeLifeModeHint } from '@/entities/user';
 import { getApiSaveErrorMessage } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   type DateParts,
   formatLongDate,
@@ -103,7 +104,7 @@ export function PostpartumSetupPage() {
             <p className="pp-field-value" aria-live="polite">
               {birth ? formatLongDate(fromApiDate(birth), locale) : t('pickDate')}
             </p>
-            <CalendarPicker value={birth ? toParts(fromApiDate(birth), locale) : null} onSelect={onPick} />
+            <CalendarPicker value={birth ? toParts(fromApiDate(birth), locale) : null} onSelect={onPick} pilot={pilot('pp.birth-date', 'calendar')} />
             {(problem || serverBirthError) && (
               <p className="pp-error" role="alert">
                 {problem ? t(problem) : serverBirthError}
@@ -116,9 +117,9 @@ export function PostpartumSetupPage() {
               {t('deliveryType')}
             </h2>
             <p className="pp-field-hint">{t('deliveryHint')}</p>
-            <ChipGroup label={t('deliveryType')}>
+            <ChipGroup label={t('deliveryType')} pilot={pilot('pp.delivery', 'choice')}>
               {DELIVERY_CHOICES.map((c) => (
-                <PillChip key={c} pressed={delivery === c} onPressedChange={() => setDelivery(c)}>
+                <PillChip key={c} {...pilotOption(c)} pressed={delivery === c} onPressedChange={() => setDelivery(c)}>
                   {t(c === 'none' ? 'noSay' : c)}
                 </PillChip>
               ))}
@@ -135,6 +136,7 @@ export function PostpartumSetupPage() {
               decrementLabel={t('decrease')}
               incrementLabel={t('increase')}
               locale={locale}
+              pilot={pilot('pp.babies')}
             />
           </Card>
 
@@ -146,7 +148,7 @@ export function PostpartumSetupPage() {
               {getApiSaveErrorMessage(activate.error, t('saveError'))}
             </p>
           )}
-          <PrimaryButton disabled={!birth || Boolean(problem)} loading={activate.isPending} onClick={submit}>
+          <PrimaryButton disabled={!birth || Boolean(problem)} loading={activate.isPending} onClick={submit} {...pilot('pp.setup-save')}>
             {t('submit')}
           </PrimaryButton>
         </div>

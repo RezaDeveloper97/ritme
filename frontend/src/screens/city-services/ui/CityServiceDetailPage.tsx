@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 import { useCityServiceListing, useCityServiceSlots } from '@/entities/city-service';
 import { Link, useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { Card, EmptyState, Icon, type IconName, InfoNote, PrimaryButton, ScreenHeader, SecondaryButton, SkyLayer } from '@/shared/ui';
 
 import { minPrice } from '../model/place';
@@ -144,7 +145,7 @@ export function CityServiceDetailPage({ id }: { id: number }) {
           <InfoNote icon={l.booking_mode === 'link' ? 'shield' : 'info'}>
             {t(l.booking_mode === 'link' ? 'detail.linkNote' : l.booking_mode === 'phone' ? 'detail.phoneNote' : 'detail.requestNote')}
           </InfoNote>
-          <Link href="/profile/bookings" className="csv-link">
+          <Link href="/profile/bookings" className="csv-link" {...pilot('city-detail.bookings')}>
             <Icon name="calendar" size={18} />
             {t('list.bookings')}
           </Link>
@@ -178,6 +179,7 @@ export function CityServiceDetailPage({ id }: { id: number }) {
             </a>
           ) : l.booking_mode === 'request' || l.booking_mode === 'online' ? (
             <PrimaryButton
+              {...pilot('city-detail.continue')}
               onClick={() => {
                 const qs = new URLSearchParams();
                 if (serviceId !== null) qs.set('service', String(serviceId));

@@ -46,6 +46,7 @@ export function JoinCodeStep({ join, autoFocus, hideIntro }: JoinCodeStepProps) 
           invalid={join.error != null}
           disabled={busy}
           autoFocus={autoFocus}
+          pilotId="companion.code"
         />
       </div>
       {join.error ? (

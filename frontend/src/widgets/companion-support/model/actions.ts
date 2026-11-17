@@ -89,10 +89,11 @@ const GOAL_CATEGORY: Partial<Record<CompanionGoal, CompanionAction>> = {
 
 /**
  * Categories in display order: the owner's preferred kinds first (in the order she chose them), then the
- * one her goal leans towards, then the rest in the catalogue's default order. Unknown ids are ignored.
+ * ones her goals lean towards (in the order she picked the goals), then the rest in the catalogue's default
+ * order. Unknown ids are ignored.
  */
 export function orderedCategories(
-  settings: Pick<CompanionLinkSettings, 'actionPrefs' | 'goal'> | null,
+  settings: Pick<CompanionLinkSettings, 'actionPrefs' | 'goals'> | null,
 ): ActionCategoryDef[] {
   const byId = new Map(ACTION_CATALOGUE.map((c) => [c.id, c] as const));
   const order: CompanionAction[] = [];
@@ -100,7 +101,7 @@ export function orderedCategories(
     if (id && byId.has(id) && !order.includes(id)) order.push(id);
   };
   for (const id of settings?.actionPrefs ?? []) push(id);
-  push(settings ? GOAL_CATEGORY[settings.goal] : undefined);
+  for (const goal of settings?.goals ?? []) push(GOAL_CATEGORY[goal]);
   for (const c of ACTION_CATALOGUE) push(c.id);
   return order.map((id) => byId.get(id)!);
 }
@@ -112,7 +113,7 @@ export interface PickedAction extends ActionCardDef {
 
 /** The home row: the first card of each of the top `count` categories. */
 export function homeActions(
-  settings: Pick<CompanionLinkSettings, 'actionPrefs' | 'goal'> | null,
+  settings: Pick<CompanionLinkSettings, 'actionPrefs' | 'goals'> | null,
   count = 3,
 ): PickedAction[] {
   return orderedCategories(settings)

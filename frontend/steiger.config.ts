@@ -494,6 +494,12 @@ export default defineConfig([
     rules: { 'fsd/insignificant-slice': 'off' },
   },
   {
+    // UI autopilot: `widgets/autopilot-manifest` (the agent manifest hook) is consumed by screens/autopilot-lab today and by
+    // the voice surface next — references FROM `screens` are invisible to steiger.
+    files: ['./src/widgets/autopilot-manifest/**'],
+    rules: { 'fsd/insignificant-slice': 'off' },
+  },
+  {
     // AI credits: `entities/ai-credit` is read by screens/credits-*, profile, assistant, plus-* and the ai-gate
     // feature; `widgets/voice-log-slot` is mounted by the log screens — references FROM `screens` are invisible
     // to steiger.

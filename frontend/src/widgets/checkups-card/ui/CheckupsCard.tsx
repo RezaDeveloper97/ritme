@@ -15,6 +15,7 @@ import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { withHandoff } from '@/shared/lib/handoff';
 import { Icon, Skeleton } from '@/shared/ui';
+import { pilot } from '@/shared/pilot';
 
 import {
   BOOK_HREF,
@@ -37,7 +38,7 @@ function Header({ t }: { t: T }) {
   return (
     <div className="trm-head">
       <h2 className="trm-title">{t('card.title')}</h2>
-      <Link href="/checkups" className="trm-all">
+      <Link href="/checkups" className="trm-all" {...pilot('ckcard.all')}>
         {t('card.all')}
       </Link>
     </div>
@@ -120,6 +121,7 @@ function HighlightRow({ item, t }: { item: CheckupItem; t: T }) {
       <Link
         href={kind === 'book' ? BOOK_HREF : guideHref(item)}
         onClick={kind === 'book' ? book : undefined}
+        {...pilot(`ckcard.action:${item.id}`)}
         className="ckc-action flex min-h-11 shrink-0 items-center bg-(--checkup-row-action) text-[12.5px] font-extrabold text-(--ck-ink)"
       >
         {t(kind === 'book' ? 'card.book' : 'card.guide')}
@@ -174,7 +176,7 @@ export function CheckupsCard() {
             <h2 className="trm-title">{t('card.title')}</h2>
             <p className="ckc-counts">{counts}</p>
           </div>
-          <Link href="/checkups" className="trm-all ckc-all">
+          <Link href="/checkups" className="trm-all ckc-all" {...pilot('ckcard.all')}>
             {t('card.all')}
           </Link>
         </div>

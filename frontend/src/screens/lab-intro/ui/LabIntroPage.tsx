@@ -24,6 +24,7 @@ import {
   StatusPill,
   type Tone,
 } from '@/shared/ui';
+import { pilot } from '@/shared/pilot';
 
 const HERO_TAGS: readonly { key: 'blood' | 'hormone' | 'thyroid' | 'urine'; tone: Tone }[] = [
   { key: 'blood', tone: 'brand' },
@@ -92,12 +93,12 @@ export function LabIntroPage() {
       title={t('intro.title')}
       onBack={() => router.push('/analysis/labs')}
       backLabel={t('common.back')}
-      action={<HeaderButton icon="info" label={t('intro.about')} onClick={() => openSheet('lab-consent')} />}
+      action={<HeaderButton icon="info" label={t('intro.about')} onClick={() => openSheet('lab-consent')} pilot={pilot('lab.about')} />}
     />
   );
   const footer = (
     <div className="lab-footer">
-      <PrimaryButton icon="export" onClick={startUpload}>
+      <PrimaryButton icon="export" onClick={startUpload} {...pilot('lab.upload')}>
         {t('intro.upload')}
       </PrimaryButton>
     </div>
@@ -141,7 +142,7 @@ export function LabIntroPage() {
               {t('intro.history')}
             </h2>
             {list.length > PREVIEW ? (
-              <button type="button" className="lab-link" aria-expanded={all} onClick={() => setAll((v) => !v)}>
+              <button type="button" className="lab-link" aria-expanded={all} onClick={() => setAll((v) => !v)} {...pilot('lab.history-toggle')}>
                 {all ? t('intro.less') : t('intro.all')}
               </button>
             ) : null}
@@ -151,7 +152,12 @@ export function LabIntroPage() {
               const pill = statusPill(lab, t, locale);
               return (
                 <li key={lab.id}>
-                  <button type="button" className="lab-row" onClick={() => router.push(labHref(lab.id, lab.status))}>
+                  <button
+                    type="button"
+                    className="lab-row"
+                    onClick={() => router.push(labHref(lab.id, lab.status))}
+                    {...pilot(`lab.row:${lab.id}`)}
+                  >
                     <IconCircle icon="flask" tone={lab.status === 'ready' && lab.allNormal ? 'data' : 'brand'} />
                     <span className="lab-row-text">
                       <span className="lab-row-title">{lab.title}</span>

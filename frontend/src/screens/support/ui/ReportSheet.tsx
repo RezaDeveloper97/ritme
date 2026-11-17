@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useId, useRef, useState } from 'react';
 
+import { pilot } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { Icon, PrimaryButton, SecondaryButton } from '@/shared/ui';
 
@@ -76,7 +77,7 @@ export function ReportSheet({ open, onClose }: { open: boolean; onClose: () => v
       size="full"
       title={t('title')}
       footer={
-        <PrimaryButton loading={send.isPending} disabled={!isReportValid(message)} onClick={submit}>
+        <PrimaryButton loading={send.isPending} disabled={!isReportValid(message)} onClick={submit} {...pilot('report.send')}>
           {t('send')}
         </PrimaryButton>
       }
@@ -88,6 +89,7 @@ export function ReportSheet({ open, onClose }: { open: boolean; onClose: () => v
         <textarea
           id={`${ids}-msg`}
           className="rep-text"
+          {...pilot('report.message', 'text')}
           rows={6}
           maxLength={REPORT_MAX}
           value={message}

@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { ageRangeLabel, type CityServiceCard, type CityServiceCatalogOption, slotWhen } from '@/entities/city-service';
 import { Link, type Locale, useDirection } from '@/shared/i18n';
 import { formatNumber, formatTimeOfDay, formatWeekday } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
 
 interface Props {
@@ -42,7 +43,7 @@ export function DirectoryCard({ place: l, catalog, compact = false, hrefBase = '
   const status = l.open_now === true ? t('home.openNow') : slotText;
 
   return (
-    <Link href={`${hrefBase}/${l.id}`} className="csv-card dfc">
+    <Link href={`${hrefBase}/${l.id}`} className="csv-card dfc" {...pilot(`city-list.listing:${l.id}`)}>
       {compact ? null : (
         <span className="csv-thumb" aria-hidden>
           {l.photo_url ? (

@@ -17,6 +17,7 @@ import {
   todayParts,
 } from '@/shared/lib/date';
 import { AppSheet } from '@/shared/sheet';
+import { pilot } from '@/shared/pilot';
 import { RulerPicker, WheelPicker } from '@/shared/ui';
 
 import { useUpdateProfile, type UpdateProfileInput } from '../api/mutations';
@@ -62,6 +63,7 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v
 /** Single "N days" wheel bounded by the API's validation range. */
 function DaysWheel({
   id,
+  pilotId,
   min,
   max,
   value,
@@ -69,6 +71,7 @@ function DaysWheel({
   label,
 }: {
   id: string;
+  pilotId?: string;
   min: number;
   max: number;
   value: number;
@@ -85,6 +88,8 @@ function DaysWheel({
         selectedIndex={clamp(value, min, max) - min}
         width={150}
         onChange={(i) => onChange(min + i)}
+        pilot={pilotId ? pilot(pilotId, 'wheel') : undefined}
+        pilotValues={pilotId ? items.map((_, i) => String(min + i)) : undefined}
       />
     </div>
   );
@@ -122,6 +127,8 @@ function BirthWheels({
         selectedIndex={clamp(value.day, 1, dayCount) - 1}
         width={56}
         onChange={(i) => onChange({ ...value, day: i + 1 })}
+        pilot={pilot('quick.birthday:day', 'wheel')}
+        pilotValues={days.map((_, i) => String(i + 1))}
       />
       <WheelPicker
         id="pq-month"
@@ -129,6 +136,8 @@ function BirthWheels({
         selectedIndex={clamp(value.month, 1, 12) - 1}
         width={112}
         onChange={(i) => onChange({ ...value, month: i + 1 })}
+        pilot={pilot('quick.birthday:month', 'wheel')}
+        pilotValues={months.map((_, i) => String(i + 1))}
       />
       <WheelPicker
         id="pq-year"
@@ -136,6 +145,8 @@ function BirthWheels({
         selectedIndex={clamp(value.year, minYear, maxYear) - minYear}
         width={80}
         onChange={(i) => onChange({ ...value, year: minYear + i })}
+        pilot={pilot('quick.birthday:year', 'wheel')}
+        pilotValues={years.map((_, i) => String(minYear + i))}
       />
     </div>
   );
@@ -273,7 +284,7 @@ function QuickEditForm({
               {errorMessage}
             </p>
           ) : null}
-          <button className="btn btn-primary" onClick={handleSave} disabled={update.isPending}>
+          <button className="btn btn-primary" onClick={handleSave} disabled={update.isPending} {...pilot('quick.save')}>
             {update.isPending ? t('saving') : t('save')}
           </button>
         </>
@@ -283,6 +294,7 @@ function QuickEditForm({
         {field === 'name' ? (
           <div className="field">
             <input
+              {...pilot('quick.name', 'text')}
               autoFocus
               value={name}
               maxLength={NAME_MAX}
@@ -298,6 +310,7 @@ function QuickEditForm({
         {field === 'cycleDuration' ? (
           <DaysWheel
             id="pq-cycle"
+            pilotId="quick.cycle-length"
             min={CYCLE_MIN}
             max={CYCLE_MAX}
             value={cycleDuration}
@@ -309,6 +322,7 @@ function QuickEditForm({
         {field === 'periodDuration' ? (
           <DaysWheel
             id="pq-period"
+            pilotId="quick.period-length"
             min={PERIOD_MIN}
             max={PERIOD_MAX}
             value={periodDuration}
@@ -324,6 +338,7 @@ function QuickEditForm({
         {field === 'lastPeriod' ? (
           <DateWheels
             idPrefix="pq-last"
+            pilotId="quick.last-period"
             value={lastPeriod}
             onChange={setLastPeriod}
             minYear={now.year - 1}
@@ -333,6 +348,7 @@ function QuickEditForm({
 
         {field === 'weight' ? (
           <RulerPicker
+            pilot={pilot('quick.weight', 'ruler')}
             min={WEIGHT_MIN}
             max={WEIGHT_MAX}
             value={weight}
@@ -344,6 +360,7 @@ function QuickEditForm({
 
         {field === 'height' ? (
           <RulerPicker
+            pilot={pilot('quick.height', 'ruler')}
             min={HEIGHT_MIN}
             max={HEIGHT_MAX}
             value={height}

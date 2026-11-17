@@ -19,6 +19,7 @@ import { useLogTaxonomy } from '@/entities/health-log';
 import { getApiErrorMessage, getApiErrorStatus, getApiSaveErrorMessage } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber, toApiDate } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   ChipGroup,
   EmptyState,
@@ -156,7 +157,7 @@ function PainForm({ date, saved }: { date: string; saved: PainDay }) {
               {getApiSaveErrorMessage(enrol.error, t('saveError'))}
             </p>
           ) : null}
-          <SecondaryButton icon="plus" loading={enrol.isPending} onClick={() => enrol.mutate('endo')}>
+          <SecondaryButton icon="plus" loading={enrol.isPending} onClick={() => enrol.mutate('endo')} {...pilot('programs.pain-join')}>
             {t('join')}
           </SecondaryButton>
         </section>
@@ -173,7 +174,7 @@ function PainForm({ date, saved }: { date: string; saved: PainDay }) {
           {taxonomy.isPending ? (
             <Skeleton shape="block" className="pain-skel-chips" />
           ) : locations.length ? (
-            <ChipGroup label={t('whereQ')} className="pain-grid">
+            <ChipGroup label={t('whereQ')} className="pain-grid" pilot={pilot('programs.pain-locations', 'choice')}>
               {locations.map((l) => (
                 <PillChip
                   key={l.code}
@@ -183,6 +184,7 @@ function PainForm({ date, saved }: { date: string; saved: PainDay }) {
                   disabled={noPain}
                   pressed={!noPain && draft.locations.includes(l.code)}
                   onPressedChange={() => set({ locations: toggleCode(draft.locations, l.code) })}
+                  {...pilotOption(l.code)}
                 >
                   {l.label}
                 </PillChip>
@@ -206,6 +208,7 @@ function PainForm({ date, saved }: { date: string; saved: PainDay }) {
             max={10}
             value={draft.score}
             onChange={(score) => set({ score })}
+            pilot={pilot('programs.pain-score', 'choice')}
             locale={locale}
             label={<span className="pain-q-title">{t('howBad')}</span>}
             minLabel={t('none')}
@@ -226,7 +229,7 @@ function PainForm({ date, saved }: { date: string; saved: PainDay }) {
           {t('typeQ')}
         </h2>
         <div className="nb-card pain-card">
-          <ChipGroup label={t('typeQ')}>
+          <ChipGroup label={t('typeQ')} pilot={pilot('programs.pain-types', 'choice')}>
             {typeCodes.map((code) => (
               <PillChip
                 key={code}
@@ -234,6 +237,7 @@ function PainForm({ date, saved }: { date: string; saved: PainDay }) {
                 tone="period"
                 pressed={draft.types.includes(code)}
                 onPressedChange={() => set({ types: toggleCode(draft.types, code) })}
+                {...pilotOption(code)}
               >
                 {chipLabel(types.data, code, code)}
               </PillChip>
@@ -248,7 +252,7 @@ function PainForm({ date, saved }: { date: string; saved: PainDay }) {
           {t('withQ')}
         </h2>
         <div className="nb-card pain-card">
-          <ChipGroup label={t('withQ')}>
+          <ChipGroup label={t('withQ')} pilot={pilot('programs.pain-with', 'choice')}>
             {associatedCodes.map((code) => (
               <PillChip
                 key={code}
@@ -256,6 +260,7 @@ function PainForm({ date, saved }: { date: string; saved: PainDay }) {
                 tone="brand"
                 pressed={draft.associated.includes(code)}
                 onPressedChange={() => set({ associated: toggleCode(draft.associated, code) })}
+                {...pilotOption(code)}
               >
                 {chipLabel(associated.data, code, code)}
               </PillChip>
@@ -278,6 +283,7 @@ function PainForm({ date, saved }: { date: string; saved: PainDay }) {
               checked={draft.missedActivity}
               onCheckedChange={(missedActivity) => set({ missedActivity })}
               labelledBy={ids.missed}
+              pilot={pilot('programs.pain-missed')}
             />
           </div>
           <div className="pain-med">
@@ -302,6 +308,7 @@ function PainForm({ date, saved }: { date: string; saved: PainDay }) {
                   placeholder={t('analgesicPlaceholder')}
                   value={draft.analgesic}
                   onChange={(e) => set({ analgesic: e.target.value })}
+                  {...pilot('programs.pain-analgesic', 'text')}
                 />
               </label>
               <label className="pain-field pain-field-time" htmlFor={ids.time}>
@@ -313,10 +320,11 @@ function PainForm({ date, saved }: { date: string; saved: PainDay }) {
                   dir="ltr"
                   value={draft.analgesicTime}
                   onChange={(e) => set({ analgesicTime: e.target.value })}
+                  {...pilot('programs.pain-analgesic-time', 'text')}
                 />
               </label>
             </div>
-            <ChipGroup label={t('effectLabel')} className="pain-effects">
+            <ChipGroup label={t('effectLabel')} className="pain-effects" pilot={pilot('programs.pain-effect', 'choice')}>
               {EFFECT_ORDER.map((effect) => (
                 <PillChip
                   key={effect}
@@ -324,6 +332,7 @@ function PainForm({ date, saved }: { date: string; saved: PainDay }) {
                   tone="data"
                   pressed={draft.analgesicEffect === effect}
                   onPressedChange={(on) => set({ analgesicEffect: on ? effect : null })}
+                  {...pilotOption(effect)}
                 >
                   {t(`effect.${effect}`)}
                 </PillChip>
@@ -343,7 +352,7 @@ function PainForm({ date, saved }: { date: string; saved: PainDay }) {
             {saveError}
           </p>
         ) : null}
-        <PrimaryButton loading={save.isPending} disabled={notEnrolled} onClick={submit}>
+        <PrimaryButton loading={save.isPending} disabled={notEnrolled} onClick={submit} {...pilot('programs.pain-save')}>
           {t('save')}
         </PrimaryButton>
       </div>

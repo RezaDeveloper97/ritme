@@ -21,6 +21,7 @@ import { lifeStageKeys } from '@/entities/user';
 import { getApiSaveErrorMessage, invalidateCycleDependents } from '@/shared/api';
 import { type Locale, useDirection, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, fromApiDate, toApiDate, today } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   ChipGroup,
   EmptyState,
@@ -181,13 +182,14 @@ function SetupForm({ saved }: { saved: ContraceptionMethod | null }) {
           {method === 'combined_pill' ? (
             <div className="ctr-block">
               <h3 className="ctr-block-title">{t('packType')}</h3>
-              <ChipGroup label={t('packType')} className="ctr-packs">
+              <ChipGroup label={t('packType')} className="ctr-packs" pilot={pilot('contraception.pack-type', 'choice')}>
                 {PACK_TYPES.map((type) => (
                   <PillChip
                     key={type}
                     className="ctr-chip"
                     pressed={draft.packType === type}
                     onPressedChange={() => setDraft((d) => ({ ...d, packType: type }))}
+                    {...pilotOption(type)}
                   >
                     {t(`packTypes.${type}`)}
                   </PillChip>
@@ -199,12 +201,14 @@ function SetupForm({ saved }: { saved: ContraceptionMethod | null }) {
           {isPillMethod(method) ? (
             <>
               <FieldRow
+                id="pack-start"
                 label={t('packStart')}
                 value={dateValue(draft.packStartedOn)}
                 error={problemText('packStartedOn')}
                 onClick={() => setPicker({ kind: 'date', field: 'packStartedOn', title: t('packStart') })}
               />
               <FieldRow
+                id="reminder-time"
                 label={t('reminderTime')}
                 value={formatNumber(draft.reminderTime, locale)}
                 ltrValue
@@ -216,6 +220,7 @@ function SetupForm({ saved }: { saved: ContraceptionMethod | null }) {
           {method === 'copper_iud' || method === 'hormonal_iud' ? (
             <>
               <FieldRow
+                id="iud-inserted"
                 label={t('insertedOn')}
                 value={dateValue(draft.insertedOn)}
                 error={problemText('insertedOn')}
@@ -229,6 +234,7 @@ function SetupForm({ saved }: { saved: ContraceptionMethod | null }) {
                 min={IUD_YEARS_RANGE.min}
                 max={IUD_YEARS_RANGE.max}
                 onChange={(v) => setDraft((d) => ({ ...d, iudYears: v }))}
+                pilot={pilot('contraception.iud-years', 'stepper')}
                 decrementLabel={t('decrease', { what: t('lifetime') })}
                 incrementLabel={t('increase', { what: t('lifetime') })}
                 locale={locale}
@@ -238,6 +244,7 @@ function SetupForm({ saved }: { saved: ContraceptionMethod | null }) {
 
           {method === 'injection' ? (
             <FieldRow
+              id="injected-on"
               label={t('injectedOn')}
               value={dateValue(draft.injectedOn)}
               error={problemText('injectedOn')}
@@ -247,6 +254,7 @@ function SetupForm({ saved }: { saved: ContraceptionMethod | null }) {
 
           {method === 'implant' ? (
             <FieldRow
+              id="implant-inserted"
               label={t('implantInsertedOn')}
               hint={t('optional')}
               value={dateValue(draft.insertedOn)}
@@ -265,7 +273,7 @@ function SetupForm({ saved }: { saved: ContraceptionMethod | null }) {
             {getApiSaveErrorMessage(save.error, t('saveError'))}
           </p>
         ) : null}
-        <PrimaryButton loading={save.isPending} disabled={touched && blocked} onClick={submit}>
+        <PrimaryButton loading={save.isPending} disabled={touched && blocked} onClick={submit} {...pilot('contraception.setup-save')}>
           {t('save')}
         </PrimaryButton>
       </div>
@@ -320,7 +328,7 @@ function MethodGrid({
   };
 
   return (
-    <div role="radiogroup" aria-label={t('question')} className="ctr-methods">
+    <div role="radiogroup" aria-label={t('question')} className="ctr-methods" {...pilot('contraception.method', 'choice')}>
       {CONTRACEPTION_METHODS.map((code, index) => {
         const look = METHOD_LOOK[code];
         const checked = code === value;
@@ -337,6 +345,7 @@ function MethodGrid({
             tabIndex={index === tabStop ? 0 : -1}
             className={clsx('ctr-method', `nb-tone-${look.tone}`)}
             onClick={() => onChange(code)}
+            {...pilotOption(code)}
             onKeyDown={(event) => onKeyDown(event, index)}
           >
             <Icon name={look.icon} size={22} strokeWidth={1.8} className="ctr-method-icon" />
@@ -352,6 +361,7 @@ function MethodGrid({
 
 /** One «label … value» row of the details card that opens a picker. */
 function FieldRow({
+  id,
   label,
   hint,
   value,
@@ -359,6 +369,7 @@ function FieldRow({
   ltrValue,
   onClick,
 }: {
+  id: string;
   label: string;
   hint?: string;
   value: string;
@@ -368,7 +379,7 @@ function FieldRow({
 }) {
   return (
     <div className="ctr-field-wrap">
-      <button type="button" className={clsx('ctr-field', error && 'is-invalid')} onClick={onClick}>
+      <button type="button" className={clsx('ctr-field', error && 'is-invalid')} onClick={onClick} {...pilot(`contraception.${id}`)}>
         <span className="ctr-field-label">
           {label}
           {hint ? <span className="ctr-field-hint">{hint}</span> : null}

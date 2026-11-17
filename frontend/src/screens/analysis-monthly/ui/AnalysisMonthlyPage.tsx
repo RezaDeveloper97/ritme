@@ -12,6 +12,7 @@ import {
   type MonthlyMetric,
   type MonthlyReport,
 } from '@/entities/analysis';
+import { pilot } from '@/shared/pilot';
 import { useDirection, useRouter, type Locale } from '@/shared/i18n';
 import {
   calendarSystem,
@@ -183,7 +184,7 @@ function MonthStepper({
   return (
     <nav className="amr-stepper" aria-label={tm('stepper')}>
       {prev ? (
-        <button type="button" className="amr-step" aria-label={tm('prev', { month: name(prev) })} onClick={() => onGo(prev)}>
+        <button type="button" className="amr-step" aria-label={tm('prev', { month: name(prev) })} onClick={() => onGo(prev)} {...pilot('analysis.month-prev')}>
           <Icon name={rtl ? 'chevronRight' : 'chevronLeft'} size={16} strokeWidth={2.4} />
           <span aria-hidden>{name(prev)}</span>
         </button>
@@ -191,7 +192,7 @@ function MonthStepper({
         <span />
       )}
       {next ? (
-        <button type="button" className="amr-step" aria-label={tm('next', { month: name(next) })} onClick={() => onGo(next)}>
+        <button type="button" className="amr-step" aria-label={tm('next', { month: name(next) })} onClick={() => onGo(next)} {...pilot('analysis.month-next')}>
           <span aria-hidden>{name(next)}</span>
           <Icon name={rtl ? 'chevronLeft' : 'chevronRight'} size={16} strokeWidth={2.4} />
         </button>
@@ -227,7 +228,7 @@ function MonthlyBody({ report: r, monthLabel }: { report: MonthlyReport; monthLa
           title={t('empty.title')}
           body={t('empty.body')}
           action={
-            <PrimaryButton icon="plus" block={false} onClick={() => openSheet('log')}>
+            <PrimaryButton icon="plus" block={false} onClick={() => openSheet('log')} {...pilot('analysis.log')}>
               {t('empty.cta')}
             </PrimaryButton>
           }

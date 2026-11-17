@@ -14,6 +14,7 @@ import {
   type CourseChapter,
   type StudentLesson,
 } from '@/entities/course';
+import { pilot } from '@/shared/pilot';
 import { Link, useRouter, type Locale } from '@/shared/i18n';
 import { formatDayMonth, formatNumber } from '@/shared/lib/date';
 import { Avatar, Card, EmptyState, HeaderButton, Icon, InfoNote, PrimaryButton, Skeleton, SkeletonGroup, StatusPill } from '@/shared/ui';
@@ -102,7 +103,7 @@ export function LearnCoursePage({ courseId }: { courseId: number }) {
             {t('course.expired')}
           </InfoNote>
         ) : o.nextLesson ? (
-          <Link href={`/learn/${c.id}/${o.nextLesson.id}`} className="lrn-cta">
+          <Link href={`/learn/${c.id}/${o.nextLesson.id}`} className="lrn-cta" {...pilot('learn.continue')}>
             <Icon name="play" size={18} fill="currentColor" />
             {t('course.continue', { number: formatNumber(o.nextLesson.number, locale) })}
           </Link>
@@ -110,7 +111,7 @@ export function LearnCoursePage({ courseId }: { courseId: number }) {
 
         <div className="lrn-tabs" role="tablist" aria-label={t('course.tabsLabel')}>
           {TABS.map((v) => (
-            <button key={v} type="button" role="tab" aria-selected={tab === v} className="lrn-tab" onClick={() => setTab(v)}>
+            <button key={v} type="button" role="tab" aria-selected={tab === v} className="lrn-tab" onClick={() => setTab(v)} {...pilot(`learn.course-tab:${v}`)}>
               {t(`course.tabs.${v}`)}
             </button>
           ))}
@@ -255,7 +256,7 @@ function LessonRow({ lesson, courseId, courseTitle, current }: { lesson: Student
           {content}
         </div>
       ) : (
-        <Link href={`/learn/${courseId}/${lesson.id}`} className={clsx('lrn-row', current && 'is-current')} aria-current={current ? 'step' : undefined}>
+        <Link href={`/learn/${courseId}/${lesson.id}`} {...pilot(`learn.lesson:${lesson.id}`)} className={clsx('lrn-row', current && 'is-current')} aria-current={current ? 'step' : undefined}>
           {content}
         </Link>
       )}
@@ -278,6 +279,7 @@ function RowDownload({ lesson, courseId, courseTitle }: { lesson: StudentLesson;
       aria-busy={busy || undefined}
       aria-label={busy ? t('download.cancel') : saved ? t('download.remove') : t('download.action')}
       onClick={() => (busy ? dl.cancel() : saved ? void dl.remove() : void dl.start())}
+      {...pilot(`learn.download:${lesson.id}`)}
     >
       {busy ? <span className="lrn-row-dl-pct">{dl.percent ?? '…'}</span> : <Icon name={saved ? 'check' : 'download'} size={18} />}
     </button>

@@ -23,6 +23,7 @@ import { type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatDecimal, formatNumber, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import { toAsciiDigits } from '@/shared/lib/phone';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   Card,
   ChipGroup,
@@ -175,11 +176,12 @@ function MedForm({ med }: { med?: IvfMed }) {
             {t('presets')}
           </h2>
           <p className="ivfm-block-hint">{t('presetsHint')}</p>
-          <ChipGroup label={t('presets')} className="ivfm-chips">
+          <ChipGroup label={t('presets')} className="ivfm-chips" pilot={pilot('ivf.med-preset', 'choice')}>
             {presets.data.map((preset) => (
               <PillChip
                 key={preset.code}
                 pressed={draft.presetCode === preset.code}
+                {...pilotOption(preset.code)}
                 onPressedChange={() =>
                   setDraft((d) =>
                     applyPreset(d, preset, presetTitle(preset), previousPreset ? presetTitle(previousPreset) : null),
@@ -204,6 +206,7 @@ function MedForm({ med }: { med?: IvfMed }) {
               placeholder={t('namePlaceholder')}
               aria-invalid={!!problemText('name')}
               onChange={(e) => set('name', e.target.value)}
+              {...pilot('ivf.med-name', 'text')}
             />
           </span>
           {problemText('name') ? (
@@ -214,6 +217,7 @@ function MedForm({ med }: { med?: IvfMed }) {
         </label>
 
         <ChoiceRow
+          pilotId="med-role"
           label={t('role')}
           options={IVF_ROLES}
           value={draft.role}
@@ -221,6 +225,7 @@ function MedForm({ med }: { med?: IvfMed }) {
           onChange={(role) => set('role', role)}
         />
         <ChoiceRow
+          pilotId="med-route"
           label={t('route')}
           options={IVF_ROUTES}
           value={draft.route}
@@ -240,6 +245,7 @@ function MedForm({ med }: { med?: IvfMed }) {
                 dir="ltr"
                 aria-invalid={!!problemText('dose')}
                 onChange={(e) => set('dose', toAsciiDigits(e.target.value).replace(/٫/g, '.'))}
+                {...pilot('ivf.med-dose', 'text')}
               />
             </span>
             {problemText('dose') ? (
@@ -249,6 +255,7 @@ function MedForm({ med }: { med?: IvfMed }) {
             ) : null}
           </label>
           <ChoiceRow
+            pilotId="med-unit"
             label={t('unit')}
             options={unitOptions}
             value={draft.unit ?? ''}
@@ -264,12 +271,14 @@ function MedForm({ med }: { med?: IvfMed }) {
             <span className="ivfm-label">{t('triggerAt')}</span>
             <div className="ivfm-two">
               <FieldButton
+                pilotId="med-trigger-date"
                 label={t('triggerDate')}
                 value={dateValue(draft.triggerDate)}
                 invalid={!!problemText('trigger')}
                 onClick={() => setPicker({ kind: 'date', field: 'triggerDate', title: t('triggerAt') })}
               />
               <FieldButton
+                pilotId="med-trigger-time"
                 label={t('triggerTime')}
                 value={formatNumber(draft.triggerTime, locale)}
                 ltr
@@ -298,6 +307,7 @@ function MedForm({ med }: { med?: IvfMed }) {
                       dir="ltr"
                       aria-label={t('editTime', { time: shown })}
                       onClick={() => setPicker({ kind: 'time', index, title: t('times') })}
+                      {...pilot(`ivf.med-time:${time.replace(/[^0-9A-Za-z]/g, '')}`)}
                     >
                       {shown}
                     </button>
@@ -316,7 +326,7 @@ function MedForm({ med }: { med?: IvfMed }) {
               })}
               {draft.times.length < IVF_MAX_TIMES ? (
                 <li>
-                  <button type="button" className="ivfm-time-add" onClick={() => set('times', addTime(draft.times))}>
+                  <button type="button" className="ivfm-time-add" onClick={() => set('times', addTime(draft.times))} {...pilot('ivf.med-time-add')}>
                     <Icon name="plus" size={14} />
                     {t('addTime')}
                   </button>
@@ -333,11 +343,13 @@ function MedForm({ med }: { med?: IvfMed }) {
 
         <div className="ivfm-two">
           <FieldButton
+            pilotId="med-starts"
             label={t('startsOn')}
             value={dateValue(draft.startsOn)}
             onClick={() => setPicker({ kind: 'date', field: 'startsOn', title: t('startsOn') })}
           />
           <FieldButton
+            pilotId="med-ends"
             label={t('endsOn')}
             hint={t('optional')}
             value={dateValue(draft.endsOn)}
@@ -369,11 +381,13 @@ function MedForm({ med }: { med?: IvfMed }) {
             onCheckedChange={(next) => set('trackStock', next)}
             labelledBy={`${ids}-stock`}
             describedBy={`${ids}-stock-hint`}
+            pilot={pilot('ivf.med-track-stock')}
           />
         </div>
         {draft.trackStock ? (
           <>
             <ChoiceRow
+              pilotId="med-stock-unit"
               label={t('stockUnit')}
               options={IVF_STOCK_UNITS}
               value={draft.stockUnit}
@@ -387,6 +401,7 @@ function MedForm({ med }: { med?: IvfMed }) {
               min={STOCK_RANGE.min}
               max={STOCK_RANGE.max}
               onChange={(v) => set('stockUnits', v)}
+              pilot={pilot('ivf.med-stock', 'stepper')}
               decrementLabel={t('decrease', { what: t('stock') })}
               incrementLabel={t('increase', { what: t('stock') })}
               locale={locale}
@@ -397,6 +412,7 @@ function MedForm({ med }: { med?: IvfMed }) {
               min={DOSES_PER_UNIT_RANGE.min}
               max={DOSES_PER_UNIT_RANGE.max}
               onChange={(v) => set('dosesPerUnit', v)}
+              pilot={pilot('ivf.med-doses-per-unit', 'stepper')}
               decrementLabel={t('decrease', { what: t('dosesPerUnit') })}
               incrementLabel={t('increase', { what: t('dosesPerUnit') })}
               locale={locale}
@@ -417,6 +433,7 @@ function MedForm({ med }: { med?: IvfMed }) {
             rows={2}
             placeholder={t('notesPlaceholder')}
             onChange={(e) => set('notes', e.target.value)}
+            {...pilot('ivf.med-notes', 'text')}
           />
         </label>
       </Card>
@@ -429,7 +446,7 @@ function MedForm({ med }: { med?: IvfMed }) {
             {getApiSaveErrorMessage(save.error, t('saveError'))}
           </p>
         ) : null}
-        <PrimaryButton loading={save.isPending} disabled={touched && blocked} onClick={submit}>
+        <PrimaryButton loading={save.isPending} disabled={touched && blocked} onClick={submit} {...pilot('ivf.med-save')}>
           {t('save')}
         </PrimaryButton>
         {med ? (
@@ -516,6 +533,7 @@ function ActiveCard({ med }: { med: IvfMed }) {
           labelledBy={`${ids}-active`}
           describedBy={`${ids}-active-hint`}
           disabled={setActive.isPending}
+          pilot={pilot('ivf.med-active')}
         />
       </div>
       {setActive.isError ? (
@@ -529,12 +547,14 @@ function ActiveCard({ med }: { med: IvfMed }) {
 
 /** A labelled single-choice chip row (radiogroup semantics via aria-pressed chips). */
 function ChoiceRow<V extends string>({
+  pilotId,
   label,
   options,
   value,
   labelOf,
   onChange,
 }: {
+  pilotId: string;
   label: string;
   options: readonly V[];
   value: V | string;
@@ -544,9 +564,9 @@ function ChoiceRow<V extends string>({
   return (
     <div className="ivfm-group">
       <span className="ivfm-label">{label}</span>
-      <ChipGroup label={label} className="ivfm-chips">
+      <ChipGroup label={label} className="ivfm-chips" pilot={pilot(`ivf.${pilotId}`, 'choice')}>
         {options.map((option) => (
-          <PillChip key={option} pressed={option === value} onPressedChange={() => onChange(option)}>
+          <PillChip key={option} pressed={option === value} onPressedChange={() => onChange(option)} {...pilotOption(option)}>
             {labelOf(option)}
           </PillChip>
         ))}
@@ -557,6 +577,7 @@ function ChoiceRow<V extends string>({
 
 /** «label … value» field that opens a picker (dates, times). */
 function FieldButton({
+  pilotId,
   label,
   hint,
   value,
@@ -566,6 +587,7 @@ function FieldButton({
   onClear,
   clearLabel,
 }: {
+  pilotId: string;
   label: string;
   hint?: string;
   value: string;
@@ -577,7 +599,7 @@ function FieldButton({
 }) {
   return (
     <div className={clsx('ivfm-pick', invalid && 'is-invalid')}>
-      <button type="button" className="ivfm-pick-btn" onClick={onClick}>
+      <button type="button" className="ivfm-pick-btn" onClick={onClick} {...pilot(`ivf.${pilotId}`)}>
         <span className="ivfm-pick-label">
           {label}
           {hint ? <span className="ivfm-optional"> {hint}</span> : null}

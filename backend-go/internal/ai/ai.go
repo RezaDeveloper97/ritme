@@ -35,6 +35,9 @@ const (
 	FeatureLabAnalysis Feature = "lab_analysis" // B-N6-06: lab sheet extraction + interpretation
 	FeatureAssistant   Feature = "assistant"    // B-N7-06: assistant clinic chat
 	FeatureDocExtract  Feature = "doc_extract"  // CB-REC-02: non-lab medical document extraction
+	// FeatureVoiceSTT is the speech-to-text model slot of voice logging: an internal slot (no route, no credit
+	// cost of its own, hidden from users). A use is charged once, on FeatureVoiceLog, by the route's gate.
+	FeatureVoiceSTT Feature = "voice_stt"
 )
 
 // Errors every provider maps its failures to.
@@ -134,7 +137,7 @@ type Usage struct {
 	Provider     string
 	Model        string
 	Feature      Feature
-	Op           string // OpTranscribe | OpParseLog | OpChat | OpExtract
+	Op           string // OpTranscribe | OpParseLog | OpChat | OpExtract | OpPilot
 	InputTokens  int    // every prompt token, audio included
 	OutputTokens int
 	AudioTokens  int // the audio part of InputTokens when the provider reports it (priced separately)
@@ -155,4 +158,23 @@ const (
 	OpParseLog   = "parse_log"
 	OpChat       = "chat"
 	OpExtract    = "extract"
+	OpPilot      = "pilot_script"
 )
+
+// PilotRequest asks for a UI autopilot script (docs/autopilot.md) that carries out what the user said.
+type PilotRequest struct {
+	// Transcript is what the user said (redacted by the Client before a provider sees it).
+	Transcript string
+	// Manifest is the autopilot agent manifest as compact JSON: its guide (the rules), the actions and the
+	// controls the script may use with the values each accepts. It holds nothing about the user.
+	Manifest []byte
+	Language string
+	// Today is the user's civil date ("YYYY-MM-DD"), so «دیروز» can be resolved.
+	Today string
+}
+
+// Scripter writes an autopilot script. The answer is raw JSON text and is never trusted: the caller validates it
+// against the manifest, and the client validates it again before running it.
+type Scripter interface {
+	PilotScript(ctx context.Context, req PilotRequest) (string, Usage, error)
+}

@@ -8,6 +8,7 @@ import { useReviewCityBooking } from '@/entities/city-service';
 import { getApiErrorMessage } from '@/shared/api';
 import { type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { Icon, PrimaryButton, SecondaryButton } from '@/shared/ui';
 
 /**
@@ -36,13 +37,14 @@ export function ReviewCityBookingForm({ bookingId, onDone, onCancel }: { booking
 
   return (
     <div className="cdb-review">
-      <div role="radiogroup" aria-label={t('bookings.rating')} className="cdb-stars">
+      <div role="radiogroup" aria-label={t('bookings.rating')} className="cdb-stars" {...pilot('city-review.rating', 'choice')}>
         {[1, 2, 3, 4, 5].map((n) => (
           <button
             key={n}
             type="button"
             role="radio"
             aria-checked={rating === n}
+            {...pilotOption(String(n))}
             aria-label={formatNumber(n, locale)}
             className={clsx('cdb-star', n <= rating && 'on')}
             onClick={() => setRating(n)}
@@ -52,7 +54,7 @@ export function ReviewCityBookingForm({ bookingId, onDone, onCancel }: { booking
         ))}
       </div>
       <span className="field csv-area">
-        <textarea rows={2} maxLength={1000} placeholder={t('bookings.reviewPlaceholder')} value={body} onChange={(e) => setBody(e.target.value)} />
+        <textarea rows={2} maxLength={1000} placeholder={t('bookings.reviewPlaceholder')} value={body} onChange={(e) => setBody(e.target.value)} {...pilot('city-review.body', 'text')} />
       </span>
       <p className="csv-note">{t('bookings.reviewNote')}</p>
       {error ? (
@@ -61,7 +63,7 @@ export function ReviewCityBookingForm({ bookingId, onDone, onCancel }: { booking
         </p>
       ) : null}
       <div className="cdb-btns">
-        <PrimaryButton block={false} disabled={rating < 1} loading={review.isPending} onClick={send}>
+        <PrimaryButton block={false} disabled={rating < 1} loading={review.isPending} onClick={send} {...pilot('city-review.send')}>
           {t('bookings.reviewSend')}
         </PrimaryButton>
         <SecondaryButton block={false} variant="text" onClick={onCancel}>

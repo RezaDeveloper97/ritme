@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 
 import { type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { Card, Icon, IconCircle, Skeleton, TileButton } from '@/shared/ui';
 
 import { babyActionError, useDiaperAction, useDiaperDay } from '../api/queries';
@@ -43,6 +44,7 @@ export function DiaperCard({ childId, readOnly }: { childId: number; readOnly: b
               tone={kind === 'wet' ? 'data' : kind === 'dirty' ? 'warm' : 'bloom'}
               label={t(`diapers.kinds.${kind}`)}
               layout="compact"
+              {...pilot(`baby.diaper:${kind}`)}
               disabled={action.isPending}
               onClick={() => action.mutate({ kind: 'add', diaper: kind })}
             />

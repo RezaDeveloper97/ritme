@@ -10,6 +10,7 @@ import { getApiSaveErrorMessage } from '@/shared/api';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { pilot } from '@/shared/pilot';
 import { Card, EmptyState, InfoNote, PrimaryButton, ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
 import {
@@ -68,7 +69,7 @@ export function IvfCycleSetupPage() {
               icon="drop"
               title={t('setup.open')}
               action={
-                <Link href="/ivf/cycle" className="nb-btn is-outline is-block">
+                <Link href="/ivf/cycle" className="nb-btn is-outline is-block" {...pilot('ivf.setup-open')}>
                   {t('setup.openCta')}
                 </Link>
               }
@@ -121,6 +122,7 @@ function SetupForm() {
     <div className="ivfm-form">
       <Card className="ivfm-card">
         <ChoiceRow
+          pilotId="setup-protocol"
           label={t('setup.protocol')}
           hint={t('setup.protocolHint')}
           options={protocolCodes(protocols.data)}
@@ -134,6 +136,7 @@ function SetupForm() {
 
       <Card className="ivfm-card">
         <ChoiceRow
+          pilotId="setup-stage"
           label={t('setup.where')}
           options={SETUP_STAGES}
           value={draft.stage}
@@ -142,6 +145,7 @@ function SetupForm() {
         />
         <div className="ivfm-two">
           <FieldButton
+            pilotId="setup-started"
             label={t('setup.startedOn')}
             value={dateValue(draft.startedOn)}
             invalid={!!problemText('startedOn')}
@@ -149,6 +153,7 @@ function SetupForm() {
           />
           {draft.stage === 'stim' ? (
             <FieldButton
+              pilotId="setup-stim-started"
               label={t('setup.stimStartedOn')}
               value={dateValue(draft.stimStartedOn)}
               invalid={!!problemText('stimStartedOn')}
@@ -167,7 +172,7 @@ function SetupForm() {
             {ivfValidationMessage(start.error) ?? getApiSaveErrorMessage(start.error, t('setup.error'))}
           </p>
         ) : null}
-        <PrimaryButton loading={start.isPending} disabled={blocked} onClick={submit}>
+        <PrimaryButton loading={start.isPending} disabled={blocked} onClick={submit} {...pilot('ivf.setup-submit')}>
           {t('setup.submit')}
         </PrimaryButton>
       </div>

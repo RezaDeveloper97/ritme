@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 
 import { type LabService, useLabServices } from '@/entities/partner-lab';
 import { Link } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { Card, Icon, StatusPill } from '@/shared/ui';
 
 /** One card per service kind: the first active service of «آزمایش در منزل» and of «چکاپ سالانه». */
@@ -28,7 +29,7 @@ export function HomeLabCards() {
       {cards.map((s) => {
         const checkup = s.kind === 'checkup';
         return (
-          <Link key={s.id} href={`/services/home-lab/new?service=${s.id}`} className="hlb-card-link">
+          <Link key={s.id} href={`/services/home-lab/new?service=${s.id}`} className="hlb-card-link" {...pilot(`home-lab.card:${s.id}`)}>
             <Card className="hlb-card">
               <span className="hlb-card-art" aria-hidden>
                 <Icon name={checkup ? 'stetho' : 'flask'} size={26} strokeWidth={1.6} />

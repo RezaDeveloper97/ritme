@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 
 import { useShopCategories } from '@/entities/shop';
 import { Link, useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { Card, EmptyState, Icon, PrimaryButton, ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
 /**
@@ -48,7 +49,7 @@ export function ShopPage() {
       <ul className="shp-grid">
         {q.data.categories.map((c, i) => (
           <li key={c.slug}>
-            <Link href={`/shop/${c.slug}`} className={i % 2 ? 'shp-cat is-alt' : 'shp-cat'}>
+            <Link href={`/shop/${c.slug}`} className={i % 2 ? 'shp-cat is-alt' : 'shp-cat'} {...pilot(`shop-index.category:${c.slug}`)}>
               <span className="shp-cat-art" aria-hidden>
                 <Icon name={c.icon} size={44} strokeWidth={1.4} />
               </span>

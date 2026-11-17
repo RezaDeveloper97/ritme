@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { type InsurancePolicyHistory, type PolicyStatus } from '@/entities/insurance';
 import { type Locale } from '@/shared/i18n';
 import { formatLongDate, fromApiDate } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { StatusPill, type Tone } from '@/shared/ui';
 
 const STATUS_TONE: Record<PolicyStatus, Tone> = { current: 'success', upcoming: 'data', past: 'neutral' };
@@ -29,7 +30,7 @@ export function PolicyHistory({ history, selectedId, onSelect }: { history: Insu
           const selected = p.id === selectedId;
           return (
             <li key={p.id}>
-              <button type="button" className={`nb-card ins-hist-row${selected ? ' is-selected' : ''}`} aria-pressed={selected} onClick={() => onSelect(p.id)}>
+              <button type="button" className={`nb-card ins-hist-row${selected ? ' is-selected' : ''}`} aria-pressed={selected} {...pilot(`insurance.policy:${p.id}`)} onClick={() => onSelect(p.id)}>
                 <span className="ins-claim-text">
                   <span className="ins-claim-t">{p.planName ?? p.insurerName}</span>
                   <span className="ins-claim-s">

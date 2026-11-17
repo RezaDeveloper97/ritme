@@ -19,6 +19,7 @@ import {
 import { useLifeStage } from '@/entities/user';
 import { getApiSaveErrorMessage } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { formatLongDate, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import {
   EmptyState,
@@ -81,7 +82,7 @@ export function LossStartPage() {
         icon="heart"
         title={t('loadError')}
         action={
-          <PrimaryButton icon="refresh" loading={state.isFetching} onClick={() => void state.refetch()}>
+          <PrimaryButton icon="refresh" loading={state.isFetching} onClick={() => void state.refetch()} {...pilot('loss.retry')}>
             {t('retry')}
           </PrimaryButton>
         }
@@ -200,11 +201,11 @@ function StartForm({
         <h2 id={`${ids}-q`} className="lst-card-title">
           {t('question')}
         </h2>
-        <RadioCardGroup options={options} value={type} onChange={setType} label={t('question')} />
+        <RadioCardGroup options={options} value={type} onChange={setType} label={t('question')} pilot={pilot('loss.type', 'choice')} />
       </section>
 
       <section className="nb-card lst-card lst-settings" aria-label={t('date')}>
-        <button type="button" className="lst-row lst-date" onClick={onPickDate}>
+        <button type="button" className="lst-row lst-date" onClick={onPickDate} {...pilot('loss.date-open')}>
           <span className="lst-row-label">{t('date')}</span>
           <b className="lst-date-value">{date ? formatLongDate(fromApiDate(date), locale) : t('dateNone')}</b>
         </button>
@@ -244,6 +245,7 @@ function StartForm({
               checked={told || notify}
               disabled={told}
               onCheckedChange={setNotify}
+              pilot={pilot('loss.tell')}
               labelledBy={`${ids}-tell`}
               describedBy={`${ids}-tell-d`}
               className={told ? 'lst-fixed' : undefined}
@@ -258,7 +260,7 @@ function StartForm({
             {saveError}
           </p>
         ) : null}
-        <PrimaryButton loading={save.isPending} disabled={!canContinueLoss(type, date)} onClick={submit}>
+        <PrimaryButton loading={save.isPending} disabled={!canContinueLoss(type, date)} onClick={submit} {...pilot('loss.continue')}>
           {save.isPending ? t('saving') : tc('continue')}
         </PrimaryButton>
       </div>

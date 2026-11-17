@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import type { Locale } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { type DateParts, diffInDays, fromApiDate, partsToDate, toApiDate, toParts, today } from '@/shared/lib/date';
 import { AppSheet } from '@/shared/sheet';
 import { CalendarPicker, PrimaryButton, SecondaryButton } from '@/shared/ui';
@@ -44,13 +45,13 @@ export function LossDateSheet({
           <SecondaryButton block={false} onClick={() => onPick(null)}>
             {t('dateClear')}
           </SecondaryButton>
-          <PrimaryButton block={false} disabled={!picked || !!error} onClick={() => picked && onPick(toApiDate(picked))}>
+          <PrimaryButton block={false} disabled={!picked || !!error} onClick={() => picked && onPick(toApiDate(picked))} {...pilot('loss.date-save')}>
             {tc('save')}
           </PrimaryButton>
         </div>
       }
     >
-      <CalendarPicker value={parts} onSelect={setParts} />
+      <CalendarPicker value={parts} onSelect={setParts} pilot={pilot('loss.date', 'calendar')} />
       {error ? (
         <p className="lst-error" role="alert">
           {error}

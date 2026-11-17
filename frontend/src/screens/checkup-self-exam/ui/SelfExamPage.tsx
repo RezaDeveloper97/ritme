@@ -9,6 +9,7 @@ import { type CheckupDetail, useCheckup, useCheckupRecords, useCheckups } from '
 import { useUpdateCheckupSettings } from '@/features/manage-custom-checkup';
 import { selfExamResult, toggleFinding, useCreateCheckupRecord } from '@/features/record-checkup';
 import { type Locale, Link, useRouter } from '@/shared/i18n';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { formatNumber, toApiDate, today } from '@/shared/lib/date';
 import { Icon, ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
@@ -147,7 +148,7 @@ function Body({ detail }: { detail: CheckupDetail }) {
         <section className="card flex flex-col gap-2.5 p-4 text-start">
           <h2 className="text-[14px] font-extrabold text-(--ink)">{t('selfExam.findingsTitle')}</h2>
           <p className="text-[12px] leading-relaxed text-(--ink-3)">{t('selfExam.findingsBody')}</p>
-          <div className="flex flex-wrap gap-2" role="group" aria-label={t('selfExam.findingsTitle')}>
+          <div className="flex flex-wrap gap-2" role="group" aria-label={t('selfExam.findingsTitle')} {...pilot('cks.findings', 'choice')}>
             {detail.findingOptions.map((o) => {
               const on = findings.includes(o.key);
               return (
@@ -155,6 +156,7 @@ function Body({ detail }: { detail: CheckupDetail }) {
                   key={o.key}
                   type="button"
                   aria-pressed={on}
+                  {...pilotOption(o.key)}
                   disabled={done && !detail.readOnly}
                   className={clsx(
                     'min-h-11 rounded-full border-[1.5px] px-4 text-[12.5px] font-bold',
@@ -187,7 +189,13 @@ function Body({ detail }: { detail: CheckupDetail }) {
           {t('detail.informationalNote')}
         </p>
       ) : (
-        <button type="button" className="btn btn-primary w-full" disabled={done || create.isPending} onClick={submit}>
+        <button
+          type="button"
+          className="btn btn-primary w-full"
+          disabled={done || create.isPending}
+          onClick={submit}
+          {...pilot('cks.done')}
+        >
           <Icon name="check" size={16} strokeWidth={2.2} />
           {done ? t('selfExam.doneAlready') : t('selfExam.done')}
         </button>
@@ -201,6 +209,7 @@ function Body({ detail }: { detail: CheckupDetail }) {
         <Link
           href={`/checkups/history?type=${detail.id}`}
           className="flex min-h-11 items-center justify-center gap-1.5 text-[12px] font-semibold text-(--ink-3)"
+          {...pilot('cks.history')}
         >
           <Icon name="history" size={15} />
           {t('selfExam.adherence', {
@@ -276,6 +285,7 @@ export function SelfExamPage() {
                 aria-label={remind ? t('detail.remindOn') : t('detail.remindOff')}
                 disabled={update.isPending || !detail.settings.enabled}
                 onClick={() => update.mutate({ id: detail.id, remind: !remind })}
+                {...pilot('cks.remind')}
               >
                 <Icon name={remind ? 'bellRing' : 'bellPlain'} size={20} strokeWidth={1.8} />
               </button>

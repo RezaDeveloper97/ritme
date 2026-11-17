@@ -13,6 +13,7 @@ import {
 } from '@/entities/contraception';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   Card,
   ChipGroup,
@@ -80,7 +81,7 @@ export function ContraceptionMissedPage() {
         icon="pill"
         title={t('missed.notPill.title')}
         body={t('missed.notPill.body')}
-        action={<PrimaryButton onClick={() => router.push('/contraception')}>{t('missed.notPill.cta')}</PrimaryButton>}
+        action={<PrimaryButton onClick={() => router.push('/contraception')} {...pilot('contraception.missed-back')}>{t('missed.notPill.cta')}</PrimaryButton>}
       />
     );
   } else {
@@ -121,13 +122,14 @@ function Guide({ rules, method }: { rules: MissedPillRule[]; method: Contracepti
           <h2 className="ctrm-count-title">
             {t('countTitle')}
           </h2>
-          <ChipGroup label={t('countTitle')} className="ctrm-chips">
+          <ChipGroup label={t('countTitle')} className="ctrm-chips" pilot={pilot('contraception.missed-count', 'choice')}>
             {guide.countRules.map((rule, index) => (
               <PillChip
                 key={rule.code}
                 pressed={current === rule}
                 onPressedChange={() => setPicked(index)}
                 className="ctr-chip"
+                {...pilotOption(rule.code)}
               >
                 {rule.title ?? formatNumber(rule.missed ?? index + 1, locale)}
               </PillChip>

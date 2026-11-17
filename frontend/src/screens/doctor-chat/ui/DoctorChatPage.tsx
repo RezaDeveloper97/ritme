@@ -22,6 +22,7 @@ import { useAddPrescriptionReminder, useSendMessage } from '@/features/book-visi
 import { getApiErrorStatus } from '@/shared/api';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { Card, EmptyState, HeaderButton, Icon, PrimaryButton, SkyLayer } from '@/shared/ui';
 
 const clock = (iso: string, locale: Locale) => {
@@ -148,7 +149,7 @@ export function DoctorChatPage({ bookingId }: { bookingId: number }) {
                 {it.reminder_id ? (
                   <span className="dr-rx-done"><Icon name="check" size={14} />{t('chat.added')}</span>
                 ) : (
-                  <button type="button" className="dr-link" disabled={addReminder.isPending} onClick={() => addReminder.mutate(it.id)}>
+                  <button type="button" className="dr-link" disabled={addReminder.isPending} {...pilot(`doctor-chat.add-reminder:${it.id}`)} onClick={() => addReminder.mutate(it.id)}>
                     {t('chat.addReminder')}
                   </button>
                 )}

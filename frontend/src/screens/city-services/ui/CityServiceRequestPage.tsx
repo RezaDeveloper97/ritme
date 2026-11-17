@@ -8,6 +8,7 @@ import { AGE_RANGES, useCityServiceListing, useCreateCityBooking } from '@/entit
 import { getApiErrorMessage } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { addDays, formatLongDate, toApiDate, today } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { Icon, InfoNote, PrimaryButton, ScreenHeader, SkyLayer } from '@/shared/ui';
 
 import {
@@ -124,6 +125,7 @@ export function CityServiceRequestPage({
                   aria-invalid={Boolean(errors[key])}
                   aria-describedby={errors[key] ? `csv-err-${key}` : undefined}
                   onChange={(e) => set(key, e.target.value)}
+                  {...pilot(`city-request.field:${key}`, 'text')}
                 />
               </span>
               {err(key)}
@@ -134,11 +136,11 @@ export function CityServiceRequestPage({
         <section className="card fld-card flex flex-col gap-3.5">
           <div className="flex flex-col gap-2">
             <span className="fld-label-t text-start">{t('form.day')}</span>
-            <div role="radiogroup" aria-label={t('form.day')} className="fld-chips csv-days">
+            <div role="radiogroup" aria-label={t('form.day')} className="fld-chips csv-days" {...pilot('city-request.day', 'choice')}>
               {days.map((d) => {
                 const v = toApiDate(d);
                 return (
-                  <button key={v} type="button" role="radio" aria-checked={state.day === v} className={clsx('chip', state.day === v && 'on')} onClick={() => set('day', v)}>
+                  <button key={v} type="button" role="radio" aria-checked={state.day === v} {...pilotOption(v)} className={clsx('chip', state.day === v && 'on')} onClick={() => set('day', v)}>
                     {formatLongDate(d, locale)}
                   </button>
                 );
@@ -147,12 +149,12 @@ export function CityServiceRequestPage({
           </div>
           <div className="flex flex-col gap-2">
             <span className="fld-label-t text-start">{t('form.age')}</span>
-            <div role="radiogroup" aria-label={t('form.age')} className="fld-chips">
-              <button type="button" role="radio" aria-checked={state.age === null} className={clsx('chip', state.age === null && 'on')} onClick={() => set('age', null)}>
+            <div role="radiogroup" aria-label={t('form.age')} className="fld-chips" {...pilot('city-request.age', 'choice')}>
+              <button type="button" role="radio" aria-checked={state.age === null} {...pilotOption('none')} className={clsx('chip', state.age === null && 'on')} onClick={() => set('age', null)}>
                 {t('form.ageNone')}
               </button>
               {AGE_RANGES.map((a) => (
-                <button key={a} type="button" role="radio" aria-checked={state.age === a} className={clsx('chip', state.age === a && 'on')} onClick={() => set('age', a)}>
+                <button key={a} type="button" role="radio" aria-checked={state.age === a} {...pilotOption(a)} className={clsx('chip', state.age === a && 'on')} onClick={() => set('age', a)}>
                   {t(`ages.${a}`)}
                 </button>
               ))}
@@ -161,7 +163,7 @@ export function CityServiceRequestPage({
           <label className="fld-label">
             <span className="fld-label-t">{t('form.note')}</span>
             <span className="field csv-area">
-              <textarea rows={2} maxLength={NOTE_MAX} placeholder={t('form.notePlaceholder')} value={state.note} onChange={(e) => set('note', e.target.value)} />
+              <textarea rows={2} maxLength={NOTE_MAX} placeholder={t('form.notePlaceholder')} value={state.note} onChange={(e) => set('note', e.target.value)} {...pilot('city-request.note', 'text')} />
             </span>
           </label>
         </section>
@@ -171,7 +173,7 @@ export function CityServiceRequestPage({
             {formError}
           </p>
         )}
-        <PrimaryButton type="submit" block loading={create.isPending}>
+        <PrimaryButton type="submit" block loading={create.isPending} {...pilot('city-request.submit')}>
           {create.isPending ? t('form.submitting') : t('form.submit')}
         </PrimaryButton>
       </form>

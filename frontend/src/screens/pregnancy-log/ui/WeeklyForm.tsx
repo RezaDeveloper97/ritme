@@ -13,6 +13,7 @@ import {
 } from '@/entities/pregnancy';
 import { Chip, FieldRow, NotesField, NumberField, PgCard, Segmented, Toggle } from '@/features/track-pregnancy';
 import { toApiDate, today } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
 
 type T = ReturnType<typeof useTranslations>;
@@ -95,56 +96,56 @@ export function WeeklyForm({ t }: { t: T }) {
 
       <div className="plog-stack">
         <PgCard title={t('log.weekly.weight')} icon="chart">
-          <NumberField label="" value={draft.weight} onChange={(v) => set('weight', v)} min={30} max={200} step={0.1} placeholder="65" />
+          <NumberField label="" value={draft.weight} onChange={(v) => set('weight', v)} min={30} max={200} step={0.1} placeholder="65" pilotId="preg.weekly-weight" />
         </PgCard>
 
         <PgCard title={t('log.weekly.swelling')} icon="drop">
           <FieldRow label={t('log.weekly.swelling')}>
-            <Toggle on={!!draft.has_swelling} onClick={() => { set('has_swelling', draft.has_swelling ? undefined : true); if (draft.has_swelling) set('swelling_locations', undefined); }} />
+            <Toggle on={!!draft.has_swelling} onClick={() => { set('has_swelling', draft.has_swelling ? undefined : true); if (draft.has_swelling) set('swelling_locations', undefined); }} pilotId="preg.weekly-swelling" />
           </FieldRow>
           {draft.has_swelling && (
             <div className="plog-mt6">
               <span className="plog-sublabel">{t('log.weekly.swellingWhere')}</span>
-              <div className="plog-chips">
+              <div className="plog-chips" {...pilot('preg.weekly-swelling-where', 'choice')}>
                 {swellingLocs.map((loc) => (
-                  <Chip key={loc} on={(draft.swelling_locations ?? []).includes(loc)} label={dyn(`log.weekly.swellingLocations.${loc}`)} onClick={() => toggleSwellingLoc(loc)} />
+                  <Chip key={loc} on={(draft.swelling_locations ?? []).includes(loc)} label={dyn(`log.weekly.swellingLocations.${loc}`)} option={loc} onClick={() => toggleSwellingLoc(loc)} />
                 ))}
               </div>
             </div>
           )}
           <FieldRow label={t('log.weekly.shortnessOfBreath')}>
-            <Toggle on={!!draft.has_shortness_of_breath} onClick={() => set('has_shortness_of_breath', draft.has_shortness_of_breath ? undefined : true)} />
+            <Toggle on={!!draft.has_shortness_of_breath} onClick={() => set('has_shortness_of_breath', draft.has_shortness_of_breath ? undefined : true)} pilotId="preg.weekly-breath" />
           </FieldRow>
         </PgCard>
 
         <PgCard title={t('log.weekly.hasBpDevice')} icon="stetho">
           <FieldRow label={t('log.weekly.hasBpDevice')}>
-            <Toggle on={!!draft.has_blood_pressure_device} onClick={() => set('has_blood_pressure_device', draft.has_blood_pressure_device ? undefined : true)} />
+            <Toggle on={!!draft.has_blood_pressure_device} onClick={() => set('has_blood_pressure_device', draft.has_blood_pressure_device ? undefined : true)} pilotId="preg.weekly-bp-device" />
           </FieldRow>
           {draft.has_blood_pressure_device && (
             <div className="plog-pair">
-              <div><NumberField label={t('log.weekly.systolic')} value={draft.systolic_pressure} onChange={(v) => set('systolic_pressure', v)} min={60} max={250} /></div>
-              <div><NumberField label={t('log.weekly.diastolic')} value={draft.diastolic_pressure} onChange={(v) => set('diastolic_pressure', v)} min={40} max={150} /></div>
+              <div><NumberField label={t('log.weekly.systolic')} value={draft.systolic_pressure} onChange={(v) => set('systolic_pressure', v)} min={60} max={250} pilotId="preg.weekly-systolic" /></div>
+              <div><NumberField label={t('log.weekly.diastolic')} value={draft.diastolic_pressure} onChange={(v) => set('diastolic_pressure', v)} min={40} max={150} pilotId="preg.weekly-diastolic" /></div>
             </div>
           )}
           <div className="plog-pair is-lower">
-            <div><NumberField label={t('log.weekly.fastingSugar')} value={draft.fasting_blood_sugar} onChange={(v) => set('fasting_blood_sugar', v)} min={40} max={400} /></div>
-            <div><NumberField label={t('log.weekly.postMealSugar')} value={draft.post_meal_blood_sugar} onChange={(v) => set('post_meal_blood_sugar', v)} min={40} max={500} /></div>
+            <div><NumberField label={t('log.weekly.fastingSugar')} value={draft.fasting_blood_sugar} onChange={(v) => set('fasting_blood_sugar', v)} min={40} max={400} pilotId="preg.weekly-fasting-sugar" /></div>
+            <div><NumberField label={t('log.weekly.postMealSugar')} value={draft.post_meal_blood_sugar} onChange={(v) => set('post_meal_blood_sugar', v)} min={40} max={500} pilotId="preg.weekly-post-meal-sugar" /></div>
           </div>
         </PgCard>
 
         <PgCard title={t('log.weekly.moodLabel')} icon="smile">
-          <Segmented options={moodOptions} value={draft.overall_mood} onChange={(v) => set('overall_mood', v)} />
+          <Segmented options={moodOptions} value={draft.overall_mood} onChange={(v) => set('overall_mood', v)} pilotId="preg.weekly-mood" />
           <div className="plog-rows is-spaced">
             {WEEKLY_MENTAL.map(({ flag, severity }) => {
               const on = !!draft[flag as keyof WeeklyLogInput];
               return (
                 <div key={flag} className="plog-row is-topline">
                   <FieldRow label={dyn(`log.weekly.mental.${flag}`)}>
-                    <Toggle on={on} onClick={() => { const willOff = on; set(flag as keyof WeeklyLogInput, willOff ? undefined : (true as never)); if (willOff) set(severity as keyof WeeklyLogInput, undefined); }} />
+                    <Toggle on={on} onClick={() => { const willOff = on; set(flag as keyof WeeklyLogInput, willOff ? undefined : (true as never)); if (willOff) set(severity as keyof WeeklyLogInput, undefined); }} pilotId={`preg.weekly-mental:${flag}`} />
                   </FieldRow>
                   {on && (
-                    <Segmented options={severityOptions} value={draft[severity as keyof WeeklyLogInput] as string | undefined} onChange={(v) => set(severity as keyof WeeklyLogInput, v as never)} />
+                    <Segmented options={severityOptions} value={draft[severity as keyof WeeklyLogInput] as string | undefined} onChange={(v) => set(severity as keyof WeeklyLogInput, v as never)} pilotId={`preg.weekly-mental-severity:${flag}`} />
                   )}
                 </div>
               );
@@ -153,7 +154,7 @@ export function WeeklyForm({ t }: { t: T }) {
         </PgCard>
 
         <PgCard title={t('log.notes')} icon="pencil">
-          <NotesField label="" value={draft.notes} onChange={(v) => set('notes', v)} placeholder={t('log.notesPlaceholder')} />
+          <NotesField label="" value={draft.notes} onChange={(v) => set('notes', v)} placeholder={t('log.notesPlaceholder')} pilotId="preg.weekly-notes" />
         </PgCard>
       </div>
 
@@ -165,7 +166,7 @@ export function WeeklyForm({ t }: { t: T }) {
       )}
       {save.isError && <p className="plog-error">{t('log.saveError')}</p>}
 
-      <button className="btn btn-primary plog-save" onClick={handleSave} disabled={!filled || save.isPending}>
+      <button className="btn btn-primary plog-save" {...pilot('preg.weekly-save')} onClick={handleSave} disabled={!filled || save.isPending}>
         {save.isSuccess ? <Icon name="check" size={18} /> : null}
         {saveLabel}
       </button>

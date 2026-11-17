@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 
 import { ReadingRow, useVitalReadings } from '@/entities/vital';
 import { Link } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { toApiDate } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { IconCircle } from '@/shared/ui';
@@ -29,7 +30,7 @@ export function DayVitals({ selectedDate }: { selectedDate: Date }) {
         <h3 id="cal-vitals-title" className="cal-vitals-title">
           {t('title')}
         </h3>
-        <Link href="/vitals" className="cal-vitals-link">
+        <Link href="/vitals" className="cal-vitals-link" {...pilot('calendar.vitals')}>
           {t('open')}
         </Link>
       </header>

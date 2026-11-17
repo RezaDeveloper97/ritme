@@ -29,6 +29,7 @@ import { ModuleRouteGate } from '../ModuleRouteGate';
 import { SHELL_NAMESPACES } from '../message-scopes';
 import { AppProviders } from '../providers';
 import { SheetHost } from '../sheets/SheetHost';
+import { AutopilotMount } from '../autopilot/AutopilotMount';
 
 // One variable woff2 (wght 100–900) instead of six static weights: every page
 // preloaded all six (6 × ~21 KB = 128 KB, 31 % of the page weight — perf
@@ -195,6 +196,8 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
                   <PendingConsentsSheet />
                   {/* AI gate: the one sheet that explains a missing subscription / spent credits (features/ai-gate). */}
                   <AiGateSheet />
+                  {/* UI autopilot: the pointer + stop bar of a running script (shared/autopilot); nothing while idle. */}
+                  <AutopilotMount />
                 </AppLockGate>
               </div>
             </div>

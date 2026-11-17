@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { type JoinApplication, type JoinOffer, useSaveJoinStep } from '@/entities/city-service';
 import type { Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { ChipGroup, Icon, InfoNote, PillChip, PrimaryButton, SecondaryButton } from '@/shared/ui';
 
@@ -38,6 +39,7 @@ function ServiceSheet({ initial, onClose, onSave }: { initial: OfferForm; onClos
           value={form[key]}
           aria-invalid={problem ? problems.includes(problem) : undefined}
           onChange={(e) => set(key, e.target.value)}
+          {...pilot(`city-join.service-field:${key}`, 'text')}
         />
       </span>
     </label>
@@ -58,16 +60,16 @@ function ServiceSheet({ initial, onClose, onSave }: { initial: OfferForm; onClos
           <SecondaryButton block={false} onClick={onClose}>
             {t('cancel')}
           </SecondaryButton>
-          <PrimaryButton block={false} onClick={submit}>
+          <PrimaryButton block={false} onClick={submit} {...pilot('city-join.service-save')}>
             {t('save')}
           </PrimaryButton>
         </div>
       }
     >
       <div className="cjn-stack">
-        <ChipGroup label={t('kind')}>
+        <ChipGroup label={t('kind')} pilot={pilot('city-join.service-kind', 'choice')}>
           {(['session', 'package'] as const).map((k) => (
-            <PillChip key={k} mode="single" pressed={form.kind === k} onPressedChange={() => set('kind', k)}>
+            <PillChip key={k} mode="single" pressed={form.kind === k} onPressedChange={() => set('kind', k)} {...pilotOption(k)}>
               {t(`kinds.${k}`)}
             </PillChip>
           ))}
@@ -75,20 +77,20 @@ function ServiceSheet({ initial, onClose, onSave }: { initial: OfferForm; onClos
         <label className="fld-label">
           <span className="fld-label-t">{t('name')}</span>
           <span className="field">
-            <input type="text" maxLength={160} value={form.name} placeholder={t('namePh')} aria-invalid={problems.includes('name')} onChange={(e) => set('name', e.target.value)} />
+            <input type="text" maxLength={160} value={form.name} placeholder={t('namePh')} aria-invalid={problems.includes('name')} onChange={(e) => set('name', e.target.value)} {...pilot('city-join.service-name', 'text')} />
           </span>
         </label>
         <label className="fld-label">
           <span className="fld-label-t">{t('desc')}</span>
           <span className="field cjn-area">
-            <textarea rows={2} maxLength={300} value={form.description} onChange={(e) => set('description', e.target.value)} />
+            <textarea rows={2} maxLength={300} value={form.description} onChange={(e) => set('description', e.target.value)} {...pilot('city-join.service-desc', 'text')} />
           </span>
         </label>
         <div className="cjn-group">
           <span className="fld-label-t">{t('format')}</span>
-          <ChipGroup label={t('format')}>
+          <ChipGroup label={t('format')} pilot={pilot('city-join.service-format', 'choice')}>
             {(['group', 'private'] as const).map((f) => (
-              <PillChip key={f} mode="single" pressed={form.format === f} onPressedChange={() => set('format', form.format === f ? null : f)}>
+              <PillChip key={f} mode="single" pressed={form.format === f} onPressedChange={() => set('format', form.format === f ? null : f)} {...pilotOption(f)}>
                 {t(`formats.${f}`)}
               </PillChip>
             ))}
@@ -188,7 +190,7 @@ export function StepServices({ app, onNext, onSaveError }: { app: JoinApplicatio
         </ul>
       )}
 
-      <SecondaryButton icon="plus" disabled={services.length >= MAX_SERVICES} onClick={() => setEditing({ index: null, form: emptyOffer() })}>
+      <SecondaryButton icon="plus" disabled={services.length >= MAX_SERVICES} onClick={() => setEditing({ index: null, form: emptyOffer() })} {...pilot('city-join.service-add')}>
         {t('services.add')}
       </SecondaryButton>
 
@@ -209,7 +211,7 @@ export function StepServices({ app, onNext, onSaveError }: { app: JoinApplicatio
           {errorText(save.error)}
         </p>
       ) : null}
-      <PrimaryButton onClick={() => void next()}>{t('next')}</PrimaryButton>
+      <PrimaryButton onClick={() => void next()} {...pilot('city-join.next:services')}>{t('next')}</PrimaryButton>
     </div>
   );
 }

@@ -12,6 +12,7 @@ import { useUserProfile } from '@/entities/user';
 import { useAppLock } from '@/features/app-lock';
 import { useLogout } from '@/features/auth';
 import { useSwitchLocale } from '@/features/switch-locale';
+import { pilot } from '@/shared/pilot';
 import { APP_VERSION } from '@/shared/config';
 import { localizeHref, useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { calendarSystem } from '@/shared/lib/date';
@@ -118,7 +119,7 @@ export function ProfilePage() {
             label={t('rows.appearance')}
             icon="sun"
             variant="soft"
-            onClick={() => router.push('/profile/appearance')}
+            onClick={() => router.push('/profile/appearance')} pilot={pilot('me.header:appearance')}
           />
         </header>
 
@@ -134,7 +135,7 @@ export function ProfilePage() {
           <MeErrorCard onRetry={() => profileQuery.refetch()} />
         ) : (
           <div className="me-id">
-            <button type="button" className="me-id-main" onClick={() => router.push('/profile/account')}>
+            <button type="button" className="me-id-main" onClick={() => router.push('/profile/account')} {...pilot('me.open:profile-account')}>
               <span className="me-avatar" aria-hidden>
                 {profile?.name ? firstLetter(profile.name) : <Icon name="user" size={26} />}
               </span>
@@ -160,6 +161,7 @@ export function ProfilePage() {
             type="button"
             className="me-plus"
             onClick={() => router.push(isPlus ? '/plus/manage' : '/plus')}
+            {...pilot('me.open:plus')}
           >
             <IconCircle icon="sparkle" tone="brand" size="md" />
             <span className="nb-row-text">
@@ -172,7 +174,7 @@ export function ProfilePage() {
 
         {/* AI credits at a glance → /profile/credits; hidden wherever the Plus card is. */}
         {teen || navMode === 'companion' ? null : (
-          <button type="button" className="me-plus me-credits" onClick={() => router.push('/profile/credits')}>
+          <button type="button" className="me-plus me-credits" onClick={() => router.push('/profile/credits')} {...pilot('me.open:profile-credits')}>
             <Art3d name="credits" size={40} />
             <span className="nb-row-text">
               <span className="nb-row-title">{tc('card.title')}</span>
@@ -202,7 +204,7 @@ export function ProfilePage() {
                   iconTone="brand"
                   title={t('rows.companionCode')}
                   description={t('rows.companionCodeSub')}
-                  onClick={() => router.push('/companion/links')}
+                  onClick={() => router.push('/companion/links')} pilot={pilot('me.open:companion-links')}
                 />
               ) : null
             ) : (
@@ -211,7 +213,7 @@ export function ProfilePage() {
                 iconTone={MODE_TONE[navMode]}
                 title={t('rows.mode')}
                 description={t('rows.modeSub', { mode: modeName })}
-                onClick={() => router.push('/profile/mode')}
+                onClick={() => router.push('/profile/mode')} pilot={pilot('me.open:profile-mode')}
               />
             )}
             {navMode !== 'companion' && (teen ? modules.teen : modules.companion) ? (
@@ -222,6 +224,7 @@ export function ProfilePage() {
                 description={companionNames || undefined}
                 // CB-TEEN-03: a teen shares with a parent only — her family row is «همراهی مادر».
                 onClick={() => router.push(teen ? '/teen/parent' : '/companions')}
+                pilot={pilot('me.open:companions')}
               />
             ) : null}
             {/* CB-NAV-03 (nbd_Nav_Me «فرزندان»): /children shipped with B-N5-05 — the row is live for an owner
@@ -238,7 +241,7 @@ export function ProfilePage() {
                       icon={row.icon}
                       iconTone={row.tone}
                       title={t(`rows.${row.key}`)}
-                      onClick={() => router.push('/children')}
+                      onClick={() => router.push('/children')} pilot={pilot('me.open:children')}
                     />
                   ))}
           </ListGroup>
@@ -251,23 +254,23 @@ export function ProfilePage() {
             <ListGroup>
               {/* B-N6-08: «کارهای من» → /todo. */}
               {modules.todo ? (
-                <ListRow icon="todo" iconTone="brand" title={t('rows.todo')} onClick={() => router.push('/todo')} />
+                <ListRow icon="todo" iconTone="brand" title={t('rows.todo')} onClick={() => router.push('/todo')} pilot={pilot('me.open:todo')} />
               ) : null}
               {/* B-N8-03: «دوره‌های من» → /learn. */}
               {modules.learning && modules.my_courses ? (
-                <ListRow icon="gradCap" iconTone="bloom" title={t('rows.courses')} onClick={() => router.push('/learn')} />
+                <ListRow icon="gradCap" iconTone="bloom" title={t('rows.courses')} onClick={() => router.push('/learn')} pilot={pilot('me.open:learn')} />
               ) : null}
               {/* B-N8-04: «دانلودها» → /learn/downloads (offline lessons). */}
               {modules.learning ? (
-                <ListRow icon="download" iconTone="data" title={t('rows.downloads')} onClick={() => router.push('/learn/downloads')} />
+                <ListRow icon="download" iconTone="data" title={t('rows.downloads')} onClick={() => router.push('/learn/downloads')} pilot={pilot('me.open:learn-downloads')} />
               ) : null}
               {/* B-N10-05: «رزروها» → /profile/bookings (my city-service requests; CB-DIR-09 supersedes later). */}
               {modules.mother_child ? (
-                <ListRow icon="calendar" iconTone="data" title={t('rows.bookings')} onClick={() => router.push('/profile/bookings')} />
+                <ListRow icon="calendar" iconTone="data" title={t('rows.bookings')} onClick={() => router.push('/profile/bookings')} pilot={pilot('me.open:profile-bookings')} />
               ) : null}
               {/* CB-SHOP-08: «سفارش‌ها» → /profile/orders (internal COD shop; supersedes the B-N10-03 partner row). */}
               {modules.shop ? (
-                <ListRow icon="box" iconTone="brand" title={t('rows.orders')} onClick={() => router.push('/profile/orders')} />
+                <ListRow icon="box" iconTone="brand" title={t('rows.orders')} onClick={() => router.push('/profile/orders')} pilot={pilot('me.open:profile-orders')} />
               ) : null}
               {TASK_ROWS.map((row) => (
                 <ListRow key={row.key} icon={row.icon} iconTone={row.tone} title={t(`rows.${row.key}`)} trailing={soon} />
@@ -286,7 +289,7 @@ export function ProfilePage() {
                 iconTone="data"
                 title={t('rows.services')}
                 description={t('rows.servicesSub')}
-                onClick={() => router.push('/services')}
+                onClick={() => router.push('/services')} pilot={pilot('me.open:services')}
               />
             ) : null}
             {/* B-N6-02: Me entry into the vitals hub (also on «خدمات»). */}
@@ -296,7 +299,7 @@ export function ProfilePage() {
                 iconTone="bloom"
                 title={t('rows.vitals')}
                 description={t('rows.vitalsSub')}
-                onClick={() => router.push('/vitals')}
+                onClick={() => router.push('/vitals')} pilot={pilot('me.open:vitals')}
               />
             ) : null}
             {/* B-N6-03: «پرونده سلامت من» (owner-only; a companion account has no record). */}
@@ -306,7 +309,7 @@ export function ProfilePage() {
                 iconTone="brand"
                 title={t('rows.healthRecord')}
                 description={t('rows.healthRecordSub')}
-                onClick={() => router.push('/record')}
+                onClick={() => router.push('/record')} pilot={pilot('me.open:record')}
               />
             ) : null}
             {/* B-N10-07: honest «soon» devices screen (the web cannot pair watches). */}
@@ -316,7 +319,7 @@ export function ProfilePage() {
                 iconTone="data"
                 title={t('rows.devices')}
                 description={t('rows.devicesSub')}
-                onClick={() => router.push('/profile/devices')}
+                onClick={() => router.push('/profile/devices')} pilot={pilot('me.open:profile-devices')}
               />
             ) : null}
             {/* B-N10-07: last server sync + manual export (JSON/PDF/doctor report). */}
@@ -324,7 +327,7 @@ export function ProfilePage() {
               icon="download"
               title={t('rows.backup')}
               description={t('rows.backupSub')}
-              onClick={() => router.push('/profile/backup')}
+              onClick={() => router.push('/profile/backup')} pilot={pilot('me.open:profile-backup')}
             />
           </ListGroup>
         </section>
@@ -337,12 +340,12 @@ export function ProfilePage() {
               iconTone="success"
               title={t('rows.privacy')}
               description={appLock?.enabled ? t('rows.privacyLockOn') : undefined}
-              onClick={() => router.push('/profile/privacy')}
+              onClick={() => router.push('/profile/privacy')} pilot={pilot('me.open:profile-privacy')}
             />
             <ListRow
               icon="bell"
               title={t('rows.notifications')}
-              onClick={() => router.push('/profile/notifications')}
+              onClick={() => router.push('/profile/notifications')} pilot={pilot('me.open:profile-notifications')}
             />
             {/* B-N1-09: cycle length + cycle reminders — not for a companion account (B-N4-05). */}
             {navMode !== 'companion' ? (
@@ -351,20 +354,20 @@ export function ProfilePage() {
                 iconTone="period"
                 title={t('rows.cycleSettings')}
                 description={t('rows.cycleSettingsSub')}
-                onClick={() => router.push('/cycle/settings')}
+                onClick={() => router.push('/cycle/settings')} pilot={pilot('me.open:cycle-settings')}
               />
             ) : null}
             <ListRow
               icon="moon"
               title={t('rows.appearance')}
               description={mounted ? t(`theme.${preference}`) : undefined}
-              onClick={() => router.push('/profile/appearance')}
+              onClick={() => router.push('/profile/appearance')} pilot={pilot('me.open:profile-appearance')}
             />
             <ListRow
               icon="calendar"
               title={t('rows.language')}
               description={`${languageName} · ${calendarName}`}
-              onClick={() => router.push('/profile/language')}
+              onClick={() => router.push('/profile/language')} pilot={pilot('me.open:profile-language')}
             />
           </ListGroup>
         </section>
@@ -372,9 +375,9 @@ export function ProfilePage() {
         <section className="me-sec" aria-labelledby="me-g-support">
           <SectionTitle id="me-g-support" title={t('groups.support')} />
           <ListGroup>
-            <ListRow icon="help" title={t('rows.help')} onClick={() => router.push('/profile/support')} />
-            <ListRow icon="chat" title={t('rows.chat')} onClick={() => router.push('/profile/support')} />
-            <ListRow icon="info" iconTone="neutral" title={t('rows.about')} onClick={() => router.push('/profile/about')} />
+            <ListRow icon="help" title={t('rows.help')} onClick={() => router.push('/profile/support')} pilot={pilot('me.open:profile-support')} />
+            <ListRow icon="chat" title={t('rows.chat')} onClick={() => router.push('/profile/support')} pilot={pilot('me.open:profile-support-chat')} />
+            <ListRow icon="info" iconTone="neutral" title={t('rows.about')} onClick={() => router.push('/profile/about')} pilot={pilot('me.open:profile-about')} />
           </ListGroup>
         </section>
 

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { type CityServiceCatalogOption, type DirectoryFilters, EMPTY_FILTERS } from '@/entities/city-service';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { PrimaryButton, SecondaryButton } from '@/shared/ui';
 
@@ -37,7 +38,7 @@ export function DirectoryFilterSheet({ open, onClose, value, onApply, ageRanges,
 
   const sortOptions = (['rank', 'distance', 'rating'] as const).filter((s) => sorts.length === 0 || sorts.includes(s));
   const chip = (key: string, label: string, on: boolean, onClick: () => void, role: 'radio' | 'checkbox') => (
-    <button key={key} type="button" role={role} aria-checked={on} className={clsx('chip csv-chip', on && 'on')} onClick={onClick}>
+    <button key={key} type="button" role={role} aria-checked={on} {...pilotOption(key)} className={clsx('chip csv-chip', on && 'on')} onClick={onClick}>
       {label}
     </button>
   );
@@ -50,10 +51,11 @@ export function DirectoryFilterSheet({ open, onClose, value, onApply, ageRanges,
       title={t('filters.title')}
       footer={
         <div className="dfs-footer">
-          <SecondaryButton variant="text" onClick={() => setDraft(EMPTY_FILTERS)}>
+          <SecondaryButton variant="text" onClick={() => setDraft(EMPTY_FILTERS)} {...pilot('city-filter.clear')}>
             {t('filters.clear')}
           </SecondaryButton>
           <PrimaryButton
+            {...pilot('city-filter.apply')}
             onClick={() => {
               onApply(draft);
               onClose();
@@ -68,7 +70,7 @@ export function DirectoryFilterSheet({ open, onClose, value, onApply, ageRanges,
         {ageRanges.length > 0 ? (
           <section className="dfs-sec">
             <h3 className="dfs-h">{t('filters.age')}</h3>
-            <div role="radiogroup" aria-label={t('filters.age')} className="dfs-chips">
+            <div role="radiogroup" aria-label={t('filters.age')} className="dfs-chips" {...pilot('city-filter.age', 'choice')}>
               {chip('any', t('filters.anyAge'), draft.age === null, () => setDraft((d) => ({ ...d, age: null })), 'radio')}
               {ageRanges.map((a) =>
                 chip(a.code, a.name ?? a.code, draft.age === a.code, () => setDraft((d) => ({ ...d, age: a.code })), 'radio'),
@@ -84,6 +86,7 @@ export function DirectoryFilterSheet({ open, onClose, value, onApply, ageRanges,
               role="switch"
               className="dfs-switch"
               checked={draft.openNow}
+              {...pilot('city-filter.open-now')}
               onChange={(e) => setDraft((d) => ({ ...d, openNow: e.target.checked }))}
             />
           </label>
@@ -91,14 +94,14 @@ export function DirectoryFilterSheet({ open, onClose, value, onApply, ageRanges,
         {amenities.length > 0 ? (
           <section className="dfs-sec">
             <h3 className="dfs-h">{t('filters.amenities')}</h3>
-            <div role="group" aria-label={t('filters.amenities')} className="dfs-chips">
+            <div role="group" aria-label={t('filters.amenities')} className="dfs-chips" {...pilot('city-filter.amenities', 'choice')}>
               {amenities.map((a) => chip(a.code, a.name ?? a.code, draft.amenities.includes(a.code), () => toggleAmenity(a.code), 'checkbox'))}
             </div>
           </section>
         ) : null}
         <section className="dfs-sec">
           <h3 className="dfs-h">{t('filters.sort')}</h3>
-          <div role="radiogroup" aria-label={t('filters.sort')} className="dfs-chips">
+          <div role="radiogroup" aria-label={t('filters.sort')} className="dfs-chips" {...pilot('city-filter.sort', 'choice')}>
             {sortOptions.map((s) => chip(s, t(`filters.sorts.${s}`), draft.sort === s, () => setDraft((d) => ({ ...d, sort: s })), 'radio'))}
           </div>
           {draft.sort === 'distance' && !nearReady ? <p className="dfs-note">{t('filters.distanceNote')}</p> : null}

@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 import { useCycleToday } from '@/entities/cycle';
 import { REPORT_DEFAULT_RANGE, REPORT_RANGES, useCycleReport } from '@/entities/analysis';
+import { pilot } from '@/shared/pilot';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber, fromApiDate, monthName, toParts } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
@@ -103,7 +104,7 @@ export function AnalysisCyclePage() {
           title={t('empty.title')}
           body={t('empty.body')}
           action={
-            <PrimaryButton icon="plus" block={false} onClick={() => openSheet('log')}>
+            <PrimaryButton icon="plus" block={false} onClick={() => openSheet('log')} {...pilot('analysis.log')}>
               {t('empty.cta')}
             </PrimaryButton>
           }

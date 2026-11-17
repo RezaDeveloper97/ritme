@@ -9,6 +9,7 @@ import {
   type CategoryTranslator,
   useArticles,
 } from '@/entities/article';
+import { pilot } from '@/shared/pilot';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { openSheet } from '@/shared/sheet';
 import { Icon } from '@/shared/ui';
@@ -71,6 +72,7 @@ export function ArticlesSheet() {
         <Icon name="search" size={18} stroke="var(--muted-2)" />
         <input
           type="search"
+          {...pilot('articles.search', 'text')}
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder={t('searchPlaceholder')}
@@ -155,6 +157,7 @@ export function ArticlesSheet() {
               type="button"
               className="btn btn-ghost ar-more"
               onClick={() => void query.fetchNextPage()}
+              {...pilot('articles.more')}
               disabled={query.isFetchingNextPage}
             >
               {query.isFetchingNextPage ? t('loading') : t('loadMore')}

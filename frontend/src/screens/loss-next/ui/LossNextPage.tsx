@@ -16,6 +16,7 @@ import {
 import { writeLifeModeHint } from '@/entities/user';
 import { getApiSaveErrorMessage } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import {
   EmptyState,
   type IconName,
@@ -64,7 +65,7 @@ export function LossNextPage() {
         icon="heart"
         title={t('loadError')}
         action={
-          <PrimaryButton icon="refresh" loading={state.isFetching} onClick={() => void state.refetch()}>
+          <PrimaryButton icon="refresh" loading={state.isFetching} onClick={() => void state.refetch()} {...pilot('loss.retry')}>
             {t('retry')}
           </PrimaryButton>
         }
@@ -135,7 +136,7 @@ function NextForm({ state }: { state: LossState }) {
         <p className="lnx-lead">{t('lead')}</p>
       </div>
 
-      <RadioCardGroup options={options} value={choice} onChange={setChoice} label={t('title')} />
+      <RadioCardGroup options={options} value={choice} onChange={setChoice} label={t('title')} pilot={pilot('loss.next-choice', 'choice')} />
 
       {state.recurrentHint ? <InfoNote className="lnx-note">{recurrent?.body ?? t('recurrentFallback')}</InfoNote> : null}
 
@@ -145,7 +146,7 @@ function NextForm({ state }: { state: LossState }) {
             {getApiSaveErrorMessage(save.error, tc('saveError'))}
           </p>
         ) : null}
-        <PrimaryButton loading={save.isPending} onClick={submit}>
+        <PrimaryButton loading={save.isPending} onClick={submit} {...pilot('loss.next-save')}>
           {t('save')}
         </PrimaryButton>
       </div>

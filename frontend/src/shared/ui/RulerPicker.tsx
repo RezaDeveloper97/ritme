@@ -4,6 +4,7 @@ import { useLocale } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
 import type { Locale } from '@/shared/i18n';
+import type { PilotAttrs } from '@/shared/pilot';
 import { formatNumber } from '@/shared/lib/date';
 
 interface RulerPickerProps {
@@ -13,10 +14,12 @@ interface RulerPickerProps {
   unit: string;
   onChange: (value: number) => void;
   toDisplay?: (v: number) => string;
+  /** Autopilot name: `pilot('…', 'ruler')` (frontend/CLAUDE.md §11.6). */
+  pilot?: PilotAttrs;
 }
 
 /** Vertical scroll-snap ruler for weight / height input (largest value on top). */
-export function RulerPicker({ min, max, value, unit, onChange, toDisplay }: RulerPickerProps) {
+export function RulerPicker({ min, max, value, unit, onChange, toDisplay, pilot }: RulerPickerProps) {
   const loc = useLocale() as Locale;
   const rulerRef = useRef<HTMLDivElement>(null);
   const TICK_H = 12;
@@ -74,7 +77,7 @@ export function RulerPicker({ min, max, value, unit, onChange, toDisplay }: Rule
       {/* dir is pinned so the tick column and the pointer stay on the same side in RTL. */}
       <div className="ruler-wrap" dir="ltr">
         <div className="rpoint" />
-        <div ref={rulerRef} className="ruler">
+        <div ref={rulerRef} className="ruler" data-pilot-min={min} data-pilot-max={max} {...pilot}>
           <div className="rpad" />
           {ticks}
           <div className="rpad" />

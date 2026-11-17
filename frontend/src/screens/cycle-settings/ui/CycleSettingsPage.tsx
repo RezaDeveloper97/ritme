@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useUserMode } from '@/entities/message';
 import { useLifeStage } from '@/entities/user';
 import { type Locale, useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { formatNumber } from '@/shared/lib/date';
 import {
   EmptyState,
@@ -140,6 +141,7 @@ function LengthsCard({ lengths, save }: { lengths: CycleLengths; save: Save }) {
           <Switch
             checked={lengths.auto}
             labelledBy="cys-auto-title"
+            pilot={pilot('cycle-settings.auto')}
             onCheckedChange={(next) =>
               save(
                 next
@@ -160,6 +162,7 @@ function LengthsCard({ lengths, save }: { lengths: CycleLengths; save: Save }) {
             min={CYCLE_RANGE.min}
             max={CYCLE_RANGE.max}
             onChange={(v) => change('cycle', v)}
+            pilot={pilot('cycle-settings.cycle-length', 'stepper')}
             decrementLabel={t('decrease', { what: t('cycleLength') })}
             incrementLabel={t('increase', { what: t('cycleLength') })}
             locale={loc}
@@ -171,6 +174,7 @@ function LengthsCard({ lengths, save }: { lengths: CycleLengths; save: Save }) {
             min={PERIOD_RANGE.min}
             max={PERIOD_RANGE.max}
             onChange={(v) => change('period', v)}
+            pilot={pilot('cycle-settings.period-length', 'stepper')}
             decrementLabel={t('decrease', { what: t('periodLength') })}
             incrementLabel={t('increase', { what: t('periodLength') })}
             locale={loc}
@@ -216,6 +220,7 @@ function ReminderEditor({ reminder, save, onDone }: { reminder: Reminder; save: 
           min={DAYS_BEFORE_RANGE.min}
           max={DAYS_BEFORE_RANGE.max}
           onChange={(v) => save({ reminders: { before_period: { days_before: v } } })}
+          pilot={pilot('cycle-settings.days-before', 'stepper')}
           decrementLabel={t('decrease', { what: t('reminders.daysBefore') })}
           incrementLabel={t('increase', { what: t('reminders.daysBefore') })}
           locale={loc}
@@ -226,6 +231,7 @@ function ReminderEditor({ reminder, save, onDone }: { reminder: Reminder; save: 
           <span className="cys-time-label">{t('reminders.time')}</span>
           <input
             type="time"
+            {...pilot(`cycle-settings.reminder-time:${reminder.code}`, 'text')}
             className="cys-time-input"
             defaultValue={reminder.time}
             onBlur={(e) => onTime(e.target.value)}
@@ -273,6 +279,7 @@ function RemindersCard({ reminders, save }: { reminders: Reminder[]; save: Save 
                   className="cys-sub"
                   aria-expanded={open}
                   aria-controls={`cys-edit-${r.code}`}
+                  {...pilot(`cycle-settings.reminder-edit:${r.code}`)}
                   aria-label={`${t('reminders.edit')} — ${sub}`}
                   onClick={() => setEditing(open ? null : r.code)}
                 >
@@ -284,6 +291,7 @@ function RemindersCard({ reminders, save }: { reminders: Reminder[]; save: Save 
                 <Switch
                   checked={r.enabled}
                   labelledBy={`cys-${r.code}-title`}
+                  pilot={pilot(`cycle-settings.reminder:${r.code}`)}
                   onCheckedChange={(next) => save({ reminders: { [r.code]: { enabled: next } } })}
                 />
               }
@@ -357,6 +365,7 @@ function ModesCard() {
             title={title}
             description={t('modes.switch')}
             onClick={() => router.push('/profile/mode')}
+            pilot={pilot(`cycle-settings.mode:${m.key}`)}
           />
         );
       })}

@@ -5,6 +5,7 @@ import { useId } from 'react';
 
 import { normalizeCompanionCode } from '../lib/code';
 import { COMPANION_CODE_LENGTH } from '../model/companion-side';
+import { pilot } from '@/shared/pilot';
 
 interface CompanionCodeFieldProps {
   value: string;
@@ -19,6 +20,8 @@ interface CompanionCodeFieldProps {
   disabled?: boolean;
   autoFocus?: boolean;
   className?: string;
+  /** Autopilot id of the input (`area.name`); unmarked when absent. */
+  pilotId?: string;
 }
 
 /**
@@ -37,6 +40,7 @@ export function CompanionCodeField({
   disabled,
   autoFocus,
   className,
+  pilotId,
 }: CompanionCodeFieldProps) {
   const id = useId();
   const chars = value.split('');
@@ -52,6 +56,7 @@ export function CompanionCodeField({
           if (e.key === 'Enter' && value.length === COMPANION_CODE_LENGTH) onSubmit?.();
         }}
         aria-label={label}
+        {...(pilotId ? pilot(pilotId, 'text') : {})}
         aria-describedby={describedBy}
         aria-invalid={invalid || undefined}
         inputMode="text"

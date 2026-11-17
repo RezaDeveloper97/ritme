@@ -5,6 +5,7 @@ import { useFormatter, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { useMounted } from '@/shared/lib/use-mounted';
 import {
   Card,
@@ -106,6 +107,7 @@ export function CycleSymptomsPage() {
               value={group}
               onChange={setGroup}
               panelId={(g) => `csp-panel-${g}`}
+              pilot={(g) => pilot(`cycle.group:${g}`)}
             />
             <div id={`csp-panel-${group}`} role="tabpanel" className="csp-panel">
               <GroupPanel data={data} items={data.groups[group]} />

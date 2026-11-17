@@ -3,6 +3,7 @@
 import { useRef, type KeyboardEvent, type ReactNode } from 'react';
 import { clsx } from 'clsx';
 
+import type { PilotAttrs } from '@/shared/pilot';
 import { useDirection } from '@/shared/i18n';
 
 import { Icon, type IconName } from '../Icon';
@@ -26,6 +27,8 @@ interface SegmentedTabsProps<V extends string> {
   /** `surface` track (log sheet) instead of the default `--surface-2`. */
   track?: 'default' | 'surface';
   className?: string;
+  /** Autopilot name per tab: `(value) => pilot(`…:${value}`)` (frontend/CLAUDE.md §11.6). */
+  pilot?: (value: V) => PilotAttrs;
 }
 
 /**
@@ -41,6 +44,7 @@ export function SegmentedTabs<V extends string>({
   panelId,
   track = 'default',
   className,
+  pilot,
 }: SegmentedTabsProps<V>) {
   const rtl = useDirection() === 'rtl';
   const refs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -84,6 +88,7 @@ export function SegmentedTabs<V extends string>({
             className="nb-seg-tab"
             onClick={() => (tab.disabled ? undefined : onChange(tab.value))}
             onKeyDown={(event) => onKeyDown(event, index)}
+            {...pilot?.(tab.value)}
           >
             {tab.icon ? <Icon name={tab.icon} size={16} /> : null}
             {tab.label}

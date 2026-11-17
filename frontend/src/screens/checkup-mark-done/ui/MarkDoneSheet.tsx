@@ -22,6 +22,7 @@ import {
 import { useCreateCheckupRecord, useUpdateCheckupRecord } from '@/features/record-checkup';
 import { getApiSaveErrorMessage } from '@/shared/api';
 import type { Locale } from '@/shared/i18n';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   type DateParts,
   diffInDays,
@@ -248,7 +249,7 @@ function MarkDoneForm({ detail, record }: { detail: CheckupDetail; record: Check
         <span className="cfm-label" id="ckm-date">
           {tm('date')}
         </span>
-        <button type="button" className="cfm-pick" aria-labelledby="ckm-date" onClick={() => openPicker('done')}>
+        <button type="button" className="cfm-pick" aria-labelledby="ckm-date" onClick={() => openPicker('done')} {...pilot('ckm.date')}>
           <span className="cfm-pick-v">{date(doneOn)}</span>
           <Icon name="calendar" size={18} />
         </button>
@@ -269,6 +270,7 @@ function MarkDoneForm({ detail, record }: { detail: CheckupDetail; record: Check
             role="radiogroup"
             aria-labelledby="ckm-kind"
             aria-required={detail.testKindRequired}
+            {...pilot('ckm.test-kind', 'choice')}
             className="grid grid-cols-3 gap-2"
           >
             {detail.testKinds.map((k) => (
@@ -277,6 +279,7 @@ function MarkDoneForm({ detail, record }: { detail: CheckupDetail; record: Check
                 type="button"
                 role="radio"
                 aria-checked={testKind === k}
+                {...pilotOption(k)}
                 className={clsx(
                   'rounded-2xl border-[1.5px] px-2 py-3 text-[12.5px] font-extrabold',
                   testKind === k
@@ -295,13 +298,14 @@ function MarkDoneForm({ detail, record }: { detail: CheckupDetail; record: Check
 
       <div className="flex flex-col gap-2">
         <span className="cfm-label">{tm('result')}</span>
-        <div role="radiogroup" aria-label={tm('result')} className="grid grid-cols-3 gap-2">
+        <div role="radiogroup" aria-label={tm('result')} className="grid grid-cols-3 gap-2" {...pilot('ckm.result', 'choice')}>
           {CHECKUP_RESULTS.map((r) => (
             <button
               key={r}
               type="button"
               role="radio"
               aria-checked={result === r}
+              {...pilotOption(r)}
               className={clsx(
                 `ck-result-${r}`,
                 'flex flex-col items-center gap-1.5 rounded-2xl border-[1.5px] px-2 py-3 text-[12.5px] font-extrabold',
@@ -391,6 +395,7 @@ function MarkDoneForm({ detail, record }: { detail: CheckupDetail; record: Check
             value={note}
             placeholder={tm('notePlaceholder')}
             onChange={(e) => setNote(e.target.value)}
+            {...pilot('ckm.note', 'text')}
           />
           <Icon name="note" size={18} className="mt-0.5 shrink-0" />
         </span>
@@ -407,6 +412,7 @@ function MarkDoneForm({ detail, record }: { detail: CheckupDetail; record: Check
             type="button"
             className="min-h-11 shrink-0 px-1 text-[12.5px] font-extrabold text-(--brand-strong)"
             onClick={() => openPicker('next')}
+            {...pilot('ckm.next')}
           >
             {tm('change')}
           </button>
@@ -419,7 +425,7 @@ function MarkDoneForm({ detail, record }: { detail: CheckupDetail; record: Check
         </p>
       )}
 
-      <PrimaryButton loading={saving} onClick={onSubmit}>
+      <PrimaryButton loading={saving} onClick={onSubmit} {...pilot('ckm.save')}>
         {saving ? t('custom.saving') : tm('submit')}
       </PrimaryButton>
 
@@ -433,13 +439,13 @@ function MarkDoneForm({ detail, record }: { detail: CheckupDetail; record: Check
             <SecondaryButton block={false} className="flex-1" onClick={() => setPicker(null)}>
               {t('custom.cancel')}
             </SecondaryButton>
-            <PrimaryButton block={false} className="flex-1" disabled={draftInvalid} onClick={confirmPicker}>
+            <PrimaryButton block={false} className="flex-1" disabled={draftInvalid} onClick={confirmPicker} {...pilot('ckm.date-done')}>
               {t('custom.done')}
             </PrimaryButton>
           </div>
         }
       >
-        <CalendarPicker value={draft} onSelect={setDraft} />
+        <CalendarPicker value={draft} onSelect={setDraft} pilot={pilot('ckm.calendar', 'calendar')} />
         {draft && draftInvalid && (
           <p role="alert" className="mt-2 text-start text-[12px] font-bold text-(--danger-deep)">
             {picker === 'done' ? tm('futureDate') : tm('nextBeforeDone')}

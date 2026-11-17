@@ -14,6 +14,7 @@ import {
 } from '@/entities/insurance';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, fromApiDate } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import {
   EmptyState,
   Icon,
@@ -115,7 +116,7 @@ function Body({ policy, onEdit }: { policy: InsurancePolicy; onEdit: () => void 
       </section>
 
       <InfoNote icon="lock">{t('selfTrack')}</InfoNote>
-      <SecondaryButton variant="text" icon="pencil" onClick={onEdit}>
+      <SecondaryButton variant="text" icon="pencil" onClick={onEdit} {...pilot('ins-coverage.edit')}>
         {t('edit')}
       </SecondaryButton>
     </>

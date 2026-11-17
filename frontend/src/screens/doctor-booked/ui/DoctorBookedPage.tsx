@@ -24,6 +24,7 @@ import { useCancelBooking, useRescheduleBooking, useUpdateConsent } from '@/feat
 import { getApiErrorStatus } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { Card, EmptyState, Icon, InfoNote, ListGroup, ListRow, PrimaryButton, ScreenHeader, SecondaryButton, SkyLayer, StatusPill, Switch } from '@/shared/ui';
 
 /**
@@ -88,9 +89,9 @@ export function DoctorBookedPage({ bookingId }: { bookingId: number }) {
         <>
           <ListGroup>
             {remindersOn ? (
-              <ListRow icon="calendar" iconTone="brand" title={t('booked.reminders')} onClick={() => router.push('/reminders')} />
+              <ListRow icon="calendar" iconTone="brand" title={t('booked.reminders')} onClick={() => router.push('/reminders')} pilot={pilot('doctor-booked.reminders')} />
             ) : null}
-            <ListRow icon="chat" iconTone="warm" title={t('booked.chat')} onClick={() => router.push(`/services/bookings/${b.id}/chat`)} />
+            <ListRow icon="chat" iconTone="warm" title={t('booked.chat')} onClick={() => router.push(`/services/bookings/${b.id}/chat`)} pilot={pilot('doctor-booked.chat')} />
           </ListGroup>
           {active && b.mode === 'video' ? (
             <Card className="dr-note-card">
@@ -104,7 +105,7 @@ export function DoctorBookedPage({ bookingId }: { bookingId: number }) {
       ) : (
         <InfoNote>{t(`booked.${b.status === 'held' ? 'heldNote' : 'closedNote'}`)}</InfoNote>
       )}
-      <PrimaryButton onClick={() => router.push('/home')}>{t('booked.home')}</PrimaryButton>
+      <PrimaryButton onClick={() => router.push('/home')} {...pilot('doctor-booked.home')}>{t('booked.home')}</PrimaryButton>
     </div>,
   );
 }
@@ -122,7 +123,7 @@ function ConsentCard({ booking }: { booking: Booking }) {
             <strong id={`bk-${s}`}>{t(`consent.${s}.title`)}</strong>
             <span>{t(`consent.${s}.hint`)}</span>
           </span>
-          <Switch checked={booking.consent[s] === true} disabled={update.isPending} onCheckedChange={(v) => update.mutate({ [s]: v })} labelledBy={`bk-${s}`} />
+          <Switch checked={booking.consent[s] === true} disabled={update.isPending} onCheckedChange={(v) => update.mutate({ [s]: v })} labelledBy={`bk-${s}`} pilot={pilot(`doctor-booked.consent:${s}`)} />
         </div>
       ))}
       {update.isError ? <p role="alert" className="dr-error">{errorText(update.error)}</p> : null}
@@ -146,7 +147,7 @@ function Manage({ booking }: { booking: Booking }) {
       <h2 className="dr-h2">{t('manage.title')}</h2>
       {panel === 'none' ? (
         <div className="dr-actions">
-          {booking.can_reschedule ? <SecondaryButton icon="calendar" onClick={() => setPanel('move')}>{t('manage.reschedule')}</SecondaryButton> : null}
+          {booking.can_reschedule ? <SecondaryButton icon="calendar" onClick={() => setPanel('move')} {...pilot('doctor-booked.reschedule')}>{t('manage.reschedule')}</SecondaryButton> : null}
           {booking.can_cancel ? <SecondaryButton icon="x" onClick={() => setPanel('cancel')}>{t('manage.cancel')}</SecondaryButton> : null}
           {!booking.can_cancel && !booking.can_reschedule ? <p className="dr-fine">{t('errors.cancel_window_closed')}</p> : null}
         </div>
@@ -165,6 +166,7 @@ function Manage({ booking }: { booking: Booking }) {
           <SlotPicker doctorId={booking.doctor.id} mode={booking.mode} value={slot} onChange={setSlot} />
           <PrimaryButton
             disabled={!slot}
+            {...pilot('doctor-booked.move-confirm')}
             loading={reschedule.isPending}
             onClick={() => slot && reschedule.mutate(startsAtParam(slot.date, slot.time), { onSuccess: () => { setPanel('none'); setSlot(null); } })}
           >

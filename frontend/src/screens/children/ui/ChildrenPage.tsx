@@ -7,6 +7,7 @@ import { useLifeStage } from '@/entities/user';
 import { Link, type Locale, useDirection, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { pilot } from '@/shared/pilot';
 import {
   Card,
   EmptyState,
@@ -28,7 +29,7 @@ function ChildRow({ child, t }: { child: Child; t: T }) {
   const rtl = useDirection() === 'rtl';
   return (
     <li>
-      <Link href={`/children/${child.id}`} className="nb-card chd-row" aria-label={t('list.open', { name: child.name })}>
+      <Link href={`/children/${child.id}`} className="nb-card chd-row" aria-label={t('list.open', { name: child.name })} {...pilot(`child.open:${child.id}`)}>
         <ChildAvatar id={child.id} name={child.name} initial={child.initial} sex={child.sex} size={60} />
         <span className="chd-row-text">
           <span className="chd-row-head">
@@ -81,7 +82,7 @@ export function ChildrenPage() {
       <Card className="chd-state" role="alert">
         <IconCircle icon="warning" tone="danger" size="lg" />
         <p className="chd-state-text">{t('common.loadError')}</p>
-        <SecondaryButton icon="refresh" block={false} loading={query.isFetching} onClick={() => void query.refetch()}>
+        <SecondaryButton icon="refresh" block={false} loading={query.isFetching} onClick={() => void query.refetch()} {...pilot('child.retry')}>
           {t('common.retry')}
         </SecondaryButton>
       </Card>
@@ -96,7 +97,7 @@ export function ChildrenPage() {
         body={t('list.emptyBody')}
         action={
           canAdd ? (
-            <PrimaryButton icon="plus" onClick={add}>
+            <PrimaryButton icon="plus" onClick={add} {...pilot('child.add')}>
               {t('list.add')}
             </PrimaryButton>
           ) : undefined
@@ -138,7 +139,7 @@ export function ChildrenPage() {
           subtitle={data && count > 0 ? t('list.count', { count: formatNumber(count, locale) }) : undefined}
           onBack={() => router.push(backTo)}
           backLabel={t('common.back')}
-          action={canAdd ? <HeaderButton icon="plus" label={t('list.add')} onClick={add} /> : undefined}
+          action={canAdd ? <HeaderButton icon="plus" label={t('list.add')} onClick={add} pilot={pilot('child.add')} /> : undefined}
         />
         <div className="chd-body">{body}</div>
       </div>

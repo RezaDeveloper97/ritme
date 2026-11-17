@@ -11,6 +11,7 @@ import {
 } from '@/entities/insurance';
 import type { Locale } from '@/shared/i18n';
 import { type DateParts, formatLongDate, fromApiDate, partsToDate, toApiDate, toParts } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import {
   CalendarPicker,
@@ -50,13 +51,13 @@ function DateSheet({ value, title, onClose, onPick }: { value: string | null; ti
           <SecondaryButton block={false} onClick={onClose}>
             {t('cancel')}
           </SecondaryButton>
-          <PrimaryButton block={false} disabled={!parts} onClick={() => parts && onPick(toApiDate(partsToDate(parts, locale)))}>
+          <PrimaryButton block={false} disabled={!parts} onClick={() => parts && onPick(toApiDate(partsToDate(parts, locale)))} {...pilot('ins-setup.date-done')}>
             {t('done')}
           </PrimaryButton>
         </div>
       }
     >
-      <CalendarPicker value={parts} onSelect={setParts} />
+      <CalendarPicker value={parts} onSelect={setParts} pilot={pilot('ins-setup.calendar', 'calendar')} />
     </AppSheet>
   );
 }
@@ -95,17 +96,18 @@ export function PolicySetup({ policy, onDone, onShowInfo }: { policy: InsuranceP
         <h2 id="ins-f-insurer" className="ins-h">
           {t('setup.insurer')}
         </h2>
-        <div className="ins-chips">
+        <div className="ins-chips" {...pilot('ins-setup.insurer', 'choice')}>
           {(insurers.data ?? []).map((i) => (
             <PillChip
               key={i.id}
               pressed={!draft.custom && draft.insurerId === i.id}
+              {...pilotOption(String(i.id))}
               onPressedChange={() => patch({ insurerId: i.id, custom: false })}
             >
               {i.name}
             </PillChip>
           ))}
-          <PillChip pressed={draft.custom} onPressedChange={() => patch({ insurerId: null, custom: true })}>
+          <PillChip pressed={draft.custom} onPressedChange={() => patch({ insurerId: null, custom: true })} {...pilotOption('other')}>
             {t('setup.insurerOther')}
           </PillChip>
         </div>
@@ -118,6 +120,7 @@ export function PolicySetup({ policy, onDone, onShowInfo }: { policy: InsuranceP
               maxLength={120}
               autoComplete="off"
               onChange={(e) => patch({ insurerName: e.target.value, custom: true, insurerId: null })}
+              {...pilot('ins-setup.insurer-name', 'text')}
             />
           </label>
         ) : null}
@@ -128,7 +131,7 @@ export function PolicySetup({ policy, onDone, onShowInfo }: { policy: InsuranceP
         ) : null}
         <label className="fld-label">
           <span className="fld-label-t">{t('setup.plan')}</span>
-          <input className="field fld-input" value={draft.planName} maxLength={120} autoComplete="off" onChange={(e) => patch({ planName: e.target.value })} />
+          <input className="field fld-input" value={draft.planName} maxLength={120} autoComplete="off" onChange={(e) => patch({ planName: e.target.value })} {...pilot('ins-setup.plan', 'text')} />
         </label>
         <label className="fld-label">
           <span className="fld-label-t">{t('setup.number')}</span>
@@ -139,6 +142,7 @@ export function PolicySetup({ policy, onDone, onShowInfo }: { policy: InsuranceP
             inputMode="numeric"
             autoComplete="off"
             onChange={(e) => patch({ policyNumber: e.target.value })}
+            {...pilot('ins-setup.number', 'text')}
           />
           <span className="ins-hint">{policy?.numberLast4 ? t('setup.numberKept') : t('setup.numberHint')}</span>
         </label>
@@ -150,7 +154,7 @@ export function PolicySetup({ policy, onDone, onShowInfo }: { policy: InsuranceP
         </h2>
         <div className="ins-dates">
           {(['validFrom', 'validTo'] as const).map((field) => (
-            <button key={field} type="button" className="ins-date" onClick={() => setPicker(field)}>
+            <button key={field} type="button" className="ins-date" onClick={() => setPicker(field)} {...pilot(`ins-setup.date:${field}`)}>
               <span className="ins-date-l">{t(field === 'validFrom' ? 'setup.validFrom' : 'setup.validTo')}</span>
               <span className="ins-date-v">
                 <Icon name="calendar" size={16} />
@@ -169,6 +173,7 @@ export function PolicySetup({ policy, onDone, onShowInfo }: { policy: InsuranceP
           locale={locale}
           value={draft.claimDeadlineDays}
           max={365}
+          pilot={pilot('ins-setup.deadline')}
           onChange={(v) => patch({ claimDeadlineDays: v === undefined ? undefined : Math.min(365, v) })}
         />
       </section>
@@ -179,11 +184,12 @@ export function PolicySetup({ policy, onDone, onShowInfo }: { policy: InsuranceP
         </h2>
         {draft.members.map((m, i) => (
           <div key={m.id ?? `new-${i}`} className="ins-member">
-            <div className="ins-chips">
+            <div className="ins-chips" {...pilot(`ins-setup.member-kind:${i}`, 'choice')}>
               {MEMBER_KINDS.map((k) => (
                 <PillChip
                   key={k}
                   pressed={m.kind === k}
+                  {...pilotOption(k)}
                   onPressedChange={() => patch({ members: draft.members.map((x, j) => (j === i ? { ...x, kind: k } : x)) })}
                 >
                   {t(`setup.memberKinds.${k}`)}
@@ -199,6 +205,7 @@ export function PolicySetup({ policy, onDone, onShowInfo }: { policy: InsuranceP
                   maxLength={64}
                   autoComplete="off"
                   onChange={(e) => patch({ members: draft.members.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)) })}
+                  {...pilot(`ins-setup.member-name:${i}`, 'text')}
                 />
               </label>
               {draft.members.length > 1 ? (
@@ -215,7 +222,7 @@ export function PolicySetup({ policy, onDone, onShowInfo }: { policy: InsuranceP
           </p>
         ) : null}
         {draft.members.length < MAX_MEMBERS ? (
-          <SecondaryButton icon="plus" variant="text" block={false} onClick={() => patch({ members: [...draft.members, { kind: 'spouse', name: '' }] })}>
+          <SecondaryButton icon="plus" variant="text" block={false} onClick={() => patch({ members: [...draft.members, { kind: 'spouse', name: '' }] })} {...pilot('ins-setup.member-add')}>
             {t('setup.addMember')}
           </SecondaryButton>
         ) : null}
@@ -232,10 +239,10 @@ export function PolicySetup({ policy, onDone, onShowInfo }: { policy: InsuranceP
             <fieldset key={category} className="ins-cov">
               <legend className="ins-cov-t">{t(`categories.${categoryKey(category)}`)}</legend>
               <div className="ins-cov-fields">
-                <LocaleNumberField label={t('setup.cap')} locale={locale} value={c.capMillions} max={99999} onChange={(v) => patchCoverage(category, { capMillions: v })} />
-                <LocaleNumberField label={t('setup.deductible')} locale={locale} value={c.deductiblePct} max={100} onChange={(v) => patchCoverage(category, { deductiblePct: v === undefined ? undefined : Math.min(100, v) })} />
+                <LocaleNumberField label={t('setup.cap')} locale={locale} value={c.capMillions} max={99999} pilot={pilot(`ins-setup.cap:${category}`)} onChange={(v) => patchCoverage(category, { capMillions: v })} />
+                <LocaleNumberField label={t('setup.deductible')} locale={locale} value={c.deductiblePct} max={100} pilot={pilot(`ins-setup.deductible:${category}`)} onChange={(v) => patchCoverage(category, { deductiblePct: v === undefined ? undefined : Math.min(100, v) })} />
                 {category === 'delivery' ? (
-                  <LocaleNumberField label={t('setup.waiting')} locale={locale} value={c.waitingMonths} max={36} onChange={(v) => patchCoverage(category, { waitingMonths: v === undefined ? undefined : Math.min(36, v) })} />
+                  <LocaleNumberField label={t('setup.waiting')} locale={locale} value={c.waitingMonths} max={36} pilot={pilot(`ins-setup.waiting:${category}`)} onChange={(v) => patchCoverage(category, { waitingMonths: v === undefined ? undefined : Math.min(36, v) })} />
                 ) : null}
               </div>
             </fieldset>
@@ -249,7 +256,7 @@ export function PolicySetup({ policy, onDone, onShowInfo }: { policy: InsuranceP
           {t('setup.saveError')}
         </p>
       ) : null}
-      <PrimaryButton loading={save.isPending} onClick={submit}>
+      <PrimaryButton loading={save.isPending} onClick={submit} {...pilot('ins-setup.save')}>
         {t('setup.save')}
       </PrimaryButton>
       {policy ? (

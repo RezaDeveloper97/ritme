@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 
 import { defaultPack, formatCredits, useAiCredits, useCreditPacks } from '@/entities/ai-credit';
 import { formatToman } from '@/entities/plus';
+import { pilot } from '@/shared/pilot';
 import { useBillingChannel } from '@/shared/billing';
 import { useRouter, type Locale } from '@/shared/i18n';
 import {
@@ -75,6 +76,7 @@ export function CreditsBuyPage() {
         <p className="cr-lead">{t('buy.lead')}</p>
         <RadioCardGroup
           label={t('buy.groupLabel')}
+          pilot={pilot('credits.pack', 'choice')}
           value={chosen}
           onChange={setPicked}
           options={packs.data.packs.map((p) => ({
@@ -97,7 +99,7 @@ export function CreditsBuyPage() {
         {credits.data && !credits.data.canUse ? (
           <InfoNote>
             {t('buy.noSubscription')}{' '}
-            <SecondaryButton block={false} variant="text" onClick={() => router.push('/plus')}>
+            <SecondaryButton block={false} variant="text" onClick={() => router.push('/plus')} {...pilot('credits.open:plus')}>
               {t('buy.noSubscriptionCta')}
             </SecondaryButton>
           </InfoNote>

@@ -16,6 +16,7 @@ import {
   useAppLock,
 } from '@/features/app-lock';
 import { DeleteAccountConfirm, useExportData, useExportPdf } from '@/features/manage-account';
+import { pilot } from '@/shared/pilot';
 import { type Locale, useDirection, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatLongDate, formatNumber, today } from '@/shared/lib/date';
 import {
@@ -208,6 +209,7 @@ function HideSection() {
               checked={discreet.data ?? true}
               disabled={discreet.data === undefined}
               labelledBy="prv-discreet-title"
+              pilot={pilot('privacy.discreet')}
               onCheckedChange={(next) => setDiscreet.mutate(next)}
             />
           }
@@ -283,6 +285,7 @@ function ConsentSection() {
           <Switch
             checked={c.granted}
             labelledBy={`prv-c-${c.code}-title`}
+            pilot={pilot(`privacy.consent:${c.code}`)}
             onCheckedChange={(granted) => update.mutate({ code: c.code, granted, version: c.version })}
           />
         }
@@ -338,7 +341,7 @@ function CompanionRowsList() {
         iconTone="data"
         title={t('access.companion')}
         description={query.isError ? tc('privacy.error') : t('access.companionSub')}
-        onClick={() => router.push('/companions')}
+        onClick={() => router.push('/companions')} pilot={pilot('privacy.open:companions')}
       />
     );
   }
@@ -364,7 +367,7 @@ function CompanionRowsList() {
         title={tc('privacy.manage')}
         description={pending > 0 ? tc('privacy.pending', { count: pending }) : undefined}
         value={pending > 0 ? undefined : formatNumber(companions.length, loc)}
-        onClick={() => router.push('/companions')}
+        onClick={() => router.push('/companions')} pilot={pilot('privacy.open:companions-footer')}
       />
     </>
   );
@@ -429,13 +432,14 @@ export function PrivacyPage() {
               title={t('mine.export')}
               description={exporting ? t('mine.exporting') : t('mine.exportSub')}
               onClick={() => setExportOpen((v) => !v)}
+              pilot={pilot('privacy.export')}
             />
             {exportOpen ? (
               <div className="prv-export">
-                <button type="button" className="prv-export-btn" disabled={exporting} onClick={() => json.exportData()}>
+                <button type="button" className="prv-export-btn" disabled={exporting} onClick={() => json.exportData()} {...pilot('privacy.export-json')}>
                   {t('mine.exportJson')}
                 </button>
-                <button type="button" className="prv-export-btn" disabled={exporting} onClick={exportPdf}>
+                <button type="button" className="prv-export-btn" disabled={exporting} onClick={exportPdf} {...pilot('privacy.export-pdf')}>
                   {t('mine.exportPdf')}
                 </button>
               </div>

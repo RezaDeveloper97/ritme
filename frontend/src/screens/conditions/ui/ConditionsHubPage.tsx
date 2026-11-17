@@ -14,6 +14,7 @@ import {
 } from '@/entities/condition';
 import { PELVIC_PATH } from '@/entities/pelvic';
 import { Link, useDirection, useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import {
   EmptyState,
   Icon,
@@ -124,6 +125,7 @@ function ProgramCardButton({ card, onOpen }: { card: ProgramCard; onOpen: () => 
       aria-haspopup="dialog"
       aria-label={t('hub.openLabel', { title, state: t(card.enrolled ? 'hub.stateActive' : 'hub.stateInactive') })}
       onClick={onOpen}
+      {...pilot(`programs.card:${card.code}`)}
     >
       <span className="cnd-card-head">
         <IconCircle icon={look.icon} tone={look.tone} size="lg" />
@@ -150,7 +152,7 @@ function PelvicCard() {
   const rtl = useDirection() === 'rtl';
   const title = t('pelvicCard.title');
   return (
-    <Link href={PELVIC_PATH} className="nb-card cnd-card" aria-label={t('pelvicCard.openLabel', { title })}>
+    <Link href={PELVIC_PATH} className="nb-card cnd-card" aria-label={t('pelvicCard.openLabel', { title })} {...pilot('programs.pelvic-card')}>
       <span className="cnd-card-head">
         <IconCircle icon="target" tone="data" size="lg" />
         <span className="cnd-card-titles">

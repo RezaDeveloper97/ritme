@@ -21,6 +21,7 @@ import {
 import { getApiSaveErrorMessage } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber, toApiDate, today } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   Card,
   ChipGroup,
@@ -122,7 +123,7 @@ function JoinCard() {
             {getApiSaveErrorMessage(enrol.error, t('join.error'))}
           </p>
         ) : null}
-        <PrimaryButton loading={enrol.isPending} onClick={() => enrol.mutate('heavy_bleeding')}>
+        <PrimaryButton loading={enrol.isPending} onClick={() => enrol.mutate('heavy_bleeding')} {...pilot('programs.bleeding-join')}>
           {t('join.action')}
         </PrimaryButton>
       </Card>
@@ -177,13 +178,14 @@ function ChartForm({ day, onSaved }: { day: PbacDay; onSaved: () => void }) {
             <h2 id={clotsId} className="cnb-label">
               {t('clots.title')}
             </h2>
-            <ChipGroup label={t('clots.title')}>
+            <ChipGroup label={t('clots.title')} pilot={pilot('programs.pbac-clots', 'choice')}>
               {PBAC_CLOTS.map((clot) => (
                 <PillChip
                   key={clot}
                   mode="multi"
                   tone="period"
                   pressed={entry.clots === clot}
+                  {...pilotOption(clot)}
                   onPressedChange={(on) => edit({ clots: on ? clot : null })}
                 >
                   {t(`clots.${clot}`)}
@@ -195,7 +197,7 @@ function ChartForm({ day, onSaved }: { day: PbacDay; onSaved: () => void }) {
             <span id={floodId} className="cnb-label">
               {t('flooding')}
             </span>
-            <Switch checked={entry.flooding} onCheckedChange={(flooding) => edit({ flooding })} labelledBy={floodId} />
+            <Switch checked={entry.flooding} onCheckedChange={(flooding) => edit({ flooding })} labelledBy={floodId} pilot={pilot('programs.pbac-flooding')} />
           </div>
         </Card>
 
@@ -221,7 +223,7 @@ function ChartForm({ day, onSaved }: { day: PbacDay; onSaved: () => void }) {
             {getApiSaveErrorMessage(save.error, t('saveError'))}
           </p>
         ) : null}
-        <PrimaryButton loading={save.isPending} disabled={!dirty} onClick={submit}>
+        <PrimaryButton loading={save.isPending} disabled={!dirty} onClick={submit} {...pilot('programs.pbac-save')}>
           {t('save')}
         </PrimaryButton>
       </div>
@@ -249,6 +251,7 @@ function PadRow({ level, value, onChange }: { level: PbacLevel; value: number; o
         decrementLabel={t('decrement', { label })}
         incrementLabel={t('increment', { label })}
         locale={locale}
+        pilot={pilot(`programs.pbac-pads:${level}`, 'stepper')}
       />
     </div>
   );

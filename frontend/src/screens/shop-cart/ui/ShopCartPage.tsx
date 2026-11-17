@@ -17,6 +17,7 @@ import {
 import { getApiErrorStatus } from '@/shared/api';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { Card, EmptyState, Icon, PrimaryButton, ScreenHeader, SecondaryButton, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
 const MAX_QTY = 10;
@@ -40,7 +41,7 @@ function Line({ line, price }: { line: ShopCartLine; price: (n: number) => strin
         )}
       </Link>
       <div className="shcart-main">
-        <Link href={`/shop/product/${line.product_id}`} className="shcart-title">
+        <Link href={`/shop/product/${line.product_id}`} className="shcart-title" {...pilot(`shop-cart.product:${line.variant_id}`)}>
           {line.title}
         </Link>
         {line.variant_label ? <span className="shcart-variant">{line.variant_label}</span> : null}
@@ -57,6 +58,7 @@ function Line({ line, price }: { line: ShopCartLine; price: (n: number) => strin
           className="shcart-step"
           disabled={busy}
           aria-label={line.quantity <= 1 ? t('cart.remove', { title: line.title }) : t('cart.dec')}
+          {...(line.quantity > 1 ? pilot(`shop-cart.dec:${line.variant_id}`) : {})}
           onClick={() => (line.quantity <= 1 ? remove.mutate(line.variant_id) : setQty.mutate({ variantId: line.variant_id, quantity: line.quantity - 1 }))}
         >
           <Icon name={line.quantity <= 1 ? 'trash' : 'minus'} size={16} />
@@ -69,6 +71,7 @@ function Line({ line, price }: { line: ShopCartLine; price: (n: number) => strin
           className="shcart-step"
           disabled={busy || line.quantity >= MAX_QTY || out}
           aria-label={t('cart.inc')}
+          {...pilot(`shop-cart.inc:${line.variant_id}`)}
           onClick={() => setQty.mutate({ variantId: line.variant_id, quantity: line.quantity + 1 })}
         >
           <Icon name="plus" size={16} />
@@ -93,7 +96,7 @@ function DiscountBox({ code, error }: { code: string | null; error: string | nul
             {t(`errors.${shopCodeKey(error)}`)}
           </p>
         ) : null}
-        <SecondaryButton variant="text" loading={remove.isPending} onClick={() => remove.mutate()}>
+        <SecondaryButton variant="text" loading={remove.isPending} onClick={() => remove.mutate()} {...pilot('shop-cart.discount-remove')}>
           {t('cart.discountRemove')}
         </SecondaryButton>
       </Card>
@@ -114,9 +117,10 @@ function DiscountBox({ code, error }: { code: string | null; error: string | nul
             autoComplete="off"
             placeholder={t('cart.discountPlaceholder')}
             onChange={(e) => setValue(e.target.value)}
+            {...pilot('shop-cart.discount-code', 'text')}
           />
         </div>
-        <SecondaryButton loading={apply.isPending} disabled={!value.trim()} onClick={() => apply.mutate(value.trim(), { onSuccess: () => setValue('') })}>
+        <SecondaryButton loading={apply.isPending} disabled={!value.trim()} {...pilot('shop-cart.discount-apply')} onClick={() => apply.mutate(value.trim(), { onSuccess: () => setValue('') })}>
           {t('cart.discountApply')}
         </SecondaryButton>
       </div>
@@ -259,7 +263,7 @@ export function ShopCartPage() {
           <div className="shp-buy-info">
             <span className="shp-buy-variant">{t('cart.total', { amount: price(cart.payable_total) })}</span>
           </div>
-          <PrimaryButton disabled={!canContinue} onClick={() => router.push('/shop/checkout')}>
+          <PrimaryButton disabled={!canContinue} onClick={() => router.push('/shop/checkout')} {...pilot('shop-cart.continue')}>
             {t('cart.continue')}
           </PrimaryButton>
         </div>

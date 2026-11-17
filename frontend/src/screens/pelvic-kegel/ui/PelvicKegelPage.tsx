@@ -7,6 +7,7 @@ import { useRef, useState } from 'react';
 import { PELVIC_PATH, type PelvicLevel, usePelvic, useSavePelvicSession } from '@/entities/pelvic';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import {
   CountdownRing,
   EmptyState,
@@ -157,11 +158,11 @@ function Trainer({ level }: { level: PelvicLevel }) {
           </p>
 
           {status === 'ready' ? (
-            <button type="button" className="pkg-round" onClick={begin}>
+            <button type="button" className="pkg-round" onClick={begin} {...pilot('pelvic.kegel-begin')}>
               {t('begin')}
             </button>
           ) : status === 'running' ? (
-            <button type="button" className="pkg-round" onClick={stop}>
+            <button type="button" className="pkg-round" onClick={stop} {...pilot('pelvic.kegel-stop')}>
               {t('stop')}
             </button>
           ) : (
@@ -176,7 +177,7 @@ function Trainer({ level }: { level: PelvicLevel }) {
                   {t('retrySave')}
                 </SecondaryButton>
               ) : null}
-              <PrimaryButton loading={save.isPending} onClick={() => router.push(PELVIC_PATH)}>
+              <PrimaryButton loading={save.isPending} onClick={() => router.push(PELVIC_PATH)} {...pilot('pelvic.kegel-done')}>
                 {save.isPending ? t('saving') : t('backToPlan')}
               </PrimaryButton>
             </div>

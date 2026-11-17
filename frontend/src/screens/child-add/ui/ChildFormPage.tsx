@@ -31,6 +31,7 @@ import { usePostpartum } from '@/entities/postpartum';
 import { useLifeStage } from '@/entities/user';
 import { getApiErrorCode, getApiErrorMessage, getApiSaveErrorMessage } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   type DateParts,
   formatDecimal,
@@ -245,6 +246,7 @@ function ChildForm({
 
       <Card as="section" className="chd-fields">
         <TextRow
+          pilotId="child.form-name"
           label={t('form.name')}
           icon="user"
           value={form.name}
@@ -264,6 +266,7 @@ function ChildForm({
             aria-expanded={dateOpen}
             aria-labelledby="chd-birth-label chd-birth-value"
             onClick={() => setDateOpen((o) => !o)}
+            {...pilot('child.form-birth-open')}
           >
             <span id="chd-birth-value" className={clsx('chd-date-value', !form.birthDate && 'is-empty')}>
               {form.birthDate ? formatLongDate(fromApiDate(form.birthDate), locale) : t('form.pickDate')}
@@ -274,6 +277,7 @@ function ChildForm({
             <CalendarPicker
               value={form.birthDate ? toParts(fromApiDate(form.birthDate), locale) : null}
               onSelect={onPick}
+              pilot={pilot('child.form-birth', 'calendar')}
             />
           ) : null}
           {errorText('birthDate') ? (
@@ -284,6 +288,7 @@ function ChildForm({
         </div>
 
         <ChoiceRow<ChildSex>
+          pilotId="child.form-sex"
           label={t('form.sex')}
           options={CHILD_SEXES}
           value={form.sex}
@@ -294,6 +299,7 @@ function ChildForm({
 
         <div className="chd-grid2">
           <DecimalRow
+            pilotId="child.form-weight"
             label={t('form.birthWeight')}
             unit={t('form.kg')}
             value={form.weightKg}
@@ -302,6 +308,7 @@ function ChildForm({
             onChange={(v) => set('weightKg', v)}
           />
           <DecimalRow
+            pilotId="child.form-length"
             label={t('form.birthLength')}
             unit={t('form.cm')}
             value={form.lengthCm}
@@ -310,6 +317,7 @@ function ChildForm({
             onChange={(v) => set('lengthCm', v)}
           />
           <DecimalRow
+            pilotId="child.form-head"
             label={t('form.birthHead')}
             unit={t('form.cm')}
             value={form.headCm}
@@ -320,6 +328,7 @@ function ChildForm({
         </div>
 
         <ChoiceRow<ChildDeliveryType>
+          pilotId="child.form-delivery"
           label={t('form.delivery')}
           hint={t('form.deliveryHint')}
           options={CHILD_DELIVERY_TYPES}
@@ -340,7 +349,7 @@ function ChildForm({
           {limitError ?? getApiSaveErrorMessage(mutation.error, t('form.saveError'))}
         </p>
       )}
-      <PrimaryButton loading={mutation.isPending} onClick={submit}>
+      <PrimaryButton loading={mutation.isPending} onClick={submit} {...pilot('child.form-save')}>
         {editing ? t('form.save') : t('form.submit')}
       </PrimaryButton>
 
@@ -483,6 +492,7 @@ function photoErrorText(code: LocalPhotoError, t: T): string {
 
 // ── Field rows ─────────────────────────────────────────────────
 function TextRow({
+  pilotId,
   label,
   icon,
   value,
@@ -491,6 +501,7 @@ function TextRow({
   error,
   onChange,
 }: {
+  pilotId: string;
   label: string;
   icon: 'user';
   value: string;
@@ -509,6 +520,7 @@ function TextRow({
         <Icon name={icon} size={18} className="chd-input-icon" />
         <input
           id={id}
+          {...pilot(pilotId, 'text')}
           value={value}
           placeholder={placeholder}
           maxLength={maxLength}
@@ -528,6 +540,7 @@ function TextRow({
 }
 
 function DecimalRow({
+  pilotId,
   label,
   unit,
   value,
@@ -535,6 +548,7 @@ function DecimalRow({
   error,
   onChange,
 }: {
+  pilotId: string;
   label: string;
   unit: string;
   value: string;
@@ -554,6 +568,7 @@ function DecimalRow({
       <div className={clsx('chd-input', error && 'is-invalid')}>
         <input
           id={id}
+          {...pilot(pilotId, 'text')}
           type="text"
           inputMode="decimal"
           autoComplete="off"
@@ -574,6 +589,7 @@ function DecimalRow({
 }
 
 function ChoiceRow<V extends string>({
+  pilotId,
   label,
   hint,
   options,
@@ -582,6 +598,7 @@ function ChoiceRow<V extends string>({
   noneLabel,
   onChange,
 }: {
+  pilotId: string;
   label: string;
   hint?: string;
   options: readonly V[];
@@ -594,13 +611,13 @@ function ChoiceRow<V extends string>({
     <div className="chd-field">
       <span className="chd-label">{label}</span>
       {hint ? <span className="chd-hint">{hint}</span> : null}
-      <ChipGroup label={label}>
+      <ChipGroup label={label} pilot={pilot(pilotId, 'choice')}>
         {options.map((o) => (
-          <PillChip key={o} pressed={value === o} onPressedChange={() => onChange(o)}>
+          <PillChip key={o} {...pilotOption(o)} pressed={value === o} onPressedChange={() => onChange(o)}>
             {optionLabel(o)}
           </PillChip>
         ))}
-        <PillChip pressed={value === null} onPressedChange={() => onChange(null)}>
+        <PillChip {...pilotOption('none')} pressed={value === null} onPressedChange={() => onChange(null)}>
           {noneLabel}
         </PillChip>
       </ChipGroup>

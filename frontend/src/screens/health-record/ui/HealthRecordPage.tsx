@@ -40,6 +40,7 @@ import {
   type Tone,
 } from '@/shared/ui';
 import type { IconName } from '@/shared/ui';
+import { pilot } from '@/shared/pilot';
 
 import { births, medicationSchedule, regularityKey } from '../model/format';
 import { AllergiesSheet, BasicsSheet, ConditionsSheet, PregnanciesSheet } from './RecordSheets';
@@ -97,7 +98,7 @@ export function HealthRecordPage() {
         />
         {body}
         <div className="hrec-footer">
-          <PrimaryButton icon="fileDoc" onClick={() => router.push('/record/export')}>
+          <PrimaryButton icon="fileDoc" onClick={() => router.push('/record/export')} {...pilot('hrec.report')}>
             {t('report.cta')}
           </PrimaryButton>
         </div>
@@ -220,10 +221,12 @@ interface SectionCardProps {
   onEdit?: () => void;
   /** A text action instead of «ویرایش» (e.g. «علائم حیاتی» → /vitals). */
   action?: { label: string; onClick: () => void };
+  /** Autopilot name of the edit / action button (frontend/CLAUDE.md §11.6). */
+  pilotId?: string;
   children: ReactNode;
 }
 
-function SectionCard({ icon, tone, title, onEdit, action, children }: SectionCardProps) {
+function SectionCard({ icon, tone, title, onEdit, action, pilotId, children }: SectionCardProps) {
   const t = useTranslations('healthRecord');
   const id = useId();
   const link = onEdit ? { label: t('edit'), onClick: onEdit, aria: t('editSection', { section: title }) } : action ? { ...action, aria: action.label } : null;
@@ -235,7 +238,7 @@ function SectionCard({ icon, tone, title, onEdit, action, children }: SectionCar
           {title}
         </h2>
         {link ? (
-          <button type="button" className="hrec-edit" onClick={link.onClick} aria-label={link.aria}>
+          <button type="button" className="hrec-edit" onClick={link.onClick} aria-label={link.aria} {...(pilotId ? pilot(pilotId) : null)}>
             {link.label}
           </button>
         ) : null}
@@ -255,7 +258,7 @@ function Tile({ label, value, sub }: { label: string; value: ReactNode; sub?: Re
   );
 }
 
-function Row({ label, value, onClick }: { label: ReactNode; value?: ReactNode; onClick?: () => void }) {
+function Row({ label, value, onClick, pilotId }: { label: ReactNode; value?: ReactNode; onClick?: () => void; pilotId?: string }) {
   const content = (
     <>
       <span className="hrec-row-label">{label}</span>
@@ -263,7 +266,7 @@ function Row({ label, value, onClick }: { label: ReactNode; value?: ReactNode; o
     </>
   );
   return onClick ? (
-    <button type="button" className="hrec-row is-action" onClick={onClick}>
+    <button type="button" className="hrec-row is-action" onClick={onClick} {...(pilotId ? pilot(pilotId) : null)}>
       {content}
     </button>
   ) : (
@@ -283,7 +286,7 @@ function BasicsCard({ record, onEdit }: { record: HealthRecord; onEdit: () => vo
   const b = record.basics.data;
   const dash = t('notSet');
   return (
-    <SectionCard icon="user" tone="brand" title={t('sections.basics')} onEdit={record.basics.editable ? onEdit : undefined}>
+    <SectionCard icon="user" tone="brand" title={t('sections.basics')} onEdit={record.basics.editable ? onEdit : undefined} pilotId="hrec.edit:basics">
       <div className="hrec-tiles">
         <Tile label={t('basics.height')} value={b.heightCm !== null ? t('basics.heightValue', { value: formatNumber(b.heightCm, loc) }) : dash} />
         <Tile label={t('basics.weight')} value={b.weightKg !== null ? t('basics.weightValue', { value: formatDecimal(b.weightKg, loc) }) : dash} />
@@ -305,7 +308,7 @@ function ConditionsCard({ record, onEdit }: { record: HealthRecord; onEdit: () =
   const chronic = (c.chronicIllnesses ?? []).filter(isChronic);
   const gyn = (c.gynConditions ?? []).filter(isGyn);
   return (
-    <SectionCard icon="warning" tone="period" title={t('sections.conditions')} onEdit={record.conditions.editable ? onEdit : undefined}>
+    <SectionCard icon="warning" tone="period" title={t('sections.conditions')} onEdit={record.conditions.editable ? onEdit : undefined} pilotId="hrec.edit:conditions">
       {chronic.length + gyn.length === 0 ? (
         <Empty>{c.answered ? t('conditions.empty') : t('notAnswered')}</Empty>
       ) : (
@@ -344,6 +347,7 @@ function MedicationsCard({ record, onManage }: { record: HealthRecord; onManage?
       tone="data"
       title={t('sections.medications')}
       onEdit={record.medications.editable ? onManage : undefined}
+      pilotId="hrec.open:medications"
     >
       {m.items.length === 0 && listed.length === 0 ? <Empty>{t('medications.empty')}</Empty> : null}
       {m.items.length > 0 ? (
@@ -380,7 +384,7 @@ function AllergiesCard({ record, onEdit }: { record: HealthRecord; onEdit: () =>
   else if (a.items.length === 0) content = <Empty>{t('allergies.none')}</Empty>;
   else content = <p className="hrec-text">{a.items.join('، ')}</p>;
   return (
-    <SectionCard icon="warning" tone="warm" title={t('sections.allergies')} onEdit={record.allergies.editable ? onEdit : undefined}>
+    <SectionCard icon="warning" tone="warm" title={t('sections.allergies')} onEdit={record.allergies.editable ? onEdit : undefined} pilotId="hrec.edit:allergies">
       {content}
     </SectionCard>
   );
@@ -437,6 +441,7 @@ function VitalsCard({ record, onOpen }: { record: HealthRecord; onOpen: () => vo
       tone="data"
       title={t('sections.vitals', { days: num(v.days) })}
       action={{ label: t('vitals.open'), onClick: onOpen }}
+      pilotId="hrec.open:vitals"
     >
       {record.vitals.empty ? (
         <Empty>{t('vitals.empty')}</Empty>
@@ -480,7 +485,7 @@ function PregnanciesCard({ record, onEdit }: { record: HealthRecord; onEdit: () 
   const birthRows = births(p.items);
   const others = p.items.filter((e) => !birthRows.includes(e));
   return (
-    <SectionCard icon="mother" tone="bloom" title={t('sections.pregnancies')} onEdit={record.pregnancies.editable ? onEdit : undefined}>
+    <SectionCard icon="mother" tone="bloom" title={t('sections.pregnancies')} onEdit={record.pregnancies.editable ? onEdit : undefined} pilotId="hrec.edit:pregnancies">
       {record.pregnancies.empty ? (
         <Empty>{t('pregnancies.empty')}</Empty>
       ) : (
@@ -525,7 +530,7 @@ function CheckupsCard({
       ) : (
         <div className="hrec-rows">
           {checkups.map((c) => (
-            <Row key={`c-${c.id}`} label={c.title} value={[month(c.doneOn), result(c.result)].filter(Boolean).join(' · ')} onClick={onCheckups} />
+            <Row key={`c-${c.id}`} label={c.title} value={[month(c.doneOn), result(c.result)].filter(Boolean).join(' · ')} onClick={onCheckups} pilotId={`hrec.checkup:${c.id}`} />
           ))}
           {labs.map((l) => (
             <Row
@@ -540,6 +545,7 @@ function CheckupsCard({
                     : t('checkups.labMarkers', { count: l.markerCount }),
               ].join(' · ')}
               onClick={() => onLab(l.id)}
+              pilotId={`hrec.lab:${l.id}`}
             />
           ))}
         </div>

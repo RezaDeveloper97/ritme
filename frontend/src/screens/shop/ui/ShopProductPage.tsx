@@ -15,6 +15,7 @@ import {
 import { getApiErrorStatus } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatMonthLabel, formatNumber, fromApiDate, toParts } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   Card,
   ChipGroup,
@@ -89,7 +90,7 @@ function Reviews({ product }: { product: ShopCatalogProduct }) {
           {t('product.reviews')}
         </h2>
         {!all && product.reviews.rating_count > items.length ? (
-          <button type="button" className="shp-sec-all" onClick={() => setAll(true)}>
+          <button type="button" className="shp-sec-all" onClick={() => setAll(true)} {...pilot('shop-product.all-reviews')}>
             {t('product.allReviews', { n: formatNumber(product.reviews.rating_count, locale) })}
           </button>
         ) : null}
@@ -237,11 +238,12 @@ function ProductBody({ product }: { product: ShopCatalogProduct }) {
               {t(`product.dim.${dim}`)}
               {dim === 'color' && sel.color ? <span className="shp-opt-val">: {sel.color}</span> : null}
             </h3>
-            <ChipGroup label={t(`product.dim.${dim}`)}>
+            <ChipGroup label={t(`product.dim.${dim}`)} pilot={pilot(`shop-product.option:${dim}`, 'choice')}>
               {options[dim].map((v) => (
                 <PillChip
                   key={v}
                   pressed={sel[dim] === v}
+                  {...pilotOption(v)}
                   disabled={!available(dim, v)}
                   onPressedChange={() => pick(dim, v)}
                   aria-label={available(dim, v) ? undefined : t('product.optionOut', { name: v })}
@@ -342,12 +344,13 @@ function ProductBody({ product }: { product: ShopCatalogProduct }) {
           </span>
         </div>
         {addCart.isSuccess ? (
-          <PrimaryButton onClick={() => router.push('/shop/cart')}>{t('product.viewCart')}</PrimaryButton>
+          <PrimaryButton onClick={() => router.push('/shop/cart')} {...pilot('shop-product.view-cart')}>{t('product.viewCart')}</PrimaryButton>
         ) : (
           <PrimaryButton
             disabled={!inStock || !shown}
             loading={addCart.isPending}
             aria-describedby="shp-buy-hint"
+            {...pilot('shop-product.add-to-cart')}
             onClick={() => shown && addCart.mutate({ variantId: shown.id })}
           >
             {inStock ? t('product.addToCart') : t('home.outOfStock')}

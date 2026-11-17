@@ -20,6 +20,7 @@ import {
 } from '@/entities/loss';
 import { getApiSaveErrorMessage } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { formatDayMonth, formatNumber, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import {
   ChipGroup,
@@ -81,7 +82,7 @@ export function LossCarePage() {
         icon="heart"
         title={t('loadError')}
         action={
-          <PrimaryButton icon="refresh" loading={state.isFetching} onClick={() => void state.refetch()}>
+          <PrimaryButton icon="refresh" loading={state.isFetching} onClick={() => void state.refetch()} {...pilot('loss.retry')}>
             {t('retry')}
           </PrimaryButton>
         }
@@ -205,7 +206,7 @@ function CareBody({
               bleeding.stopped ? (
                 <DoneMark label={t('done')} />
               ) : (
-                <button type="button" className="lsc-link" onClick={() => setSheet('bleeding')}>
+                <button type="button" className="lsc-link" onClick={() => setSheet('bleeding')} {...pilot('loss.open:bleeding')}>
                   {t('bleeding.action')}
                 </button>
               )
@@ -220,7 +221,7 @@ function CareBody({
               beta.negative ? (
                 <DoneMark label={t('done')} />
               ) : (
-                <button type="button" className="lsc-pill" onClick={() => setSheet('beta')}>
+                <button type="button" className="lsc-pill" onClick={() => setSheet('beta')} {...pilot('loss.open:beta')}>
                   {t('beta.action')}
                 </button>
               )
@@ -232,7 +233,7 @@ function CareBody({
             title={visitItem?.title ?? t('visit.title')}
             description={visitSub}
             trailing={
-              <button type="button" className="lsc-pill is-brand" onClick={() => setSheet('visit')}>
+              <button type="button" className="lsc-pill is-brand" onClick={() => setSheet('visit')} {...pilot('loss.open:visit')}>
                 {booked ? t('visit.change') : t('visit.action')}
               </button>
             }
@@ -248,10 +249,11 @@ function CareBody({
           <p className="lsc-mood-q">
             {t('moodQuestion')}
           </p>
-          <ChipGroup label={t('moodQuestion')} className="lsc-chips">
+          <ChipGroup label={t('moodQuestion')} className="lsc-chips" pilot={pilot('loss.mood', 'choice')}>
             {LOSS_MOODS.map((code: LossMood) => (
               <PillChip
                 key={code}
+                {...pilotOption(code)}
                 pressed={state.mood?.today === code}
                 disabled={mood.isPending}
                 onPressedChange={() => state.mood?.today !== code && mood.mutate(code)}
@@ -274,6 +276,7 @@ function CareBody({
             title={t('note.title')}
             description={state.note?.hasNote ? t('note.saved') : t('note.sub')}
             onClick={() => setSheet('note')}
+            pilot={pilot('loss.open:note')}
           />
         </ListGroup>
       </section>
@@ -292,7 +295,7 @@ function CareBody({
       />
 
       <div className="lsc-footer">
-        <PrimaryButton onClick={() => router.push('/loss/next')}>{tc('continue')}</PrimaryButton>
+        <PrimaryButton onClick={() => router.push('/loss/next')} {...pilot('loss.next')}>{tc('continue')}</PrimaryButton>
       </div>
     </>
   );

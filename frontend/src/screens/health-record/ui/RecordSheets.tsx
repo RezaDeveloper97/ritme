@@ -41,6 +41,7 @@ import {
   SectionTitle,
   Switch,
 } from '@/shared/ui';
+import { pilot, pilotOption } from '@/shared/pilot';
 
 import { manualEntries } from '../model/format';
 
@@ -88,20 +89,20 @@ export function BasicsSheet({
       size="full"
       title={t('bloodSheet.title')}
       footer={
-        <PrimaryButton onClick={submit} loading={save.isPending}>
+        <PrimaryButton onClick={submit} loading={save.isPending} {...pilot('hrec.basics-save')}>
           {save.isPending ? t('saving') : t('save')}
         </PrimaryButton>
       }
     >
       <div className="hrec-sheet">
         <SectionTitle title={t('bloodSheet.bloodType')} level={3} />
-        <ChipGroup label={t('bloodSheet.bloodType')} className="hrec-blood">
+        <ChipGroup label={t('bloodSheet.bloodType')} className="hrec-blood" pilot={pilot('hrec.blood', 'choice')}>
           {BLOOD_TYPES.map((b) => (
-            <PillChip key={b} pressed={blood === b} onPressedChange={() => setBlood(b)}>
+            <PillChip key={b} {...pilotOption(b)} pressed={blood === b} onPressedChange={() => setBlood(b)}>
               <bdi dir="ltr">{b}</bdi>
             </PillChip>
           ))}
-          <PillChip pressed={blood === null} onPressedChange={() => setBlood(null)}>
+          <PillChip {...pilotOption('unknown')} pressed={blood === null} onPressedChange={() => setBlood(null)}>
             {t('bloodSheet.unknown')}
           </PillChip>
         </ChipGroup>
@@ -112,12 +113,14 @@ export function BasicsSheet({
             title={t('bloodSheet.editHeight')}
             value={basics.heightCm !== null ? t('basics.heightValue', { value: formatNumber(basics.heightCm, loc) }) : t('notSet')}
             onClick={() => onEditBody('height')}
+            pilot={pilot('hrec.edit-height')}
           />
           <ListRow
             icon="scale"
             title={t('bloodSheet.editWeight')}
             value={basics.weightKg !== null ? t('basics.weightValue', { value: formatNumber(basics.weightKg, loc) }) : t('notSet')}
             onClick={() => onEditBody('weight')}
+            pilot={pilot('hrec.edit-weight')}
           />
         </ListGroup>
         <SaveError show={save.isError} />
@@ -156,7 +159,7 @@ export function ConditionsSheet({
       size="full"
       title={t('conditionsSheet.title')}
       footer={
-        <PrimaryButton onClick={submit} loading={save.isPending}>
+        <PrimaryButton onClick={submit} loading={save.isPending} {...pilot('hrec.conditions-save')}>
           {save.isPending ? t('saving') : t('save')}
         </PrimaryButton>
       }
@@ -164,10 +167,11 @@ export function ConditionsSheet({
       <div className="hrec-sheet">
         <p className="hrec-hint">{t('conditionsSheet.hint')}</p>
         <SectionTitle title={t('conditions.chronicTitle')} level={3} />
-        <ChipGroup label={t('conditions.chronicTitle')}>
+        <ChipGroup label={t('conditions.chronicTitle')} pilot={pilot('hrec.chronic', 'choice')}>
           {CHRONIC_ILLNESSES.map((c) => (
             <PillChip
               key={c}
+              {...pilotOption(c)}
               mode="multi"
               tone="period"
               pressed={chronic.includes(c)}
@@ -178,10 +182,11 @@ export function ConditionsSheet({
           ))}
         </ChipGroup>
         <SectionTitle title={t('conditions.gynTitle')} level={3} />
-        <ChipGroup label={t('conditions.gynTitle')}>
+        <ChipGroup label={t('conditions.gynTitle')} pilot={pilot('hrec.gyn', 'choice')}>
           {GYN_CONDITIONS.map((c) => (
             <PillChip
               key={c}
+              {...pilotOption(c)}
               mode="multi"
               tone="period"
               pressed={gyn.includes(c)}
@@ -237,7 +242,7 @@ export function AllergiesSheet({ open, onClose, allergies }: SheetProps & { alle
       size="full"
       title={t('sections.allergies')}
       footer={
-        <PrimaryButton onClick={submit} loading={save.isPending}>
+        <PrimaryButton onClick={submit} loading={save.isPending} {...pilot('hrec.allergies-save')}>
           {save.isPending ? t('saving') : t('save')}
         </PrimaryButton>
       }
@@ -258,8 +263,15 @@ export function AllergiesSheet({ open, onClose, allergies }: SheetProps & { alle
               disabled={none || items.length >= MAX_ALLERGIES}
               onChange={(e) => setDraft(e.target.value)}
               autoComplete="off"
+              {...pilot('hrec.allergy-input', 'text')}
             />
-            <button type="submit" className="hrec-add-btn" disabled={none || !draft.trim()} aria-label={t('add')}>
+            <button
+              type="submit"
+              className="hrec-add-btn"
+              disabled={none || !draft.trim()}
+              aria-label={t('add')}
+              {...pilot('hrec.allergy-add')}
+            >
               <Icon name="plus" size={20} />
             </button>
           </div>
@@ -285,7 +297,7 @@ export function AllergiesSheet({ open, onClose, allergies }: SheetProps & { alle
           <ListRow
             id={`${inputId}-none`}
             title={t('allergies.none')}
-            trailing={<Switch checked={none} onCheckedChange={setNone} labelledBy={`${inputId}-none-title`} />}
+            trailing={<Switch checked={none} onCheckedChange={setNone} labelledBy={`${inputId}-none-title`} pilot={pilot('hrec.allergy-none')} />}
           />
         </ListGroup>
         <SaveError show={save.isError} />
@@ -355,7 +367,7 @@ export function PregnanciesSheet({ open, onClose, items }: SheetProps & { items:
       footer={
         draft ? (
           <div className="hrec-sheet-actions">
-            <PrimaryButton onClick={submit} loading={save.isPending}>
+            <PrimaryButton onClick={submit} loading={save.isPending} {...pilot('hrec.preg-save')}>
               {save.isPending ? t('saving') : t('save')}
             </PrimaryButton>
             {manual.length ? (
@@ -365,7 +377,11 @@ export function PregnanciesSheet({ open, onClose, items }: SheetProps & { items:
             ) : null}
           </div>
         ) : (
-          <PrimaryButton icon="plus" onClick={() => setDraft({ id: null, outcome: 'vaginal', year: null, babies: 1 })}>
+          <PrimaryButton
+            icon="plus"
+            onClick={() => setDraft({ id: null, outcome: 'vaginal', year: null, babies: 1 })}
+            {...pilot('hrec.preg-add')}
+          >
             {t('pregnancies.addTitle')}
           </PrimaryButton>
         )
@@ -377,7 +393,7 @@ export function PregnanciesSheet({ open, onClose, items }: SheetProps & { items:
           <ul className="hrec-entries">
             {manual.map((e) => (
               <li key={e.id} className="hrec-entry">
-                <button type="button" className="hrec-entry-main" onClick={() => edit(e)}>
+                <button type="button" className="hrec-entry-main" onClick={() => edit(e)} {...pilot(`hrec.preg-entry:${e.id}`)}>
                   <span className="hrec-row-label">{entryLabel(e)}</span>
                   <span className="hrec-row-value">{t('pregnancies.manual')}</span>
                 </button>
@@ -399,9 +415,9 @@ export function PregnanciesSheet({ open, onClose, items }: SheetProps & { items:
         {draft ? (
           <div className="hrec-form">
             <SectionTitle title={draft.id === null ? t('pregnancies.addTitle') : t('pregnancies.editTitle')} level={3} />
-            <ChipGroup label={t('pregnancies.outcomeLabel')}>
+            <ChipGroup label={t('pregnancies.outcomeLabel')} pilot={pilot('hrec.preg-outcome', 'choice')}>
               {MANUAL_OUTCOMES.map((o) => (
-                <PillChip key={o} pressed={draft.outcome === o} onPressedChange={() => setDraft({ ...draft, outcome: o })}>
+                <PillChip key={o} {...pilotOption(o)} pressed={draft.outcome === o} onPressedChange={() => setDraft({ ...draft, outcome: o })}>
                   {t(`pregnancies.outcome.${o}`)}
                 </PillChip>
               ))}
@@ -413,6 +429,7 @@ export function PregnanciesSheet({ open, onClose, items }: SheetProps & { items:
               id={yearId}
               className="hrec-input"
               value={draft.year ?? ''}
+              {...pilot('hrec.preg-year', 'select')}
               onChange={(e) => setDraft({ ...draft, year: e.target.value ? Number(e.target.value) : null })}
             >
               <option value="">{t('pregnancies.yearUnknown')}</option>
@@ -433,6 +450,7 @@ export function PregnanciesSheet({ open, onClose, items }: SheetProps & { items:
                 incrementLabel={t('pregnancies.more')}
                 locale={loc}
                 boxed
+                pilot={pilot('hrec.preg-babies')}
               />
             ) : null}
           </div>

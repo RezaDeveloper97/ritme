@@ -21,6 +21,7 @@ import {
   weekdayKeys,
   type MonthCell,
 } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { Icon, PrimaryButton, SecondaryButton } from '@/shared/ui';
 
@@ -180,6 +181,7 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved, intent }
           onClick={() => toggle(iso)}
           disabled={locked || busy}
           aria-pressed={isSelected || isSuggested}
+          {...pilot(`period.day:${iso}`)}
           aria-current={iso === todayIso ? 'date' : undefined}
           aria-label={isSuggested ? t('dateEditor.daySuggested', { day: dayLabel(iso) }) : dayLabel(iso)}
           className={clsx(
@@ -215,11 +217,11 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved, intent }
               {spotting.isError ? t('dateEditor.spottingError') : t('dateEditor.error')}
             </p>
           ) : null}
-          <PrimaryButton onClick={onSave} loading={reconcile.isPending} disabled={busy}>
+          <PrimaryButton onClick={onSave} loading={reconcile.isPending} disabled={busy} {...pilot('period.save')}>
             {reconcile.isPending ? t('dateEditor.saving') : t('dateEditor.save')}
           </PrimaryButton>
           {mode === 'start' ? (
-            <SecondaryButton variant="text" onClick={onSpotting} loading={spotting.isPending} disabled={busy}>
+            <SecondaryButton variant="text" onClick={onSpotting} loading={spotting.isPending} disabled={busy} {...pilot('period.spotting')}>
               {t('dateEditor.spotting')}
             </SecondaryButton>
           ) : null}
@@ -245,6 +247,7 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved, intent }
             onClick={() => setView(shiftMonth(view.year, view.month, -1))}
             disabled={!canPrev}
             aria-label={t('dateEditor.prevMonth')}
+            {...pilot('period.month-prev')}
           >
             <Icon name={rtl ? 'chevronRight' : 'chevronLeft'} size={20} />
           </button>
@@ -257,6 +260,7 @@ export function PeriodDateEditor({ open, onClose, initialView, onSaved, intent }
             onClick={() => setView(shiftMonth(view.year, view.month, 1))}
             disabled={!canNext}
             aria-label={t('dateEditor.nextMonth')}
+            {...pilot('period.month-next')}
           >
             <Icon name={rtl ? 'chevronLeft' : 'chevronRight'} size={20} />
           </button>

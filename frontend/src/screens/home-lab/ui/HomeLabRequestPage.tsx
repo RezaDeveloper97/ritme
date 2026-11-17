@@ -12,6 +12,7 @@ import {
 import { getApiErrorMessage, getApiErrorStatus } from '@/shared/api';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatLongDate, fromApiDate } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import {
   Card,
   Checkbox,
@@ -149,8 +150,8 @@ export function HomeLabRequestPage({ id }: { id: number }) {
           ) : r.can_import ? (
             <>
               <p className="hlb-note">{t('result.body')}</p>
-              <Checkbox checked={consent} onCheckedChange={setConsent} label={t('result.consent', { partner: r.service.partner_name })} />
-              <PrimaryButton onClick={onImport} disabled={!consent} loading={importer.isPending}>
+              <Checkbox checked={consent} onCheckedChange={setConsent} pilot={pilot('home-lab-request.consent')} label={t('result.consent', { partner: r.service.partner_name })} />
+              <PrimaryButton onClick={onImport} disabled={!consent} {...pilot('home-lab-request.import')} loading={importer.isPending}>
                 {importer.isPending ? t('result.importing') : t('result.import')}
               </PrimaryButton>
             </>
@@ -195,7 +196,7 @@ export function HomeLabRequestPage({ id }: { id: number }) {
         </SecondaryButton>
       )}
       {(r.status === 'rejected' || r.status === 'cancelled') && (
-        <PrimaryButton onClick={() => router.push('/services/home-lab')}>{t('detail.newRequest')}</PrimaryButton>
+        <PrimaryButton onClick={() => router.push('/services/home-lab')} {...pilot('home-lab-request.new')}>{t('detail.newRequest')}</PrimaryButton>
       )}
     </>,
   );

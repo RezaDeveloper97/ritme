@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useId, useState } from 'react';
 
 import type { LogOption, LogParam, LogParamValue } from '@/entities/health-log';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { Link, type Locale } from '@/shared/i18n';
 import { formatDecimal } from '@/shared/lib/date';
 import { ChipGroup, Icon, PillChip, StatusPill, Switch, type Tone } from '@/shared/ui';
@@ -41,9 +42,13 @@ export interface ParamFieldProps {
   /** Hide the param's own label (a category with one param already says it). */
   hideLabel?: boolean;
   /** An exclusive chip shown first in a chip row («بدون درد», «لکه‌بینی»). */
-  leading?: { label: string; pressed: boolean; onToggle: () => void };
+  leading?: { label: string; pressed: boolean; onToggle: () => void; pilotId?: string };
   /** Shown instead of an empty chip row (meds without reminders). */
   emptyText?: string;
+  /** Autopilot name of this param's control (`logPilotId.param`), when the caller's surface is catalogued (§11.6). */
+  pilotId?: string;
+  /** Autopilot name of a graded param's severity row (`logPilotId.level`). */
+  levelPilotId?: string;
 }
 
 /**
@@ -95,10 +100,21 @@ function options(props: ParamFieldProps): LogOption[] {
   return [...pickableOptions(props.param, props.mode), ...(props.extraOptions ?? [])];
 }
 
+/** The chip row is the param's control: the autopilot sets it through its `data-pilot-option` chips. */
+function groupPilot(props: ParamFieldProps) {
+  return props.pilotId ? pilot(props.pilotId, 'choice') : undefined;
+}
+
 function Leading({ leading, tone }: Pick<ParamFieldProps, 'leading' | 'tone'>) {
   if (!leading) return null;
   return (
-    <PillChip pressed={leading.pressed} mode="multi" tone={tone} onPressedChange={leading.onToggle}>
+    <PillChip
+      pressed={leading.pressed}
+      mode="multi"
+      tone={tone}
+      onPressedChange={leading.onToggle}
+      {...(leading.pilotId ? pilot(leading.pilotId, 'toggle') : undefined)}
+    >
       {leading.label}
     </PillChip>
   );
@@ -107,7 +123,7 @@ function Leading({ leading, tone }: Pick<ParamFieldProps, 'leading' | 'tone'>) {
 function SingleField(props: ParamFieldProps) {
   const current = asString(props.value);
   return (
-    <ChipGroup label={props.param.label}>
+    <ChipGroup label={props.param.label} pilot={groupPilot(props)}>
       <Leading leading={props.leading} tone={props.tone} />
       {options(props).map((o) => (
         <PillChip
@@ -116,6 +132,7 @@ function SingleField(props: ParamFieldProps) {
           mode="multi"
           tone={props.tone}
           onPressedChange={(on) => props.onChange(on ? o.value : null)}
+          {...pilotOption(o.value)}
         >
           {o.label}
         </PillChip>
@@ -127,7 +144,7 @@ function SingleField(props: ParamFieldProps) {
 function MultiField(props: ParamFieldProps) {
   const list = asList(props.value);
   return (
-    <ChipGroup label={props.param.label}>
+    <ChipGroup label={props.param.label} pilot={groupPilot(props)}>
       {options(props).map((o) => (
         <PillChip
           key={o.value}
@@ -135,6 +152,7 @@ function MultiField(props: ParamFieldProps) {
           mode="multi"
           tone={props.tone}
           onPressedChange={() => props.onChange(toggleInList(list, o.value))}
+          {...pilotOption(o.value)}
         >
           {o.label}
         </PillChip>
@@ -156,7 +174,7 @@ function ItemsField(props: ParamFieldProps) {
   }
   return (
     <>
-      <ChipGroup label={param.label}>
+      <ChipGroup label={param.label} pilot={groupPilot(props)}>
         <Leading leading={props.leading} tone={props.tone} />
         {list.map((o) => (
           <PillChip
@@ -165,6 +183,7 @@ function ItemsField(props: ParamFieldProps) {
             mode="multi"
             tone={props.tone}
             onPressedChange={() => props.onChange(toggleItem(items, o.value, level ?? defaultLevel(param)))}
+            {...pilotOption(o.value)}
           >
             {o.label}
           </PillChip>
@@ -173,7 +192,7 @@ function ItemsField(props: ParamFieldProps) {
       {graded && picked.length ? (
         <div className="lday-param">
           <div className="lday-plabel">{t('severity')}</div>
-          <ChipGroup label={t('severity')} layout="fill">
+          <ChipGroup label={t('severity')} layout="fill" pilot={props.levelPilotId ? pilot(props.levelPilotId, 'choice') : undefined}>
             {param.levels.map((l) => (
               <PillChip
                 key={l.value}
@@ -182,6 +201,7 @@ function ItemsField(props: ParamFieldProps) {
                 tone={props.tone}
                 pressed={level === l.value}
                 onPressedChange={() => props.onChange(setAllLevels(items, l.value))}
+                {...pilotOption(l.value)}
               >
                 {l.label}
               </PillChip>
@@ -231,6 +251,7 @@ function NumberField(props: ParamFieldProps & { labelId?: string }) {
         onKeyDown={(e) => {
           if (e.key === 'Enter') commit((e.target as HTMLInputElement).value);
         }}
+        {...(props.pilotId ? pilot(props.pilotId, 'number') : undefined)}
       />
       {param.unit ? <span className="lday-num-unit">{param.unit.label}</span> : null}
       {current !== null ? (
@@ -258,6 +279,7 @@ function TextField(props: ParamFieldProps & { labelId?: string }) {
         rows={4}
         value={value}
         onChange={(e) => props.onChange(e.target.value === '' ? null : e.target.value)}
+        {...(props.pilotId ? pilot(props.pilotId, 'text') : undefined)}
       />
       <span className="lday-text-count" aria-hidden>
         {t('text.count', { count: formatDecimal(value.length, locale), max: formatDecimal(max, locale) })}
@@ -320,7 +342,7 @@ function BoolField(props: ParamFieldProps) {
       <span id={id} className="lday-bool-label">
         {props.param.label}
       </span>
-      <Switch checked={on} onCheckedChange={(next) => props.onChange(next ? true : null)} labelledBy={id} />
+      <Switch checked={on} onCheckedChange={(next) => props.onChange(next ? true : null)} labelledBy={id} pilot={props.pilotId ? pilot(props.pilotId, 'switch') : undefined} />
     </div>
   );
 }

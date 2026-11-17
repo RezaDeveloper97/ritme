@@ -26,6 +26,7 @@ import {
   toParts,
   today,
 } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import {
   CalendarPicker,
@@ -95,7 +96,7 @@ function RecordSheet({ q, rows, onClose }: { q: InsuranceQuestionnaire; rows: Ti
           <SecondaryButton block={false} onClick={onClose}>
             {t('record.cancel')}
           </SecondaryButton>
-          <PrimaryButton block={false} disabled={!parts} loading={advance.isPending} onClick={save}>
+          <PrimaryButton block={false} disabled={!parts} loading={advance.isPending} onClick={save} {...pilot('ins-status.record-save')}>
             {t('record.save')}
           </PrimaryButton>
         </div>
@@ -103,15 +104,15 @@ function RecordSheet({ q, rows, onClose }: { q: InsuranceQuestionnaire; rows: Ti
     >
       <div className="ins-form">
         <h3 className="ins-label">{t('record.step')}</h3>
-        <ChipGroup label={t('record.step')}>
+        <ChipGroup label={t('record.step')} pilot={pilot('ins-status.step', 'choice')}>
           {STEPS.map((s) => (
-            <PillChip key={s} pressed={step === s} onPressedChange={() => setStep(s)}>
+            <PillChip key={s} pressed={step === s} onPressedChange={() => setStep(s)} {...pilotOption(s)}>
               {t(`state.${s}`)}
             </PillChip>
           ))}
         </ChipGroup>
         <h3 className="ins-label">{t('record.date')}</h3>
-        <CalendarPicker value={parts} onSelect={setParts} />
+        <CalendarPicker value={parts} onSelect={setParts} pilot={pilot('ins-status.date', 'calendar')} />
         {advance.isError ? (
           <p className="ins-problem" role="alert">
             {t('record.error')}
@@ -146,7 +147,7 @@ function QuestionnaireCard({ q }: { q: InsuranceQuestionnaire }) {
       {isDraft ? (
         <>
           <p className="ins-body">{t('draftHint')}</p>
-          <PrimaryButton icon="fileDoc" onClick={() => router.push('/insurance/questionnaire')}>
+          <PrimaryButton icon="fileDoc" onClick={() => router.push('/insurance/questionnaire')} {...pilot(`ins-status.continue:${q.id}`)}>
             {t('continue')}
           </PrimaryButton>
         </>
@@ -159,7 +160,7 @@ function QuestionnaireCard({ q }: { q: InsuranceQuestionnaire }) {
             marker="dot"
             locale={locale}
           />
-          <SecondaryButton icon="plus" onClick={() => setRecording(true)}>
+          <SecondaryButton icon="plus" onClick={() => setRecording(true)} {...pilot(`ins-status.record:${q.id}`)}>
             {t('record.title')}
           </SecondaryButton>
           {recording ? <RecordSheet q={q} rows={rows} onClose={() => setRecording(false)} /> : null}
@@ -182,7 +183,7 @@ function OpenClaims() {
         <h2 id="inss-claims-h" className="ins-label">
           {t('title')}
         </h2>
-        <Link href="/insurance/claims" className="ins-more">
+        <Link href="/insurance/claims" className="ins-more" {...pilot('ins-status.claims-all')}>
           {t('all')}
         </Link>
       </div>
@@ -191,7 +192,7 @@ function OpenClaims() {
       ) : (
         <div className="ins-claims">
           {open.map((c) => (
-            <Link key={c.id} href={`/insurance/claims/${c.id}`} className="nb-card ins-claim">
+            <Link key={c.id} href={`/insurance/claims/${c.id}`} className="nb-card ins-claim" {...pilot(`ins-status.claim:${c.id}`)}>
               <span className="ins-claim-text">
                 <span className="ins-claim-t">{c.title ?? tc(`costTypes.${costTypeKey(c.costType)}`)}</span>
                 <span className="ins-claim-s">
@@ -247,7 +248,7 @@ export function InsuranceStatusPage() {
             icon="shield"
             title={t('status.empty')}
             action={
-              <PrimaryButton icon="fileDoc" onClick={() => router.push('/insurance/questionnaire')}>
+              <PrimaryButton icon="fileDoc" onClick={() => router.push('/insurance/questionnaire')} {...pilot('ins-status.begin')}>
                 {t('status.begin')}
               </PrimaryButton>
             }

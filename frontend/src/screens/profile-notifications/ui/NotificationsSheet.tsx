@@ -11,6 +11,7 @@ import {
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
 } from '@/features/read-notifications';
+import { pilot } from '@/shared/pilot';
 import { diffInDays, formatLongDate, today } from '@/shared/lib/date';
 import type { Locale } from '@/shared/i18n';
 import { Icon } from '@/shared/ui';
@@ -108,7 +109,7 @@ function AlertHistory() {
   const [open, setOpen] = useState(false);
   return (
     <section className="notif-group" aria-label={t('sections.history')}>
-      <button type="button" className="notif-history-toggle" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+      <button type="button" className="notif-history-toggle" aria-expanded={open} onClick={() => setOpen((v) => !v)} {...pilot('notifications.history')}>
         {t('sections.history')}
         <Icon name="chevronDown" size={16} className={clsx('notif-history-chev', open && 'is-open')} />
       </button>
@@ -198,6 +199,7 @@ export function NotificationsSheet() {
             type="button"
             className="notif-markall"
             onClick={handleMarkAll}
+            {...pilot('notifications.mark-all')}
             disabled={markAllRead.isPending}
           >
             <Icon name="checkCircle" size={16} />

@@ -17,6 +17,7 @@ import {
 } from '@/entities/assistant';
 import { ChatThread, Composer, itemsOf, useChat, type ChatItem } from '@/features/assistant-chat';
 import { useAiGate } from '@/features/ai-gate';
+import { pilot } from '@/shared/pilot';
 import { getApiErrorStatus } from '@/shared/api';
 import { useRouter } from '@/shared/i18n';
 import { Card, EmptyState, HeaderButton, Icon, PrimaryButton, ScreenHeader, SkyLayer } from '@/shared/ui';
@@ -99,7 +100,7 @@ export function AssistantChatPage({ id }: { id: number }) {
         <SkyLayer />
         <div className="scroll"><div className="as-body">
           {getApiErrorStatus(q.error) === 404 ? (
-            <Card><EmptyState icon="chat" title={t('chat.notFound')} action={<PrimaryButton onClick={() => router.push('/assistant')}>{t('hub.title')}</PrimaryButton>} /></Card>
+            <Card><EmptyState icon="chat" title={t('chat.notFound')} action={<PrimaryButton onClick={() => router.push('/assistant')} {...pilot('assistant.open:assistant')}>{t('hub.title')}</PrimaryButton>} /></Card>
           ) : (
             <LoadError onRetry={() => void q.refetch()} busy={q.isFetching} />
           )}

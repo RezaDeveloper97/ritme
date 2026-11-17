@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { KindThumb, useOfflinePurge } from '@/entities/course';
+import { pilot } from '@/shared/pilot';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { deleteOffline, useOfflineBlobUrl, useOfflineList, type OfflineItem } from '@/shared/pwa/offline';
@@ -98,6 +99,7 @@ export function LearnDownloadsPage() {
                   type="button"
                   className="lrn-dl-main"
                   onClick={() => setPlaying(item)}
+                  {...pilot(`learn.play:${item.lessonId}`)}
                   aria-label={t('downloads.play', { title: item.title })}
                 >
                   <KindThumb kind={item.kind} size="sm" />
@@ -148,6 +150,7 @@ export function LearnDownloadsPage() {
                 icon={editing ? 'check' : 'pencil'}
                 variant="soft"
                 onClick={() => setEditing((v) => !v)}
+                pilot={pilot('learn.edit-downloads')}
               />
             ) : undefined
           }

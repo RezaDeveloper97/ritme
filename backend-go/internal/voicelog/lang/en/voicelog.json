@@ -14,6 +14,7 @@
     "attributes": {
         "audio": "audio file",
         "duration_ms": "recording length",
+        "manifest": "control list",
         "date": "date",
         "items": "items",
         "items_each": "item",

@@ -197,6 +197,7 @@ func (h *Handlers) Store(c fiber.Ctx) error {
 	}, preferenceRules()...), validation.Now(h.now(c)),
 		validation.Messages("type.in", T("validation.type_invalid", locale),
 			"goal.in", T("validation.goal_invalid", locale),
+			"goals.*.in", T("validation.goal_invalid", locale),
 			"action_prefs.*.in", T("validation.action_prefs_invalid", locale)))
 	if v.Fails() {
 		return failValidation(locale, v.ErrorBag())
@@ -860,7 +861,8 @@ func ownerLinkJSON(l Link, names map[uint64]string) *jsonx.OrderedMap {
 		"grants", grantsJSON(l.Grants, l.Type),
 		"invite", invite,
 		"family", family,
-		"goal", string(l.Preferences.Goal.orUnknown()),
+		"goal", string(l.Preferences.Goal()),
+		"goals", goalsJSON(l.Preferences.Goals),
 		"signals", signalsScopeJSON(l.Preferences.Signals),
 		"action_prefs", actionsJSON(l.Preferences.Actions),
 	)

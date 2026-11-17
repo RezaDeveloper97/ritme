@@ -7,7 +7,11 @@ import {
   nextStep,
   normalizeMobile,
   phoneProblem,
+  pickedGoals,
   previousStep,
+  sameGoals,
+  storedGoals,
+  toggleGoal,
   sameActions,
   sameChildIds,
   sameSignals,
@@ -46,7 +50,7 @@ describe('invite wizard steps', () => {
   it('starts with nothing shared, no goal and no consent', () => {
     const d = initialDraft();
     expect(d.consent).toBe(false);
-    expect(d.goal).toBeNull();
+    expect(d.goals).toEqual([]);
     expect(Object.values(d.signals).every((on) => on === false)).toBe(true);
     expect(d.actionPrefs).toEqual([]);
   });
@@ -101,20 +105,20 @@ describe('draftToInput', () => {
     expect(draftToInput({ ...draft, phone: '123' })).toBeNull();
   });
 
-  it('sends the preferences, defaulting the goal to unknown', () => {
+  it('sends the preferences, no goal ticked = unknown (an empty list)', () => {
     expect(draftToInput(draft)?.preferences).toEqual({
-      goal: 'unknown',
+      goals: [],
       signals: { pain: false, mood: false, energy: false, sleep: false },
       actionPrefs: [],
     });
     const picked = {
       ...draft,
-      goal: 'support' as const,
+      goals: ['support' as const, 'cycle' as const],
       signals: { ...draft.signals, mood: true },
       actionPrefs: ['time' as const, 'food' as const],
     };
     expect(draftToInput(picked)?.preferences).toEqual({
-      goal: 'support',
+      goals: ['support', 'cycle'],
       signals: { pain: false, mood: true, energy: false, sleep: false },
       actionPrefs: ['time', 'food'],
     });
@@ -157,5 +161,29 @@ describe('selection helpers', () => {
   it('lists the shared signals in canonical order, mood never offered', () => {
     // mood stays «never shared» (SPEC §1.7): even a stored true never reaches the preview.
     expect(sharedSignals({ pain: true, mood: true, energy: false, sleep: true })).toEqual(['pain', 'sleep']);
+  });
+});
+
+describe('goal cards (multi-select)', () => {
+  it('combines the goals that ask for something, in the picked order', () => {
+    expect(toggleGoal([], 'support')).toEqual(['support']);
+    expect(toggleGoal(['support'], 'cycle')).toEqual(['support', 'cycle']);
+    expect(toggleGoal(['support', 'cycle'], 'support')).toEqual(['cycle']);
+  });
+
+  it('keeps «info» and «unknown» alone', () => {
+    expect(toggleGoal(['support', 'cycle'], 'info')).toEqual(['info']);
+    expect(toggleGoal(['info'], 'unknown')).toEqual(['unknown']);
+    expect(toggleGoal(['unknown'], 'quality_time')).toEqual(['quality_time']);
+    expect(toggleGoal(['info'], 'info')).toEqual([]);
+  });
+
+  it('maps the empty stored list to the «unknown» card and back', () => {
+    expect(pickedGoals([])).toEqual(['unknown']);
+    expect(pickedGoals(['cycle', 'support'])).toEqual(['cycle', 'support']);
+    expect(storedGoals(['unknown'])).toEqual([]);
+    expect(storedGoals(['info'])).toEqual(['info']);
+    expect(sameGoals(['cycle', 'support'], ['cycle', 'support'])).toBe(true);
+    expect(sameGoals(['cycle', 'support'], ['support', 'cycle'])).toBe(false);
   });
 });

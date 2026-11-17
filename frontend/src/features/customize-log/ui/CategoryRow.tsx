@@ -3,6 +3,7 @@
 import { clsx } from 'clsx';
 import { useTranslations } from 'next-intl';
 
+import { pilot } from '@/shared/pilot';
 import { Icon, IconCircle, type IconName, Switch, type Tone } from '@/shared/ui';
 
 import type { ReorderHandle } from '../model/use-reorder';
@@ -105,12 +106,13 @@ export function CategoryRow({
         aria-describedby={pinDisabled ? counterId : undefined}
         aria-disabled={pinDisabled || undefined}
         onClick={onTogglePin}
+        {...pilot(`customize.pin:${code}`)}
       >
         <span className="lcz-pin-disc">
           <Icon name="pin" size={15} strokeWidth={2} />
         </span>
       </button>
-      <Switch checked={!hidden} label={t('show', { label })} onCheckedChange={onToggleHidden} className="lcz-switch" />
+      <Switch checked={!hidden} label={t('show', { label })} onCheckedChange={onToggleHidden} className="lcz-switch" pilot={pilot(`customize.show:${code}`)} />
     </li>
   );
 }

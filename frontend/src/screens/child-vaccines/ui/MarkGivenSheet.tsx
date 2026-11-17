@@ -6,6 +6,7 @@ import { useEffect, useId, useState } from 'react';
 import { childFieldError } from '@/entities/child';
 import { getApiErrorStatus } from '@/shared/api';
 import type { Locale } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { type DateParts, formatLongDate, fromApiDate, partsToDate, toApiDate, today, toParts } from '@/shared/lib/date';
 import { AppSheet } from '@/shared/sheet';
 import { CalendarPicker, Icon, PrimaryButton, SecondaryButton } from '@/shared/ui';
@@ -82,7 +83,7 @@ export function MarkGivenSheet({ childId, birthDate, target, onClose }: Props) {
           <SecondaryButton onClick={onClose} disabled={write.isPending}>
             {t('vaccines.sheet.cancel')}
           </SecondaryButton>
-          <PrimaryButton loading={write.isPending} onClick={submit}>
+          <PrimaryButton loading={write.isPending} onClick={submit} {...pilot('child.vaccine-save')}>
             {t('vaccines.sheet.save')}
           </PrimaryButton>
         </div>
@@ -114,13 +115,14 @@ export function MarkGivenSheet({ childId, birthDate, target, onClose }: Props) {
               aria-expanded={dateOpen}
               aria-labelledby="cvx-date-label cvx-date-value"
               onClick={() => setDateOpen((o) => !o)}
+              {...pilot('child.vaccine-date-open')}
             >
               <span id="cvx-date-value" className="chd-date-value">
                 {givenOn ? formatLongDate(fromApiDate(givenOn), locale) : ''}
               </span>
               <Icon name="calendar" size={20} />
             </button>
-            {dateOpen && givenOn ? <CalendarPicker value={toParts(fromApiDate(givenOn), locale)} onSelect={onPick} /> : null}
+            {dateOpen && givenOn ? <CalendarPicker value={toParts(fromApiDate(givenOn), locale)} onSelect={onPick} pilot={pilot('child.vaccine-date', 'calendar')} /> : null}
             {dateError ? (
               <p className="chd-error" role="alert">
                 {dateError}
@@ -134,6 +136,7 @@ export function MarkGivenSheet({ childId, birthDate, target, onClose }: Props) {
             </label>
             <textarea
               id={noteId}
+              {...pilot('child.vaccine-note', 'text')}
               className="cvx-textarea"
               rows={3}
               maxLength={MAX_NOTE}

@@ -3,6 +3,8 @@
 import { useId, type ReactNode } from 'react';
 import { clsx } from 'clsx';
 
+import type { PilotAttrs } from '@/shared/pilot';
+
 import { Art3d, type Art3dName } from '../Art3d';
 import type { IconName } from '../Icon';
 import { IconCircle } from './IconCircle';
@@ -26,6 +28,8 @@ interface RadioCardGroupProps<V extends string> {
   onChange: (value: V) => void;
   /** Accessible name of the set («مرحله یائسگی»). */
   label: string;
+  /** Autopilot name of the group: `pilot('…', 'choice')` (frontend/CLAUDE.md §11.6). */
+  pilot?: PilotAttrs;
   className?: string;
 }
 
@@ -35,12 +39,12 @@ interface RadioCardGroupProps<V extends string> {
  * at the inline end. Selected = `--brand-soft` fill + `--brand` border.
  * `role=radiogroup` with roving tabindex; each card is ≥ 64px.
  */
-export function RadioCardGroup<V extends string>({ options, value, onChange, label, className }: RadioCardGroupProps<V>) {
+export function RadioCardGroup<V extends string>({ options, value, onChange, label, className, pilot }: RadioCardGroupProps<V>) {
   const baseId = useId();
   const enabled = options.filter((o) => !o.disabled).map((o) => o.value);
   const roving = useRovingRadio(enabled, value, onChange);
   return (
-    <div role="radiogroup" aria-label={label} className={clsx('nb-rcards', className)}>
+    <div role="radiogroup" aria-label={label} className={clsx('nb-rcards', className)} {...pilot}>
       {options.map((option) => {
         const checked = option.value === value;
         const index = enabled.indexOf(option.value);
@@ -59,6 +63,7 @@ export function RadioCardGroup<V extends string>({ options, value, onChange, lab
             tabIndex={index >= 0 ? roving.tabIndexOf(index) : -1}
             className="nb-rcard"
             onClick={() => onChange(option.value)}
+            data-pilot-option={option.value}
             onKeyDown={(event) => index >= 0 && roving.onKeyDown(event, index)}
           >
             {option.art ? (

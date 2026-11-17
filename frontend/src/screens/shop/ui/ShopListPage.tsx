@@ -20,6 +20,7 @@ import {
 import { getApiErrorStatus } from '@/shared/api';
 import { Link, type Locale, usePathname, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import {
   Card,
@@ -89,10 +90,11 @@ function FilterSheet({
       title={t('list.filters')}
       footer={
         <div className="shp-sheet-actions">
-          <SecondaryButton variant="text" onClick={() => setDraft(NO_FILTERS)}>
+          <SecondaryButton variant="text" onClick={() => setDraft(NO_FILTERS)} {...pilot('shop-filter.reset')}>
             {t('list.reset')}
           </SecondaryButton>
           <PrimaryButton
+            {...pilot('shop-filter.apply')}
             onClick={() => {
               onApply(draft);
               onClose();
@@ -107,9 +109,9 @@ function FilterSheet({
         {groups.map((g) => (
           <section key={g.key} className="shp-fgroup">
             <h3 className="shp-fgroup-title">{t(`list.facet.${g.key}`)}</h3>
-            <ChipGroup label={t(`list.facet.${g.key}`)}>
+            <ChipGroup label={t(`list.facet.${g.key}`)} pilot={pilot(`shop-filter.facet:${g.key}`, 'choice')}>
               {g.items.map((f: ShopCatalogFacet) => (
-                <PillChip key={f.value} mode="multi" pressed={draft[g.key].includes(f.value)} onPressedChange={() => toggle(g.key, f.value)}>
+                <PillChip key={f.value} mode="multi" pressed={draft[g.key].includes(f.value)} onPressedChange={() => toggle(g.key, f.value)} {...pilotOption(f.value)}>
                   {g.key === 'skin_type' ? skinLabel(f.value, f.label) : f.label}
                 </PillChip>
               ))}
@@ -126,6 +128,7 @@ function FilterSheet({
                 dir="ltr"
                 className="shp-price-input"
                 value={draft.price_min}
+                {...pilot('shop-filter.price-min', 'text')}
                 placeholder={min !== null ? formatNumber(min, locale) : ''}
                 onChange={(e) => setDraft((d) => ({ ...d, price_min: digits(e.target.value) }))}
               />
@@ -137,6 +140,7 @@ function FilterSheet({
                 dir="ltr"
                 className="shp-price-input"
                 value={draft.price_max}
+                {...pilot('shop-filter.price-max', 'text')}
                 placeholder={max !== null ? formatNumber(max, locale) : ''}
                 onChange={(e) => setDraft((d) => ({ ...d, price_max: digits(e.target.value) }))}
               />
@@ -254,7 +258,7 @@ export function ShopListPage({ category }: { category: string }) {
             </li>
             {list.sub_categories.map((c) => (
               <li key={c.id}>
-                <Link href={`/shop/${c.slug}`} className="shp-chip">
+                <Link href={`/shop/${c.slug}`} className="shp-chip" {...pilot(`shop-list.category:${c.slug}`)}>
                   {c.title}
                 </Link>
               </li>
@@ -269,6 +273,7 @@ export function ShopListPage({ category }: { category: string }) {
             <span className="shp-sort-label">{t('list.sort')}</span>
             <select
               value={sort}
+              {...pilot('shop-list.sort', 'select')}
               onChange={(e) => go({ sort: e.target.value as ShopSort, page: 1 })}
             >
               {SHOP_SORTS.map((s) => (
@@ -308,11 +313,11 @@ export function ShopListPage({ category }: { category: string }) {
         )}
         {list.meta.last_page > 1 ? (
           <nav className="shp-pager" aria-label={t('products.pages')}>
-            <SecondaryButton variant="text" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+            <SecondaryButton variant="text" disabled={page <= 1} onClick={() => setPage(page - 1)} {...pilot('shop-list.prev')}>
               {t('products.prev')}
             </SecondaryButton>
             <span>{t('products.page', { page, last: list.meta.last_page })}</span>
-            <SecondaryButton variant="text" disabled={page >= list.meta.last_page} onClick={() => setPage(page + 1)}>
+            <SecondaryButton variant="text" disabled={page >= list.meta.last_page} onClick={() => setPage(page + 1)} {...pilot('shop-list.next')}>
               {t('products.next')}
             </SecondaryButton>
           </nav>
@@ -342,9 +347,10 @@ export function ShopListPage({ category }: { category: string }) {
                 label={t('list.search')}
                 clearLabel={t('list.clear')}
                 placeholder={list?.category ? t('list.searchIn', { name: list.category.title }) : t('list.search')}
+                {...pilot('shop-list.search', 'text')}
               />
               <div className="shp-filterbar">
-                <button type="button" className="shp-filterbtn" onClick={() => setSheet(true)} disabled={!list}>
+                <button type="button" className="shp-filterbtn" onClick={() => setSheet(true)} disabled={!list} {...pilot('shop-list.filters')}>
                   <Icon name="filterLines" size={16} />
                   {t('list.filters')}
                   {active.length ? <span className="shp-filter-n">{formatNumber(active.length, locale)}</span> : null}

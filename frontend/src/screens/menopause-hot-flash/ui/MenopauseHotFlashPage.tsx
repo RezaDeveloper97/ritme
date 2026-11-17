@@ -16,6 +16,7 @@ import {
 } from '@/entities/menopause';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   Card,
   ChipGroup,
@@ -190,6 +191,7 @@ function RingFace({
       aria-label={ariaLabel}
       disabled={disabled}
       onClick={onToggle}
+      {...pilot('menopause.flash-toggle')}
     >
       <CountdownRing
         elapsedMs={seconds * 1000}
@@ -254,14 +256,16 @@ function DetailsCard({ details, onChange }: { details: HotFlashDetails; onChange
         value={details.severity}
         withNone={false}
         onChange={(severity) => onChange({ ...details, severity })}
+        pilot={pilot('menopause.flash-severity', 'choice')}
       />
-      <ChipGroup label={t('sweatLabel')} className="mhf-sweat">
+      <ChipGroup label={t('sweatLabel')} className="mhf-sweat" pilot={pilot('menopause.flash-sweat', 'choice')}>
         <PillChip
           mode="multi"
           tone="data"
           icon="drop"
           pressed={details.sweat}
           onPressedChange={(sweat) => onChange({ ...details, sweat })}
+          {...pilotOption('sweat')}
         >
           {t('sweat')}
         </PillChip>
@@ -270,7 +274,7 @@ function DetailsCard({ details, onChange }: { details: HotFlashDetails; onChange
         <h3 className="mhf-label">
           {t('triggers.title')}
         </h3>
-        <ChipGroup label={t('triggers.title')}>
+        <ChipGroup label={t('triggers.title')} pilot={pilot('menopause.flash-triggers', 'choice')}>
           {HOT_FLASH_TRIGGERS.map((code) => (
             <PillChip
               key={code}
@@ -278,6 +282,7 @@ function DetailsCard({ details, onChange }: { details: HotFlashDetails; onChange
               tone="brand"
               pressed={details.triggers.includes(code)}
               onPressedChange={() => onChange({ ...details, triggers: toggleTrigger(details.triggers, code) })}
+              {...pilotOption(code)}
             >
               {t(`triggers.${code}`)}
             </PillChip>

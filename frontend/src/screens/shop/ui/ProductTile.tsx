@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { formatToman, type ShopCatalogCard } from '@/entities/shop';
 import { Link, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
 
 /** «۴۸۵ هزار تومان» — compact toman, copy from the `shop.price.*` messages. */
@@ -42,7 +43,7 @@ export function ProductTile({ p }: { p: ShopCatalogCard }) {
   const ratingText = useRatingText();
   return (
     <li className="shp-tile">
-      <Link href={`/shop/product/${p.id}`} className="shp-tile-link">
+      <Link href={`/shop/product/${p.id}`} className="shp-tile-link" {...pilot(`shop.product:${p.id}`)}>
         <span className="shp-tile-art" aria-hidden>
           {p.image_url ? (
             // eslint-disable-next-line @next/next/no-img-element -- admin-uploaded public-disk image, sized by CSS

@@ -19,6 +19,7 @@ import { getApiSaveErrorMessage } from '@/shared/api';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { pilot } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import {
   Card,
@@ -97,7 +98,7 @@ export function IvfCycleEditorPage() {
               title={home.isError ? t('editor.saveError') : t('editor.noCycle')}
               action={
                 home.isError ? undefined : (
-                  <Link href="/ivf/cycle/new" className="nb-btn is-primary is-block">
+                  <Link href="/ivf/cycle/new" className="nb-btn is-primary is-block" {...pilot('ivf.cycle-start')}>
                     {t('editor.noCycleCta')}
                   </Link>
                 )
@@ -155,6 +156,7 @@ function EditorForm({ cycle }: { cycle: IvfCycle }) {
 
   const dayField = (field: DayField, optional: boolean) => (
     <FieldButton
+      pilotId={`cycle-${field === 'startedOn' ? 'started' : field === 'stimStartedOn' ? 'stim-started' : 'beta'}`}
       label={t(`editor.${field === 'betaOn' ? 'beta' : field}`)}
       hint={optional ? t('optional') : undefined}
       value={dateValue(draft[field])}
@@ -175,6 +177,7 @@ function EditorForm({ cycle }: { cycle: IvfCycle }) {
         </span>
         <div className="ivfm-two">
           <FieldButton
+            pilotId={`cycle-${field.toLowerCase()}-date`}
             label={t('date')}
             value={dateValue(value.date)}
             invalid={!!problemText(field)}
@@ -184,6 +187,7 @@ function EditorForm({ cycle }: { cycle: IvfCycle }) {
           />
           {value.date ? (
             <FieldButton
+              pilotId={`cycle-${field.toLowerCase()}-time`}
               label={t('time')}
               value={formatNumber(value.time, locale)}
               ltr
@@ -203,6 +207,7 @@ function EditorForm({ cycle }: { cycle: IvfCycle }) {
     <div className="ivfm-form">
       <Card className="ivfm-card">
         <ChoiceRow
+          pilotId="cycle-stage"
           label={t('editor.stage')}
           options={IVF_STAGES}
           value={draft.stage}
@@ -210,6 +215,7 @@ function EditorForm({ cycle }: { cycle: IvfCycle }) {
           onChange={(stage) => stage && setDraft((d) => setDraftStage(d, stage, todayIso))}
         />
         <ChoiceRow
+          pilotId="cycle-protocol"
           label={t('editor.protocol')}
           options={protocolOptions}
           value={draft.protocol}
@@ -249,7 +255,7 @@ function EditorForm({ cycle }: { cycle: IvfCycle }) {
             {ivfValidationMessage(update.error) ?? getApiSaveErrorMessage(update.error, t('editor.saveError'))}
           </p>
         ) : null}
-        <PrimaryButton loading={update.isPending} disabled={blocked} onClick={submit}>
+        <PrimaryButton loading={update.isPending} disabled={blocked} onClick={submit} {...pilot('ivf.cycle-save')}>
           {t('editor.save')}
         </PrimaryButton>
       </div>
@@ -315,10 +321,10 @@ function StopMedsSheet({ meds, onDone }: { meds: IvfMed[]; onDone: () => void })
       title={t('stop.title')}
       footer={
         <div className="ivfm-sheet-btns">
-          <SecondaryButton block={false} onClick={onDone} disabled={busy}>
+          <SecondaryButton block={false} onClick={onDone} disabled={busy} {...pilot('ivf.cycle-stop-keep')}>
             {t('stop.keep')}
           </SecondaryButton>
-          <PrimaryButton block={false} loading={busy} onClick={() => void stopAll()}>
+          <PrimaryButton block={false} loading={busy} onClick={() => void stopAll()} {...pilot('ivf.cycle-stop-confirm')}>
             {t('stop.confirm')}
           </PrimaryButton>
         </div>

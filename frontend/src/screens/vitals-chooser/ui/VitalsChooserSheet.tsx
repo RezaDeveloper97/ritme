@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 
 import { Link } from '@/shared/i18n';
 import { Icon, IconCircle, type IconName, type Tone } from '@/shared/ui';
+import { pilot } from '@/shared/pilot';
 
 /** Registry id of this sheet (`app/sheets/registry.tsx`). */
 export const VITALS_CHOOSER_SHEET = 'vitals-add';
@@ -30,7 +31,7 @@ export function VitalsChooserSheet() {
   return (
     <div className="rad-list">
       {CHOICES.map((c) => (
-        <Link key={c.key} href={c.href} className="rad-row">
+        <Link key={c.key} href={c.href} className="rad-row" {...pilot(`vt.choice:${c.key}`)}>
           <IconCircle icon={c.icon} tone={c.tone} size="md" />
           <span className="rad-body">
             <span className="rad-title">{t(`${c.key}.title`)}</span>
@@ -39,7 +40,7 @@ export function VitalsChooserSheet() {
           <Icon name="chevronLeft" size={18} strokeWidth={2} className="rad-chev" />
         </Link>
       ))}
-      <Link href="/vitals" className="rad-row">
+      <Link href="/vitals" className="rad-row" {...pilot('vt.choice:hub')}>
         <IconCircle icon="chart" tone="data" size="md" />
         <span className="rad-body">
           <span className="rad-title">{t('hub.title')}</span>

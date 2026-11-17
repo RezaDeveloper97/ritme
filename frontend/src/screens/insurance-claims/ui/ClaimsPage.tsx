@@ -13,6 +13,7 @@ import {
 } from '@/entities/insurance';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatMonthLabel, formatYear, fromApiDate, todayParts } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   EmptyState,
   HeaderButton,
@@ -38,7 +39,7 @@ function Row({ claim }: { claim: InsuranceClaimRow }) {
   const who = [claim.memberName, formatDayMonth(fromApiDate(claim.serviceDate), locale)].filter(Boolean).join(' · ');
   return (
     <li>
-      <Link href={`/insurance/claims/${claim.id}`} className="ins-crow">
+      <Link href={`/insurance/claims/${claim.id}`} className="ins-crow" {...pilot(`ins-claims.open:${claim.id}`)}>
         <IconCircle icon="fileDoc" tone="brand" />
         <span className="ins-claim-text">
           <span className="ins-claim-t">{title}</span>
@@ -108,10 +109,10 @@ function Body() {
 
       {claims.length > 0 ? (
         <>
-          <SearchField value={q} onValueChange={setQ} label={t('search')} clearLabel={t('clear')} placeholder={t('search')} />
-          <div className="ins-chips" role="group" aria-label={t('filters')}>
+          <SearchField value={q} onValueChange={setQ} label={t('search')} clearLabel={t('clear')} placeholder={t('search')} {...pilot('ins-claims.search', 'text')} />
+          <div className="ins-chips" role="group" aria-label={t('filters')} {...pilot('ins-claims.filter', 'choice')}>
             {CLAIM_FILTERS.map((f) => (
-              <PillChip key={f} pressed={filter === f} onPressedChange={() => setFilter(f)}>
+              <PillChip key={f} pressed={filter === f} onPressedChange={() => setFilter(f)} {...pilotOption(f)}>
                 {t(`filter.${f}`)}
               </PillChip>
             ))}
@@ -165,7 +166,7 @@ export function InsuranceClaimsPage() {
           subtitle={formatYear(todayParts(locale).year, locale)}
           onBack={() => router.push('/insurance')}
           backLabel={t('back')}
-          action={hasPolicy ? <HeaderButton label={t('claims.add')} icon="plus" onClick={() => router.push('/insurance/claims/new')} /> : undefined}
+          action={hasPolicy ? <HeaderButton label={t('claims.add')} icon="plus" onClick={() => router.push('/insurance/claims/new')} pilot={pilot('ins-claims.add')} /> : undefined}
         />
         <Body />
       </div>

@@ -16,6 +16,7 @@ import {
 } from '@/entities/plus';
 import { formatCredits, useAiCredits } from '@/entities/ai-credit';
 import { useCancelPlus } from '@/features/purchase-plus';
+import { pilot } from '@/shared/pilot';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { formatLongDate, formatNumber } from '@/shared/lib/date';
 import { AppSheet } from '@/shared/sheet';
@@ -109,7 +110,7 @@ function ManageBody({ status }: { status: PlusStatus }) {
         icon="crown"
         title={t('manage.noneTitle')}
         body={t('manage.noneBody')}
-        action={<PrimaryButton onClick={() => router.push('/plus')}>{t('manage.noneCta')}</PrimaryButton>}
+        action={<PrimaryButton onClick={() => router.push('/plus')} {...pilot('plus.open:plus')}>{t('manage.noneCta')}</PrimaryButton>}
       />
     );
   }
@@ -178,7 +179,7 @@ function ManageBody({ status }: { status: PlusStatus }) {
             title={t('manage.credits')}
             description={t('manage.creditsSub')}
             value={t('manage.creditsValue', { count: formatCredits(credits.data.spendable, loc) })}
-            onClick={() => router.push('/profile/credits')}
+            onClick={() => router.push('/profile/credits')} pilot={pilot('plus.open:profile-credits')}
           />
         ) : null}
         {upgrade ? (
@@ -202,7 +203,7 @@ function ManageBody({ status }: { status: PlusStatus }) {
             iconOutlined
             title={t('manage.buy')}
             description={t('manage.buySub')}
-            onClick={() => router.push('/plus/plans')}
+            onClick={() => router.push('/plus/plans')} pilot={pilot('plus.open:plus-plans')}
           />
         ) : null}
         {sub ? (
@@ -230,6 +231,7 @@ function ManageBody({ status }: { status: PlusStatus }) {
           aria-expanded={historyOpen}
           aria-controls={historyId}
           onClick={() => setHistoryOpen((v) => !v)}
+          {...pilot('plus.history')}
         >
           <IconCircle icon="note" tone="data" outlined />
           <span className="nb-row-text">

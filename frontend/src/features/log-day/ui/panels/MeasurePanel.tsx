@@ -7,9 +7,11 @@ import { useMemo } from 'react';
 import { useLogDays, type LogCategory, type LogDayValues, type LogParam, type LogParamValue } from '@/entities/health-log';
 import type { Locale } from '@/shared/i18n';
 import { addDays, formatDecimal, fromApiDate, toApiDate } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { ChipGroup, Icon, PillChip, type IconName, type Tone } from '@/shared/ui';
 
 import { asNumber, asString, normalizeNumber, pickableOptions } from '../../model/draft';
+import { logPilotId } from '../../model/pilot-targets';
 import { ParamField } from '../ParamField';
 import { PanelCard } from './PanelCard';
 
@@ -69,6 +71,7 @@ export function MeasurePanel({ category, values, setParam, mode, locale, date }:
           previous={last[p.code] ?? null}
           onChange={(n) => setParam(cat, p.code, n)}
           locale={locale}
+          pilotId={logPilotId.panelParam(cat, p.code)}
         />
       ))}
 
@@ -80,7 +83,7 @@ export function MeasurePanel({ category, values, setParam, mode, locale, date }:
             return (
               <div key={p.code} className="lday-param">
                 <div className="lday-plabel">{p.label}</div>
-                <ChipGroup label={p.label} layout="fill">
+                <ChipGroup label={p.label} layout="fill" pilot={pilot(logPilotId.panelParam(cat, p.code), 'choice')}>
                   <PillChip shape="square" mode="multi" tone={tone} pressed={current === null} onPressedChange={() => setParam(cat, p.code, null)}>
                     {t('measure.testNone')}
                   </PillChip>
@@ -92,6 +95,7 @@ export function MeasurePanel({ category, values, setParam, mode, locale, date }:
                       tone={tone}
                       pressed={current === o.value}
                       onPressedChange={() => setParam(cat, p.code, current === o.value ? null : o.value)}
+                      {...pilotOption(o.value)}
                     >
                       {o.label}
                     </PillChip>
@@ -114,6 +118,7 @@ export function MeasurePanel({ category, values, setParam, mode, locale, date }:
               mode={mode}
               tone="bloom"
               locale={locale}
+              pilotId={logPilotId.panelParam(cat, p.code)}
             />
           ))}
         </PanelCard>
@@ -128,12 +133,14 @@ function BigStepper({
   previous,
   onChange,
   locale,
+  pilotId,
 }: {
   param: LogParam;
   value: number | null;
   previous: number | null;
   onChange: (value: number | null) => void;
   locale: Locale;
+  pilotId: string;
 }) {
   const t = useTranslations('logSheet');
   const look = STEPPED[param.code];
@@ -156,7 +163,7 @@ function BigStepper({
 
   return (
     <PanelCard title={param.label} icon={look.icon} tone={look.tone}>
-      <div className="lday-big" role="group" aria-label={param.label}>
+      <div className="lday-big" role="group" aria-label={param.label} {...pilot(pilotId, 'stepper')}>
         <button type="button" className="lday-big-btn" aria-label={t('measure.decrease', { name: param.label })} onClick={() => nudge(-1)}>
           <Icon name="minus" size={20} strokeWidth={2.4} />
         </button>

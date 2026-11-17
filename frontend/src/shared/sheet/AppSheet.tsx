@@ -13,6 +13,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { pilot } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
 
 import type { SheetSize } from './types';
@@ -212,6 +213,7 @@ export function AppSheet({
             className="iconbtn osheet-close"
             onClick={onClose}
             aria-label={t('actions.close')}
+            {...pilot('sheet.close')}
           >
             <Icon name="x" size={18} />
           </button>

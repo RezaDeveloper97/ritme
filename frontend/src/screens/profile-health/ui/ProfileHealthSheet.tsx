@@ -13,6 +13,7 @@ import { getApiErrorMessage } from '@/shared/api';
 import type { Locale } from '@/shared/i18n';
 import { type DateParts, toApiDate, today, toParts, todayParts } from '@/shared/lib/date';
 import { closeSheet } from '@/shared/sheet';
+import { pilot } from '@/shared/pilot';
 import { WheelPicker } from '@/shared/ui';
 
 // API bounds for the two durations (POST /profile validation).
@@ -38,6 +39,7 @@ function SectionLabel({ children }: { children: string }) {
  */
 function DaysWheel({
   id,
+  pilotId,
   min,
   max,
   value,
@@ -45,6 +47,7 @@ function DaysWheel({
   label,
 }: {
   id: string;
+  pilotId: string;
   min: number;
   max: number;
   value: number;
@@ -63,6 +66,8 @@ function DaysWheel({
         selectedIndex={clamp(value, min, max) - min}
         width={150}
         onChange={(i) => onChange(min + i)}
+        pilot={pilot(pilotId, 'wheel')}
+        pilotValues={items.map((_, i) => String(min + i))}
       />
     </div>
   );
@@ -128,6 +133,7 @@ function HealthForm({ profile }: { profile: UserProfile }) {
           <div className="card prof-wheel-card">
             <DaysWheel
               id="ph-cycle"
+              pilotId="health.cycle-length"
               min={CYCLE_MIN}
               max={CYCLE_MAX}
               value={cycleDuration}
@@ -143,6 +149,7 @@ function HealthForm({ profile }: { profile: UserProfile }) {
           <div className="card prof-wheel-card">
             <DaysWheel
               id="ph-period"
+              pilotId="health.period-length"
               min={PERIOD_MIN}
               max={PERIOD_MAX}
               value={periodDuration}
@@ -158,6 +165,7 @@ function HealthForm({ profile }: { profile: UserProfile }) {
           <div className="card prof-wheel-card">
             <DateWheels
               idPrefix="ph-last"
+              pilotId="health.last-period"
               value={lastPeriod}
               onChange={setLastPeriod}
               minYear={nowParts.year - 1}
@@ -180,6 +188,7 @@ function HealthForm({ profile }: { profile: UserProfile }) {
           className="btn btn-primary"
           onClick={handleSave}
           disabled={update.isPending}
+          {...pilot('health.save')}
         >
           {update.isPending ? t('saving') : t('save')}
         </button>

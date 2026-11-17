@@ -27,6 +27,8 @@ import enAlerts from '../../../messages/en/alerts.json';
 import enVoiceLog from '../../../messages/en/voice-log.json';
 import enAiCredit from '../../../messages/en/ai-credit.json';
 import enAiGate from '../../../messages/en/ai-gate.json';
+import enAutopilot from '../../../messages/en/autopilot.json'; // shared/autopilot
+import enAutopilotCatalog from '../../../messages/en/autopilot-catalog.json'; // app/autopilot/catalog titles
 import enCredits from '../../../messages/en/credits.json';
 import enVitals from '../../../messages/en/vitals.json'; // B-N6-02
 import enTodo from '../../../messages/en/todo.json'; // B-N6-08
@@ -101,6 +103,8 @@ import faAlerts from '../../../messages/fa/alerts.json';
 import faVoiceLog from '../../../messages/fa/voice-log.json';
 import faAiCredit from '../../../messages/fa/ai-credit.json';
 import faAiGate from '../../../messages/fa/ai-gate.json';
+import faAutopilot from '../../../messages/fa/autopilot.json'; // shared/autopilot
+import faAutopilotCatalog from '../../../messages/fa/autopilot-catalog.json'; // app/autopilot/catalog titles
 import faCredits from '../../../messages/fa/credits.json';
 import faVitals from '../../../messages/fa/vitals.json'; // B-N6-02
 import faTodo from '../../../messages/fa/todo.json'; // B-N6-08
@@ -237,6 +241,8 @@ const bundled = {
     voiceLog: faVoiceLog,
     aiCredit: faAiCredit,
     aiGate: faAiGate,
+    autopilot: faAutopilot,
+    autopilotCatalog: faAutopilotCatalog,
     credits: faCredits,
     alerts: faAlerts, // T-M10-15 /alerts
     vitals: faVitals,
@@ -313,6 +319,8 @@ const bundled = {
     voiceLog: enVoiceLog,
     aiCredit: enAiCredit,
     aiGate: enAiGate,
+    autopilot: enAutopilot,
+    autopilotCatalog: enAutopilotCatalog,
     credits: enCredits,
     alerts: enAlerts, // T-M10-15 /alerts
     vitals: enVitals,

@@ -9,6 +9,7 @@ import { readLastSync } from '@/shared/api';
 import { useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { diffInDays, formatLongDate, formatTimeOfDay, today } from '@/shared/lib/date';
 import { Icon, InfoNote, ListGroup, ListRow, ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
+import { pilot } from '@/shared/pilot';
 
 /** `undefined` until read on the device (no server/client mismatch), then epoch ms or null (nothing written yet). */
 function useLastSync(): number | null | undefined {
@@ -89,6 +90,7 @@ export function BackupPage() {
               title={t('backup.json')}
               description={json.isPending ? tp('mine.exporting') : t('backup.jsonSub')}
               onClick={exporting ? undefined : () => json.exportData()}
+              pilot={pilot('backup.json')}
             />
             <ListRow
               icon="fileDoc"
@@ -96,6 +98,7 @@ export function BackupPage() {
               title={t('backup.pdf')}
               description={pdf.isPending ? tp('mine.exporting') : t('backup.pdfSub')}
               onClick={exporting ? undefined : exportPdf}
+              pilot={pilot('backup.pdf')}
             />
             {recordOn ? (
               <ListRow
@@ -104,6 +107,7 @@ export function BackupPage() {
                 title={t('backup.report')}
                 description={t('backup.reportSub')}
                 onClick={() => router.push('/record/export')}
+                pilot={pilot('backup.report')}
               />
             ) : null}
           </ListGroup>

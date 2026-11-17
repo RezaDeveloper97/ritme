@@ -17,6 +17,7 @@ import {
 } from '@/entities/city-service';
 import { Link, type Locale, useDirection, useRouter } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate, toApiDate, today } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { Card, Icon, ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
@@ -101,7 +102,7 @@ export function CityServicesHome({ onBrowse }: Props) {
     const ages = ageRangeLabel(l.age_ranges, cat);
     return (
       <li key={l.id} className="cdh-rail-item">
-        <Link href={`/city-services/${l.id}`} className="cdh-rail-card">
+        <Link href={`/city-services/${l.id}`} className="cdh-rail-card" {...pilot(`city-home.rail:${l.id}`)}>
           <span className="cdh-rail-art" aria-hidden>
             {thumb(l)}
           </span>
@@ -115,7 +116,7 @@ export function CityServicesHome({ onBrowse }: Props) {
 
   const row = (l: CityServiceCard) => (
     <li key={l.id}>
-      <Link href={`/city-services/${l.id}`} className="csv-card">
+      <Link href={`/city-services/${l.id}`} className="csv-card" {...pilot(`city-home.listing:${l.id}`)}>
         <span className="csv-thumb" aria-hidden>
           {thumb(l)}
         </span>
@@ -162,12 +163,12 @@ export function CityServicesHome({ onBrowse }: Props) {
           ) : (
             <>
               <div className="cdh-top">
-                <button type="button" className="cdh-city" aria-expanded={pickCity} onClick={() => setPickCity((v) => !v)}>
+                <button type="button" className="cdh-city" aria-expanded={pickCity} {...pilot('city-home.city')} onClick={() => setPickCity((v) => !v)}>
                   <Icon name="mapPin" size={16} />
                   <span>{cityName}</span>
                   <Icon name="chevronDown" size={14} />
                 </button>
-                <Link href="/profile/bookings" className="cdh-bk" aria-label={t('list.bookings')}>
+                <Link href="/profile/bookings" className="cdh-bk" {...pilot('city-home.bookings')} aria-label={t('list.bookings')}>
                   <Icon name="calendar" size={20} />
                 </Link>
               </div>
@@ -178,13 +179,14 @@ export function CityServicesHome({ onBrowse }: Props) {
                 </p>
               ) : null}
               {pickCity ? (
-                <div role="radiogroup" aria-label={t('list.cityLabel')} className="csv-chips">
+                <div role="radiogroup" aria-label={t('list.cityLabel')} className="csv-chips" {...pilot('city-home.city-pick', 'choice')}>
                   {[{ id: null as number | null, name: t('list.allCities') }, ...cities].map((c) => (
                     <button
                       key={String(c.id)}
                       type="button"
                       role="radio"
                       aria-checked={activeCity === c.id}
+                      {...pilotOption(c.id === null ? 'all' : String(c.id))}
                       className={activeCity === c.id ? 'chip csv-chip on' : 'chip csv-chip'}
                       onClick={() => {
                         setCity(c.id);
@@ -207,9 +209,10 @@ export function CityServicesHome({ onBrowse }: Props) {
                     placeholder={t('home.searchPlaceholder')}
                     aria-label={t('home.searchLabel')}
                     onChange={(e) => setQ(e.target.value)}
+                    {...pilot('city-home.search', 'text')}
                   />
                 </form>
-                <Link href="/city-services/map" className="cdh-map-btn" aria-label={t('home.map')}>
+                <Link href="/city-services/map" className="cdh-map-btn" {...pilot('city-home.map')} aria-label={t('home.map')}>
                   <Icon name="mapPin" size={20} />
                 </Link>
               </div>
@@ -217,7 +220,7 @@ export function CityServicesHome({ onBrowse }: Props) {
               <ul className="cdh-cats" aria-label={t('list.categoryLabel')}>
                 {options.data?.categories.map((c) => (
                   <li key={c.slug}>
-                    <button type="button" className="cdh-cat" onClick={() => onBrowse({ category: c.slug, q: '', ageMonths: null })}>
+                    <button type="button" className="cdh-cat" {...pilot(`city-home.category:${c.slug}`)} onClick={() => onBrowse({ category: c.slug, q: '', ageMonths: null })}>
                       <span className="cdh-cat-ic" aria-hidden>
                         <Icon name={c.icon ?? 'home'} size={22} strokeWidth={1.6} />
                       </span>
@@ -228,7 +231,7 @@ export function CityServicesHome({ onBrowse }: Props) {
               </ul>
 
               {upcoming ? (
-                <Link href="/profile/bookings" className="cdh-next">
+                <Link href="/profile/bookings" className="cdh-next" {...pilot('city-home.next-booking')}>
                   <span className="cdh-next-k">{t('home.nextBooking')}</span>
                   <span className="cdh-next-title">{upcoming.listing.name}</span>
                   <span className="cdh-next-day">{formatLongDate(fromApiDate(upcoming.preferred_date), locale)}</span>
@@ -244,7 +247,7 @@ export function CityServicesHome({ onBrowse }: Props) {
                       </h2>
                       <p className="cdh-sec-sub">{t('home.suitedSub', { age: child.age.label })}</p>
                     </div>
-                    <button type="button" className="cdh-sec-all" onClick={() => onBrowse({ category: null, q: '', ageMonths })}>
+                    <button type="button" className="cdh-sec-all" {...pilot('city-home.suited-all')} onClick={() => onBrowse({ category: null, q: '', ageMonths })}>
                       {t('home.all')}
                     </button>
                   </div>
@@ -258,10 +261,10 @@ export function CityServicesHome({ onBrowse }: Props) {
                     {t('home.nearTitle')}
                   </h2>
                   <span className="cdh-sec-links">
-                    <button type="button" className="cdh-sec-all" onClick={() => onBrowse({ category: null, q: '', ageMonths: null })}>
+                    <button type="button" className="cdh-sec-all" {...pilot('city-home.list')} onClick={() => onBrowse({ category: null, q: '', ageMonths: null })}>
                       {t('home.list')}
                     </button>
-                    <Link href="/city-services/map" className="cdh-sec-all">
+                    <Link href="/city-services/map" className="cdh-sec-all" {...pilot('city-home.map-all')}>
                       {t('home.map')}
                     </Link>
                   </span>
@@ -282,7 +285,7 @@ export function CityServicesHome({ onBrowse }: Props) {
                 )}
               </section>
 
-              <Link href="/city-services/join" className="cdh-join">
+              <Link href="/city-services/join" className="cdh-join" {...pilot('city-home.join')}>
                 <span className="cdh-join-title">{t('home.joinTitle')}</span>
                 <span className="cdh-join-sub">{t('home.joinSub')}</span>
               </Link>
@@ -290,7 +293,7 @@ export function CityServicesHome({ onBrowse }: Props) {
               <p className="csv-note">{t('home.rankNote')}</p>
               <p className="csv-note">
                 {t('home.ageNote')}{' '}
-                <button type="button" className="cdh-toggle" onClick={() => setAgeOn(!ageOn)}>
+                <button type="button" className="cdh-toggle" {...pilot('city-home.age-toggle')} onClick={() => setAgeOn(!ageOn)}>
                   {ageOn ? t('home.ageOff') : t('home.ageOn')}
                 </button>
               </p>

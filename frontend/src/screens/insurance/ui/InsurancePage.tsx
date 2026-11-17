@@ -7,6 +7,7 @@ import { useInsurancePolicies, useInsurancePolicy, useInsurancePolicyById } from
 
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { Accordion, EmptyState, Icon, PrimaryButton, ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
@@ -96,7 +97,7 @@ function InsuranceBody() {
           </h2>
           <div className="ins-faq">
             {s.faq.map((q) => (
-              <Accordion key={q.id} title={q.heading} className="ins-q">
+              <Accordion key={q.id} title={q.heading} className="ins-q" pilot={pilot(`insurance-info.faq:${q.id}`)}>
                 <p className="ins-body">{q.body}</p>
               </Accordion>
             ))}

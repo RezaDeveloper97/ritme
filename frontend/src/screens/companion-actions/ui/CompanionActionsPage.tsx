@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 
 import { useCompanionHome } from '@/entities/companion';
+import { pilot } from '@/shared/pilot';
 import { useRouter } from '@/shared/i18n';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { Icon, InfoNote, ScreenHeader, SectionTitle, SkyLayer } from '@/shared/ui';
@@ -39,6 +40,7 @@ export function CompanionActionsPage() {
             aria-pressed={isMuted}
             aria-label={t('mute')}
             onClick={() => setMuted(!isMuted)}
+            {...pilot('companion.mute')}
           >
             <Icon name={isMuted ? 'bellPlain' : 'bell'} size={20} strokeWidth={1.8} />
           </button>

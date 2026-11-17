@@ -18,6 +18,7 @@ import {
   type LifeStage,
 } from '@/entities/user';
 import { useDirection, useRouter } from '@/shared/i18n';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import {
   Art3d,
@@ -201,7 +202,7 @@ function ModeBody({ stage }: { stage: LifeStage }) {
         {busy ? t('saving') : savedMode ? t('saved', { mode: t(`cards.${savedMode}.title`) }) : ''}
       </p>
 
-      <div role="radiogroup" aria-label={t('title')} aria-busy={busy || undefined} className="mode-list">
+      <div role="radiogroup" aria-label={t('title')} aria-busy={busy || undefined} className="mode-list" {...pilot('mode.life', 'choice')}>
         {cards.map((card, index) => (
           <ModeCard
             key={card.key}
@@ -225,11 +226,12 @@ function ModeBody({ stage }: { stage: LifeStage }) {
                   checked={stage.ivfIui}
                   onCheckedChange={(ivfIui) => toggle({ ivfIui })}
                   labelledBy={`${groupId}-ivf`}
+                  pilot={pilot('mode.ivf-iui')}
                 />
               </div>
             ) : null}
             {card.key === 'pregnancy' && current === 'pregnancy' ? (
-              <button type="button" className="mode-loss" onClick={() => router.push('/loss')}>
+              <button type="button" className="mode-loss" onClick={() => router.push('/loss')} {...pilot('mode.loss-open')}>
                 <span className="mode-loss-text">
                   <b>{t('loss.row')}</b>
                   <span>{t('loss.rowSub')}</span>
@@ -256,6 +258,7 @@ function ModeBody({ stage }: { stage: LifeStage }) {
                 disabled={stopContraception.isPending}
                 onCheckedChange={toggleContraception}
                 labelledBy={`${groupId}-contra-title`}
+                pilot={pilot('mode.contraception')}
               />
             }
           />
@@ -267,6 +270,7 @@ function ModeBody({ stage }: { stage: LifeStage }) {
               title={tc('manage')}
               description={tc('manageDesc')}
               onClick={() => router.push('/contraception')}
+              pilot={pilot('mode.contraception-manage')}
             />
           ) : null}
         </div>
@@ -291,6 +295,7 @@ function ModeBody({ stage }: { stage: LifeStage }) {
                 if (!plan) return;
                 void run(plan).then(() => setConfirm(null));
               }}
+              {...pilot('mode.confirm-go')}
             >
               {confirm?.kind === 'leavePregnancy' ? t('confirm.leaveGo') : t('confirm.pregnancyGo')}
             </PrimaryButton>
@@ -339,6 +344,7 @@ function ModeCard({ card, checked, tabIndex, buttonRef, idPrefix, disabled, onSe
         className="mode-radio"
         onClick={onSelect}
         onKeyDown={onKeyDown}
+        {...pilotOption(card.key)}
       >
         <span className="mode-head">
           <Art3d name={card.art} size={52} />

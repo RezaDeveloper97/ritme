@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 
 import { type CheckupItem, checkupIcon, useCheckup } from '@/entities/checkup';
 import { useUpdateCheckupSettings } from '@/features/manage-custom-checkup';
+import { pilot } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { Icon, Switch as NbSwitch } from '@/shared/ui';
 
@@ -12,14 +13,16 @@ function Switch({
   label,
   disabled,
   onClick,
+  pilotId,
 }: {
+  pilotId: string;
   on: boolean;
   label: string;
   disabled?: boolean;
   onClick: () => void;
 }) {
   return (
-    <NbSwitch compact className="rmd-hit" checked={on} label={label} disabled={disabled} onCheckedChange={() => onClick()} />
+    <NbSwitch compact className="rmd-hit" checked={on} label={label} disabled={disabled} onCheckedChange={() => onClick()} pilot={pilot(pilotId)} />
   );
 }
 
@@ -43,6 +46,7 @@ function SettingsRow({ item }: { item: CheckupItem }) {
         <span className="text-[10.5px] font-semibold text-(--ink-3)">{t('enabled')}</span>
         <Switch
           on={enabled}
+          pilotId={`ck.enabled:${item.id}`}
           label={`${t('enabled')} — ${item.title}`}
           disabled={update.isPending}
           onClick={() => update.mutate({ id: item.id, enabled: !enabled })}
@@ -52,6 +56,7 @@ function SettingsRow({ item }: { item: CheckupItem }) {
         <span className="text-[10.5px] font-semibold text-(--ink-3)">{t('remind')}</span>
         <Switch
           on={remind}
+          pilotId={`ck.remind:${item.id}`}
           label={`${t('remind')} — ${item.title}`}
           disabled={update.isPending || !detail.data || !enabled}
           onClick={() => update.mutate({ id: item.id, remind: !remind })}

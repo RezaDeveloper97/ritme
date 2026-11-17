@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { getApiErrorCode, getApiErrorMessage } from '@/shared/api';
 import { Link } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { Card, Icon, PrimaryButton, SectionTitle, StatusPill } from '@/shared/ui';
 
 import { useStopKicks } from '../api/queries';
@@ -97,6 +98,7 @@ export function KickCounter({ overview }: KickCounterProps) {
             className={clsx('ptl-kick-btn', reached && 'is-reached')}
             aria-label={t('tapLabel', { count: f.num(count), target: fmtTarget })}
             onClick={onTap}
+            {...pilot('preg.kick-tap')}
           >
             <span className="ptl-kick-num" aria-hidden>
               {f.num(count)}
@@ -115,6 +117,7 @@ export function KickCounter({ overview }: KickCounterProps) {
             type="button"
             className="ptl-undo"
             disabled={count <= 0}
+            {...pilot('preg.kick-undo')}
             onClick={() => {
               buzz(10);
               taps.undo(count);
@@ -199,7 +202,7 @@ export function KickCounter({ overview }: KickCounterProps) {
 
       {active ? (
         <div className="ptl-footer">
-          <PrimaryButton onClick={onStop} loading={stop.isPending} disabled={taps.busy}>
+          <PrimaryButton onClick={onStop} loading={stop.isPending} disabled={taps.busy} {...pilot('preg.kick-stop')}>
             {t('stop')}
           </PrimaryButton>
         </div>

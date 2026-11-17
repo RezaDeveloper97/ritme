@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { useTranslations } from 'next-intl';
 
 import { Link } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { Icon, type IconName } from '@/shared/ui';
 
 
@@ -32,7 +33,7 @@ export function AddChooserSheet() {
   return (
     <div className="rad-list">
       {CHOICES.map((choice) => (
-        <Link key={choice.key} href={choice.href} className="rad-row">
+        <Link key={choice.key} href={choice.href} className="rad-row" {...pilot(`care.choice:${choice.key}`)}>
           <span className={clsx('rad-tile', `is-${choice.tone}`)} aria-hidden>
             <Icon name={choice.icon} size={22} strokeWidth={1.8} />
           </span>

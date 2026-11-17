@@ -1,0 +1,15 @@
+{
+  "bar": {
+    "running": "Ritme is doing it",
+    "paused": "Paused",
+    "progress": "{step, number} of {total, number}",
+    "pause": "Wait",
+    "resume": "Continue",
+    "stop": "Cancel"
+  },
+  "confirm": {
+    "question": "Shall I do this?",
+    "allow": "Do it",
+    "skip": "No"
+  }
+}

@@ -13,6 +13,10 @@ entries:
     deviation: D-208
     reason: companion v2 additive field (goal)
   - case: spouse_read_only
+    where: data.goals
+    deviation: D-208
+    reason: companion v2 additive field (goals) — the multi-select list
+  - case: spouse_read_only
     where: data.signals
     deviation: D-208
     reason: companion v2 additive field (signals)
@@ -24,6 +28,10 @@ entries:
     where: data.companion.goal
     deviation: D-208
     reason: companion v2 additive field (goal)
+  - case: spouse_read_only
+    where: data.companion.goals
+    deviation: D-208
+    reason: companion v2 additive field (goals) — the multi-select list
   - case: spouse_read_only
     where: data.companion.signals
     deviation: D-208
@@ -40,6 +48,10 @@ entries:
     where: data[*].goal
     deviation: D-208
     reason: companion v2 additive field (goal)
+  - case: spouse_read_only
+    where: data[*].goals
+    deviation: D-208
+    reason: companion v2 additive field (goals) — the multi-select list
   - case: spouse_read_only
     where: data[*].signals
     deviation: D-208

@@ -11,6 +11,7 @@ import {
 } from '@/entities/menopause';
 import { Link, type Locale, useDirection, useRouter } from '@/shared/i18n';
 import { formatMonthLabel, formatNumber, fromApiDate, monthName, toParts } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import {
   Card,
   EmptyState,
@@ -111,11 +112,11 @@ function ScoreBody({ history }: { history: MenopauseScoreHistory }) {
       {history.trend.some((p) => p.total !== null) ? <Trend history={history} /> : null}
       <Patterns />
       {filled ? (
-        <SecondaryButton className="msc-cta" onClick={() => router.push(QUESTIONNAIRE_PATH)}>
+        <SecondaryButton className="msc-cta" onClick={() => router.push(QUESTIONNAIRE_PATH)} {...pilot('menopause.score-fill')}>
           {t('refill')}
         </SecondaryButton>
       ) : (
-        <PrimaryButton className="msc-cta" onClick={() => router.push(QUESTIONNAIRE_PATH)}>
+        <PrimaryButton className="msc-cta" onClick={() => router.push(QUESTIONNAIRE_PATH)} {...pilot('menopause.score-fill')}>
           {t('fill')}
         </PrimaryButton>
       )}
@@ -297,7 +298,7 @@ function Patterns() {
       </div>
       <Card className="msc-patterns">
         {content}
-        <Link href="/analysis/symptoms" className="msc-analysis">
+        <Link href="/analysis/symptoms" className="msc-analysis" {...pilot('menopause.score-analysis')}>
           <Icon name="chart" size={18} />
           <span className="msc-analysis-label">{t('analysis')}</span>
           <Icon name={rtl ? 'chevronLeft' : 'chevronRight'} size={18} className="msc-analysis-chev" />

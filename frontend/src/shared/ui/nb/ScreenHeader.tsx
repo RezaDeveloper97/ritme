@@ -6,12 +6,15 @@ import { clsx } from 'clsx';
 import { useDirection } from '@/shared/i18n';
 
 import { Icon, type IconName } from '../Icon';
+import type { PilotAttrs } from '@/shared/pilot';
 
 interface HeaderButtonProps {
   /** Accessible name — the button shows only an icon (CLAUDE.md §6: from i18n). */
   label: string;
   icon: IconName;
   onClick?: () => void;
+  /** Autopilot name: `pilot('…')` (frontend/CLAUDE.md §11.6). */
+  pilot?: PilotAttrs;
   /** `soft` = the hub variant on `--brand-soft`; default = `--surface-2` + line. */
   variant?: 'default' | 'soft';
   /** Small dot on the corner, e.g. unread notifications. */
@@ -20,12 +23,13 @@ interface HeaderButtonProps {
 }
 
 /** The 44px round icon button of every Night & Bloom header. */
-export function HeaderButton({ label, icon, onClick, variant = 'default', badge, className }: HeaderButtonProps) {
+export function HeaderButton({ label, icon, onClick, variant = 'default', badge, className, pilot }: HeaderButtonProps) {
   return (
     <button
       type="button"
       className={clsx('nb-hbtn', variant === 'soft' && 'is-soft', className)}
       onClick={onClick}
+      {...pilot}
       aria-label={label}
     >
       <Icon name={icon} size={20} strokeWidth={1.8} />

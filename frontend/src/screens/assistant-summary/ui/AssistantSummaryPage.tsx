@@ -16,6 +16,7 @@ import {
   usePrepareSummary,
   useWhen,
 } from '@/entities/assistant';
+import { pilot } from '@/shared/pilot';
 import { useRouter } from '@/shared/i18n';
 import { Card, EmptyState, Icon, PrimaryButton, ScreenHeader, SecondaryButton, SkyLayer, InfoNote } from '@/shared/ui';
 
@@ -97,7 +98,7 @@ export function AssistantSummaryPage({ id }: { id: number }) {
           <Card className="as-handoff-cta">
             <h3 className="as-h3">{t('summary.connect')}</h3>
             <p className="as-text">{t('summary.consentNote')}</p>
-            <PrimaryButton block icon="stetho" onClick={() => router.push(`/assistant/chat/${id}/handoff`)}>{t('summary.send')}</PrimaryButton>
+            <PrimaryButton block icon="stetho" onClick={() => router.push(`/assistant/chat/${id}/handoff`)} {...pilot('assistant.open:handoff')}>{t('summary.send')}</PrimaryButton>
           </Card>
         ) : null}
         <SecondaryButton block onClick={() => router.push(`/assistant/chat/${id}`)}>{t('summary.backToChat')}</SecondaryButton>

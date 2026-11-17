@@ -13,6 +13,7 @@ import {
   useDepartment,
   useStartConversation,
 } from '@/entities/assistant';
+import { pilot } from '@/shared/pilot';
 import { Link, useRouter } from '@/shared/i18n';
 import { Card, EmptyState, Icon, IconCircle, PrimaryButton, ScreenHeader, SkyLayer } from '@/shared/ui';
 
@@ -42,7 +43,7 @@ export function AssistantDeptPage({ code, ask }: { code: string; ask?: string })
     body = (
       <div className="as-body">
         {q.error && (q.error as { response?: { status?: number } }).response?.status === 404 ? (
-          <Card><EmptyState icon="chat" title={t('dept.notFound')} action={<PrimaryButton onClick={() => router.push('/assistant')}>{t('hub.title')}</PrimaryButton>} /></Card>
+          <Card><EmptyState icon="chat" title={t('dept.notFound')} action={<PrimaryButton onClick={() => router.push('/assistant')} {...pilot('assistant.open:assistant')}>{t('hub.title')}</PrimaryButton>} /></Card>
         ) : (
           <LoadError onRetry={() => void q.refetch()} busy={q.isFetching} />
         )}

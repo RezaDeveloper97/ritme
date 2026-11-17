@@ -8,6 +8,7 @@ import { useUserProfile } from '@/entities/user';
 import { useLogout } from '@/features/auth';
 import { QuickEditSheet, type QuickEditField } from '@/features/edit-profile';
 import { DeleteAccountConfirm } from '@/features/manage-account';
+import { pilot } from '@/shared/pilot';
 import { localizeHref, useRouter, type Locale } from '@/shared/i18n';
 import { formatLongDate, formatNumber } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
@@ -80,6 +81,7 @@ export function AccountPage() {
       className="acct-action"
       aria-label={t('account.editLabel', { field: label })}
       onClick={() => setEditing(field)}
+      {...pilot(`account.edit:${field}`)}
     >
       {t('account.edit')}
     </button>
@@ -167,34 +169,34 @@ export function AccountPage() {
                   icon="refresh"
                   title={th('health.cycleDuration')}
                   value={daysOrEmpty(health.cycleDuration)}
-                  onClick={() => setEditing('cycleDuration')}
+                  onClick={() => setEditing('cycleDuration')} pilot={pilot('account.edit:cycleDuration')}
                 />
                 <ListRow
                   icon="drop"
                   iconTone="period"
                   title={th('health.periodDuration')}
                   value={daysOrEmpty(health.periodDuration)}
-                  onClick={() => setEditing('periodDuration')}
+                  onClick={() => setEditing('periodDuration')} pilot={pilot('account.edit:periodDuration')}
                 />
                 <ListRow
                   icon="calendar"
                   title={th('health.lastPeriod')}
                   value={dateOrEmpty(health.lastPeriodStart)}
-                  onClick={() => setEditing('lastPeriod')}
+                  onClick={() => setEditing('lastPeriod')} pilot={pilot('account.edit:lastPeriod')}
                 />
                 <ListRow
                   icon="scale"
                   iconTone="data"
                   title={th('health.weight')}
                   value={measureOrEmpty('kg', health.weight)}
-                  onClick={() => setEditing('weight')}
+                  onClick={() => setEditing('weight')} pilot={pilot('account.edit:weight')}
                 />
                 <ListRow
                   icon="walk"
                   iconTone="data"
                   title={th('health.height')}
                   value={measureOrEmpty('cm', health.height)}
-                  onClick={() => setEditing('height')}
+                  onClick={() => setEditing('height')} pilot={pilot('account.edit:height')}
                 />
               </ListGroup>
             ) : null}

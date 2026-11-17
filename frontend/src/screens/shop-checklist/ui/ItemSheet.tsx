@@ -15,6 +15,7 @@ import {
   useUpdateCustomItem,
 } from '@/entities/shop';
 import type { Locale } from '@/shared/i18n';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { ChipGroup, NumberStepper, PillChip, PrimaryButton, SecondaryButton } from '@/shared/ui';
 
@@ -65,7 +66,7 @@ export function ItemSheet({ item, defaultGroup, onClose }: Props) {
       title={item ? item.title : t('add.title')}
       footer={
         <div className="shc-sheet-actions">
-          <PrimaryButton loading={busy} disabled={!canSave} onClick={save}>
+          <PrimaryButton loading={busy} disabled={!canSave} onClick={save} {...pilot('shop-checklist.save')}>
             {t('sheet.save')}
           </PrimaryButton>
           {item?.is_custom && item.id !== null ? (
@@ -87,11 +88,11 @@ export function ItemSheet({ item, defaultGroup, onClose }: Props) {
               {t('add.name')}
             </label>
             <div className="field">
-              <input id="shc-title" value={title} maxLength={120} onChange={(e) => setTitle(e.target.value)} placeholder={t('add.placeholder')} />
+              <input id="shc-title" value={title} maxLength={120} onChange={(e) => setTitle(e.target.value)} placeholder={t('add.placeholder')} {...pilot('shop-checklist.title', 'text')} />
             </div>
-            <ChipGroup label={t('add.group')}>
+            <ChipGroup label={t('add.group')} pilot={pilot('shop-checklist.group', 'choice')}>
               {CHECKLIST_GROUPS.map((g) => (
-                <PillChip key={g} pressed={group === g} onPressedChange={() => setGroup(g)}>
+                <PillChip key={g} pressed={group === g} onPressedChange={() => setGroup(g)} {...pilotOption(g)}>
                   {t(`groups.${g}`)}
                 </PillChip>
               ))}
@@ -99,9 +100,9 @@ export function ItemSheet({ item, defaultGroup, onClose }: Props) {
           </>
         ) : null}
         {item?.note ? <p className="shc-sheet-note">{item.note}</p> : null}
-        <ChipGroup label={t('sheet.state')}>
+        <ChipGroup label={t('sheet.state')} pilot={pilot('shop-checklist.state', 'choice')}>
           {CHECKLIST_STATES.map((s) => (
-            <PillChip key={s} pressed={state === s} onPressedChange={() => setStateValue(s)}>
+            <PillChip key={s} pressed={state === s} onPressedChange={() => setStateValue(s)} {...pilotOption(s)}>
               {t(`state.${s}`)}
             </PillChip>
           ))}
@@ -110,6 +111,7 @@ export function ItemSheet({ item, defaultGroup, onClose }: Props) {
           <NumberStepper
             value={qty}
             onChange={setQty}
+            pilot={pilot('shop-checklist.qty')}
             min={1}
             max={99}
             label={t('sheet.qty')}

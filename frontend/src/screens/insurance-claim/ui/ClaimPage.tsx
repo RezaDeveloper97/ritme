@@ -18,6 +18,7 @@ import {
 import { KIND_LOOK, type TimelineItemKind } from '@/entities/health-record';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, fromApiDate, toApiDate, today } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import {
   EmptyState,
@@ -69,7 +70,7 @@ function StepSheet({ claim, initial, onClose }: { claim: InsuranceClaimDetail; i
           <SecondaryButton block={false} onClick={onClose}>
             {tn('cancel')}
           </SecondaryButton>
-          <PrimaryButton block={false} loading={add.isPending} onClick={submit}>
+          <PrimaryButton block={false} loading={add.isPending} onClick={submit} {...pilot('ins-claim.step-save')}>
             {tn('save')}
           </PrimaryButton>
         </div>
@@ -77,16 +78,16 @@ function StepSheet({ claim, initial, onClose }: { claim: InsuranceClaimDetail; i
     >
       <div className="ins-form">
         <p className="ins-hint">{tn('stepHint')}</p>
-        <div className="ins-chips" role="group" aria-label={tn('stepStatus')}>
+        <div className="ins-chips" role="group" aria-label={tn('stepStatus')} {...pilot('ins-claim.step-status', 'choice')}>
           {nextStatuses(claim.status).map((s) => (
-            <PillChip key={s} pressed={draft.status === s} onPressedChange={() => setDraft((d) => ({ ...d, status: s }))}>
+            <PillChip key={s} pressed={draft.status === s} onPressedChange={() => setDraft((d) => ({ ...d, status: s }))} {...pilotOption(s)}>
               {t(`claimStatus.${s}`)}
             </PillChip>
           ))}
         </div>
         {draft.status === 'paid' ? (
           <>
-            <LocaleNumberField label={tn('paidAmount')} locale={locale} value={draft.amount} max={MAX_AMOUNT} onChange={(v) => setDraft((d) => ({ ...d, amount: v }))} />
+            <LocaleNumberField label={tn('paidAmount')} locale={locale} value={draft.amount} max={MAX_AMOUNT} pilot={pilot('ins-claim.step-amount')} onChange={(v) => setDraft((d) => ({ ...d, amount: v }))} />
             {touched && problem ? (
               <p className="ins-problem" role="alert">
                 {tn('problems.amount')}
@@ -102,6 +103,7 @@ function StepSheet({ claim, initial, onClose }: { claim: InsuranceClaimDetail; i
             maxLength={MAX_NOTE}
             value={draft.note}
             onChange={(e) => setDraft((d) => ({ ...d, note: e.target.value }))}
+            {...pilot('ins-claim.step-note', 'text')}
           />
         </label>
         {add.isError ? (
@@ -219,7 +221,7 @@ function Body({ claim }: { claim: InsuranceClaimDetail }) {
               </ul>
             ) : null}
             {ro ? null : (
-              <PrimaryButton icon="fileDoc" loading={attach.isPending} onClick={() => setPicker(true)}>
+              <PrimaryButton icon="fileDoc" loading={attach.isPending} onClick={() => setPicker(true)} {...pilot('ins-claim.attach')}>
                 {tn('pickFromRecord')}
               </PrimaryButton>
             )}
@@ -231,7 +233,7 @@ function Body({ claim }: { claim: InsuranceClaimDetail }) {
           </div>
         </section>
       ) : ro ? null : (
-        <SecondaryButton icon="fileDoc" onClick={() => setPicker(true)}>
+        <SecondaryButton icon="fileDoc" onClick={() => setPicker(true)} {...pilot('ins-claim.attach')}>
           {tn('attachDoc')}
         </SecondaryButton>
       )}
@@ -264,14 +266,14 @@ function Body({ claim }: { claim: InsuranceClaimDetail }) {
                       .join(' · '),
             }))}
           />
-          <SecondaryButton icon="plus" onClick={() => setSheet(claim.status === 'submitted' ? 'reviewing' : nextStatuses(claim.status)[0])}>
+          <SecondaryButton icon="plus" onClick={() => setSheet(claim.status === 'submitted' ? 'reviewing' : nextStatuses(claim.status)[0])} {...pilot('ins-claim.advance')}>
             {tn('advance')}
           </SecondaryButton>
         </div>
       </section>
 
       {claim.status === 'rejected' || claim.status === 'paid' ? (
-        <SecondaryButton variant="text" onClick={() => setSheet('appealed')}>
+        <SecondaryButton variant="text" onClick={() => setSheet('appealed')} {...pilot('ins-claim.appeal')}>
           {tn('appeal')}
         </SecondaryButton>
       ) : null}

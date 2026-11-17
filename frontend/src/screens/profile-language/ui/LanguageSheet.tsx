@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { useTranslations } from 'next-intl';
 
 import { useSwitchLocale } from '@/features/switch-locale';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
 
 /**
@@ -20,7 +21,7 @@ export function LanguageSheet() {
   const { locale, languages, switchLocale, isPending } = useSwitchLocale();
 
   return (
-    <div className="lang-list">
+    <div className="lang-list" {...pilot('language.pick', 'choice')}>
       <p className="lang-hint">{t('language.hint')}</p>
 
       {languages.map((language) => {
@@ -35,6 +36,8 @@ export function LanguageSheet() {
             disabled={isPending || active}
             aria-current={active}
             onClick={() => switchLocale(language.code)}
+            {...pilotOption(language.code)}
+            aria-pressed={active}
           >
             <span className="lang-row-body">
               <span className="lang-row-name">{language.name}</span>

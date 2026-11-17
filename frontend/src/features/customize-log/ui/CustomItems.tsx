@@ -6,6 +6,7 @@ import { type FormEvent, useId, useState } from 'react';
 import type { LogCustomItem, LogPreferences } from '@/entities/health-log';
 import type { Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { ChipGroup, Icon, PillChip, PrimaryButton, SecondaryButton } from '@/shared/ui';
 
 import { useAddLogCustomItem, useDeleteLogCustomItem, useRenameLogCustomItem } from '../api/mutations';
@@ -221,6 +222,7 @@ export function CustomItems({ prefs, mode, announce }: CustomItemsProps) {
             <span className="lcz-field-label">{t('custom.label')}</span>
             <input
               className="lcz-input"
+              {...pilot('customize.add-label', 'text')}
               value={label}
               placeholder={t('custom.placeholder')}
               maxLength={CUSTOM_LABEL_MAX + 10}
@@ -237,11 +239,12 @@ export function CustomItems({ prefs, mode, announce }: CustomItemsProps) {
           <span className="lcz-field-label" aria-hidden>
             {t('custom.category')}
           </span>
-          <ChipGroup label={t('custom.category')}>
+          <ChipGroup label={t('custom.category')} pilot={pilot('customize.add-category', 'choice')}>
             {hosts.map((h) => (
               <PillChip
                 key={h.code}
                 pressed={chosen === h.code}
+                {...pilotOption(h.code)}
                 onPressedChange={() => {
                   setCategory(h.code);
                   setAddError(null);
@@ -257,7 +260,7 @@ export function CustomItems({ prefs, mode, announce }: CustomItemsProps) {
             </p>
           ) : null}
           <div className="lcz-add-acts">
-            <PrimaryButton type="submit" loading={add.isPending} block={false} className="lcz-add-submit">
+            <PrimaryButton type="submit" loading={add.isPending} block={false} className="lcz-add-submit" {...pilot('customize.add-submit')}>
               {t('custom.submit')}
             </PrimaryButton>
             <SecondaryButton variant="text" block={false} onClick={closeForm}>
@@ -272,6 +275,7 @@ export function CustomItems({ prefs, mode, announce }: CustomItemsProps) {
           disabled={full}
           aria-describedby={full ? `${formId}-full` : undefined}
           onClick={() => setAdding(true)}
+          {...pilot('customize.add')}
         >
           <Icon name="plus" size={17} strokeWidth={2.4} className="lcz-add-icon" />
           <span>{t('custom.add')}</span>

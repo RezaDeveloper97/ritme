@@ -91,6 +91,10 @@ entries:
     deviation: D-208
     reason: owner link gains goal (companion v2)
   - case: "*"
+    where: data.goals
+    deviation: D-208
+    reason: owner link gains goals (companion v2) — the multi-select list
+  - case: "*"
     where: data.signals
     deviation: D-208
     reason: owner link gains signal consents (companion v2)
@@ -103,6 +107,10 @@ entries:
     deviation: D-208
     reason: owner list items gain goal (companion v2)
   - case: "*"
+    where: data[*].goals
+    deviation: D-208
+    reason: owner list items gain goals (companion v2) — the multi-select list
+  - case: "*"
     where: data[*].signals
     deviation: D-208
     reason: owner list items gain signal consents (companion v2)
@@ -114,6 +122,10 @@ entries:
     where: data.companion.goal
     deviation: D-208
     reason: POST /companions companion gains goal (companion v2)
+  - case: "*"
+    where: data.companion.goals
+    deviation: D-208
+    reason: POST /companions companion gains goals (companion v2) — the multi-select list
   - case: "*"
     where: data.companion.signals
     deviation: D-208

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 
 import { PlusCrown, usePlusPlans, usePlusStatus } from '@/entities/plus';
 import { useRestorePlus, useStartPlusTrial } from '@/features/purchase-plus';
+import { pilot } from '@/shared/pilot';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { HeaderButton, Icon, PrimaryButton, SecondaryButton, SkyLayer } from '@/shared/ui';
@@ -136,9 +137,9 @@ export function PaywallPage() {
 
       <div className="plus-footer">
         {isPlus ? (
-          <PrimaryButton onClick={() => router.push('/plus/manage')}>{t('paywall.manage')}</PrimaryButton>
+          <PrimaryButton onClick={() => router.push('/plus/manage')} {...pilot('plus.open:plus-manage')}>{t('paywall.manage')}</PrimaryButton>
         ) : (
-          <PrimaryButton onClick={() => router.push('/plus/plans')}>{t('paywall.cta')}</PrimaryButton>
+          <PrimaryButton onClick={() => router.push('/plus/plans')} {...pilot('plus.open:plus-plans')}>{t('paywall.cta')}</PrimaryButton>
         )}
         {canTrial ? (
           <SecondaryButton variant="text" loading={trial.isPending} onClick={onTrial}>

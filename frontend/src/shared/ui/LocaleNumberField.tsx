@@ -1,6 +1,7 @@
 'use client';
 
 import type { Locale } from '@/shared/i18n';
+import type { PilotAttrs } from '@/shared/pilot';
 
 import { formatLocaleInteger, parseLocaleInteger } from './locale-number';
 
@@ -17,6 +18,7 @@ export function LocaleNumberField({
   onChange,
   max,
   placeholder,
+  pilot,
 }: {
   label: string;
   locale: Locale;
@@ -25,6 +27,8 @@ export function LocaleNumberField({
   /** The caller clamps; `max` limits the digit count. */
   max?: number;
   placeholder?: string;
+  /** Autopilot name of the input: `pilot('…', 'text')` (frontend/CLAUDE.md §11.6). */
+  pilot?: PilotAttrs;
 }) {
   const maxDigits = max !== undefined ? String(Math.trunc(Math.abs(max))).length : 6;
   return (
@@ -39,6 +43,7 @@ export function LocaleNumberField({
         placeholder={placeholder}
         maxLength={maxDigits}
         onChange={(e) => onChange(parseLocaleInteger(e.target.value, maxDigits))}
+        {...pilot}
       />
     </label>
   );

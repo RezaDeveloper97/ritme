@@ -22,6 +22,7 @@ import type { Locale } from '@/shared/i18n';
 import { addDays, formatDayMonth, formatNumber, fromApiDate, partsToDate, toApiDate, toParts, today } from '@/shared/lib/date';
 import { AppSheet, closeSheet, type SheetContentProps } from '@/shared/sheet';
 import { CalendarPicker, Icon, PrimaryButton, SecondaryButton, Skeleton, SkeletonGroup } from '@/shared/ui';
+import { pilot, pilotOption } from '@/shared/pilot';
 
 import { parseTodoAddArg } from '../model/arg';
 
@@ -139,6 +140,7 @@ function TaskForm({ task, category = 'personal' }: { task?: TodoTask; category?:
           autoFocus={!task}
           aria-invalid={errors.title ? true : undefined}
           enterKeyHint="done"
+          {...pilot('tdadd.title', 'text')}
         />
       </div>
       <label className="sr-only" htmlFor="td-note">
@@ -151,18 +153,19 @@ function TaskForm({ task, category = 'personal' }: { task?: TodoTask; category?:
         maxLength={TODO_LIMITS.note}
         placeholder={t('add.note')}
         onChange={(e) => set({ note: e.target.value || null })}
+        {...pilot('tdadd.note', 'text')}
       />
 
       <div className="td-form-chips" role="group" aria-label={t('add.dateGroup')}>
-        <button type="button" className="td-fchip nb-tone-brand" aria-pressed={form.dueDate === todayIso} onClick={() => toggleDate(todayIso)}>
+        <button type="button" className="td-fchip nb-tone-brand" aria-pressed={form.dueDate === todayIso} onClick={() => toggleDate(todayIso)} {...pilot('tdadd.today')}>
           <Icon name="calendar" size={15} />
           {t('add.today')}
         </button>
-        <button type="button" className="td-fchip nb-tone-brand" aria-pressed={form.dueDate === tomorrowIso} onClick={() => toggleDate(tomorrowIso)}>
+        <button type="button" className="td-fchip nb-tone-brand" aria-pressed={form.dueDate === tomorrowIso} onClick={() => toggleDate(tomorrowIso)} {...pilot('tdadd.tomorrow')}>
           <Icon name="calendar" size={15} />
           {t('add.tomorrow')}
         </button>
-        <button type="button" className="td-fchip nb-tone-brand" aria-pressed={custom} onClick={() => setCalOpen(true)}>
+        <button type="button" className="td-fchip nb-tone-brand" aria-pressed={custom} onClick={() => setCalOpen(true)} {...pilot('tdadd.date')}>
           <Icon name="calendar" size={15} />
           {custom && form.dueDate ? formatDayMonth(fromApiDate(form.dueDate), locale) : t('add.pickDate')}
         </button>
@@ -172,6 +175,7 @@ function TaskForm({ task, category = 'personal' }: { task?: TodoTask; category?:
           aria-pressed={!!form.dueTime}
           aria-expanded={timeOpen}
           onClick={() => setTimeOpen((o) => !o)}
+          {...pilot('tdadd.time-open')}
         >
           <Icon name="clock" size={15} />
           {form.dueTime ? <bdi dir="ltr">{formatNumber(form.dueTime, locale)}</bdi> : t('add.time')}
@@ -182,11 +186,12 @@ function TaskForm({ task, category = 'personal' }: { task?: TodoTask; category?:
           aria-pressed
           aria-expanded={catOpen}
           onClick={() => setCatOpen((o) => !o)}
+          {...pilot('tdadd.category-open')}
         >
           <Icon name={look.icon} size={15} />
           {t(`categories.${form.category}`)}
         </button>
-        <button type="button" className="td-fchip nb-tone-brand" aria-pressed={form.remind} onClick={toggleRemind}>
+        <button type="button" className="td-fchip nb-tone-brand" aria-pressed={form.remind} onClick={toggleRemind} {...pilot('tdadd.remind')}>
           <Icon name="bell" size={15} />
           {t('add.remind')}
         </button>
@@ -202,6 +207,7 @@ function TaskForm({ task, category = 'personal' }: { task?: TodoTask; category?:
               dir="ltr"
               value={form.dueTime ?? ''}
               onChange={(e) => set({ dueTime: e.target.value || null })}
+              {...pilot('tdadd.time', 'text')}
             />
           </label>
           {form.dueTime ? (
@@ -213,13 +219,14 @@ function TaskForm({ task, category = 'personal' }: { task?: TodoTask; category?:
       ) : null}
 
       {catOpen ? (
-        <div className="td-form-chips" role="group" aria-label={t('add.categoryGroup')}>
+        <div className="td-form-chips" role="group" aria-label={t('add.categoryGroup')} {...pilot('tdadd.category', 'choice')}>
           {TODO_CATEGORIES.map((c) => (
             <button
               key={c}
               type="button"
               className={clsx('td-fchip', `nb-tone-${CATEGORY_LOOK[c].tone}`)}
               aria-pressed={form.category === c}
+              {...pilotOption(c)}
               onClick={() => {
                 set({ category: c });
                 setCatOpen(false);
@@ -276,6 +283,7 @@ function TaskForm({ task, category = 'personal' }: { task?: TodoTask; category?:
           aria-label={t('add.save')}
           disabled={!form.title.trim() || saving}
           aria-busy={saving || undefined}
+          {...pilot('tdadd.save')}
         >
           <Icon name="check" size={22} strokeWidth={2.6} />
         </button>
@@ -284,6 +292,7 @@ function TaskForm({ task, category = 'personal' }: { task?: TodoTask; category?:
       <AppSheet open={calOpen} onClose={() => setCalOpen(false)} size="half" title={t('add.calendarTitle')}>
         <div className="td-cal">
           <CalendarPicker
+            pilot={pilot('tdadd.calendar', 'calendar')}
             value={form.dueDate ? toParts(fromApiDate(form.dueDate), locale) : null}
             onSelect={(p) => {
               set({ dueDate: toApiDate(partsToDate(p, locale)) });
@@ -291,6 +300,7 @@ function TaskForm({ task, category = 'personal' }: { task?: TodoTask; category?:
             }}
           />
           <PrimaryButton
+            {...pilot('tdadd.clear-date')}
             className="td-cal-clear"
             onClick={() => {
               set({ dueDate: null });

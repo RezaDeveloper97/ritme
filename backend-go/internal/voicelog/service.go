@@ -61,7 +61,7 @@ func (s *Service) WithWriters(w Writers) *Service {
 // for the request language (labels); now is the request time (who may log what today). An empty transcript is a
 // valid result without suggestions.
 func (s *Service) Process(ctx context.Context, userID uint64, locale string, ns any, audio *ai.Audio, now time.Time) (Result, error) {
-	t, err := s.ai.Transcribe(ctx, ai.FeatureVoiceLog, ai.TranscribeRequest{Audio: *audio, Language: locale})
+	t, err := s.ai.Transcribe(ctx, ai.FeatureVoiceSTT, ai.TranscribeRequest{Audio: *audio, Language: locale})
 	audio.Wipe()
 	if err != nil {
 		return Result{}, err

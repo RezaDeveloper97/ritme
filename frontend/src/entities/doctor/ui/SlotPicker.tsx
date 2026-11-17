@@ -6,6 +6,7 @@ import { useMemo, useState } from 'react';
 
 import type { Locale } from '@/shared/i18n';
 import { addDays, formatMonthLabel, formatNumber, formatWeekday, formatWeekdayDayMonth, fromApiDate, toApiDate, toParts } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { Card, EmptyState, Icon, Skeleton, SkeletonGroup } from '@/shared/ui';
 
 import { useDoctorSlots } from '../api/queries';
@@ -68,7 +69,7 @@ export function SlotPicker({
   } else {
     body = (
       <>
-        <div className="dr-days" role="group" aria-label={t('slots.days')}>
+        <div className="dr-days" role="group" aria-label={t('slots.days')} {...pilot('doctor.day', 'choice')}>
           {days.map((d) => {
             const dt = fromApiDate(d.date);
             const w = formatWeekday(dt, locale);
@@ -80,6 +81,7 @@ export function SlotPicker({
                 className={clsx('dr-day', on && 'is-on')}
                 disabled={d.count === 0}
                 aria-pressed={on}
+                {...pilotOption(d.date)}
                 onClick={() => {
                   setPicked(d.date);
                   onChange(null);
@@ -94,7 +96,7 @@ export function SlotPicker({
         {active ? (
           <>
             <p className="dr-slots-sub">{t('slots.free', { date: formatWeekdayDayMonth(fromApiDate(active.date), locale), count: formatNumber(active.count, locale) })}</p>
-            <div className="dr-slots">
+            <div className="dr-slots" {...pilot('doctor.slot', 'choice')}>
               {active.slots.map((s) => {
                 const on = value?.date === active.date && value.time === s.time;
                 return (
@@ -103,6 +105,7 @@ export function SlotPicker({
                     type="button"
                     className={clsx('dr-slot', on && 'is-on')}
                     aria-pressed={on}
+                    {...pilotOption(s.time)}
                     onClick={() => onChange({ date: active.date, time: s.time })}
                   >
                     {formatClock(s.time, locale)}
@@ -124,11 +127,11 @@ export function SlotPicker({
         <h2 className="dr-h2">{formatMonthLabel(p.year, p.month, locale)}</h2>
         <div className="dr-slot-nav">
           {week > 0 ? (
-            <button type="button" className="dr-link" onClick={() => setWeek((w) => w - 1)}>
+            <button type="button" className="dr-link" {...pilot('doctor.slots-prev')} onClick={() => setWeek((w) => w - 1)}>
               {t('slots.prev')}
             </button>
           ) : null}
-          <button type="button" className="dr-link" onClick={() => setWeek((w) => w + 1)}>
+          <button type="button" className="dr-link" {...pilot('doctor.slots-next')} onClick={() => setWeek((w) => w + 1)}>
             {t('slots.next')}
             <Icon name="chevronLeft" size={14} className="dr-flip" />
           </button>

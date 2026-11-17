@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 
 import { type Locale, Link, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import {
   Icon,
   ListGroup,
@@ -57,12 +58,12 @@ export function MenopauseAlertPage() {
           </UrgentCard>
 
           <div className="mal-actions">
-            <Link href={BOOK_HREF} className="nb-btn is-primary is-block mal-book">
+            <Link href={BOOK_HREF} className="nb-btn is-primary is-block mal-book" {...pilot('menopause.alert-book')}>
               <Icon name="stetho" size={20} />
               {t('book')}
             </Link>
             {/* CB-MENO-11: «آماده کردن گزارش برای پزشک» → the doctor report (back returns here). */}
-            <Link href="/menopause/report?from=alert" className="nb-btn is-outline is-block mal-report">
+            <Link href="/menopause/report?from=alert" className="nb-btn is-outline is-block mal-report" {...pilot('menopause.alert-report')}>
               <Icon name="fileDoc" size={20} />
               {tr('alertCta')}
             </Link>

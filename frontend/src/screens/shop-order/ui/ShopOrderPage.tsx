@@ -20,6 +20,7 @@ import {
 import { getApiErrorStatus } from '@/shared/api';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, formatTimeOfDay } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import {
   Card,
@@ -100,13 +101,13 @@ function ShipmentCard({ s, onReturn, onReview }: { s: Shipment; onReturn: (item:
             </span>
             <span className="shord-item-qty">{t('order.qty', { n: formatNumber(it.quantity, locale) })}</span>
             {returnable && it.returnable ? (
-              <button type="button" className="shord-link" onClick={() => onReturn(it)}>
+              <button type="button" className="shord-link" {...pilot(`shop-order.return:${it.id}`)} onClick={() => onReturn(it)}>
                 {t('order.returnRequest')}
               </button>
             ) : null}
             {/* CB-SHOP-12 F-5: «ثبت نظر» on a delivered item, then its moderation state. */}
             {it.reviewable ? (
-              <button type="button" className="shord-link" onClick={() => onReview(it)}>
+              <button type="button" className="shord-link" {...pilot(`shop-order.review:${it.id}`)} onClick={() => onReview(it)}>
                 <Icon name="star" size={16} />
                 {t('order.review')}
               </button>
@@ -139,6 +140,7 @@ function ReturnSheet({ orderId, item, onClose }: { orderId: number; item: ShopOr
       footer={
         <div className="shco-sheet-actions">
           <PrimaryButton
+            {...pilot('shop-return.submit')}
             loading={req.isPending}
             onClick={() => req.mutate({ orderItemId: item.id, quantity: qty, reason, note: note.trim() }, { onSuccess: onClose })}
           >
@@ -153,6 +155,7 @@ function ReturnSheet({ orderId, item, onClose }: { orderId: number; item: ShopOr
           <NumberStepper
             value={qty}
             onChange={setQty}
+            pilot={pilot('shop-return.qty')}
             min={1}
             max={item.quantity}
             label={t('return.qty')}
@@ -161,9 +164,9 @@ function ReturnSheet({ orderId, item, onClose }: { orderId: number; item: ShopOr
             locale={locale}
           />
         ) : null}
-        <ChipGroup label={t('return.reason')}>
+        <ChipGroup label={t('return.reason')} pilot={pilot('shop-return.reason', 'choice')}>
           {RETURN_REASONS.map((r) => (
-            <PillChip key={r} pressed={reason === r} onPressedChange={() => setReason(r)}>
+            <PillChip key={r} pressed={reason === r} onPressedChange={() => setReason(r)} {...pilotOption(r)}>
               {t(`return.reasons.${r}`)}
             </PillChip>
           ))}
@@ -172,7 +175,7 @@ function ReturnSheet({ orderId, item, onClose }: { orderId: number; item: ShopOr
           {t('return.note')}
         </label>
         <div className="field">
-          <input id="shord-note" value={note} maxLength={1000} onChange={(e) => setNote(e.target.value)} />
+          <input id="shord-note" value={note} maxLength={1000} onChange={(e) => setNote(e.target.value)} {...pilot('shop-return.note', 'text')} />
         </div>
         {req.isError ? (
           <p className="shco-error" role="alert">
@@ -206,7 +209,7 @@ function ReviewSheet({ orderId, item, onClose }: { orderId: number; item: ShopOr
       title={t('review.title')}
       footer={
         <div className="shco-sheet-actions">
-          <PrimaryButton loading={create.isPending} onClick={submit}>
+          <PrimaryButton loading={create.isPending} onClick={submit} {...pilot('shop-review.submit')}>
             {t('review.submit')}
           </PrimaryButton>
         </div>
@@ -215,7 +218,7 @@ function ReviewSheet({ orderId, item, onClose }: { orderId: number; item: ShopOr
       <div className="shco-sheet">
         <p className="shord-item-title">{item.title}</p>
         {item.variant_label ? <p className="shord-item-variant">{item.variant_label}</p> : null}
-        <div className="shrev-stars" role="radiogroup" aria-label={t('review.rating')}>
+        <div className="shrev-stars" role="radiogroup" aria-label={t('review.rating')} {...pilot('shop-review.rating', 'choice')}>
           <span className="lbl" aria-hidden>{t('review.rating')}</span>
           <div className="shrev-stars-row">
             {[1, 2, 3, 4, 5].map((n) => (
@@ -224,6 +227,7 @@ function ReviewSheet({ orderId, item, onClose }: { orderId: number; item: ShopOr
                 type="button"
                 role="radio"
                 aria-checked={rating === n}
+                {...pilotOption(String(n))}
                 aria-label={t('review.star', { n: formatNumber(n, locale) })}
                 className={rating >= n ? 'shrev-star is-on' : 'shrev-star'}
                 onClick={() => setRating(n)}
@@ -242,7 +246,7 @@ function ReviewSheet({ orderId, item, onClose }: { orderId: number; item: ShopOr
           {t('review.body')}
         </label>
         <div className="field shrev-field">
-          <textarea id="shrev-body" className="shrev-body" rows={4} value={body} maxLength={2000} onChange={(e) => setBody(e.target.value)} />
+          <textarea id="shrev-body" className="shrev-body" rows={4} value={body} maxLength={2000} onChange={(e) => setBody(e.target.value)} {...pilot('shop-review.body', 'text')} />
         </div>
         <p className="shco-note">{t('review.hint')}</p>
         {errorKey ? (
@@ -371,8 +375,8 @@ function OrderBody({ order, placed }: { order: ShopOrder; placed: boolean }) {
         ) : null}
         {placed ? (
           <>
-            <PrimaryButton onClick={() => router.push('/profile/orders')}>{t('order.myOrders')}</PrimaryButton>
-            <SecondaryButton variant="text" onClick={() => router.push('/shop')}>
+            <PrimaryButton onClick={() => router.push('/profile/orders')} {...pilot('shop-order.my-orders')}>{t('order.myOrders')}</PrimaryButton>
+            <SecondaryButton variant="text" onClick={() => router.push('/shop')} {...pilot('shop-order.shop')}>
               {t('order.continueShopping')}
             </SecondaryButton>
           </>

@@ -9,6 +9,7 @@ import { Art3d, type Art3dName } from '../Art3d';
 import { Icon, type IconName } from '../Icon';
 import { IconCircle } from './IconCircle';
 import type { Tone } from './tone';
+import type { PilotAttrs } from '@/shared/pilot';
 
 interface ListRowProps {
   title: ReactNode;
@@ -25,6 +26,8 @@ interface ListRowProps {
   trailing?: ReactNode;
   /** Makes the whole row one button and shows a forward chevron. */
   onClick?: () => void;
+  /** Autopilot name: `pilot('…')` (frontend/CLAUDE.md §11.6). */
+  pilot?: PilotAttrs;
   /** Sets the row's id prefix: the title gets `${id}-title` (for `Switch labelledBy`). */
   id?: string;
   className?: string;
@@ -41,6 +44,7 @@ export function ListRow({
   value,
   trailing,
   onClick,
+  pilot,
   id,
   className,
 }: ListRowProps) {
@@ -64,7 +68,7 @@ export function ListRow({
     </>
   );
   return onClick ? (
-    <button type="button" className={clsx('nb-row', 'is-action', className)} onClick={onClick}>
+    <button type="button" className={clsx('nb-row', 'is-action', className)} onClick={onClick} {...pilot}>
       {content}
     </button>
   ) : (

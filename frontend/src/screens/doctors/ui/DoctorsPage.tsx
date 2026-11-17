@@ -18,6 +18,7 @@ import {
   type VisitMode,
 } from '@/entities/doctor';
 import { Link, useRouter, type Locale } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { formatNumber, formatWeekdayDayMonth, fromApiDate } from '@/shared/lib/date';
 import { Card, EmptyState, HeaderButton, Icon, PillChip, ScreenHeader, SegmentedTabs, SkyLayer } from '@/shared/ui';
 
@@ -46,11 +47,11 @@ export function DoctorsPage() {
     set(v);
     setPage(1);
   };
-  const chips = (list: { code: string; title: string | null }[] | undefined, value: string | undefined, set: (v: string | undefined) => void, label: string) =>
+  const chips = (list: { code: string; title: string | null }[] | undefined, value: string | undefined, set: (v: string | undefined) => void, label: string, kind: string) =>
     list && list.length > 0 ? (
       <>
         {list.map((o) => (
-          <PillChip key={o.code} pressed={value === o.code} onPressedChange={(on) => reset(set)(on ? o.code : undefined)} aria-label={`${label}: ${o.title ?? o.code}`}>
+          <PillChip key={o.code} pressed={value === o.code} onPressedChange={(on) => reset(set)(on ? o.code : undefined)} aria-label={`${label}: ${o.title ?? o.code}`} {...pilot(`doctors.${kind}:${o.code}`)}>
             {o.title ?? o.code}
           </PillChip>
         ))}
@@ -106,11 +107,11 @@ export function DoctorsPage() {
         ))}
         {q.data.meta.last_page > 1 ? (
           <nav className="dr-pager" aria-label={t('list.pages')}>
-            <button type="button" className="dr-link" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
+            <button type="button" className="dr-link" disabled={page <= 1} {...pilot('doctors.prev')} onClick={() => setPage((p) => p - 1)}>
               {t('list.prev')}
             </button>
             <span>{t('list.page', { page: formatNumber(page, locale), last: formatNumber(q.data.meta.last_page, locale) })}</span>
-            <button type="button" className="dr-link" disabled={page >= q.data.meta.last_page} onClick={() => setPage((p) => p + 1)}>
+            <button type="button" className="dr-link" disabled={page >= q.data.meta.last_page} {...pilot('doctors.next')} onClick={() => setPage((p) => p + 1)}>
               {t('list.next')}
             </button>
           </nav>
@@ -136,22 +137,23 @@ export function DoctorsPage() {
           subtitle={q.data ? t('list.count', { count: formatNumber(q.data.meta.total, locale) }) : undefined}
           onBack={() => router.push('/services')}
           backLabel={t('common.back')}
-          action={<HeaderButton label={t('bookings.title')} icon="calendar" onClick={() => router.push('/services/bookings')} />}
+          action={<HeaderButton label={t('bookings.title')} icon="calendar" onClick={() => router.push('/services/bookings')} pilot={pilot('doctors.bookings')} />}
         />
         <div className="dr-filters">
           <SegmentedTabs
             tabs={MODE_TABS.map((m) => ({ value: m, label: t(m === 'all' ? 'list.all' : `mode.${m}`) }))}
             value={tab}
             onChange={reset(setTab)}
+            pilot={(v) => pilot(`doctors.tab:${v}`)}
             label={t('list.modeLabel')}
           />
           <div className="dr-chiprow">
-            <PillChip pressed={today} onPressedChange={reset(setToday)}>
+            <PillChip pressed={today} onPressedChange={reset(setToday)} {...pilot('doctors.today')}>
               {t('list.today')}
             </PillChip>
-            {chips(filters.data?.specialties, specialty, setSpecialty, t('list.specialty'))}
-            {chips(filters.data?.cities, city, setCity, t('list.city'))}
-            {chips(filters.data?.insurers, insurance, setInsurance, t('list.insurer'))}
+            {chips(filters.data?.specialties, specialty, setSpecialty, t('list.specialty'), 'specialty')}
+            {chips(filters.data?.cities, city, setCity, t('list.city'), 'city')}
+            {chips(filters.data?.insurers, insurance, setInsurance, t('list.insurer'), 'insurer')}
           </div>
         </div>
         {body}

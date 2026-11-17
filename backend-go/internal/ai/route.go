@@ -47,6 +47,9 @@ type FeatureSpec struct {
 	Key Feature
 	// Needs are the capabilities a model must have to serve the feature.
 	Needs []Capability
+	// Internal: a model slot other features call into (the speech-to-text of voice logging). The admin assigns its
+	// model like any slot; it is never listed to users and never charged on its own.
+	Internal bool
 }
 
 var (
@@ -58,13 +61,23 @@ var (
 // the catalogue creates the slot's ai_features row at start-up, where the admin assigns its model and credit
 // cost. Registering the same key twice with different needs panics (a copy-paste must not hijack a slot).
 func RegisterFeature(key Feature, needs ...Capability) Feature {
+	return register(FeatureSpec{Key: key, Needs: needs})
+}
+
+// RegisterInternalFeature declares an internal model slot (FeatureSpec.Internal): never mounted behind the gate,
+// only called from inside a gated feature.
+func RegisterInternalFeature(key Feature, needs ...Capability) Feature {
+	return register(FeatureSpec{Key: key, Needs: needs, Internal: true})
+}
+
+func register(spec FeatureSpec) Feature {
 	registryMu.Lock()
 	defer registryMu.Unlock()
-	if old, ok := registry[key]; ok && !slices.Equal(old.Needs, needs) {
-		panic("ai: feature " + string(key) + " registered twice")
+	if old, ok := registry[spec.Key]; ok && (!slices.Equal(old.Needs, spec.Needs) || old.Internal != spec.Internal) {
+		panic("ai: feature " + string(spec.Key) + " registered twice")
 	}
-	registry[key] = FeatureSpec{Key: key, Needs: needs}
-	return key
+	registry[spec.Key] = spec
+	return spec.Key
 }
 
 // RegisteredFeatures are the declared slots, by key.
@@ -89,7 +102,10 @@ func SpecOf(key Feature) (FeatureSpec, bool) {
 
 // The slots of the features that existed before routing.
 var (
-	_ = RegisterFeature(FeatureVoiceLog, CapAudio, CapJSON)
+	// Voice logging runs on two models: one that hears (voice_stt) and one that writes JSON (voice_log), so a
+	// speech-only model and a text model can share the work.
+	_ = RegisterFeature(FeatureVoiceLog, CapJSON)
+	_ = RegisterInternalFeature(FeatureVoiceSTT, CapAudio)
 	_ = RegisterFeature(FeatureLabAnalysis, CapVision, CapJSON)
 	_ = RegisterFeature(FeatureAssistant, CapChat)
 	_ = RegisterFeature(FeatureDocExtract, CapVision, CapJSON)

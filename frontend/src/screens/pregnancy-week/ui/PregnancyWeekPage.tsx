@@ -6,6 +6,7 @@ import { type TouchEvent, useRef } from 'react';
 import { clampV2Week, usePregnancyToday, usePregnancyWeek } from '@/entities/pregnancy';
 import { type Locale, Link, useDirection, useRouter } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import {
   Card,
   EmptyState,
@@ -84,7 +85,7 @@ export function PregnancyWeekPage({ week: requested }: Props) {
           <Icon name="warning" size={24} />
         </span>
         <p className="pgn-state-text">{t('common.loadError')}</p>
-        <SecondaryButton icon="refresh" block={false} onClick={() => void query.refetch()}>
+        <SecondaryButton icon="refresh" block={false} onClick={() => void query.refetch()} {...pilot('preg.retry')}>
           {t('common.retry')}
         </SecondaryButton>
       </Card>
@@ -98,7 +99,7 @@ export function PregnancyWeekPage({ week: requested }: Props) {
           icon="heart"
           title={t('common.notActive')}
           action={
-            <Link href="/pregnancy/setup" className="nb-btn is-primary is-block">
+            <Link href="/pregnancy/setup" className="nb-btn is-primary is-block" {...pilot('preg.setup')}>
               {t('today.setupCta')}
             </Link>
           }

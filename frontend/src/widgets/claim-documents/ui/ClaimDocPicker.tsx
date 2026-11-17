@@ -7,6 +7,7 @@ import { KIND_LOOK, type TimelineItem, useRecordTimeline } from '@/entities/heal
 import { UploadDocumentSheet } from '@/features/record-documents';
 import type { Locale } from '@/shared/i18n';
 import { formatDayMonth, fromApiDate } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { EmptyState, IconCircle, PrimaryButton, SecondaryButton, Skeleton } from '@/shared/ui';
 
@@ -71,6 +72,7 @@ export function ClaimDocPicker({ open, onClose, takenIds, onPick }: ClaimDocPick
                     type="button"
                     className="ins-pick"
                     disabled={taken}
+                    {...pilot(`ins-docs.pick:${d.id}`)}
                     onClick={() => {
                       onPick({ id: d.id, kind: d.kind, title: d.title, date: d.dateKnown ? d.date : null });
                       onClose();

@@ -29,6 +29,13 @@ export type CompanionGrants = Record<CompanionSection, AccessLevel>;
 export const COMPANION_GOALS = ['cycle', 'support', 'low_energy', 'quality_time', 'info', 'unknown'] as const;
 export type CompanionGoal = (typeof COMPANION_GOALS)[number];
 
+/**
+ * She may pick several goals, but only the ones that ask the companion for something combine. «info» and
+ * «unknown» are the two "nothing in particular" answers: each stands alone, and `unknown` is the empty list on
+ * the wire (the server applies the same rule — companion.NormalizeGoals).
+ */
+export const EXCLUSIVE_COMPANION_GOALS: readonly CompanionGoal[] = ['info', 'unknown'];
+
 /** Coarse today-only flags («وقتی درد دارم» …); a bare yes/no, never the logged detail. */
 export const COMPANION_SIGNALS = ['pain', 'mood', 'energy', 'sleep'] as const;
 export type CompanionSignal = (typeof COMPANION_SIGNALS)[number];
@@ -39,7 +46,8 @@ export const COMPANION_ACTIONS = ['food', 'gift', 'time', 'calm', 'help'] as con
 export type CompanionAction = (typeof COMPANION_ACTIONS)[number];
 
 export interface CompanionPreferences {
-  goal: CompanionGoal;
+  /** In the order she picked them; never `unknown` (empty = not decided). */
+  goals: CompanionGoal[];
   signals: CompanionSignalScope;
   actionPrefs: CompanionAction[];
 }

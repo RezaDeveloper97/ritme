@@ -9,10 +9,13 @@ import {
   formatMonthLabel,
   formatNumber,
   monthMatrix,
+  partsToDate,
+  toApiDate,
   todayParts,
   weekdayLabels,
 } from '@/shared/lib/date';
 import { useDirection, type Locale } from '@/shared/i18n';
+import type { PilotAttrs } from '@/shared/pilot';
 
 import { Icon } from './Icon';
 
@@ -21,6 +24,8 @@ interface CalendarPickerProps {
   value: DateParts | null;
   /** Reports the full picked date (year/month/day), not just the day number. */
   onSelect: (value: DateParts) => void;
+  /** Autopilot name: `pilot('…', 'calendar')`; scripts set it to an ISO date (frontend/CLAUDE.md §11.6). */
+  pilot?: PilotAttrs;
 }
 
 /**
@@ -28,7 +33,7 @@ interface CalendarPickerProps {
  * locale reads — Jalali for `fa`, Gregorian for `en` (CLAUDE.md §7). The parts
  * it reports are therefore in that calendar too.
  */
-export function CalendarPicker({ value, onSelect }: CalendarPickerProps) {
+export function CalendarPicker({ value, onSelect, pilot }: CalendarPickerProps) {
   const locale = useLocale() as Locale;
   const t = useTranslations('common');
   const isRtl = useDirection() === 'rtl';
@@ -67,12 +72,13 @@ export function CalendarPicker({ value, onSelect }: CalendarPickerProps) {
    * In LTR layout (en) the positions swap automatically with flex.
    */
   return (
-    <div className="card jcal">
+    <div className="card jcal" {...pilot}>
       <div className="jcal-nav">
         {/* First child → RIGHT in RTL = "prev month" */}
         <button
           className="iconbtn"
           onClick={isRtl ? prevMonth : nextMonth}
+          data-pilot-nav={isRtl ? 'prev' : 'next'}
           aria-label={isRtl ? t('calendar.prevMonth') : t('calendar.nextMonth')}
         >
           <Icon name={isRtl ? 'chevronRight' : 'chevronLeft'} size={20} />
@@ -84,6 +90,7 @@ export function CalendarPicker({ value, onSelect }: CalendarPickerProps) {
         <button
           className="iconbtn"
           onClick={isRtl ? nextMonth : prevMonth}
+          data-pilot-nav={isRtl ? 'next' : 'prev'}
           aria-label={isRtl ? t('calendar.nextMonth') : t('calendar.prevMonth')}
         >
           <Icon name={isRtl ? 'chevronLeft' : 'chevronRight'} size={20} />
@@ -109,6 +116,9 @@ export function CalendarPicker({ value, onSelect }: CalendarPickerProps) {
             <button
               key={d}
               className={`cday${isSelected ? ' on' : ''}`}
+              aria-pressed={isSelected}
+              // The ISO day: what scripts and the API speak, whatever calendar is on screen.
+              data-pilot-option={toApiDate(partsToDate({ year, month, day: d }, locale))}
               onClick={() => onSelect({ year, month, day: d })}
             >
               {formatNumber(d, locale)}

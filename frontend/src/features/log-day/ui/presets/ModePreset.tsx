@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useId, useState } from 'react';
 
 import type { LogCategory, LogDayValues, LogParamValue } from '@/entities/health-log';
+import { pilot } from '@/shared/pilot';
 import { Link, useDirection } from '@/shared/i18n';
 import { Icon, IconCircle, SeverityScale, StatusPill, type IconName, type Tone } from '@/shared/ui';
 
@@ -189,6 +190,7 @@ function ActionRow({ kind, spec, categories, values, labels, onPanel, onSection 
       type="button"
       className={clsx('mpre-row', entries.length > 0 && 'is-active')}
       onClick={() => (spec.kind === 'panel' ? onPanel(spec.panel) : onSection(spec.category))}
+      {...pilot(`log.preset-row:${spec.code}`)}
     >
       <RowHead icon={spec.icon} tone={spec.tone} title={rowTitle(t, kind, spec.code)} desc={desc} active={entries.length > 0} />
       <Icon name="plus" size={16} strokeWidth={2.2} className="mpre-plus" />
@@ -225,6 +227,7 @@ function ItemsRow({ kind, spec, categories, values, setParam, onSection }: RowPr
         aria-expanded={open}
         aria-controls={bodyId}
         onClick={() => setOpen(!open)}
+        {...pilot(`log.preset-group:${spec.code}`)}
       >
         <RowHead icon={spec.icon} tone={spec.tone} title={rowTitle(t, kind, spec.code)} desc={desc} active={count > 0} />
         {count ? <span className="mpre-count">{count}</span> : null}

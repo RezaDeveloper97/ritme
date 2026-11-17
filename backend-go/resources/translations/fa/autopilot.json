@@ -1,0 +1,15 @@
+{
+  "bar": {
+    "running": "ریتمی دارد انجامش می‌دهد",
+    "paused": "متوقف شد",
+    "progress": "{step, number} از {total, number}",
+    "pause": "صبر کن",
+    "resume": "ادامه بده",
+    "stop": "لغو"
+  },
+  "confirm": {
+    "question": "این کار را انجام بدهم؟",
+    "allow": "انجام بده",
+    "skip": "نه"
+  }
+}

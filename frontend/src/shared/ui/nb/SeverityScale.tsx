@@ -3,6 +3,8 @@
 import { useId, type ReactNode } from 'react';
 import { clsx } from 'clsx';
 
+import type { PilotAttrs } from '@/shared/pilot';
+
 import { useRovingRadio } from './radio-group';
 import { toneClass, type Tone } from './tone';
 
@@ -32,6 +34,8 @@ interface SeverityScaleProps<V extends string> {
   ariaLabel?: string;
   /** First option is a «none» step (ندارم) — picks the neutral-first tint ramp. */
   withNone?: boolean;
+  /** Autopilot name of the group: `pilot('…', 'choice')` (frontend/CLAUDE.md §11.6). */
+  pilot?: PilotAttrs;
   className?: string;
 }
 
@@ -48,6 +52,7 @@ export function SeverityScale<V extends string>({
   ariaLabel,
   withNone = true,
   className,
+  pilot,
 }: SeverityScaleProps<V>) {
   const labelId = useId();
   const values = options.map((o) => o.value);
@@ -61,6 +66,7 @@ export function SeverityScale<V extends string>({
       ) : null}
       <div
         role="radiogroup"
+        {...pilot}
         aria-labelledby={label ? labelId : undefined}
         aria-label={label ? undefined : ariaLabel}
         className="nb-sev-track"
@@ -72,6 +78,7 @@ export function SeverityScale<V extends string>({
               key={option.value}
               ref={roving.refOf(index)}
               type="button"
+              data-pilot-option={option.value}
               role="radio"
               aria-checked={checked}
               tabIndex={roving.tabIndexOf(index)}

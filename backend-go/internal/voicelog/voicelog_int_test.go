@@ -106,13 +106,14 @@ func setupVoice(t *testing.T, client func(*countingTranscriber) *ai.Client) (*vo
 	g := access.NewGuard(access.Options{Client: aiClient, Consents: consent.NewService(db), Credits: credits.NewService(db),
 		Catalog: credits.NewCatalog(db), Logger: quiet})
 	app.Post("/api/v1/logs/voice", locale, append(append([]any{guard}, g.Chain(ai.FeatureVoiceLog)...), h.Voice)...)
+	app.Post("/api/v1/logs/voice/pilot", locale, append(append([]any{guard}, g.Chain(ai.FeatureVoiceLog)...), h.Pilot)...)
 	app.Put("/api/v1/logs/days/:date", locale, guard, lh.Save)
 	app.Post("/api/v1/logs/voice/commit", locale, guard, h.Commit)
 	return &voiceEnv{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), conds: conds, contr: contr}, spy
 }
 
 func fakeClient(spy *countingTranscriber) *ai.Client {
-	return ai.NewClient("fake", spy, ai.NewFake(), nil)
+	return ai.NewClientWith(ai.Options{Provider: "fake", Transcriber: spy, LogParser: ai.NewFake(), Scripter: ai.NewFake()})
 }
 
 func (e *voiceEnv) user(t *testing.T, mobile string, trial bool) (uint64, string) {
@@ -450,4 +451,74 @@ func mustJSON(t *testing.T, v any) string {
 	b, err := json.Marshal(v)
 	require.NoError(t, err)
 	return string(b)
+}
+
+const pilotManifest = `{"version":1,"guide":"g","actions":["set"],"routes":[],"sheets":[],"targets":[
+ {"id":"log.param:symptoms.digestive","kind":"multi","label":"گوارش","options":[{"value":"bloating","label":"نفخ"},{"value":"nausea","label":"تهوع"}]},
+ {"id":"log.param:mood.moods","kind":"multi","label":"حال","options":[{"value":"bored","label":"بیحوصله"},{"value":"happy","label":"خوشحال"}]}]}`
+
+func (e *voiceEnv) pilot(t *testing.T, token, fixture, manifest string) resp {
+	t.Helper()
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+	if manifest != "" {
+		require.NoError(t, w.WriteField("manifest", manifest))
+	}
+	fw, err := w.CreateFormFile("audio", "voice.webm")
+	require.NoError(t, err)
+	data := []byte("\x1a\x45\xdf\xa3\x9f\x42\x86\x81\x01webm-opus ")
+	if fixture != "" {
+		data = append(data, []byte(ai.FakeMarker+fixture)...)
+	}
+	_, _ = fw.Write(data)
+	require.NoError(t, w.Close())
+	return e.do(t, "POST", "/api/v1/logs/voice/pilot", token, "fa", w.FormDataContentType(), &b)
+}
+
+// The recording comes back as an autopilot script on the controls of the manifest; one credit, nothing saved.
+func TestVoicePilot(t *testing.T) {
+	e, spy := setupVoice(t, fakeClient)
+	assert.Equal(t, 401, e.pilot(t, "", "", pilotManifest).status)
+
+	free, freeTok := e.user(t, "09120000201", false)
+	r := e.pilot(t, freeTok, "", pilotManifest)
+	require.Equal(t, 402, r.status, r.raw)
+	assert.Equal(t, "ai_subscription_required", r.body["error_code"])
+	assert.Zero(t, spy.calls)
+	assert.Zero(t, e.used(t, free))
+
+	uid, tok := e.user(t, "09120000202", true)
+	r = e.pilot(t, tok, "", pilotManifest)
+	require.Equal(t, 200, r.status, r.raw)
+	assert.Equal(t, ai.FakeTranscripts["default"]["fa"], r.data()["transcript"])
+	script, _ := r.data()["script"].(map[string]any)
+	assert.InDelta(t, 1, script["version"], 0)
+	steps, _ := script["steps"].([]any)
+	require.Len(t, steps, 2, r.raw)
+	first, _ := steps[0].(map[string]any)
+	assert.Equal(t, "set", first["do"])
+	assert.Equal(t, "log.param:symptoms.digestive", first["target"])
+	assert.Equal(t, []any{"bloating"}, first["value"])
+	second, _ := steps[1].(map[string]any)
+	assert.Equal(t, "log.param:mood.moods", second["target"])
+	assert.Equal(t, []any{"bored"}, second["value"])
+	assert.Equal(t, 1, spy.calls)
+	assert.Equal(t, 1, e.used(t, uid))
+	assert.Zero(t, e.count(t, `SELECT COUNT(*) FROM daily_health_logs WHERE user_id = ?`, uid), "the script is played by the client; nothing is saved here")
+
+	// silence: no steps, the use is kept (the provider was paid)
+	r = e.pilot(t, tok, "silence", pilotManifest)
+	require.Equal(t, 200, r.status, r.raw)
+	assert.Empty(t, r.data()["transcript"])
+	assert.Equal(t, 2, e.used(t, uid))
+
+	// a provider failure and a bad manifest give the use back
+	r = e.pilot(t, tok, "error", pilotManifest)
+	require.Equal(t, 503, r.status, r.raw)
+	assert.Equal(t, "ai_failed", r.body["error_code"])
+	r = e.pilot(t, tok, "", "")
+	require.Equal(t, 422, r.status, r.raw)
+	r = e.pilot(t, tok, "", `{"targets":[]}`)
+	require.Equal(t, 422, r.status, r.raw)
+	assert.Equal(t, 2, e.used(t, uid))
 }

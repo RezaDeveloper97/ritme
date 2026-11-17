@@ -7,9 +7,11 @@ import { useState, type ComponentType } from 'react';
 import type { LogCategory, LogDayValues, LogParamValue } from '@/entities/health-log';
 import type { Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { ChipGroup, PillChip } from '@/shared/ui';
 
 import { asItems, asList, defaultLevel, pickableOptions, setItemScore, toggleInList, toggleItem } from '../../model/draft';
+import { logPilotId } from '../../model/pilot-targets';
 import { PanelCard } from './PanelCard';
 
 /** One body-map region as the log sheet hands it to the map widget. */
@@ -106,7 +108,12 @@ export function PainPanel({ category, values, setParam, mode, locale, BodyMap }:
           ) : null}
           {focus ? (
             <div className="lday-pscale">
-              <div className="lday-pscale-row" role="group" aria-label={t('pain.scale', { region: regionLabel(focus) })}>
+              <div
+                className="lday-pscale-row"
+                role="group"
+                aria-label={t('pain.scale', { region: regionLabel(focus) })}
+                {...pilot(logPilotId.panelParam(cat, 'score'), 'choice')}
+              >
                 {cells.map((n) => (
                   <button
                     key={n}
@@ -114,6 +121,7 @@ export function PainPanel({ category, values, setParam, mode, locale, BodyMap }:
                     aria-pressed={score === n}
                     className={clsx('lday-pscale-cell', score != null && n <= score && 'is-on')}
                     onClick={() => setParam(cat, 'location', setItemScore(items, focus, n))}
+                    {...pilotOption(String(n))}
                   >
                     {formatNumber(n, locale)}
                   </button>
@@ -132,7 +140,7 @@ export function PainPanel({ category, values, setParam, mode, locale, BodyMap }:
 
       {relief ? (
         <PanelCard title={t('pain.relief')} icon="symptom" tone="bloom">
-          <ChipGroup label={t('pain.relief')}>
+          <ChipGroup label={t('pain.relief')} pilot={pilot(logPilotId.panelParam(cat, 'relief'), 'choice')}>
             {pickableOptions(relief, mode).map((o) => (
               <PillChip
                 key={o.value}
@@ -140,6 +148,7 @@ export function PainPanel({ category, values, setParam, mode, locale, BodyMap }:
                 tone="data"
                 className="lday-chip-lg"
                 pressed={relieved.includes(o.value)}
+                {...pilotOption(o.value)}
                 onPressedChange={() => setParam(cat, 'relief', toggleInList(relieved, o.value))}
               >
                 {o.label}

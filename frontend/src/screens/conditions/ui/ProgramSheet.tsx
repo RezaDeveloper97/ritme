@@ -6,6 +6,7 @@ import { CONDITION_LOOK, CONDITION_PATH, useEnrolCondition, useLeaveCondition } 
 import { getApiSaveErrorMessage } from '@/shared/api';
 import { Link, type Locale } from '@/shared/i18n';
 import { formatLongDate, fromApiDate } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { IconCircle, PrimaryButton, SecondaryButton } from '@/shared/ui';
 
@@ -61,7 +62,7 @@ export function ProgramSheet({ card, onClose }: { card: ProgramCard; onClose: ()
         <div className="cnd-sheet-actions">
           {card.enrolled ? (
             <>
-              <Link href={CONDITION_PATH[card.code]} className="nb-btn is-primary is-block">
+              <Link href={CONDITION_PATH[card.code]} className="nb-btn is-primary is-block" {...pilot(`programs.open:${card.code}`)}>
                 {t(`sheet.open.${card.code}`)}
               </Link>
               <SecondaryButton variant="text" loading={leave.isPending} disabled={busy} onClick={() => run(leave)}>
@@ -69,7 +70,7 @@ export function ProgramSheet({ card, onClose }: { card: ProgramCard; onClose: ()
               </SecondaryButton>
             </>
           ) : (
-            <PrimaryButton loading={enrol.isPending} disabled={busy} onClick={() => run(enrol)}>
+            <PrimaryButton loading={enrol.isPending} disabled={busy} onClick={() => run(enrol)} {...pilot(`programs.join:${card.code}`)}>
               {t('sheet.join')}
             </PrimaryButton>
           )}

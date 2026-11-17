@@ -8,3 +8,4 @@ export { useLogDayController, type LogDayController } from './model/use-log-day'
 export { useLogDayHeading, type LogDayHeading } from './model/use-heading';
 export { categoryLook, tileLook } from './model/presentation';
 export { type VoiceLogSlot, type VoiceLogSlotProps } from './ui/VoiceTab';
+export { logPilotId, logTargetsOf } from './model/pilot-targets';

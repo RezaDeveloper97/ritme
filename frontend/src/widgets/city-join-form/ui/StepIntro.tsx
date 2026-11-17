@@ -25,6 +25,7 @@ import { useRouter } from "@/shared/i18n";
 import { step1Body, step1From, toggleItem } from "../model/join";
 import { useAutosave } from "../model/use-autosave";
 import { SaveHint, useErrorText } from "./parts";
+import { pilot, pilotOption } from "@/shared/pilot";
 
 /** Step 1 «معرفی» (nbl_Dir_Join): what the venue gets, the cooperation-terms placeholder and the basic details. */
 export function StepIntro({
@@ -116,6 +117,7 @@ export function StepIntro({
               maxLength={160}
               value={form.businessName}
               placeholder={t("intro.namePh")}
+              {...pilot("city-join.business-name", "text")}
               onChange={(e) => set("businessName", e.target.value)}
             />
           </span>
@@ -126,12 +128,13 @@ export function StepIntro({
             {t("intro.kind")}{" "}
             <span className="cjn-hint">· {t("intro.kindHint")}</span>
           </span>
-          <ChipGroup label={t("intro.kind")}>
+          <ChipGroup label={t("intro.kind")} pilot={pilot("city-join.kind", "choice")}>
             {JOIN_CATEGORY_ORDER.map((slug) => (
               <PillChip
                 key={slug}
                 mode="multi"
                 pressed={form.categories.includes(slug)}
+                {...pilotOption(slug)}
                 onPressedChange={() =>
                   set("categories", toggleItem(form.categories, slug))
                 }
@@ -147,12 +150,13 @@ export function StepIntro({
           {cities.length === 0 && !options.isPending ? (
             <p className="cjn-hint">{t("intro.cityNone")}</p>
           ) : (
-            <ChipGroup label={t("intro.city")}>
+            <ChipGroup label={t("intro.city")} pilot={pilot("city-join.city", "choice")}>
               {cities.map((c) => (
                 <PillChip
                   key={c.id}
                   mode="single"
                   pressed={form.cityId === c.id}
+                  {...pilotOption(String(c.id))}
                   onPressedChange={() => set("cityId", c.id)}
                 >
                   {c.name}
@@ -170,6 +174,7 @@ export function StepIntro({
               maxLength={120}
               value={form.district}
               placeholder={t("intro.districtPh")}
+              {...pilot("city-join.district", "text")}
               onChange={(e) => set("district", e.target.value)}
             />
           </span>
@@ -184,6 +189,7 @@ export function StepIntro({
               maxLength={120}
               value={form.contactName}
               onChange={(e) => set("contactName", e.target.value)}
+              {...pilot("city-join.contact-name", "text")}
             />
           </span>
         </label>
@@ -199,6 +205,7 @@ export function StepIntro({
               maxLength={32}
               value={form.contactPhone}
               placeholder={t("intro.phonePh")}
+              {...pilot("city-join.contact-phone", "text")}
               onChange={(e) => set("contactPhone", e.target.value)}
             />
           </span>
@@ -206,6 +213,7 @@ export function StepIntro({
         <Checkbox
           checked={form.ownerConfirmed}
           onCheckedChange={(v) => set("ownerConfirmed", v)}
+          pilot={pilot("city-join.owner")}
           label={t("intro.owner")}
         />
       </section>
@@ -216,7 +224,7 @@ export function StepIntro({
           {errorText(save.error)}
         </p>
       ) : null}
-      <PrimaryButton onClick={() => void next()}>{t("next")}</PrimaryButton>
+      <PrimaryButton onClick={() => void next()} {...pilot("city-join.next:intro")}>{t("next")}</PrimaryButton>
 
       {askDelete ? (
         <div

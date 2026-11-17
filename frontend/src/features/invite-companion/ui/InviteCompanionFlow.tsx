@@ -5,6 +5,7 @@ import { type ReactNode, useId, useState } from 'react';
 
 import { useModuleEnabled } from '@/entities/app-module';
 import { type CreatedCompanion, useCreateCompanion } from '@/entities/companion';
+import { pilot } from '@/shared/pilot';
 import { getApiErrorMessage, getApiErrorStatus } from '@/shared/api';
 import {
   Checkbox,
@@ -200,10 +201,11 @@ function IntroStep({ draft, setDraft, onNext }: StepProps) {
           checked={draft.consent}
           onCheckedChange={(consent) => setDraft((d) => ({ ...d, consent }))}
           label={t('consent')}
+          pilot={pilot('invite.consent')}
         />
       </div>
       <div className="cmp-footer">
-        <PrimaryButton disabled={!draft.consent} onClick={onNext}>
+        <PrimaryButton disabled={!draft.consent} onClick={onNext} {...pilot('invite.next')}>
           {tf('next')}
         </PrimaryButton>
       </div>
@@ -218,10 +220,10 @@ function GoalStep({ draft, setDraft, onNext }: StepProps) {
     <>
       <div className="cmp-body">
         <StepIntro title={t('title')} lead={t('lead')} />
-        <GoalPicker value={draft.goal} onChange={(goal) => setDraft((d) => ({ ...d, goal }))} />
+        <GoalPicker value={draft.goals} onChange={(goals) => setDraft((d) => ({ ...d, goals }))} />
       </div>
       <div className="cmp-footer">
-        <PrimaryButton onClick={onNext}>{tf('next')}</PrimaryButton>
+        <PrimaryButton onClick={onNext} {...pilot('invite.next')}>{tf('next')}</PrimaryButton>
       </div>
     </>
   );
@@ -242,7 +244,7 @@ function ChildrenStep({ draft, setDraft, onNext }: StepProps) {
         <ChildrenPicker value={draft.childIds} onChange={(childIds) => setDraft((d) => ({ ...d, childIds }))} />
       </div>
       <div className="cmp-footer">
-        <PrimaryButton onClick={onNext}>{tf('next')}</PrimaryButton>
+        <PrimaryButton onClick={onNext} {...pilot('invite.next')}>{tf('next')}</PrimaryButton>
       </div>
     </>
   );
@@ -265,7 +267,7 @@ function ScopeStep({ draft, setDraft, onNext }: StepProps) {
         </div>
       </div>
       <div className="cmp-footer">
-        <PrimaryButton onClick={onNext}>{tf('next')}</PrimaryButton>
+        <PrimaryButton onClick={onNext} {...pilot('invite.next')}>{tf('next')}</PrimaryButton>
       </div>
     </>
   );
@@ -282,7 +284,7 @@ function ActionsStep({ draft, setDraft, onNext }: StepProps) {
         <OptionalContact draft={draft} setDraft={setDraft} />
       </div>
       <div className="cmp-footer">
-        <PrimaryButton disabled={badPhone} onClick={onNext}>
+        <PrimaryButton disabled={badPhone} onClick={onNext} {...pilot('invite.create')}>
           {t('cta')}
         </PrimaryButton>
       </div>
@@ -312,6 +314,7 @@ function OptionalContact({ draft, setDraft }: { draft: InviteDraft; setDraft: Se
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((v) => !v)}
+        {...pilot('invite.contact-toggle')}
       >
         <span className="cmp2-more-text">
           <b>{t('toggle')}</b>
@@ -328,6 +331,7 @@ function OptionalContact({ draft, setDraft }: { draft: InviteDraft; setDraft: Se
             <input
               id={`${baseId}-name`}
               className="cmp-input"
+              {...pilot('invite.name', 'text')}
               value={draft.name}
               maxLength={100}
               autoComplete="off"
@@ -342,6 +346,7 @@ function OptionalContact({ draft, setDraft }: { draft: InviteDraft; setDraft: Se
             <input
               id={`${baseId}-phone`}
               className="cmp-input is-phone"
+              {...pilot('invite.phone', 'text')}
               type="tel"
               inputMode="tel"
               dir="ltr"
@@ -429,7 +434,7 @@ function CodeStep({ created, onPreview }: { created: CreatedCompanion; onPreview
         ) : null}
       </div>
       <div className="cmp-footer">
-        <SecondaryButton variant="text" icon="eye" onClick={onPreview}>
+        <SecondaryButton variant="text" icon="eye" onClick={onPreview} {...pilot('invite.preview')}>
           {t('preview')}
         </SecondaryButton>
       </div>
@@ -446,7 +451,7 @@ function PreviewStep({ draft, onDone }: { draft: InviteDraft; onDone: () => void
         <CompanionPreview grants={draft.grants} />
       </div>
       <div className="cmp-footer">
-        <PrimaryButton onClick={onDone}>{t('done')}</PrimaryButton>
+        <PrimaryButton onClick={onDone} {...pilot('invite.done')}>{t('done')}</PrimaryButton>
       </div>
     </>
   );

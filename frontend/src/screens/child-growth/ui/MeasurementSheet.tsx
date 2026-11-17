@@ -7,6 +7,7 @@ import { useEffect, useId, useState } from 'react';
 import { type ChildMeasurement, childFieldError, parseDecimalInput } from '@/entities/child';
 import { getApiErrorStatus } from '@/shared/api';
 import type { Locale } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import {
   type DateParts,
   formatDecimal,
@@ -113,7 +114,7 @@ export function MeasurementSheet({ childId, birthDate, measurement, open, onClos
             <SecondaryButton onClick={onClose} disabled={busy}>
               {t('growth.form.cancel')}
             </SecondaryButton>
-            <PrimaryButton loading={save.isPending} disabled={remove.isPending} onClick={submit}>
+            <PrimaryButton loading={save.isPending} disabled={remove.isPending} onClick={submit} {...pilot('child.growth-save')}>
               {t('growth.form.save')}
             </PrimaryButton>
           </div>
@@ -130,6 +131,7 @@ export function MeasurementSheet({ childId, birthDate, measurement, open, onClos
               aria-expanded={dateOpen}
               aria-labelledby="cgr-date-label cgr-date-value"
               onClick={() => setDateOpen((o) => !o)}
+              {...pilot('child.growth-date-open')}
             >
               <span id="cgr-date-value" className="chd-date-value">
                 {dateLabel}
@@ -137,7 +139,7 @@ export function MeasurementSheet({ childId, birthDate, measurement, open, onClos
               <Icon name="calendar" size={20} />
             </button>
             {dateOpen ? (
-              <CalendarPicker value={toParts(fromApiDate(form.measuredOn), locale)} onSelect={onPick} />
+              <CalendarPicker value={toParts(fromApiDate(form.measuredOn), locale)} onSelect={onPick} pilot={pilot('child.growth-date', 'calendar')} />
             ) : null}
             {fieldError('measuredOn') ? (
               <p className="chd-error" role="alert">
@@ -147,6 +149,7 @@ export function MeasurementSheet({ childId, birthDate, measurement, open, onClos
           </div>
 
           <DecimalField
+            pilotId="child.growth-weight"
             label={t('growth.form.weight')}
             unit={t('growth.form.kg')}
             value={form.weightKg}
@@ -156,6 +159,7 @@ export function MeasurementSheet({ childId, birthDate, measurement, open, onClos
           />
           <div className="chd-grid2">
             <DecimalField
+              pilotId="child.growth-length"
               label={t('growth.form.length')}
               unit={t('growth.form.cm')}
               value={form.lengthCm}
@@ -164,6 +168,7 @@ export function MeasurementSheet({ childId, birthDate, measurement, open, onClos
               onChange={(v) => set('lengthCm', v)}
             />
             <DecimalField
+              pilotId="child.growth-head"
               label={t('growth.form.head')}
               unit={t('growth.form.cm')}
               value={form.headCm}
@@ -231,6 +236,7 @@ export function MeasurementSheet({ childId, birthDate, measurement, open, onClos
 }
 
 function DecimalField({
+  pilotId,
   label,
   unit,
   value,
@@ -238,6 +244,7 @@ function DecimalField({
   error,
   onChange,
 }: {
+  pilotId: string;
   label: string;
   unit: string;
   value: string;
@@ -257,6 +264,7 @@ function DecimalField({
       <div className={clsx('chd-input', error && 'is-invalid')}>
         <input
           id={id}
+          {...pilot(pilotId, 'text')}
           type="text"
           inputMode="decimal"
           autoComplete="off"

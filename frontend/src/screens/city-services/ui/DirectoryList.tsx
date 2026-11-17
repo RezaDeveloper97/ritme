@@ -16,6 +16,7 @@ import {
 } from '@/entities/city-service';
 import { Link, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { Card, EmptyState, Icon, ScreenHeader, SecondaryButton, SkyLayer } from '@/shared/ui';
 import { DirectoryCard, DirectoryFilterSheet } from '@/widgets/directory-filters';
 
@@ -79,7 +80,7 @@ export function DirectoryList({ initial, onHome }: { initial: BrowseQuery; onHom
   const narrowed = count > 0 || q.trim() !== '' || category !== null;
   const cityName = cities.find((c) => c.id === activeCity)?.name ?? null;
   const chip = (key: string, label: string, on: boolean, onClick: () => void) => (
-    <button key={key} type="button" role="radio" aria-checked={on} className={clsx('chip csv-chip', on && 'on')} onClick={onClick}>
+    <button key={key} type="button" role="radio" aria-checked={on} {...pilotOption(key)} className={clsx('chip csv-chip', on && 'on')} onClick={onClick}>
       {label}
     </button>
   );
@@ -142,11 +143,11 @@ export function DirectoryList({ initial, onHome }: { initial: BrowseQuery; onHom
         </ul>
         {list.data.meta.last_page > 1 ? (
           <nav className="csv-pager" aria-label={t('list.pages')}>
-            <SecondaryButton variant="text" disabled={page <= 1} onClick={() => setPage((n) => n - 1)}>
+            <SecondaryButton variant="text" disabled={page <= 1} {...pilot('city-list.prev')} onClick={() => setPage((n) => n - 1)}>
               {t('list.prev')}
             </SecondaryButton>
             <span>{t('list.page', { page: fmt.number(page), last: fmt.number(list.data.meta.last_page) })}</span>
-            <SecondaryButton variant="text" disabled={page >= list.data.meta.last_page} onClick={() => setPage((n) => n + 1)}>
+            <SecondaryButton variant="text" disabled={page >= list.data.meta.last_page} {...pilot('city-list.next')} onClick={() => setPage((n) => n + 1)}>
               {t('list.next')}
             </SecondaryButton>
           </nav>
@@ -183,10 +184,11 @@ export function DirectoryList({ initial, onHome }: { initial: BrowseQuery; onHom
               placeholder={t('home.searchPlaceholder')}
               aria-label={t('home.searchLabel')}
               onChange={(e) => setQDraft(e.target.value)}
+              {...pilot('city-list.search', 'text')}
             />
           </form>
           <div className="csv-chips" aria-label={t('filters.title')}>
-            <button type="button" className={clsx('chip csv-chip dfl-filter', count > 0 && 'on')} onClick={() => setSheet(true)}>
+            <button type="button" className={clsx('chip csv-chip dfl-filter', count > 0 && 'on')} {...pilot('city-list.filters')} onClick={() => setSheet(true)}>
               <Icon name="filterLines"size={16} />
               {t('filters.title')}
               {count > 0 ? <span className="dfl-badge">{formatNumber(count, locale)}</span> : null}
@@ -198,6 +200,7 @@ export function DirectoryList({ initial, onHome }: { initial: BrowseQuery; onHom
             <button
               type="button"
               aria-pressed={filters.openNow}
+              {...pilot('city-list.open-now')}
               className={clsx('chip csv-chip', filters.openNow && 'on')}
               onClick={() => apply({ ...filters, openNow: !filters.openNow })}
             >
@@ -214,7 +217,7 @@ export function DirectoryList({ initial, onHome }: { initial: BrowseQuery; onHom
           {options.data ? (
             <>
               {cities.length > 0 ? (
-                <div role="radiogroup" aria-label={t('list.cityLabel')} className="csv-chips">
+                <div role="radiogroup" aria-label={t('list.cityLabel')} className="csv-chips" {...pilot('city-list.city', 'choice')}>
                   {chip('all', t('list.allCities'), activeCity === null, () => {
                     setCity(null);
                     setPage(1);
@@ -227,7 +230,7 @@ export function DirectoryList({ initial, onHome }: { initial: BrowseQuery; onHom
                   )}
                 </div>
               ) : null}
-              <div role="radiogroup" aria-label={t('list.categoryLabel')} className="csv-chips">
+              <div role="radiogroup" aria-label={t('list.categoryLabel')} className="csv-chips" {...pilot('city-list.category', 'choice')}>
                 {chip('all', t('list.allCategories'), category === null, () => {
                   setCategory(null);
                   setPage(1);
@@ -242,7 +245,7 @@ export function DirectoryList({ initial, onHome }: { initial: BrowseQuery; onHom
             </>
           ) : null}
           {body}
-          <Link href="/profile/bookings" className="csv-link">
+          <Link href="/profile/bookings" className="csv-link" {...pilot('city-list.bookings')}>
             <Icon name="calendar" size={18} />
             {t('list.bookings')}
           </Link>
@@ -250,7 +253,7 @@ export function DirectoryList({ initial, onHome }: { initial: BrowseQuery; onHom
         </div>
         <div className="page-tail" />
       </div>
-      <Link href="/city-services/map" className="dfl-map-fab">
+      <Link href="/city-services/map" className="dfl-map-fab" {...pilot('city-list.map')}>
         <Icon name="mapPin" size={18} />
         {t('list.mapFab')}
       </Link>

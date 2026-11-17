@@ -22,6 +22,7 @@ import {
 import { getApiErrorStatus } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { Card, EmptyState, Icon, PrimaryButton, ScreenHeader, SkyLayer } from '@/shared/ui';
 
 const MODE_TONE: Record<VisitMode, string> = { video: 'nb-tone-data', phone: 'nb-tone-brand', in_person: 'nb-tone-warm' };
@@ -123,7 +124,7 @@ export function DoctorProfilePage({ doctorId }: { doctorId: number }) {
           <EmptyState icon="calendar" title={t('profile.noVisitTypes')} />
         </Card>
       ) : (
-        <div role="radiogroup" aria-label={t('profile.visitTypes')} className="dr-types">
+        <div role="radiogroup" aria-label={t('profile.visitTypes')} className="dr-types" {...pilot('doctor-profile.mode', 'choice')}>
           {d.visit_types.map((v) => {
             const on = v.mode === chosen;
             return (
@@ -132,6 +133,7 @@ export function DoctorProfilePage({ doctorId }: { doctorId: number }) {
                 type="button"
                 role="radio"
                 aria-checked={on}
+                {...pilotOption(v.mode)}
                 className={`dr-type ${MODE_TONE[v.mode]}${on ? ' is-on' : ''}`}
                 onClick={() => {
                   setMode(v.mode);
@@ -159,7 +161,7 @@ export function DoctorProfilePage({ doctorId }: { doctorId: number }) {
         <div className="dr-slot-head">
           <h2 className="dr-h2">{t('profile.reviews')}</h2>
           {!allReviews && d.reviews.count > d.reviews.items.length ? (
-            <button type="button" className="dr-link" onClick={() => setAllReviews(true)}>
+            <button type="button" className="dr-link" {...pilot('doctor-profile.all-reviews')} onClick={() => setAllReviews(true)}>
               {t('profile.all')}
             </button>
           ) : null}
@@ -184,7 +186,7 @@ export function DoctorProfilePage({ doctorId }: { doctorId: number }) {
       </Card>
     </div>,
     <div className="dr-cta">
-      <PrimaryButton icon={chosen ? MODE_ICON[chosen] : undefined} disabled={!slot || !chosen} onClick={book}>
+      <PrimaryButton icon={chosen ? MODE_ICON[chosen] : undefined} disabled={!slot || !chosen} onClick={book} {...pilot('doctor-profile.book')}>
         {slot && chosen ? t('profile.book', { mode: modeLabel(chosen), when: formatClock(slot.time, locale) }) : t('profile.pickSlot')}
       </PrimaryButton>
     </div>,

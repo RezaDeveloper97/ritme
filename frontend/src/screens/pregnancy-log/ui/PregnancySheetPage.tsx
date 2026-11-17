@@ -1,7 +1,7 @@
 'use client';
 
 import { LogDay } from '@/features/log-day';
-import { VoiceLogGated } from '@/widgets/voice-log-slot';
+import { useVoiceLocked, VoiceLogGated } from '@/widgets/voice-log-slot';
 import { useRouter } from '@/shared/i18n';
 import { SkyLayer } from '@/shared/ui';
 import { BodyMap } from '@/widgets/body-map';
@@ -14,6 +14,7 @@ import { BodyMap } from '@/widgets/body-map';
 export function PregnancySheetPage({ date }: { date?: string }) {
   const router = useRouter();
   const close = () => router.push('/pregnancy');
+  const voiceLocked = useVoiceLocked();
   return (
     <div className="view lday-page">
       <SkyLayer />
@@ -23,7 +24,7 @@ export function PregnancySheetPage({ date }: { date?: string }) {
           mode="pregnancy"
           initialDate={date}
           BodyMap={BodyMap}
-          VoiceLog={VoiceLogGated}
+          VoiceLog={VoiceLogGated} voiceLocked={voiceLocked}
           onClose={close}
           onSaved={close}
         />

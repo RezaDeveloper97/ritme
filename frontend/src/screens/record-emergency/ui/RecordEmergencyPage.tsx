@@ -31,6 +31,7 @@ import {
   SkyLayer,
   Switch,
 } from '@/shared/ui';
+import { pilot } from '@/shared/pilot';
 
 import { emergencyLinkUrl } from '../model/forms';
 import { ContactSheet, InsuranceSheet } from './EmergencySheets';
@@ -136,6 +137,7 @@ function EmergencyContent({ card, onSheet }: { card: OwnerEmergencyCard; onSheet
               labelledBy={`${lockId}-title`}
               disabled={save.isPending}
               onCheckedChange={(next) => save.mutate({ show_on_lock_screen: next })}
+              pilot={pilot('recem.lock')}
             />
           }
         />
@@ -148,6 +150,7 @@ function EmergencyContent({ card, onSheet }: { card: OwnerEmergencyCard; onSheet
               labelledBy={`${pregId}-title`}
               disabled={save.isPending}
               onCheckedChange={(next) => save.mutate({ show_pregnancy: next })}
+              pilot={pilot('recem.pregnancy')}
             />
           }
         />
@@ -159,6 +162,7 @@ function EmergencyContent({ card, onSheet }: { card: OwnerEmergencyCard; onSheet
               checked={allergyOn}
               labelledBy={`${allergyId}-title`}
               disabled={extras.isPending}
+              pilot={pilot('recem.allergies')}
               onCheckedChange={(next) =>
                 extras.mutate(
                   { allergiesOnEmergencyCard: next },
@@ -177,8 +181,8 @@ function EmergencyContent({ card, onSheet }: { card: OwnerEmergencyCard; onSheet
       ) : null}
 
       <ListGroup title={t('details')} className="rem-list">
-        <ListRow icon="phone" title={t('contact')} description={contactValue} onClick={() => onSheet('contact')} />
-        <ListRow icon="card" title={t('insurance')} description={insuranceValue} onClick={() => onSheet('insurance')} />
+        <ListRow icon="phone" title={t('contact')} description={contactValue} onClick={() => onSheet('contact')} pilot={pilot('recem.contact')} />
+        <ListRow icon="card" title={t('insurance')} description={insuranceValue} onClick={() => onSheet('insurance')} pilot={pilot('recem.insurance')} />
       </ListGroup>
 
       <PublicLinkCard

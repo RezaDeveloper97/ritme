@@ -79,6 +79,10 @@ entries:
     deviation: D-208
     reason: companion v2 additive field (goal)
   - case: shared_with_spouse
+    where: data.goals
+    deviation: D-208
+    reason: companion v2 additive field (goals) — the multi-select list
+  - case: shared_with_spouse
     where: data.signals
     deviation: D-208
     reason: companion v2 additive field (signals)
@@ -90,6 +94,10 @@ entries:
     where: data.companion.goal
     deviation: D-208
     reason: companion v2 additive field (goal)
+  - case: shared_with_spouse
+    where: data.companion.goals
+    deviation: D-208
+    reason: companion v2 additive field (goals) — the multi-select list
   - case: shared_with_spouse
     where: data.companion.signals
     deviation: D-208
@@ -106,6 +114,10 @@ entries:
     where: data[*].goal
     deviation: D-208
     reason: companion v2 additive field (goal)
+  - case: shared_with_spouse
+    where: data[*].goals
+    deviation: D-208
+    reason: companion v2 additive field (goals) — the multi-select list
   - case: shared_with_spouse
     where: data[*].signals
     deviation: D-208

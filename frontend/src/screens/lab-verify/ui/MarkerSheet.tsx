@@ -7,6 +7,7 @@ import { useId, useState } from 'react';
 import { type CatalogMarker, type LabMarker, type MarkerInput, parseLabNumber, trimNumber } from '@/entities/lab';
 import { AppSheet } from '@/shared/sheet';
 import { PrimaryButton, SecondaryButton } from '@/shared/ui';
+import { pilot } from '@/shared/pilot';
 
 interface MarkerSheetProps {
   /** The row being corrected, or null for «افزودن شاخص جاافتاده». */
@@ -90,6 +91,7 @@ export function MarkerSheet({ marker, catalog, busy, fieldErrors, error, onClose
           aria-invalid={e ? true : undefined}
           aria-describedby={e ? `${id}-err` : undefined}
           onChange={(ev) => set(ev.target.value)}
+          {...pilot(`labv.field:${key}`, 'text')}
         />
         {e ? (
           <p id={`${id}-err`} className="lab-error" role="alert">
@@ -117,7 +119,7 @@ export function MarkerSheet({ marker, catalog, busy, fieldErrors, error, onClose
               {t('cancel')}
             </SecondaryButton>
           )}
-          <PrimaryButton block={false} loading={busy} onClick={save}>
+          <PrimaryButton block={false} loading={busy} onClick={save} {...pilot('labv.save')}>
             {t('save')}
           </PrimaryButton>
         </div>

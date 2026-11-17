@@ -15,6 +15,7 @@ import { ReviewCityBookingForm } from '@/features/review-city-booking';
 import { getApiErrorMessage } from '@/shared/api';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, formatWeekday, fromApiDate } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { Card, EmptyState, Icon, PrimaryButton, ScreenHeader, SecondaryButton, SkyLayer, StatusPill, type Tone } from '@/shared/ui';
 
 import { bookingWhen } from '../model/book';
@@ -66,7 +67,7 @@ export function BookingsPage() {
     const title = b.service?.name ?? l.name;
     return (
       <li key={b.id} className="csv-bk">
-        <Link href={`/city-services/booked/${b.id}`} className="csv-bk-head">
+        <Link href={`/city-services/booked/${b.id}`} className="csv-bk-head" {...pilot(`city-bookings.open:${b.id}`)}>
           <span className="csv-thumb" aria-hidden>
             {l.photo_url ? (
               // eslint-disable-next-line @next/next/no-img-element -- admin-uploaded public-disk image, sized by CSS
@@ -110,7 +111,7 @@ export function BookingsPage() {
               </a>
             ) : null}
             {b.can_reschedule ? (
-              <SecondaryButton block={false} variant="text" onClick={() => router.push(`/city-services/${l.id}/request?reschedule=${b.id}`)}>
+              <SecondaryButton block={false} variant="text" onClick={() => router.push(`/city-services/${l.id}/request?reschedule=${b.id}`)} {...pilot(`city-bookings.reschedule:${b.id}`)}>
                 {t('bookings.reschedule')}
               </SecondaryButton>
             ) : null}
@@ -120,12 +121,12 @@ export function BookingsPage() {
               </SecondaryButton>
             ) : null}
             {b.can_review ? (
-              <SecondaryButton block={false} variant="text" onClick={() => setReviewing(b.id)}>
+              <SecondaryButton block={false} variant="text" onClick={() => setReviewing(b.id)} {...pilot(`city-bookings.review:${b.id}`)}>
                 {t('bookings.review')}
               </SecondaryButton>
             ) : null}
             {scope === 'past' ? (
-              <SecondaryButton block={false} variant="text" onClick={() => router.push(`/city-services/${l.id}`)}>
+              <SecondaryButton block={false} variant="text" onClick={() => router.push(`/city-services/${l.id}`)} {...pilot(`city-bookings.again:${b.id}`)}>
                 {t('bookings.again')}
               </SecondaryButton>
             ) : null}
@@ -147,7 +148,7 @@ export function BookingsPage() {
           icon="calendar"
           title={t('bookings.emptyTitle')}
           body={t('bookings.emptyBody')}
-          action={<PrimaryButton onClick={() => router.push('/city-services')}>{t('bookings.browse')}</PrimaryButton>}
+          action={<PrimaryButton onClick={() => router.push('/city-services')} {...pilot('city-bookings.browse')}>{t('bookings.browse')}</PrimaryButton>}
         />
       </Card>
     );
@@ -164,7 +165,7 @@ export function BookingsPage() {
         <div className="csv-body">
           <div role="tablist" aria-label={t('bookings.title')} className="cdb-tabs">
             {(['upcoming', 'past'] as const).map((s) => (
-              <button key={s} type="button" role="tab" aria-selected={scope === s} className={clsx('cdb-tab', scope === s && 'on')} onClick={() => setScope(s)}>
+              <button key={s} type="button" role="tab" aria-selected={scope === s} {...pilot(`city-bookings.tab:${s}`)} className={clsx('cdb-tab', scope === s && 'on')} onClick={() => setScope(s)}>
                 {t(`bookings.tab.${s}`)}
                 {counts && counts[s] > 0 ? ` · ${num(counts[s])}` : ''}
               </button>
@@ -177,7 +178,7 @@ export function BookingsPage() {
             </p>
           ) : null}
           {doctorsOn ? (
-            <Link href="/services/bookings" className="csv-link">
+            <Link href="/services/bookings" className="csv-link" {...pilot('city-bookings.doctors')}>
               <Icon name="doctor" size={18} />
               {t('bookings.doctorBookings')}
             </Link>

@@ -26,6 +26,7 @@ import {
 import { getApiErrorStatus, getApiSaveErrorMessage } from '@/shared/api';
 import { Link, type Locale, useDirection, useRouter } from '@/shared/i18n';
 import { addDays, formatNumber, fromApiDate, monthName, toParts } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   Card,
   ChipGroup,
@@ -195,7 +196,7 @@ function RecoveryFormView({ saved, overview }: { saved: PostpartumRecovery; over
         <p className="pp-field-hint">{t('redFlags.hint')}</p>
         {form.temperatureC === null ? (
           <ChipGroup label={t('redFlags.temperature')}>
-            <PillChip pressed={false} onPressedChange={() => set('temperatureC', TEMPERATURE_START)}>
+            <PillChip {...pilot('pp.rec-temp-add')} pressed={false} onPressedChange={() => set('temperatureC', TEMPERATURE_START)}>
               {t('redFlags.addTemperature')}
             </PillChip>
           </ChipGroup>
@@ -213,16 +214,17 @@ function RecoveryFormView({ saved, overview }: { saved: PostpartumRecovery; over
               decrementLabel={t('decrease')}
               incrementLabel={t('increase')}
               locale={locale}
+              pilot={pilot('pp.rec-temp')}
             />
-            <SecondaryButton block={false} icon="x" onClick={() => set('temperatureC', null)}>
+            <SecondaryButton block={false} icon="x" onClick={() => set('temperatureC', null)} {...pilot('pp.rec-temp-clear')}>
               {t('redFlags.clearTemperature')}
             </SecondaryButton>
           </>
         )}
         <h3 className="pp-field-sub">{t('redFlags.signs')}</h3>
-        <ChipGroup label={t('redFlags.signs')}>
+        <ChipGroup label={t('redFlags.signs')} pilot={pilot('pp.rec-flags', 'choice')}>
           {RED_FLAGS.map((flag) => (
-            <PillChip key={flag} pressed={form[flag] === true} onPressedChange={(on) => set(flag, on)}>
+            <PillChip key={flag} {...pilotOption(flag)} pressed={form[flag] === true} onPressedChange={(on) => set(flag, on)}>
               {t(`redFlags.flags.${flag}`)}
             </PillChip>
           ))}
@@ -231,25 +233,25 @@ function RecoveryFormView({ saved, overview }: { saved: PostpartumRecovery; over
 
       <Card as="section" className="pp-field">
         <h2 className="pp-field-title">{t('lochia')}</h2>
-        <ChipGroup label={t('lochia')}>
+        <ChipGroup label={t('lochia')} pilot={pilot('pp.rec-lochia', 'choice')}>
           {LOCHIA_AMOUNTS.map((v) => (
-            <PillChip key={v} pressed={form.lochiaAmount === v} onPressedChange={(on) => set('lochiaAmount', on ? v : null)}>
+            <PillChip key={v} {...pilotOption(v)} pressed={form.lochiaAmount === v} onPressedChange={(on) => set('lochiaAmount', on ? v : null)}>
               {t(`amounts.${v}`)}
             </PillChip>
           ))}
         </ChipGroup>
         <h3 className="pp-field-sub">{t('color')}</h3>
-        <ChipGroup label={t('color')}>
+        <ChipGroup label={t('color')} pilot={pilot('pp.rec-lochia-color', 'choice')}>
           {LOCHIA_COLORS.map((v) => (
-            <PillChip key={v} pressed={form.lochiaColor === v} onPressedChange={(on) => set('lochiaColor', on ? v : null)}>
+            <PillChip key={v} {...pilotOption(v)} pressed={form.lochiaColor === v} onPressedChange={(on) => set('lochiaColor', on ? v : null)}>
               {t(`colors.${v}`)}
             </PillChip>
           ))}
         </ChipGroup>
         <h3 className="pp-field-sub">{t('pain')}</h3>
-        <ChipGroup label={t('pain')}>
+        <ChipGroup label={t('pain')} pilot={pilot('pp.rec-pain', 'choice')}>
           {PAIN_LEVELS.map((v) => (
-            <PillChip key={v} pressed={form.painLevel === v} onPressedChange={(on) => set('painLevel', on ? v : null)}>
+            <PillChip key={v} {...pilotOption(v)} pressed={form.painLevel === v} onPressedChange={(on) => set('painLevel', on ? v : null)}>
               {t(`painLevels.${v}`)}
             </PillChip>
           ))}
@@ -257,10 +259,11 @@ function RecoveryFormView({ saved, overview }: { saved: PostpartumRecovery; over
         {needsLocation(form.painLevel) && (
           <>
             <h3 className="pp-field-sub">{t('painLocation')}</h3>
-            <ChipGroup label={t('painLocation')}>
+            <ChipGroup label={t('painLocation')} pilot={pilot('pp.rec-pain-where', 'choice')}>
               {PAIN_LOCATIONS.map((v) => (
                 <PillChip
                   key={v}
+                  {...pilotOption(v)}
                   pressed={form.painLocations.includes(v)}
                   onPressedChange={() => set('painLocations', toggleIn(form.painLocations, v))}
                 >
@@ -289,15 +292,17 @@ function RecoveryFormView({ saved, overview }: { saved: PostpartumRecovery; over
           decrementLabel={t('decrease')}
           incrementLabel={t('increase')}
           locale={locale}
+          pilot={pilot('pp.rec-feeds')}
         />
         <h3 className="pp-field-sub">{t('breasts')}</h3>
-        <ChipGroup label={t('breasts')}>
-          <PillChip pressed={form.breasts !== null && form.breasts.length === 0} onPressedChange={(on) => set('breasts', on ? [] : null)}>
+        <ChipGroup label={t('breasts')} pilot={pilot('pp.rec-breasts', 'choice')}>
+          <PillChip {...pilotOption('normal')} pressed={form.breasts !== null && form.breasts.length === 0} onPressedChange={(on) => set('breasts', on ? [] : null)}>
             {t('normal')}
           </PillChip>
           {BREAST_SYMPTOMS.map((v) => (
             <PillChip
               key={v}
+              {...pilotOption(v)}
               pressed={form.breasts?.includes(v) ?? false}
               onPressedChange={() => {
                 const next = toggleIn(form.breasts ?? [], v);
@@ -321,6 +326,7 @@ function RecoveryFormView({ saved, overview }: { saved: PostpartumRecovery; over
           decrementLabel={t('decrease')}
           incrementLabel={t('increase')}
           locale={locale}
+          pilot={pilot('pp.rec-sleep')}
         />
       </Card>
 
@@ -331,7 +337,7 @@ function RecoveryFormView({ saved, overview }: { saved: PostpartumRecovery; over
           {getApiSaveErrorMessage(save.error, t('saveError'))}
         </p>
       )}
-      <PrimaryButton loading={save.isPending} onClick={submit}>
+      <PrimaryButton loading={save.isPending} onClick={submit} {...pilot('pp.rec-save')}>
         {t('save')}
       </PrimaryButton>
     </div>
@@ -348,7 +354,7 @@ function VisitCard({ date }: { date: Date }) {
       <h2 id="pp-visit-title" className="pp-field-title">
         {t('visitTitle')}
       </h2>
-      <Link href="/reminders/appointment/new" className="pp-visit">
+      <Link href="/reminders/appointment/new" className="pp-visit" {...pilot('pp.visit-book')}>
         <span className="pp-date nb-tone-warm" aria-hidden>
           <span className="pp-date-day">{formatNumber(p.day, locale)}</span>
           <span className="pp-date-month">{monthName(p.month, locale)}</span>

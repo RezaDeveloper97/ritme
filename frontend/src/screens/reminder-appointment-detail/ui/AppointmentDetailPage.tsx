@@ -13,6 +13,7 @@ import {
   useUpdateAppointment,
 } from '@/features/manage-appointment';
 import { type Locale, useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import {
   formatDayMonth,
   formatNumber,
@@ -95,6 +96,7 @@ function DetailHeader({ id, sub, editable = false }: { id: number; sub?: string;
             icon="pencil"
             label={t('appointmentDetail.edit')}
             onClick={() => router.push(`/reminders/appointment/${id}/edit`)}
+            pilot={pilot('apptd.edit')}
           />
         ) : undefined
       }
@@ -241,6 +243,7 @@ function Detail({ appt }: { appt: Appointment }) {
                 checked={appt.isActive}
                 label={td('reminderToggle')}
                 disabled={cancelled || update.isPending}
+                pilot={pilot('apptd.remind')}
                 onCheckedChange={(next) => update.mutate({ id: appt.id, patch: { isActive: next } })}
               />
             </div>
@@ -256,6 +259,7 @@ function Detail({ appt }: { appt: Appointment }) {
                   role="checkbox"
                   className="apd-item"
                   aria-checked={item.done}
+                  {...pilot(`apptd.prep:${item.id}`)}
                   disabled={cancelled}
                   onClick={() => togglePrep.mutate({ appointment: appt, itemId: item.id, done: !item.done })}
                 >
@@ -271,7 +275,7 @@ function Detail({ appt }: { appt: Appointment }) {
           {!cancelled && (
             <div className="apd-actions">
               {when && (
-                <button type="button" className="apd-cal" onClick={addToCalendar}>
+                <button type="button" className="apd-cal" onClick={addToCalendar} {...pilot('apptd.calendar')}>
                   <Icon name="calendar" size={18} strokeWidth={1.8} />
                   {td('addToCalendar')}
                 </button>

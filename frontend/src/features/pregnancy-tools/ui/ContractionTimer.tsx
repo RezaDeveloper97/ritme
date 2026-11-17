@@ -7,6 +7,7 @@ import { useState } from 'react';
 import type { PregnancyAlertV2 } from '@/entities/pregnancy';
 import { getApiErrorCode, getApiErrorMessage } from '@/shared/api';
 import { Link } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { openSheet } from '@/shared/sheet';
 import { Card, Icon, PrimaryButton, SectionTitle, StatusPill } from '@/shared/ui';
 
@@ -93,6 +94,7 @@ export function ContractionTimer({ overview }: ContractionTimerProps) {
           aria-label={stale ? t('staleLabel') : contracting ? t('endAria', { time: f.dur(view.runningMs) }) : t('startAria')}
           disabled={busy || stale}
           onClick={onToggle}
+          {...pilot('preg.contraction-toggle')}
         >
           <span className="ptl-ctr-label" aria-hidden>
             {stale ? t('staleLabel') : contracting ? t('running') : view.phase === 'resting' ? t('sinceLast') : t('ready')}
@@ -207,7 +209,7 @@ export function ContractionTimer({ overview }: ContractionTimerProps) {
 
       {active ? (
         <div className="ptl-footer">
-          <PrimaryButton onClick={onFinish} loading={finish.isPending} disabled={toggle.isPending}>
+          <PrimaryButton onClick={onFinish} loading={finish.isPending} disabled={toggle.isPending} {...pilot('preg.contraction-finish')}>
             {t('finish')}
           </PrimaryButton>
         </div>

@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { highlightGlyph, type HighlightTone, type PregnancyWeek } from '@/entities/pregnancy';
 import { type Locale, Link, useDirection } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { Card, Icon, IconCircle, InfoNote, type Tone } from '@/shared/ui';
 import { FetusSize } from '@/shared/ui/illustrations';
 import { PregnancyCareChecklist } from '@/widgets/pregnancy-care-checklist';
@@ -98,7 +99,7 @@ export function WeekSections({ data }: { data: PregnancyWeek }) {
             </ul>
           )}
           {d.bodyText && <p className="pgn-body-text">{d.bodyText}</p>}
-          <Link href="/pregnancy/log" className="pgn-link">
+          <Link href="/pregnancy/log" className="pgn-link" {...pilot('preg.open:log')}>
             {t('logToday')}
             <Icon name={dir === 'rtl' ? 'chevronLeft' : 'chevronRight'} size={15} strokeWidth={2.2} />
           </Link>

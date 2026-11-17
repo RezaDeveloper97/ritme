@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { openSheet } from '@/shared/sheet';
 import { HeaderButton, PrimaryButton, ScreenHeader, SegmentedTabs, SkyLayer } from '@/shared/ui';
 
@@ -53,6 +54,7 @@ export function RemindersPage({ initialTab }: { initialTab?: string }) {
               icon="bell"
               label={t('notificationSettings')}
               onClick={() => openSheet(NOTIFICATIONS_SHEET)}
+              pilot={pilot('care.notifications')}
             />
           }
         />
@@ -64,6 +66,7 @@ export function RemindersPage({ initialTab }: { initialTab?: string }) {
             onChange={select}
             label={t('title')}
             panelId={() => PANEL_ID}
+            pilot={(v) => pilot(`care.tab:${v}`)}
           />
 
           <div id={PANEL_ID} role="tabpanel" aria-label={t(`tabs.${tab}`)} className="rmd-panel">
@@ -72,7 +75,7 @@ export function RemindersPage({ initialTab }: { initialTab?: string }) {
             {show.appointments && <AppointmentSection />}
           </div>
 
-          <PrimaryButton icon="plus" onClick={() => openSheet(ADD_SHEET)}>
+          <PrimaryButton icon="plus" onClick={() => openSheet(ADD_SHEET)} {...pilot('care.add')}>
             {t('addNewReminder')}
           </PrimaryButton>
         </div>

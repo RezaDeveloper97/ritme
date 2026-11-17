@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 
 import { useSwitchLocale } from '@/features/switch-locale';
+import { pilot } from '@/shared/pilot';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { calendarSystem, formatLongDate } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
@@ -49,6 +50,7 @@ export function LanguagePage() {
           ) : (
             <RadioCardGroup
               label={t('language.languages')}
+              pilot={pilot('language.pick', 'choice')}
               value={locale}
               onChange={(code) => (isPending ? undefined : switchLocale(code))}
               options={languages.map((language) => ({

@@ -6,6 +6,7 @@ import { useSaveSupplyReminder, useShopChecklist, useSupplyReminder } from '@/en
 import { useLifeStage } from '@/entities/user';
 import { Link, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { Card, Icon, ProgressBar, Switch } from '@/shared/ui';
 
 /**
@@ -19,7 +20,7 @@ export function ChecklistCard() {
   if (!q.data || q.data.summary.total === 0) return null;
   const { ready, total } = q.data.summary;
   return (
-    <Link href="/shop/checklist" className="shp-checklist">
+    <Link href="/shop/checklist" className="shp-checklist" {...pilot('shop-home.checklist')}>
       <Card className="shp-checklist-card">
         <Icon name="todo" size={22} />
         <div className="shp-checklist-main">
@@ -65,6 +66,7 @@ export function SupplyReminderCard() {
         checked={on}
         disabled={save.isPending}
         labelledBy="shp-supply-title"
+        pilot={pilot('shop-home.supply')}
         onCheckedChange={(enabled) => save.mutate({ enabled })}
       />
     </Card>

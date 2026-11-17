@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useCareToday } from '@/entities/care-reminder';
 import { useLogIntake } from '@/features/log-intake';
 import type { Locale } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { formatNumber } from '@/shared/lib/date';
 import { CheckTick, Icon, Skeleton, SkeletonGroup } from '@/shared/ui';
 
@@ -85,6 +86,7 @@ export function TodayCard() {
                 <button
                   type="button"
                   className="rmd-check"
+                  {...pilot(`care.dose:${card.key.replace(':', '')}`)}
                   aria-pressed={card.taken}
                   aria-label={t(card.taken ? 'today.markNotTaken' : 'today.markTaken', {
                     title: card.title,

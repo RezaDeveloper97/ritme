@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { type JoinApplication, type JoinStatus, useJoinStatus } from '@/entities/city-service';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatLongDate, formatTimeOfDay } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { Icon, InfoNote, PrimaryButton, SecondaryButton, StatusPill, StepTimeline, type TimelineStep } from '@/shared/ui';
 
 import { PhotoManager } from './PhotoManager';
@@ -136,10 +137,10 @@ export function DonePage({
       <Link href="/profile/support" className="cjn-link">
         {t('support')}
       </Link>
-      <PrimaryButton onClick={onNew} loading={newBusy}>
+      <PrimaryButton onClick={onNew} loading={newBusy} {...pilot('city-join.new')}>
         {t('newApp')}
       </PrimaryButton>
-      <SecondaryButton onClick={() => router.push(homeHref)}>{t('toHome')}</SecondaryButton>
+      <SecondaryButton onClick={() => router.push(homeHref)} {...pilot('city-join.home')}>{t('toHome')}</SecondaryButton>
     </div>
   );
 }

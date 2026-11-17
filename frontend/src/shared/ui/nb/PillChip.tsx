@@ -3,6 +3,8 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { clsx } from 'clsx';
 
+import type { PilotAttrs } from '@/shared/pilot';
+
 import { Icon, type IconName } from '../Icon';
 import { toneClass, type Tone } from './tone';
 
@@ -70,13 +72,15 @@ interface ChipGroupProps {
   /** `fill` stretches the chips across the row (intensity: کم · متوسط · شدید). */
   layout?: 'wrap' | 'fill';
   className?: string;
+  /** Autopilot name of the set: `pilot('…', 'choice')`; each chip then takes `pilotOption(code)` (§11.6). */
+  pilot?: PilotAttrs;
   children: ReactNode;
 }
 
 /** A labelled row of {@link PillChip}s. */
-export function ChipGroup({ label, layout = 'wrap', className, children }: ChipGroupProps) {
+export function ChipGroup({ label, layout = 'wrap', className, pilot, children }: ChipGroupProps) {
   return (
-    <div role="group" aria-label={label} className={clsx('nb-chips', layout === 'fill' && 'is-fill', className)}>
+    <div role="group" aria-label={label} className={clsx('nb-chips', layout === 'fill' && 'is-fill', className)} {...pilot}>
       {children}
     </div>
   );

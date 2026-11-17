@@ -23,6 +23,7 @@ import {
 import { getApiSaveErrorMessage } from '@/shared/api';
 import { type Locale, Link, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, fromApiDate } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import {
   Card,
@@ -87,7 +88,7 @@ export function ContraceptionPage() {
         title={t('empty.title')}
         body={t('empty.body')}
         action={
-          <PrimaryButton onClick={() => router.push('/contraception/setup')}>{t('empty.cta')}</PrimaryButton>
+          <PrimaryButton onClick={() => router.push('/contraception/setup')} {...pilot('contraception.setup-open')}>{t('empty.cta')}</PrimaryButton>
         }
       />
     );
@@ -113,7 +114,7 @@ export function ContraceptionPage() {
           backLabel={t('pill.back')}
           action={
             data?.method ? (
-              <HeaderButton icon="cog" label={t('pill.settings')} onClick={() => router.push('/contraception/setup')} />
+              <HeaderButton icon="cog" label={t('pill.settings')} onClick={() => router.push('/contraception/setup')} pilot={pilot('contraception.settings')} />
             ) : undefined
           }
         />
@@ -184,12 +185,12 @@ function TodayCard({ method, pill }: { method: ContraceptionMethod; pill: PillPa
             <Icon name="checkCircle" size={20} />
             {t('takenDone')}
           </span>
-          <SecondaryButton variant="text" block={false} loading={undo.isPending} onClick={() => undo.mutate(today.date)}>
+          <SecondaryButton variant="text" block={false} loading={undo.isPending} onClick={() => undo.mutate(today.date)} {...pilot('contraception.pill-undo')}>
             {t('undo')}
           </SecondaryButton>
         </div>
       ) : (
-        <PrimaryButton icon="check" loading={log.isPending} disabled={busy} onClick={() => log.mutate({})}>
+        <PrimaryButton icon="check" loading={log.isPending} disabled={busy} onClick={() => log.mutate({})} {...pilot('contraception.pill-taken')}>
           {t('taken')}
         </PrimaryButton>
       )}
@@ -199,7 +200,7 @@ function TodayCard({ method, pill }: { method: ContraceptionMethod; pill: PillPa
         </p>
       ) : null}
       {today.kind === 'active' ? (
-        <Link href="/contraception/missed" className="ctr-missed">
+        <Link href="/contraception/missed" className="ctr-missed" {...pilot('contraception.missed-open')}>
           {t('missed')}
         </Link>
       ) : null}
@@ -282,6 +283,7 @@ function RefillRow({ pill, onEdit }: { pill: PillPack; onEdit: () => void }) {
         }
         description={known ? t('refillSub') : t('packsUnknownSub')}
         onClick={onEdit}
+        pilot={pilot('contraception.packs-edit')}
       />
     </ListGroup>
   );
@@ -309,6 +311,7 @@ function PacksSheet({ method, onClose }: { method: ContraceptionMethod; onClose:
             block={false}
             loading={save.isPending}
             onClick={() => save.mutate({ ...methodToPayload(method), packs_left: count }, { onSuccess: onClose })}
+            {...pilot('contraception.packs-save')}
           >
             {t('save')}
           </PrimaryButton>
@@ -325,6 +328,7 @@ function PacksSheet({ method, onClose }: { method: ContraceptionMethod; onClose:
         decrementLabel={ts('decrease', { what: t('packsStepper') })}
         incrementLabel={ts('increase', { what: t('packsStepper') })}
         locale={locale}
+        pilot={pilot('contraception.packs-left', 'stepper')}
       />
       {save.isError ? (
         <p className="ctr-error is-inline" role="alert">
@@ -350,7 +354,7 @@ function MethodSummary({ method }: { method: ContraceptionMethod }) {
             <p className="ctr-today-title is-small">{t(`setup.methods.${method.method}`)}</p>
           </div>
         </div>
-        <SecondaryButton onClick={() => router.push('/contraception/setup')}>{t('other.change')}</SecondaryButton>
+        <SecondaryButton onClick={() => router.push('/contraception/setup')} {...pilot('contraception.method-change')}>{t('other.change')}</SecondaryButton>
       </Card>
       {hasMethodReminders(method.method) ? (
         <ListGroup className="ctr-refill">
@@ -359,6 +363,7 @@ function MethodSummary({ method }: { method: ContraceptionMethod }) {
             iconTone="brand"
             title={t('other.reminders')}
             onClick={() => router.push('/contraception/other')}
+            pilot={pilot('contraception.reminders-open')}
           />
         </ListGroup>
       ) : null}

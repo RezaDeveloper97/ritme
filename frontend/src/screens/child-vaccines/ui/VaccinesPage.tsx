@@ -10,6 +10,7 @@ import { type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatLongDate, formatMonthLabel, formatNumber, fromApiDate, toParts } from '@/shared/lib/date';
 import { withHandoff } from '@/shared/lib/handoff';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { pilot } from '@/shared/pilot';
 import {
   Card,
   Checkbox,
@@ -177,6 +178,7 @@ export function ChildVaccinesPage({ id }: { id: number }) {
         value={tab}
         onChange={setTab}
         panelId={(v) => `cvx-panel-${v}`}
+        pilot={(v) => pilot(`child.vaccine-tab:${v}`)}
         tabs={TABS.map((v) => ({
           value: v,
           label: t(v === 'schedule' ? 'vaccines.tabSchedule' : v === 'card' ? 'vaccines.tabCard' : 'vaccines.tabNotes'),
@@ -321,6 +323,7 @@ function ScheduleList({
                     checked={dose.givenOn !== null}
                     disabled={!home.canEdit || busyCode === dose.code}
                     label={dose.title}
+                    pilot={pilot(`child.vaccine-dose:${dose.code}`)}
                     description={
                       // A dose given on another day than the visit's date shows its own date (artboard: none).
                       dose.givenOn && dose.givenOn !== firstGiven
@@ -333,12 +336,12 @@ function ScheduleList({
               </div>
               {actionable ? (
                 <div className="cvx-actions">
-                  <button type="button" className="cvx-btn is-solid" onClick={() => onBook(visit)}>
+                  <button type="button" className="cvx-btn is-solid" onClick={() => onBook(visit)} {...pilot(`child.vaccine-book:${visit.code}`)}>
                     <Icon name="calendar" size={16} />
                     {t('vaccines.book')}
                   </button>
                   {home.canEdit ? (
-                    <button type="button" className="cvx-btn" onClick={() => onMark({ kind: 'visit', visit })}>
+                    <button type="button" className="cvx-btn" onClick={() => onMark({ kind: 'visit', visit })} {...pilot(`child.vaccine-mark:${visit.code}`)}>
                       <Icon name="check" size={16} />
                       {t('vaccines.markVisit')}
                     </button>

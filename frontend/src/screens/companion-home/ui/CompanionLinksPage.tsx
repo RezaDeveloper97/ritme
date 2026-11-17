@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 import { useCompanionLinks, useLeaveCompanionLink, type ViewerLink } from '@/entities/companion';
 import { InviteAppLink, JoinCodeStep, JoinConfirmStep, useJoinCompanion } from '@/features/join-companion';
+import { pilot } from '@/shared/pilot';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, fromApiDate } from '@/shared/lib/date';
 import { AppSheet } from '@/shared/sheet';
@@ -53,14 +54,14 @@ export function CompanionLinksPage() {
           {confirming ? (
             <>
               <JoinConfirmStep join={join} />
-              <PrimaryButton onClick={join.confirm} loading={join.accepting}>
+              <PrimaryButton onClick={join.confirm} loading={join.accepting} {...pilot('companion.join-confirm')}>
                 {t('join.confirm.start')}
               </PrimaryButton>
             </>
           ) : (
             <>
               <JoinCodeStep join={join} />
-              <PrimaryButton onClick={join.submitCode} disabled={!join.complete} loading={join.checking}>
+              <PrimaryButton onClick={join.submitCode} disabled={!join.complete} loading={join.checking} {...pilot('companion.join-submit')}>
                 {join.checking ? t('code.connecting') : t('code.connect')}
               </PrimaryButton>
               <InviteAppLink />
@@ -118,7 +119,7 @@ export function CompanionLinksPage() {
               </ul>
             )}
             {links.data?.length ? (
-              <SecondaryButton variant="text" onClick={() => router.push('/companion')}>
+              <SecondaryButton variant="text" onClick={() => router.push('/companion')} {...pilot('companion.open:companion')}>
                 {t('links.toHome')}
               </SecondaryButton>
             ) : null}

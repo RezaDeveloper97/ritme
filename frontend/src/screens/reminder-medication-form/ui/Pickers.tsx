@@ -6,6 +6,7 @@ import { useState } from 'react';
 
 import type { DoseUnit, FrequencyUnit, MedicationDuration, MedicationFrequency } from '@/entities/care-reminder';
 import type { Locale } from '@/shared/i18n';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   type DateParts,
   formatNumber,
@@ -32,14 +33,24 @@ const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = Array.from({ length: 60 }, (_, i) => i);
 const pad = (n: number) => String(n).padStart(2, '0');
 
-function SheetFooter({ onCancel, onDone, disabled }: { onCancel: () => void; onDone: () => void; disabled?: boolean }) {
+function SheetFooter({
+  onCancel,
+  onDone,
+  disabled,
+  pilotId,
+}: {
+  onCancel: () => void;
+  onDone: () => void;
+  disabled?: boolean;
+  pilotId: string;
+}) {
   const t = useTranslations('care.medicationForm');
   return (
     <div className="flex gap-2.5">
       <SecondaryButton block={false} className="flex-1" onClick={onCancel}>
         {t('cancel')}
       </SecondaryButton>
-      <PrimaryButton block={false} className="flex-1" onClick={onDone} disabled={disabled}>
+      <PrimaryButton block={false} className="flex-1" onClick={onDone} disabled={disabled} {...pilot(pilotId)}>
         {t('done')}
       </PrimaryButton>
     </div>
@@ -49,9 +60,13 @@ function SheetFooter({ onCancel, onDone, disabled }: { onCancel: () => void; onD
 const AMOUNTS = Array.from({ length: AMOUNT_MAX - AMOUNT_MIN + 1 }, (_, i) => AMOUNT_MIN + i);
 
 /** One-button footer of the wheel sheets («ذخیره»). */
-function SaveFooter({ onSave }: { onSave: () => void }) {
+function SaveFooter({ onSave, pilotId }: { onSave: () => void; pilotId: string }) {
   const t = useTranslations('care.medicationForm');
-  return <PrimaryButton onClick={onSave}>{t('saveChoice')}</PrimaryButton>;
+  return (
+    <PrimaryButton onClick={onSave} {...pilot(pilotId)}>
+      {t('saveChoice')}
+    </PrimaryButton>
+  );
 }
 
 /** «تکرار»: the fixed word «هر», a number wheel and a day / hour wheel. */
@@ -78,18 +93,22 @@ export function FrequencySheet({
       onClose={onClose}
       size="half"
       title={t('frequency')}
-      footer={<SaveFooter onSave={() => onPick({ every, unit })} />}
+      footer={<SaveFooter onSave={() => onPick({ every, unit })} pilotId="med.freq-save" />}
     >
       <div className="flex items-center justify-center gap-3 py-2">
         <span className="text-lg font-extrabold text-(--ink)">{t('frequencyEvery')}</span>
         <WheelPicker
           id="med-freq-every"
+          pilot={pilot('med.freq-every', 'wheel')}
+          pilotValues={options.map(String)}
           items={options.map((n) => formatNumber(n, locale))}
           selectedIndex={Math.max(0, options.indexOf(every))}
           onChange={(i) => setEvery(options[i] ?? every)}
         />
         <WheelPicker
           id="med-freq-unit"
+          pilot={pilot('med.freq-unit', 'wheel')}
+          pilotValues={FREQUENCY_UNIT_OPTIONS}
           items={FREQUENCY_UNIT_OPTIONS.map((u) => t(`frequencyUnits.${u}`))}
           selectedIndex={FREQUENCY_UNIT_OPTIONS.indexOf(unit)}
           onChange={(i) => {
@@ -129,17 +148,21 @@ export function DosageSheet({
       onClose={onClose}
       size="half"
       title={t('dose')}
-      footer={<SaveFooter onSave={() => onPick(amt, u)} />}
+      footer={<SaveFooter onSave={() => onPick(amt, u)} pilotId="med.dose-save" />}
     >
       <div className="flex items-center justify-center gap-3 py-2">
         <WheelPicker
           id="med-dose-amount"
+          pilot={pilot('med.dose-amount', 'wheel')}
+          pilotValues={AMOUNTS.map(String)}
           items={AMOUNTS.map((n) => formatNumber(n, locale))}
           selectedIndex={Math.max(0, AMOUNTS.indexOf(amt))}
           onChange={(i) => setAmt(AMOUNTS[i] ?? amt)}
         />
         <WheelPicker
           id="med-dose-unit"
+          pilot={pilot('med.dose-unit', 'wheel')}
+          pilotValues={DOSE_UNIT_OPTIONS}
           width={110}
           items={DOSE_UNIT_OPTIONS.map((x) => tc(`doseUnits.${x}`))}
           selectedIndex={DOSE_UNIT_OPTIONS.indexOf(u)}
@@ -174,12 +197,14 @@ export function TimeSheet({
       onClose={onClose}
       size="half"
       title={t('pickTime')}
-      footer={<SheetFooter onCancel={onClose} onDone={() => onPick(toSlot(hour, minute))} />}
+      footer={<SheetFooter onCancel={onClose} onDone={() => onPick(toSlot(hour, minute))} pilotId="med.time-done" />}
     >
       {/* Clock digits read left-to-right in every locale. */}
       <div className="flex items-center justify-center gap-3 py-2" dir="ltr">
         <WheelPicker
           id="med-time-hour"
+          pilot={pilot('med.time-hour', 'wheel')}
+          pilotValues={HOURS.map(String)}
           items={HOURS.map((h) => formatNumber(pad(h), locale))}
           selectedIndex={hour}
           onChange={setHour}
@@ -189,6 +214,8 @@ export function TimeSheet({
         </span>
         <WheelPicker
           id="med-time-minute"
+          pilot={pilot('med.time-minute', 'wheel')}
+          pilotValues={MINUTES.map(String)}
           items={MINUTES.map((m) => formatNumber(pad(m), locale))}
           selectedIndex={minute}
           onChange={setMinute}
@@ -228,11 +255,12 @@ export function DateSheet({
         <SheetFooter
           onCancel={onClose}
           disabled={!parts}
+          pilotId="med.date-done"
           onDone={() => parts && onPick(toApiDate(partsToDate(parts, locale)))}
         />
       }
     >
-      <CalendarPicker value={parts} onSelect={setParts} />
+      <CalendarPicker value={parts} onSelect={setParts} pilot={pilot('med.date', 'calendar')} />
     </AppSheet>
   );
 }
@@ -269,19 +297,21 @@ export function DurationSheet({
         <SheetFooter
           onCancel={onClose}
           disabled={needsDate && !parts}
+          pilotId="med.duration-done"
           onDone={() =>
             onPick(duration, needsDate && parts ? toApiDate(partsToDate(parts, locale)) : null)
           }
         />
       }
     >
-      <div className="flex flex-col gap-2.5" role="radiogroup" aria-label={t('duration')}>
+      <div className="flex flex-col gap-2.5" role="radiogroup" aria-label={t('duration')} {...pilot('med.duration-choice', 'choice')}>
         {options.map((opt) => (
           <button
             key={opt}
             type="button"
             role="radio"
             aria-checked={duration === opt}
+            {...pilotOption(opt)}
             className={clsx('chip justify-between', duration === opt && 'on')}
             onClick={() => setDuration(opt)}
           >
@@ -292,7 +322,7 @@ export function DurationSheet({
       {needsDate && (
         <div className="mt-3">
           <p className="fld-label-t">{t('endsOn')}</p>
-          <CalendarPicker value={parts} onSelect={setParts} />
+          <CalendarPicker value={parts} onSelect={setParts} pilot={pilot('med.ends-on', 'calendar')} />
         </div>
       )}
     </AppSheet>

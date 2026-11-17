@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 
+import { pilot } from '@/shared/pilot';
 import { useRouter } from '@/shared/i18n';
 import {
   Accordion,
@@ -66,7 +67,7 @@ export function SupportPage() {
     faqBody = (
       <div className="sup-faq">
         {items.map((q) => (
-          <Accordion key={q.id} title={q.heading} className="sup-q">
+          <Accordion key={q.id} title={q.heading} className="sup-q" pilot={pilot(`support.faq:${q.id}`)}>
             <p className="sup-a">{q.body}</p>
             {q.linkUrl && q.linkLabel ? (
               <a className="sup-a-link" href={q.linkUrl} {...external(q.linkUrl)}>
@@ -91,6 +92,7 @@ export function SupportPage() {
           label={t('search')}
           clearLabel={t('clear')}
           placeholder={t('search')}
+          {...pilot('support.search', 'text')}
         />
 
         <div className="sup-tiles">
@@ -111,7 +113,7 @@ export function SupportPage() {
               <span className="sup-tile-sub">{contact.isPending ? ' ' : t('chatSoon')}</span>
             </div>
           )}
-          <button type="button" className="sup-tile" onClick={() => setReportOpen(true)}>
+          <button type="button" className="sup-tile" onClick={() => setReportOpen(true)} {...pilot('support.report')}>
             <span className="sup-tile-disc tone-warm" aria-hidden>
               <Icon name="warning" size={20} />
             </span>

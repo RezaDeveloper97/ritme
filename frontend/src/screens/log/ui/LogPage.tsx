@@ -3,7 +3,7 @@
 import { useSearchParams } from 'next/navigation';
 
 import { LogDay } from '@/features/log-day';
-import { VoiceLogGated } from '@/widgets/voice-log-slot';
+import { useVoiceLocked, VoiceLogGated } from '@/widgets/voice-log-slot';
 import { useRouter } from '@/shared/i18n';
 import { SkyLayer } from '@/shared/ui';
 import { BodyMap } from '@/widgets/body-map';
@@ -15,11 +15,12 @@ import { BodyMap } from '@/widgets/body-map';
 export function LogPage() {
   const router = useRouter();
   const date = useSearchParams().get('date');
+  const voiceLocked = useVoiceLocked();
   return (
     <div className="view lday-page">
       <SkyLayer />
       <div className="scroll lday-page-scroll">
-        <LogDay variant="page" initialDate={date} BodyMap={BodyMap} VoiceLog={VoiceLogGated} onClose={() => router.push('/home')} />
+        <LogDay variant="page" initialDate={date} BodyMap={BodyMap} VoiceLog={VoiceLogGated} voiceLocked={voiceLocked} onClose={() => router.push('/home')} />
       </div>
     </div>
   );

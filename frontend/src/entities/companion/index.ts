@@ -32,6 +32,7 @@ export {
   COMPANION_SECTIONS,
   COMPANION_SIGNALS,
   COMPANION_TYPES,
+  EXCLUSIVE_COMPANION_GOALS,
   type AccessLevel,
   type CompanionAction,
   type CompanionAuditAction,

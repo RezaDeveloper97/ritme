@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 
 import { Link, type Locale, useDirection } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { Icon, IconCircle, type IconName, type Tone } from '@/shared/ui';
 
 import { parseBabyToday } from '../api/schema';
@@ -48,7 +49,7 @@ export function BabyTodayList({ childId, today, readOnly = false }: { childId: n
     <ul className="bfl-today-list">
       {rows.map((r) => (
         <li key={r.key}>
-          <Link href={feedingHref(childId, r.key)} className="bfl-today-row">
+          <Link href={feedingHref(childId, r.key)} className="bfl-today-row" {...pilot(`baby.today:${r.key}`)}>
             <IconCircle icon={r.icon} tone={r.tone} size="sm" />
             <span className="bfl-today-label">{t(`today.labels.${r.key}`)}</span>
             <span className={r.live ? 'bfl-today-value is-live' : 'bfl-today-value'}>{r.value}</span>

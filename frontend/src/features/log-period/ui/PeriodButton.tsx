@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
+import { pilot } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
 
 import { useEndPeriod, usePeriodStatus, useStartPeriod } from '../api/mutations';
@@ -51,6 +52,7 @@ export function PeriodButton() {
         onClick={commit}
         disabled={isPending}
         aria-busy={isPending}
+        {...pilot('period.toggle')}
         style={{
           height: 40,
           borderRadius: 14,

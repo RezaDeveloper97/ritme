@@ -11,6 +11,7 @@ import {
   useSaveMenopauseProfile,
 } from '@/entities/menopause';
 import { getApiSaveErrorMessage } from '@/shared/api';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { type Locale, useDirection, useRouter } from '@/shared/i18n';
 import { formatMonthLabel, fromApiDate, partsToDate, toApiDate, todayParts, toParts } from '@/shared/lib/date';
 import {
@@ -89,16 +90,16 @@ function initialMonth(lastPeriod: string | null, locale: Locale): PickedMonth | 
   return { year: p.year, month: p.month };
 }
 
-function YesNo({ label, value, onChange }: { label: string; value: boolean | null; onChange: (v: boolean | null) => void }) {
+function YesNo({ id, label, value, onChange }: { id: string; label: string; value: boolean | null; onChange: (v: boolean | null) => void }) {
   const t = useTranslations('menopause.stage');
   return (
-    <div className="mst-row" role="group" aria-label={label}>
+    <div className="mst-row" role="group" aria-label={label} {...pilot(`menopause.${id}`, 'choice')}>
       <span className="mst-q">{label}</span>
       <span className="mst-yn">
-        <PillChip mode="multi" pressed={value === true} onPressedChange={(on) => onChange(on ? true : null)}>
+        <PillChip mode="multi" pressed={value === true} onPressedChange={(on) => onChange(on ? true : null)} {...pilotOption('yes')}>
           {t('yes')}
         </PillChip>
-        <PillChip mode="multi" pressed={value === false} onPressedChange={(on) => onChange(on ? false : null)}>
+        <PillChip mode="multi" pressed={value === false} onPressedChange={(on) => onChange(on ? false : null)} {...pilotOption('no')}>
           {t('no')}
         </PillChip>
       </span>
@@ -151,7 +152,7 @@ function StageForm({ saved }: { saved: MenopauseProfile }) {
         <p className="mst-lead">{t('lead')}</p>
       </div>
 
-      <RadioCardGroup options={options} value={stage} onChange={setStage} label={t('question')} />
+      <RadioCardGroup options={options} value={stage} onChange={setStage} label={t('question')} pilot={pilot('menopause.stage', 'choice')} />
       {touched && !stage ? (
         <p className="mst-error" role="alert">
           {t('pickStage')}
@@ -166,6 +167,7 @@ function StageForm({ saved }: { saved: MenopauseProfile }) {
               type="button"
               className="mst-step"
               aria-label={t('prevMonth')}
+              {...pilot('menopause.stage-month-prev')}
               onClick={() => setLastPeriod((p) => stepMonth(p, nowMonth, -1))}
             >
               <Icon name={rtl ? 'chevronRight' : 'chevronLeft'} size={18} />
@@ -179,6 +181,7 @@ function StageForm({ saved }: { saved: MenopauseProfile }) {
               type="button"
               className="mst-step"
               aria-label={t('nextMonth')}
+              {...pilot('menopause.stage-month-next')}
               disabled={!canStepForward(lastPeriod, nowMonth)}
               onClick={() => setLastPeriod((p) => stepMonth(p, nowMonth, 1))}
             >
@@ -186,8 +189,8 @@ function StageForm({ saved }: { saved: MenopauseProfile }) {
             </button>
           </span>
         </div>
-        <YesNo label={t('surgical')} value={surgical} onChange={setSurgical} />
-        <YesNo label={t('hrt')} value={hrt} onChange={setHrt} />
+        <YesNo id="stage-surgical" label={t('surgical')} value={surgical} onChange={setSurgical} />
+        <YesNo id="stage-hrt" label={t('hrt')} value={hrt} onChange={setHrt} />
       </section>
 
       <div className="mst-footer">
@@ -196,7 +199,7 @@ function StageForm({ saved }: { saved: MenopauseProfile }) {
             {getApiSaveErrorMessage(save.error, t('saveError'))}
           </p>
         ) : null}
-        <PrimaryButton loading={save.isPending} disabled={touched && !stage} onClick={submit}>
+        <PrimaryButton loading={save.isPending} disabled={touched && !stage} onClick={submit} {...pilot('menopause.stage-save')}>
           {saved.storedStage ? t('save') : t('start')}
         </PrimaryButton>
       </div>

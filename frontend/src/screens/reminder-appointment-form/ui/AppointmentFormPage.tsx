@@ -26,6 +26,7 @@ import { useCurrentUser } from '@/entities/user';
 import { useAppointmentFor, useCreateAppointment, useUpdateAppointment } from '@/features/manage-appointment';
 import { getApiErrorStatus, getApiSaveErrorMessage } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   type DateParts,
   formatNumber,
@@ -367,7 +368,7 @@ function AppointmentForm({
             <p className="cfm-error is-center" role="alert">{tr('viewOnly')}</p>
           )}
 
-          <div className="cfm-kinds" role="radiogroup" aria-label={t('subtitle')}>
+          <div className="cfm-kinds" role="radiogroup" aria-label={t('subtitle')} {...pilot('appt.kind', 'choice')}>
             {APPOINTMENT_KINDS.map((kind) => (
               <button
                 key={kind}
@@ -375,6 +376,7 @@ function AppointmentForm({
                 role="radio"
                 aria-checked={form.kind === kind}
                 className="cfm-kind"
+                {...pilotOption(kind)}
                 onClick={() => set('kind', kind)}
               >
                 <Icon name={KIND_ICON[kind]} size={20} strokeWidth={1.8} />
@@ -395,6 +397,7 @@ function AppointmentForm({
                   aria-invalid={error === 'with'}
                   aria-describedby={error === 'with' ? 'apf-err-with' : undefined}
                   onChange={(e) => set('withWhom', e.target.value)}
+                  {...pilot('appt.with', 'text')}
                 />
               </span>
               {error === 'with' && (
@@ -410,12 +413,13 @@ function AppointmentForm({
                   value={form.specialty}
                   placeholder={t('specialtyPlaceholder')}
                   onChange={(e) => set('specialty', e.target.value)}
+                  {...pilot('appt.specialty', 'text')}
                 />
               </span>
             </label>
             <div className="cfm-group is-loose">
               <span className="cfm-label" id="apf-topic">{t('topic')}</span>
-              <div className="cfm-chips" role="radiogroup" aria-labelledby="apf-topic">
+              <div className="cfm-chips" role="radiogroup" aria-labelledby="apf-topic" {...pilot('appt.topic', 'choice')}>
                 {APPOINTMENT_TOPICS.map((topic) => (
                   <button
                     key={topic}
@@ -423,6 +427,7 @@ function AppointmentForm({
                     role="radio"
                     aria-checked={form.topic === topic}
                     className="cfm-chip"
+                    {...pilotOption(topic)}
                     onClick={() => set('topic', topic)}
                   >
                     {t(`topics.${topic}`)}
@@ -438,6 +443,7 @@ function AppointmentForm({
                   value={form.title}
                   placeholder={t('shortDescriptionPlaceholder')}
                   onChange={(e) => set('title', e.target.value)}
+                  {...pilot('appt.title', 'text')}
                 />
               </span>
             </label>
@@ -453,6 +459,7 @@ function AppointmentForm({
                   className="cfm-pick"
                   aria-labelledby="apf-date apf-date-v"
                   onClick={() => setPicker('date')}
+                  {...pilot('appt.date')}
                 >
                   <span id="apf-date-v" className={clsx('cfm-pick-v', !dateParts && 'is-empty')}>
                     {dateParts
@@ -469,6 +476,7 @@ function AppointmentForm({
                   className="cfm-pick"
                   aria-labelledby="apf-time apf-time-v"
                   onClick={() => setPicker('time')}
+                  {...pilot('appt.time')}
                 >
                   <span id="apf-time-v" className={clsx('cfm-pick-v', !form.time && 'is-empty')} dir="ltr">
                     {form.time ? formatNumber(form.time, locale) : t('pickTime')}
@@ -490,6 +498,7 @@ function AppointmentForm({
                   inputMode={form.kind === 'phone' ? 'tel' : form.kind === 'online' ? 'url' : 'text'}
                   dir={form.kind === 'in_person' ? undefined : 'auto'}
                   onChange={(e) => set('location', e.target.value)}
+                  {...pilot('appt.location', 'text')}
                 />
               </span>
             </label>
@@ -499,7 +508,7 @@ function AppointmentForm({
           <section className="cfm-card is-tight">
             <div className="cfm-group is-loose">
               <span className="cfm-label" id="apf-remind">{t('remindBefore')}</span>
-              <div className="cfm-chips" role="radiogroup" aria-labelledby="apf-remind">
+              <div className="cfm-chips" role="radiogroup" aria-labelledby="apf-remind" {...pilot('appt.remind', 'choice')}>
                 {REMIND_BEFORE.map((value) => (
                   <button
                     key={value}
@@ -507,6 +516,7 @@ function AppointmentForm({
                     role="radio"
                     aria-checked={form.remindBefore === value}
                     className="cfm-chip"
+                    {...pilotOption(String(value))}
                     onClick={() => set('remindBefore', value)}
                   >
                     {t(`remindOptions.${value}`)}
@@ -525,6 +535,7 @@ function AppointmentForm({
                 checked={form.addToCalendar}
                 label={t('addToCalendar')}
                 onCheckedChange={(next) => set('addToCalendar', next)}
+                pilot={pilot('appt.calendar')}
               />
             </div>
             {/* The prep checklist stays the owner's own (B-N4-02). */}
@@ -538,6 +549,7 @@ function AppointmentForm({
                   placeholder={t('prepPlaceholder')}
                   aria-describedby="apf-prep-hint"
                   onChange={(e) => set('prepText', e.target.value)}
+                  {...pilot('appt.prep', 'text')}
                 />
                 <span className="cfm-caption" id="apf-prep-hint">{t('prepHint')}</span>
               </label>
@@ -546,7 +558,12 @@ function AppointmentForm({
 
           {saveError && <p className="cfm-error is-center" role="alert">{saveError}</p>}
 
-          <PrimaryButton type="submit" loading={pending} disabled={delegatedEdit && !recordFor.canEdit}>
+          <PrimaryButton
+            type="submit"
+            loading={pending}
+            disabled={delegatedEdit && !recordFor.canEdit}
+            {...pilot('appt.save')}
+          >
             {pending ? t('saving') : t('save')}
           </PrimaryButton>
         </form>
@@ -575,6 +592,7 @@ function AppointmentForm({
         footer={
           <PrimaryButton
             disabled={!draftDate}
+            {...pilot('appt.date-done')}
             onClick={() => {
               if (draftDate) set('date', toApiDate(partsToDate(draftDate, locale)));
               setPicker(null);
@@ -584,7 +602,7 @@ function AppointmentForm({
           </PrimaryButton>
         }
       >
-        <CalendarPicker value={draftDate} onSelect={setDraftDate} />
+        <CalendarPicker value={draftDate} onSelect={setDraftDate} pilot={pilot('appt.date-pick', 'calendar')} />
       </AppSheet>
 
       <AppSheet
@@ -594,6 +612,7 @@ function AppointmentForm({
         title={t('time')}
         footer={
           <PrimaryButton
+            {...pilot('appt.time-done')}
             onClick={() => {
               set('time', `${HOURS[draftTime[0]]}:${MINUTES[draftTime[1]]}`);
               setPicker(null);
@@ -606,12 +625,16 @@ function AppointmentForm({
         <div className="jdw-row" dir="ltr">
           <WheelPicker
             id="apf-hour"
+            pilot={pilot('appt.hour', 'wheel')}
+            pilotValues={HOURS.map(String)}
             items={HOURS.map((h) => formatNumber(h, locale))}
             selectedIndex={draftTime[0]}
             onChange={(i) => setDraftTime(([, m]) => [i, m])}
           />
           <WheelPicker
             id="apf-minute"
+            pilot={pilot('appt.minute', 'wheel')}
+            pilotValues={MINUTES.map(String)}
             items={MINUTES.map((m) => formatNumber(m, locale))}
             selectedIndex={draftTime[1]}
             onChange={(i) => setDraftTime(([h]) => [h, i])}

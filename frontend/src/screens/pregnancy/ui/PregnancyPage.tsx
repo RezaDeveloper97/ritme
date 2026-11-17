@@ -14,6 +14,7 @@ import {
 } from '@/entities/pregnancy';
 import { isLossCareOpen, LossCareReturn, useLossState } from '@/entities/loss';
 import { Link, type Locale, useDirection } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { openSheet } from '@/shared/sheet';
 import {
   formatDayMonth,
@@ -131,7 +132,7 @@ function DueDateCard({ due, t }: { due: DueCard; t: T }) {
         <h2 id="pgn-due" className="pgn-sect-title">
           {t('common.dueDate')}
         </h2>
-        <Link href="/pregnancy/setup" className="pgn-icon-link" aria-label={t('setup.editBasis')}>
+        <Link href="/pregnancy/setup" className="pgn-icon-link" aria-label={t('setup.editBasis')} {...pilot('preg.setup-edit')}>
           <Icon name="pen" size={18} strokeWidth={1.8} />
         </Link>
       </div>
@@ -152,7 +153,10 @@ function Tile({
   badge,
   ariaLabel,
   onClick,
+  pilotId,
 }: {
+  /** Autopilot name of the tile. */
+  pilotId: string;
   /** A tile either links somewhere or (with `onClick`) opens a sheet in place. */
   href?: string;
   onClick?: () => void;
@@ -175,13 +179,13 @@ function Tile({
   );
   if (onClick || !href) {
     return (
-      <button type="button" onClick={onClick} aria-label={ariaLabel} className="pgn-tile">
+      <button type="button" onClick={onClick} aria-label={ariaLabel} className="pgn-tile" {...pilot(pilotId)}>
         {inner}
       </button>
     );
   }
   return (
-    <Link href={href} aria-label={ariaLabel} className="pgn-tile">
+    <Link href={href} aria-label={ariaLabel} className="pgn-tile" {...pilot(pilotId)}>
       {inner}
     </Link>
   );
@@ -191,10 +195,11 @@ function QuickTiles({ data, t }: { data: PregnancyToday; t: T }) {
   const locale = useLocale() as Locale;
   return (
     <nav className="pgn-tiles" aria-label={t('common.title')}>
-      <Tile href="/pregnancy/log" icon="plus" tone="bloom" label={t('today.actions.logShort')} />
-      <Tile href="/pregnancy/log?tab=weekly" icon="check" tone="data" label={t('today.actions.checkup')} />
-      <Tile href={`/pregnancy/weeks/${data.progress.week}`} icon="calendar" tone="brand" label={t('today.actions.weeks')} />
+      <Tile pilotId="preg.open:log" href="/pregnancy/log" icon="plus" tone="bloom" label={t('today.actions.logShort')} />
+      <Tile pilotId="preg.open:weekly" href="/pregnancy/log?tab=weekly" icon="check" tone="data" label={t('today.actions.checkup')} />
+      <Tile pilotId="preg.open:weeks" href={`/pregnancy/weeks/${data.progress.week}`} icon="calendar" tone="brand" label={t('today.actions.weeks')} />
       <Tile
+        pilotId="preg.open:alerts"
         onClick={() => openSheet('notifications')}
         icon="bell"
         tone="danger"
@@ -222,11 +227,11 @@ function NextVisitCard({ visit, t }: { visit: NextVisit; t: T }) {
         <h2 id="pgn-visit" className="pgn-sect-title">
           {visit.daysUntil != null ? t('today.nextVisit', { days: visit.daysUntil }) : visit.title}
         </h2>
-        <Link href="/pregnancy/calendar" className="pgn-sect-link">
+        <Link href="/pregnancy/calendar" className="pgn-sect-link" {...pilot('preg.open:calendar')}>
           {t('today.calendarLink')}
         </Link>
       </div>
-      <Link href="/pregnancy/calendar" className="pgn-row is-link">
+      <Link href="/pregnancy/calendar" className="pgn-row is-link" {...pilot('preg.open:next-visit')}>
         <IconCircle icon="calendar" tone="brand" size="sm" />
         <span className="pgn-row-text">
           <b className="pgn-row-title">{visit.title}</b>
@@ -251,7 +256,7 @@ function DeliveredCard({ t }: { t: T }) {
         </h2>
         <p className="pgn-delivered-body">{t('today.delivered.body')}</p>
       </div>
-      <Link href="/postpartum/setup" className="nb-btn is-outline is-block">
+      <Link href="/postpartum/setup" className="nb-btn is-outline is-block" {...pilot('preg.delivered')}>
         {t('today.delivered.cta')}
       </Link>
     </Card>
@@ -331,7 +336,7 @@ export function PregnancyPage() {
             <Icon name="warning" size={24} />
           </span>
           <p className="pgn-state-text">{t('common.loadError')}</p>
-          <SecondaryButton icon="refresh" block={false} onClick={() => void query.refetch()}>
+          <SecondaryButton icon="refresh" block={false} onClick={() => void query.refetch()} {...pilot('preg.retry')}>
             {t('common.retry')}
           </SecondaryButton>
         </Card>
@@ -361,7 +366,7 @@ export function PregnancyPage() {
             icon="heart"
             title={t('common.notActive')}
             action={
-              <Link href="/pregnancy/setup" className="nb-btn is-primary is-block">
+              <Link href="/pregnancy/setup" className="nb-btn is-primary is-block" {...pilot('preg.setup')}>
                 {t('today.setupCta')}
               </Link>
             }

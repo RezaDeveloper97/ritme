@@ -14,6 +14,7 @@ import {
   useCompanionHome,
 } from '@/entities/companion';
 import { useLifeStage } from '@/entities/user';
+import { pilot } from '@/shared/pilot';
 import { getApiErrorStatus } from '@/shared/api';
 import { Link, type Locale, useDirection, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, formatWeekday, fromApiDate, toApiDate, today } from '@/shared/lib/date';
@@ -166,7 +167,7 @@ function SharedRow({ icon, tone, title, sub, level, t }: { icon: IconName; tone:
 function AddForRow({ href, label }: { href: string; label: string }) {
   return (
     <li className="cmh-shared-add">
-      <Link href={href} className="cmh-add">
+      <Link href={href} className="cmh-add" {...pilot('companion.add-for')}>
         <Icon name="plus" size={16} strokeWidth={2.2} />
         {label}
       </Link>
@@ -278,6 +279,7 @@ function PartnerPanel({ partners, t, locale }: { partners: CompanionPartner[]; t
                   aria-selected={on}
                   className={clsx('cmh-switch-chip', on && 'is-on')}
                   onClick={() => setSelected(p.link.id)}
+                  {...pilot(`companion.partner:${p.link.id}`)}
                 >
                   {p.partnerName ?? t('someone')}
                 </button>
@@ -299,7 +301,7 @@ function PartnerPanel({ partners, t, locale }: { partners: CompanionPartner[]; t
         {/* CB-TEEN-03: a father's read-only teen cards (parent links never appear as partners). */}
         <LinkedTeenCards />
         {muted ? (
-          <Link href="/companion/actions" className="cmh2-muted">
+          <Link href="/companion/actions" className="cmh2-muted" {...pilot('companion.open:companion-actions')}>
             <Icon name="bellPlain" size={16} />
             {t('actions.mutedNote')}
           </Link>
@@ -346,7 +348,7 @@ function PersonalPanel({ viewer, t }: { viewer: string | null; t: T }) {
       </header>
       <div className="cmh-body">
         <LinkedTeenCards />
-        <Link href="/companion/links" className="nb-card cmh2-banner">
+        <Link href="/companion/links" className="nb-card cmh2-banner" {...pilot('companion.open:companion-links')}>
           <span className="cmh2-banner-ic" aria-hidden>
             <Icon name="users" size={22} />
           </span>

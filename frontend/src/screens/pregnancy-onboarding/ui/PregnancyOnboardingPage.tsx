@@ -17,6 +17,7 @@ import { useUpdateLifeStage, writeLifeModeHint } from '@/entities/user';
 import { DatingResultLine, datingResultKey } from '@/features/track-pregnancy';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { useMounted } from '@/shared/lib/use-mounted';
 import {
   Card,
@@ -170,8 +171,8 @@ export function PregnancyOnboardingPage() {
     );
     actions = (
       <>
-        <PrimaryButton onClick={() => setStep(2)}>{copy?.welcome.primary ?? t('turnOn')}</PrimaryButton>
-        <SecondaryButton variant="text" block onClick={() => router.replace('/profile')}>
+        <PrimaryButton onClick={() => setStep(2)} {...pilot('preg.setup-start')}>{copy?.welcome.primary ?? t('turnOn')}</PrimaryButton>
+        <SecondaryButton variant="text" block onClick={() => router.replace('/profile')} {...pilot('preg.setup-later')}>
           {copy?.welcome.secondary ?? t('notNow')}
         </SecondaryButton>
       </>
@@ -183,15 +184,15 @@ export function PregnancyOnboardingPage() {
         <DatingResultLine dating={saved} />
       </>
     );
-    actions = <PrimaryButton onClick={() => router.replace('/pregnancy')}>{t('continue')}</PrimaryButton>;
+    actions = <PrimaryButton onClick={() => router.replace('/pregnancy')} {...pilot('preg.setup-continue')}>{t('continue')}</PrimaryButton>;
   } else if (step === 4) {
     content = <ResultStep preview={preview.data} loading={preview.isLoading} failed={preview.isError} />;
     actions = (
       <>
-        <PrimaryButton loading={submitting} disabled={!preview.data} onClick={() => void finish()}>
+        <PrimaryButton loading={submitting} disabled={!preview.data} onClick={() => void finish()} {...pilot('preg.setup-finish')}>
           {submitting ? t('submitting') : (preview.data?.copy.primary ?? t('done'))}
         </PrimaryButton>
-        <SecondaryButton variant="text" block disabled={submitting} onClick={() => setStep(2)}>
+        <SecondaryButton variant="text" block disabled={submitting} onClick={() => setStep(2)} {...pilot('preg.setup-change')}>
           {preview.data?.copy.secondary ?? t('changeBasis')}
         </SecondaryButton>
       </>
@@ -205,11 +206,12 @@ export function PregnancyOnboardingPage() {
       );
     actions = (
       <>
-        <PrimaryButton onClick={next}>{t('continue')}</PrimaryButton>
+        <PrimaryButton onClick={next} {...pilot('preg.setup-next')}>{t('continue')}</PrimaryButton>
         {step === 3 && (
           <SecondaryButton
             variant="text"
             block
+            {...pilot('preg.setup-skip')}
             onClick={() => {
               setHistory(null);
               setStep(4);

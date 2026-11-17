@@ -6,6 +6,7 @@ import { useState } from 'react';
 
 import type { Locale } from '@/shared/i18n';
 import { type DateParts, formatNumber, fromApiDate, partsToDate, toApiDate, toParts } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { CalendarPicker, ChipGroup, Icon, PillChip, PrimaryButton, SecondaryButton, WheelPicker } from '@/shared/ui';
 
@@ -25,7 +26,7 @@ function Footer({ onCancel, onDone, disabled }: { onCancel: () => void; onDone: 
       <SecondaryButton block={false} onClick={onCancel}>
         {t('cancel')}
       </SecondaryButton>
-      <PrimaryButton block={false} onClick={onDone} disabled={disabled}>
+      <PrimaryButton block={false} onClick={onDone} disabled={disabled} {...pilot('ivf.picker-done')}>
         {t('done')}
       </PrimaryButton>
     </div>
@@ -60,7 +61,7 @@ export function DateSheet({
         />
       }
     >
-      <CalendarPicker value={parts} onSelect={setParts} />
+      <CalendarPicker value={parts} onSelect={setParts} pilot={pilot('ivf.date', 'calendar')} />
     </AppSheet>
   );
 }
@@ -98,6 +99,8 @@ export function TimeSheet({
           items={HOURS.map((h) => formatNumber(pad(h), locale))}
           selectedIndex={hour}
           onChange={setHour}
+          pilot={pilot('ivf.time-hour', 'wheel')}
+          pilotValues={HOURS.map(pad)}
         />
         <span className="ivfm-wheels-sep" aria-hidden>
           :
@@ -107,6 +110,8 @@ export function TimeSheet({
           items={MINUTES.map((m) => formatNumber(pad(m), locale))}
           selectedIndex={minuteIndex}
           onChange={setMinuteIndex}
+          pilot={pilot('ivf.time-minute', 'wheel')}
+          pilotValues={MINUTES.map(pad)}
         />
       </div>
     </AppSheet>
@@ -115,6 +120,7 @@ export function TimeSheet({
 
 /** «label … value» field that opens a picker (dates, times), with an optional clear button. */
 export function FieldButton({
+  pilotId,
   label,
   hint,
   value,
@@ -124,6 +130,8 @@ export function FieldButton({
   onClear,
   clearLabel,
 }: {
+  /** Autopilot id (`ivf.<pilotId>`). */
+  pilotId?: string;
   label: string;
   hint?: string;
   value: string;
@@ -135,7 +143,7 @@ export function FieldButton({
 }) {
   return (
     <div className={clsx('ivfm-pick', invalid && 'is-invalid')}>
-      <button type="button" className="ivfm-pick-btn" onClick={onClick}>
+      <button type="button" className="ivfm-pick-btn" onClick={onClick} {...(pilotId ? pilot(`ivf.${pilotId}`) : {})}>
         <span className="ivfm-pick-label">
           {label}
           {hint ? <span className="ivfm-optional"> {hint}</span> : null}
@@ -155,6 +163,7 @@ export function FieldButton({
 
 /** A labelled single-choice chip row; `allowNone` lets a second tap clear the choice. */
 export function ChoiceRow<V extends string>({
+  pilotId,
   label,
   hint,
   options,
@@ -163,6 +172,8 @@ export function ChoiceRow<V extends string>({
   onChange,
   allowNone,
 }: {
+  /** Autopilot id (`ivf.<pilotId>`). */
+  pilotId?: string;
   label: string;
   hint?: string;
   options: readonly V[];
@@ -175,12 +186,13 @@ export function ChoiceRow<V extends string>({
     <div className="ivfm-group">
       <span className="ivfm-label">{label}</span>
       {hint ? <span className="ivfm-block-hint">{hint}</span> : null}
-      <ChipGroup label={label} className="ivfm-chips">
+      <ChipGroup label={label} className="ivfm-chips" pilot={pilotId ? pilot(`ivf.${pilotId}`, 'choice') : undefined}>
         {options.map((option) => (
           <PillChip
             key={option}
             pressed={option === value}
             onPressedChange={() => onChange(option === value && allowNone ? null : option)}
+            {...pilotOption(option)}
           >
             {labelOf(option)}
           </PillChip>

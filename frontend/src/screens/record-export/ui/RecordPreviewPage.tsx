@@ -7,6 +7,7 @@ import { useHealthReport } from '@/entities/health-record';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { EmptyState, HeaderButton, PrimaryButton, ScreenHeader, SecondaryButton, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
+import { pilot } from '@/shared/pilot';
 
 import { selectionOf, useReportDraft } from '../model/selection';
 import { ReportPaper } from './ReportPaper';
@@ -88,7 +89,7 @@ export function RecordPreviewPage() {
           </p>
         ) : null}
         <div className="rx-actions">
-          <PrimaryButton loading={pdf.busy} disabled={!model} onClick={() => model && void pdf.run(model)}>
+          <PrimaryButton loading={pdf.busy} disabled={!model} onClick={() => model && void pdf.run(model)} {...pilot('recx.preview-download')}>
             {pdf.busy ? t('downloading') : t('download')}
           </PrimaryButton>
           <SecondaryButton icon="share" disabled={!ready} onClick={() => setSharing(true)}>

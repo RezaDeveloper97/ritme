@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 import { countShopClick, useShopProducts, type ShopProduct } from '@/entities/shop';
 import { useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { Card, EmptyState, Icon, PrimaryButton, ScreenHeader, SecondaryButton, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
 /**
@@ -44,7 +45,7 @@ export function ShopCategoryPage({ category }: { category: string }) {
     return (
       <li key={p.id} className="shp-prod">
         {p.link_url ? (
-          <button type="button" className="shp-prod-row" aria-expanded={open === p.id} onClick={() => setOpen(open === p.id ? null : p.id)}>
+          <button type="button" className="shp-prod-row" aria-expanded={open === p.id} {...pilot(`shop-category.product:${p.id}`)} onClick={() => setOpen(open === p.id ? null : p.id)}>
             {inner}
             <Icon name="chevronLeft" size={18} className="shp-prod-go" />
           </button>

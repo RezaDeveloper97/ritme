@@ -66,8 +66,8 @@ func NewHandlers(svc *Service, bundles *i18n.TranslationStore, langs *i18n.Regis
 	return &Handlers{svc: svc, bundles: bundles, langs: langs, clock: base}
 }
 
-// Voice is POST /logs/voice (multipart: audio file ≤ 2 MB, optional duration_ms ≤ 60000). Plus-gated by the
-// route (plus.voice_log). B-N6-05b: the use is reserved by the AI gate before the handler runs (access.Guard.Chain,
+// Voice is POST /logs/voice (multipart: audio file ≤ 2 MB, optional duration_ms ≤ 60000). Behind the AI gate
+// (running subscription + credits, docs/ai-credits.md). B-N6-05b: the use is reserved by the AI gate before the handler runs (access.Guard.Chain,
 // reserve-first) and given back when this handler fails; a silent recording (empty transcript) keeps it — the
 // provider was paid for it. Without a reservation on the context (a route mounted without the gate) the use is
 // counted here after success, as before. Returns
@@ -87,7 +87,7 @@ func (h *Handlers) Voice(c fiber.Ctx) error {
 		c.Request().RemoveMultipartFormFiles()
 	}()
 
-	audio, err := readUpload(c, raw, locale)
+	audio, _, err := readUpload(c, raw, locale, 0)
 	if err != nil {
 		return err
 	}
@@ -98,16 +98,8 @@ func (h *Handlers) Voice(c fiber.Ctx) error {
 	defer cancel()
 	now := clock.FromContext(c, h.clock).Now()
 	res, err := h.svc.Process(ctx, userID, locale, ns, audio, now)
-	switch {
-	case errors.Is(err, ai.ErrUnavailable):
-		return httpx.Fail(fiber.StatusServiceUnavailable, T("messages.ai_unavailable", locale, nil), "error_code", CodeAIUnavailable)
-	case errors.Is(err, ai.ErrUpstream), errors.Is(err, context.DeadlineExceeded):
-		return httpx.Fail(fiber.StatusServiceUnavailable, T("messages.ai_failed", locale, nil), "error_code", CodeAIFailed).
-			WithHeader("Retry-After", "10")
-	case errors.Is(err, ai.ErrBudgetExceeded), errors.Is(err, ai.ErrUserBudgetExceeded), errors.Is(err, ai.ErrInvalidRequest):
-		return access.Error(err, locale) // B-N6-05: a cost cap reached between the gate and the call
-	case err != nil:
-		return err
+	if err != nil {
+		return aiError(err, locale)
 	}
 	list := make([]*jsonx.OrderedMap, 0, len(res.Suggestions))
 	for _, s := range res.Suggestions {
@@ -118,6 +110,63 @@ func (h *Handlers) Voice(c fiber.Ctx) error {
 		"language", res.Language,
 		"mode", res.Mode,
 		"suggestions", list,
+	))
+}
+
+// aiError maps a failed AI call to its envelope (an error answer gives the reserved credits back).
+func aiError(err error, locale string) error {
+	switch {
+	case errors.Is(err, ai.ErrUnavailable):
+		return httpx.Fail(fiber.StatusServiceUnavailable, T("messages.ai_unavailable", locale, nil), "error_code", CodeAIUnavailable)
+	case errors.Is(err, ai.ErrUpstream), errors.Is(err, context.DeadlineExceeded):
+		return httpx.Fail(fiber.StatusServiceUnavailable, T("messages.ai_failed", locale, nil), "error_code", CodeAIFailed).
+			WithHeader("Retry-After", "10")
+	case errors.Is(err, ai.ErrBudgetExceeded), errors.Is(err, ai.ErrUserBudgetExceeded), errors.Is(err, ai.ErrInvalidRequest):
+		return access.Error(err, locale) // B-N6-05: a cost cap reached between the gate and the call
+	}
+	return err
+}
+
+// Pilot is POST /logs/voice/pilot (multipart: audio file ≤ 2 MB, manifest — the autopilot manifest of the log
+// sheet as JSON ≤ 48 KB, optional duration_ms). Behind the same AI gate and the same credit as Voice. The recording
+// is transcribed and a model writes a UI autopilot script from the transcript and the manifest (pilot.go). Returns
+// {transcript, language, script:{version, steps}}; never saves and never runs anything — the client plays the
+// script on the user's screen. Nothing is logged: no transcript, no value, no audio.
+func (h *Handlers) Pilot(c fiber.Ctx) error {
+	if _, ok := auth.CurrentUserID(c); !ok {
+		return &auth.UnauthenticatedError{Code: auth.CodeUnauthenticated}
+	}
+	locale := i18n.Locale(c)
+	raw := c.Request().Body()
+	defer func() {
+		clear(raw)
+		c.Request().RemoveMultipartFormFiles()
+	}()
+	audio, manifest, err := readUpload(c, raw, locale, MaxManifestBytes)
+	if err != nil {
+		return err
+	}
+	defer audio.Wipe() // already wiped by Pilot; also covers early returns
+	if len(manifest) == 0 {
+		return fail(locale, "manifest", "validation.required", nil)
+	}
+	ctx, cancel := context.WithTimeout(c.Context(), ProcessTimeout)
+	defer cancel()
+	res, err := h.svc.Pilot(ctx, locale, manifest, audio, clock.FromContext(c, h.clock).Now())
+	if errors.Is(err, ErrManifest) {
+		return fail(locale, "manifest", "validation.json", nil)
+	}
+	if err != nil {
+		return aiError(err, locale)
+	}
+	steps := make([]*jsonx.OrderedMap, 0, len(res.Steps))
+	for _, s := range res.Steps {
+		steps = append(steps, jsonx.Obj("do", "set", "target", s.Target, "value", s.Value))
+	}
+	return httpx.OK(c, jsonx.Obj(
+		"transcript", res.Transcript,
+		"language", res.Language,
+		"script", jsonx.Obj("version", 1, "steps", steps),
 	))
 }
 
@@ -202,10 +251,20 @@ func fail(locale, field, key string, params map[string]string) error {
 }
 
 // readUpload parses the multipart body by hand (streaming, no temp files) and copies the audio into one
-// fixed buffer, so the only copies of the recording are that buffer and the raw body — both zeroed.
-func readUpload(c fiber.Ctx, raw []byte, locale string) (*ai.Audio, error) {
+// fixed buffer, so the only copies of the recording are that buffer and the raw body — both zeroed. maxManifest > 0
+// also accepts a `manifest` part of at most that many bytes (returned as sent; the caller validates it).
+func readUpload(c fiber.Ctx, raw []byte, locale string, maxManifest int) (*ai.Audio, []byte, error) {
+	var manifest []byte
+	audio, err := readAudio(c, raw, locale, maxManifest, &manifest)
+	if err != nil {
+		return nil, nil, err
+	}
+	return audio, manifest, nil
+}
+
+func readAudio(c fiber.Ctx, raw []byte, locale string, maxManifest int, manifest *[]byte) (*ai.Audio, error) {
 	tooBig := fail(locale, "audio", "validation.max.file", map[string]string{"max": strconv.Itoa(MaxAudioBytes / 1024)})
-	if c.Request().Header.ContentLength() > MaxUploadBytes || len(raw) > MaxUploadBytes {
+	if limit := MaxUploadBytes + maxManifest; c.Request().Header.ContentLength() > limit || len(raw) > limit {
 		return nil, tooBig
 	}
 	missing := fail(locale, "audio", "validation.required", nil)
@@ -261,6 +320,17 @@ func readUpload(c fiber.Ctx, raw []byte, locale string) (*ai.Audio, error) {
 		case "duration_ms":
 			b, _ := io.ReadAll(io.LimitReader(part, 16))
 			duration = strings.TrimSpace(string(b))
+		case "manifest":
+			if maxManifest <= 0 {
+				drop()
+				return nil, missing
+			}
+			b, _ := io.ReadAll(io.LimitReader(part, int64(maxManifest)+1))
+			if len(b) > maxManifest {
+				drop()
+				return nil, fail(locale, "manifest", "validation.max.string", map[string]string{"max": strconv.Itoa(maxManifest)})
+			}
+			*manifest = b
 		default:
 			drop()
 			return nil, missing

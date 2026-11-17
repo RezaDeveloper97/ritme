@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useState, type ReactNode } from 'react';
 
 import { useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { EmptyState, PrimaryButton, SegmentedTabs, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 import { BottomNav, useNavMode } from '@/widgets/bottom-nav';
@@ -102,6 +103,7 @@ export function AnalysisPage({
               { value: 'history', label: tTabs('history') },
             ]}
             onChange={changeTab}
+            pilot={(v) => pilot(`analysis.tab:${v}`)}
             className="an-tabs"
           />
         ) : null}

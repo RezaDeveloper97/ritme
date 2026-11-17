@@ -29,3 +29,20 @@ hand-written check, never a direct provider call:
 
 The gates are what keep "no subscription", "out of credits" and "feature off" a managed sheet instead of a raw
 error, so a new AI feature that skips them is a bug.
+
+## UI autopilot: every control is named and catalogued
+
+The web app can be driven by a JSON script like a person would (open a page, fill a field, press, save) — the base
+for "say it and Ritme does it". Contract, config and rules: **`docs/autopilot.md`**; the list of everything a script
+may use: **`docs/autopilot-catalog.md`** (generated).
+
+- From now on every new or changed screen is written autopilot-ready: each interactive control gets a
+  `pilot('<area>.<type>[:<key>]')` name and an entry in `frontend/src/app/autopilot/` (catalog + `groups/*.ts`) in the
+  same change; a new route or sheet is added to the catalog too. How to do it correctly — ids from stable codes, ARIA
+  state on choices, `reveal` for hidden controls, options and bounds in the catalog, titles in
+  `autopilot-catalog.json` — is the "Writing it right" table in `frontend/CLAUDE.md` § *11.6 UI autopilot*.
+- Payment, delete, sign-out, auth, AI-submit and upload controls are deliberately left without a name; a button that
+  commits the user to something outside the app is named and added to `safety.confirmTargets`.
+- Speeds, visuals, interruption and safety live only in `frontend/src/shared/autopilot/config.ts`.
+- The engine calls no model. Whatever asks a model for a script is an AI feature and goes through the AI gate above.
+- Scripts are untrusted input, and no logged value may appear in a report, a log or the agent manifest.

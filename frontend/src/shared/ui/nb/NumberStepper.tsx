@@ -3,6 +3,8 @@
 import { useId, type ReactNode } from 'react';
 import { clsx } from 'clsx';
 
+import type { PilotAttrs } from '@/shared/pilot';
+
 import type { Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 
@@ -27,6 +29,8 @@ interface NumberStepperProps {
   /** Render a flat card around the row (the onboarding layout). */
   boxed?: boolean;
   className?: string;
+  /** Autopilot name of the group: `pilot('…', 'stepper')` (frontend/CLAUDE.md §11.6). */
+  pilot?: PilotAttrs;
 }
 
 /** Label + 44px round −/+ around a big Lalezar value and its unit. */
@@ -44,6 +48,7 @@ export function NumberStepper({
   locale,
   boxed,
   className,
+  pilot,
 }: NumberStepperProps) {
   const labelId = useId();
   const clamp = (n: number) => Math.min(max, Math.max(min, n));
@@ -52,6 +57,7 @@ export function NumberStepper({
       role="group"
       aria-labelledby={labelId}
       className={clsx('nb-stepper', boxed && 'nb-card pad-md', className)}
+      {...pilot}
     >
       <div className="nb-stepper-text">
         <div id={labelId} className="nb-stepper-label">

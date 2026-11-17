@@ -5,9 +5,11 @@ import { useTranslations } from 'next-intl';
 
 import type { LogCategory, LogDayValues, LogOption, LogParamValue } from '@/entities/health-log';
 import type { Locale } from '@/shared/i18n';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { ChipGroup, DropSolid, InfoNote, PillChip } from '@/shared/ui';
 
 import { asBool, asString, pickableOptions } from '../../model/draft';
+import { logPilotId } from '../../model/pilot-targets';
 import { ParamField } from '../ParamField';
 import { PanelCard } from './PanelCard';
 
@@ -79,6 +81,7 @@ export function BleedingPanel({ category, values, setParam, extraOptions, mode, 
           tone="period"
           locale={locale}
           extraOptions={extraOptions(cat, p.code)}
+          pilotId={logPilotId.panelParam(cat, p.code)}
         />
       ))}
     </section>
@@ -89,9 +92,9 @@ export function BleedingPanel({ category, values, setParam, extraOptions, mode, 
       {flow ? null : restBlock}
       {flow ? (
         <PanelCard title={t('bleeding.intensity')} icon="drop" tone="period">
-          <div className="lday-flow" role="group" aria-label={t('bleeding.intensity')}>
+          <div className="lday-flow" role="group" aria-label={t('bleeding.intensity')} {...pilot(logPilotId.panelParam(cat, 'flow'), 'choice')}>
             {spotting ? (
-              <button type="button" className="lday-flow-card" aria-pressed={spottingOn} onClick={pickSpotting}>
+              <button type="button" className="lday-flow-card" aria-pressed={spottingOn} onClick={pickSpotting} {...pilot(logPilotId.panelParam(cat, 'spotting'), 'toggle')}>
                 <span className="lday-flow-drop is-s0" aria-hidden>
                   <DropSolid size={14} color="currentColor" />
                 </span>
@@ -105,6 +108,7 @@ export function BleedingPanel({ category, values, setParam, extraOptions, mode, 
                 className="lday-flow-card"
                 aria-pressed={!spottingOn && flowCode === o.value}
                 onClick={() => pickFlow(o.value)}
+                {...pilotOption(o.value)}
               >
                 <span className={clsx('lday-flow-drop', `is-s${Math.min(i + 1, 4)}`)} aria-hidden>
                   <DropSolid size={14 + Math.min(i + 1, 4) * 4} color="currentColor" />
@@ -119,7 +123,7 @@ export function BleedingPanel({ category, values, setParam, extraOptions, mode, 
 
       {color ? (
         <PanelCard title={color.label} icon="drop" tone="period">
-          <div className="lday-swatches" role="group" aria-label={color.label}>
+          <div className="lday-swatches" role="group" aria-label={color.label} {...pilot(logPilotId.panelParam(cat, 'color'), 'choice')}>
             {pickableOptions(color, mode).map((o) => {
               const on = asString(v.color) === o.value;
               return (
@@ -129,6 +133,7 @@ export function BleedingPanel({ category, values, setParam, extraOptions, mode, 
                   className="lday-swatch"
                   aria-pressed={on}
                   onClick={() => setParam(cat, 'color', on ? null : o.value)}
+                  {...pilotOption(o.value)}
                 >
                   <span className={clsx('lday-swatch-dot', SWATCH.has(o.value) && `is-${o.value}`)} aria-hidden />
                   <span className="lday-swatch-label">{o.label}</span>
@@ -141,16 +146,16 @@ export function BleedingPanel({ category, values, setParam, extraOptions, mode, 
 
       {clots ? (
         <PanelCard title={clots.label} icon="drop" tone="period">
-          <ChipGroup label={clots.label} layout="fill">
-            <PillChip shape="square" mode="multi" tone="period" pressed={clotState === 'none'} onPressedChange={() => pickClots('none')}>
+          <ChipGroup label={clots.label} layout="fill" pilot={pilot(logPilotId.panelParam(cat, 'clots'), 'choice')}>
+            <PillChip shape="square" mode="multi" tone="period" pressed={clotState === 'none'} onPressedChange={() => pickClots('none')} {...pilotOption('none')}>
               {t('bleeding.clotsNone')}
             </PillChip>
             {clotSize ? (
               <>
-                <PillChip shape="square" mode="multi" tone="period" pressed={clotState === 'small'} onPressedChange={() => pickClots('small')}>
+                <PillChip shape="square" mode="multi" tone="period" pressed={clotState === 'small'} onPressedChange={() => pickClots('small')} {...pilotOption('small')}>
                   {t('bleeding.clotsSmall')}
                 </PillChip>
-                <PillChip shape="square" mode="multi" tone="period" pressed={clotState === 'large'} onPressedChange={() => pickClots('large')}>
+                <PillChip shape="square" mode="multi" tone="period" pressed={clotState === 'large'} onPressedChange={() => pickClots('large')} {...pilotOption('large')}>
                   {t('bleeding.clotsLarge')}
                 </PillChip>
               </>
@@ -161,11 +166,11 @@ export function BleedingPanel({ category, values, setParam, extraOptions, mode, 
 
       {odor ? (
         <PanelCard title={odor.label} icon="drop" tone="period">
-          <ChipGroup label={odor.label} layout="fill">
+          <ChipGroup label={odor.label} layout="fill" pilot={pilot(logPilotId.panelParam(cat, 'odor'), 'choice')}>
             {pickableOptions(odor, mode).map((o) => {
               const on = asString(v.odor) === o.value;
               return (
-                <PillChip key={o.value} shape="square" mode="multi" tone="period" pressed={on} onPressedChange={() => setParam(cat, 'odor', on ? null : o.value)}>
+                <PillChip key={o.value} shape="square" mode="multi" tone="period" pressed={on} onPressedChange={() => setParam(cat, 'odor', on ? null : o.value)} {...pilotOption(o.value)}>
                   {o.label}
                 </PillChip>
               );

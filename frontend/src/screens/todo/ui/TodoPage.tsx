@@ -37,6 +37,7 @@ import {
   SkeletonGroup,
   SkyLayer,
 } from '@/shared/ui';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { BottomNav } from '@/widgets/bottom-nav';
 
 const FILTERS: readonly TodoFilter[] = ['all', ...TODO_CATEGORIES];
@@ -116,7 +117,7 @@ export function TodoPage() {
             title={t(fresh ? 'empty.freshTitle' : 'empty.allDoneTitle')}
             body={fresh ? t('empty.freshBody') : undefined}
             action={
-              <PrimaryButton icon="plus" onClick={() => openAdd(filter === 'all' ? undefined : filter)}>
+              <PrimaryButton icon="plus" onClick={() => openAdd(filter === 'all' ? undefined : filter)} {...pilot('todo.new')}>
                 {t('newTask')}
               </PrimaryButton>
             }
@@ -124,13 +125,19 @@ export function TodoPage() {
         ) : (
           <>
             {groups.map((g) => (g.tasks.length ? <GroupSection key={g.key} group={g} onToggle={onToggle} onEdit={onEdit} /> : null))}
-            <PrimaryButton icon="plus" className="td-cta" onClick={() => openAdd(filter === 'all' ? undefined : filter)}>
+            <PrimaryButton icon="plus" className="td-cta" onClick={() => openAdd(filter === 'all' ? undefined : filter)} {...pilot('todo.new')}>
               {t('newTask')}
             </PrimaryButton>
           </>
         )}
         {done.length ? (
-          <Accordion title={t('doneSection', { count: done.length })} icon="checkCircle" tone="success" className="td-done-acc">
+          <Accordion
+            title={t('doneSection', { count: done.length })}
+            icon="checkCircle"
+            tone="success"
+            className="td-done-acc"
+            pilot={pilot('todo.done-section')}
+          >
             <ul className="td-rows">
               {done.map((task) => (
                 <TaskRow
@@ -154,12 +161,13 @@ export function TodoPage() {
       <SkyLayer />
       <div className="scroll td-scroll">
         <HubHeader date={formatWeekdayDayMonth(today(), locale)} greeting={t('title')} actions={ring} className="td-hub" />
-        <div className="td-chips" role="group" aria-label={t('filters.label')}>
+        <div className="td-chips" role="group" aria-label={t('filters.label')} {...pilot('todo.filter', 'choice')}>
           {FILTERS.map((f) => (
             <button
               key={f}
               type="button"
               aria-pressed={filter === f}
+              {...pilotOption(f)}
               className={clsx('td-chip', `nb-tone-${f === 'all' ? 'brand' : CATEGORY_LOOK[f].tone}`)}
               onClick={() => setFilter(f)}
             >
@@ -215,6 +223,7 @@ function SuggestionCard({ suggestion }: { suggestion: TodoSuggestion }) {
         type="button"
         className="td-suggest-add"
         onClick={() => accept.mutate(suggestion.key)}
+        {...pilot('todo.suggest-add')}
         disabled={accept.isPending}
         aria-busy={accept.isPending || undefined}
       >
@@ -225,6 +234,7 @@ function SuggestionCard({ suggestion }: { suggestion: TodoSuggestion }) {
         className="td-suggest-x"
         aria-label={t('suggestion.dismiss')}
         onClick={() => dismiss.mutate(suggestion.key)}
+        {...pilot('todo.suggest-dismiss')}
         disabled={dismiss.isPending}
       >
         <Icon name="x" size={16} />

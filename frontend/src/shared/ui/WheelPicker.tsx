@@ -2,12 +2,18 @@
 
 import { useEffect, useRef } from 'react';
 
+import type { PilotAttrs } from '@/shared/pilot';
+
 interface WheelPickerProps {
   id: string;
   items: string[];
   selectedIndex: number;
   width?: number;
   onChange: (index: number) => void;
+  /** Autopilot name: `pilot('…', 'wheel')` (frontend/CLAUDE.md §11.6). */
+  pilot?: PilotAttrs;
+  /** The value code of each item for scripts (a year, a minute); the item's index when omitted. */
+  pilotValues?: readonly string[];
 }
 
 const ITEM_H = 44;
@@ -15,7 +21,7 @@ const ITEM_H = 44;
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 /** Vertical scroll-snap wheel picker (birthday, period length). */
-export function WheelPicker({ id, items, selectedIndex, width = 80, onChange }: WheelPickerProps) {
+export function WheelPicker({ id, items, selectedIndex, width = 80, onChange, pilot, pilotValues }: WheelPickerProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   // The scroll listener is bound once, so everything it reads goes through refs
@@ -73,10 +79,10 @@ export function WheelPicker({ id, items, selectedIndex, width = 80, onChange }: 
   }, []);
 
   return (
-    <div id={id} ref={ref} className="wheel" style={{ width }}>
+    <div id={id} ref={ref} className="wheel" style={{ width }} {...pilot}>
       <div className="wpad" />
       {items.map((item, i) => (
-        <div key={i} className={`wi${i === selectedIndex ? ' on' : ''}`}>
+        <div key={i} className={`wi${i === selectedIndex ? ' on' : ''}`} data-pilot-option={pilotValues?.[i] ?? String(i)}>
           {item}
         </div>
       ))}

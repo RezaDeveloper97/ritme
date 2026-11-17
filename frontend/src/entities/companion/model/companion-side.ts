@@ -23,7 +23,8 @@ export interface ViewerLink {
 }
 
 export interface CompanionLinkSettings {
-  goal: CompanionGoal;
+  /** The owner's goals in her order; empty = not decided. */
+  goals: CompanionGoal[];
   actionPrefs: CompanionAction[];
 }
 

@@ -24,6 +24,7 @@ import {
   useDeleteReminder,
   useUpdateReminder,
 } from '@/features/manage-reminders';
+import { pilot } from '@/shared/pilot';
 import { formatLongDate } from '@/shared/lib/date';
 import type { Locale } from '@/shared/i18n';
 import { Icon, type IconName } from '@/shared/ui';
@@ -57,7 +58,9 @@ function Toggle({
   disabled,
   label,
   onToggle,
+  pilotId,
 }: {
+  pilotId: string;
   on: boolean;
   disabled?: boolean;
   label: string;
@@ -71,6 +74,7 @@ function Toggle({
       aria-label={label}
       onClick={onToggle}
       disabled={disabled}
+      {...pilot(pilotId)}
       style={{
         position: 'relative',
         width: 44,
@@ -192,6 +196,7 @@ function ReminderRow({
           disabled={togglePending || deletePending || cancelled}
           label={cancelled ? t('row.cancelledToggle') : t('row.toggle')}
           onToggle={onToggleActive}
+          pilotId={`reminders.toggle:${reminder.id}`}
         />
 
         <button
@@ -318,6 +323,7 @@ function AddReminderForm({ onDone }: { onDone: () => void }) {
       <label className="lbl">{t('form.typeLabel')}</label>
       <div className="field rem-form-field">
         <select
+          {...pilot('reminders.type', 'select')}
           value={type}
           onChange={(e) => setType(e.target.value as ReminderType)}
           style={selectStyle}
@@ -333,6 +339,7 @@ function AddReminderForm({ onDone }: { onDone: () => void }) {
       <label className="lbl">{t('form.titleLabel')}</label>
       <div className="field rem-form-field">
         <input
+          {...pilot('reminders.title', 'text')}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder={t('form.titlePlaceholder')}
@@ -343,6 +350,7 @@ function AddReminderForm({ onDone }: { onDone: () => void }) {
       <label className="lbl">{t('form.subtitleLabel')}</label>
       <div className="field rem-form-field">
         <input
+          {...pilot('reminders.subtitle', 'text')}
           value={subtitle}
           onChange={(e) => setSubtitle(e.target.value)}
           placeholder={t('form.subtitlePlaceholder')}
@@ -353,6 +361,7 @@ function AddReminderForm({ onDone }: { onDone: () => void }) {
       <label className="lbl">{t('form.recurrenceLabel')}</label>
       <div className="field rem-form-field">
         <select
+          {...pilot('reminders.recurrence', 'select')}
           value={recurrence}
           onChange={(e) => setRecurrence(e.target.value as ReminderRecurrence)}
           style={selectStyle}
@@ -369,7 +378,7 @@ function AddReminderForm({ onDone }: { onDone: () => void }) {
         <>
           <label className="lbl">{t('form.timeLabel')}</label>
           <div className="field rem-form-field">
-            <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+            <input type="time" {...pilot('reminders.time', 'text')} value={time} onChange={(e) => setTime(e.target.value)} />
           </div>
         </>
       ) : null}
@@ -385,6 +394,7 @@ function AddReminderForm({ onDone }: { onDone: () => void }) {
           type="submit"
           className="btn btn-primary rem-form-submit"
           disabled={!canSubmit}
+          {...pilot('reminders.submit')}
         >
           {create.isPending ? t('form.submitting') : t('form.submit')}
         </button>
@@ -436,6 +446,7 @@ export function RemindersSheet() {
           type="button"
           className="btn btn-soft rem-add"
           onClick={() => setShowForm((v) => !v)}
+          {...pilot('reminders.add')}
         >
           <Icon name={showForm ? 'x' : 'plus'} size={18} />
           {showForm ? t('form.cancel') : t('add')}
@@ -488,6 +499,7 @@ export function RemindersSheet() {
               type="button"
               className="btn btn-primary rem-empty-cta"
               onClick={() => setShowForm(true)}
+              {...pilot('reminders.add-first')}
             >
               {t('add')}
             </button>

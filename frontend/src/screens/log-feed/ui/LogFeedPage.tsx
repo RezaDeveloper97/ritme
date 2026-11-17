@@ -8,6 +8,7 @@ import { DiaperCard, FeedFinishBar, FeedPanel, SleepCard, feedingHref, sectionOf
 import { getApiErrorStatus } from '@/shared/api';
 import { useRouter } from '@/shared/i18n';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   ChipGroup,
   EmptyState,
@@ -186,11 +187,12 @@ function FeedScreen({ id, section }: { id: number; section: string | null }) {
       {header}
       <div className="bfl-body">
         {others.length > 1 ? (
-          <ChipGroup label={t('picker')} className="bfl-picker">
+          <ChipGroup label={t('picker')} className="bfl-picker" pilot={pilot('baby.feed-child', 'choice')}>
             {others.map((c) => (
               <PillChip
                 key={c.id}
                 pressed={c.id === id}
+                {...pilotOption(String(c.id))}
                 onPressedChange={() => {
                   if (c.id !== id) router.replace(feedingHref(c.id));
                 }}

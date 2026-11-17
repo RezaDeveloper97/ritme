@@ -20,6 +20,7 @@ import {
 import { ApiError, type ApiEnvelope, getApiErrorStatus, getApiSaveErrorMessage } from '@/shared/api';
 import type { Locale } from '@/shared/i18n';
 import { type DateParts, formatLongDate, fromApiDate, partsToDate, toApiDate, toParts } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import {
   CalendarPicker,
@@ -138,6 +139,7 @@ export function ItemSheet({
           value={value}
           aria-invalid={e ? true : undefined}
           aria-describedby={e ? `${id}-err` : undefined}
+          {...pilot(`menopause.treat-${key}`, 'text')}
           onChange={(ev) => set(key === 'name' ? { name: ev.target.value } : { dose: ev.target.value })}
         />
         {e ? (
@@ -154,7 +156,7 @@ export function ItemSheet({
     const e = err(key === 'startedOn' ? 'started_on' : 'review_on');
     return (
       <div className={clsx('mtr-pick', e && 'is-invalid')}>
-        <button type="button" className="mtr-pick-btn" onClick={() => setPicking(key)}>
+        <button type="button" className="mtr-pick-btn" onClick={() => setPicking(key)} {...pilot(`menopause.treat-${key === 'startedOn' ? 'started' : 'review'}`)}>
           <span className="mtr-pick-label">{label}</span>
           <span className={clsx('mtr-pick-value', !value && 'is-empty')}>
             {value ? formatLongDate(fromApiDate(value), locale) : t('notSet')}
@@ -186,7 +188,7 @@ export function ItemSheet({
             <SecondaryButton block={false} onClick={onClose} disabled={busy}>
               {t('cancel')}
             </SecondaryButton>
-            <PrimaryButton block={false} loading={save.isPending} disabled={remove.isPending} onClick={() => submit()}>
+            <PrimaryButton block={false} loading={save.isPending} disabled={remove.isPending} onClick={() => submit()} {...pilot('menopause.treat-save')}>
               {t('save')}
             </PrimaryButton>
           </div>
@@ -201,9 +203,9 @@ export function ItemSheet({
                 <span className="mtr-field-label" id={`${ids}-schedule`}>
                   {t('schedule')}
                 </span>
-                <ChipGroup label={t('schedule')}>
+                <ChipGroup label={t('schedule')} pilot={pilot('menopause.treat-schedule', 'choice')}>
                   {TREATMENT_SCHEDULES.map((s) => (
-                    <PillChip key={s} mode="single" pressed={input.schedule === s} onPressedChange={() => set({ schedule: s })}>
+                    <PillChip key={s} mode="single" pressed={input.schedule === s} onPressedChange={() => set({ schedule: s })} {...pilotOption(s)}>
                       {tRoot(`schedule.${s}`)}
                     </PillChip>
                   ))}
@@ -221,19 +223,20 @@ export function ItemSheet({
                   </span>
                   <span className="mtr-hint">{t('remindHint')}</span>
                 </span>
-                <Switch checked={input.remind} onCheckedChange={(remind) => set({ remind })} labelledBy={`${ids}-remind`} />
+                <Switch checked={input.remind} onCheckedChange={(remind) => set({ remind })} labelledBy={`${ids}-remind`} pilot={pilot('menopause.treat-remind')} />
               </div>
             </>
           ) : (
             <>
               <div className="mtr-field">
                 <span className="mtr-field-label">{t('unit')}</span>
-                <ChipGroup label={t('unit')}>
+                <ChipGroup label={t('unit')} pilot={pilot('menopause.treat-unit', 'choice')}>
                   {TREATMENT_GOAL_UNITS.map((u) => (
                     <PillChip
                       key={u}
                       mode="single"
                       pressed={input.goalUnit === u}
+                      {...pilotOption(u)}
                       onPressedChange={() => {
                         const b = goalBounds(u);
                         set({ goalUnit: u, weeklyGoal: Math.min(b.max, Math.max(b.min, u === 'minutes' ? 150 : 2)) });
@@ -256,6 +259,7 @@ export function ItemSheet({
                 incrementLabel={t('increase')}
                 locale={locale}
                 onChange={(weeklyGoal) => set({ weeklyGoal })}
+                pilot={pilot('menopause.treat-goal', 'stepper')}
               />
               {err('weekly_goal') ? (
                 <p className="mtr-error" role="alert">
@@ -283,11 +287,11 @@ export function ItemSheet({
             <div className="mtr-manage">
               {isMedicine ? <InfoNote className="mtr-note">{tRoot('doctorOnly')}</InfoNote> : null}
               {stopped ? (
-                <SecondaryButton icon="refresh" disabled={busy} onClick={() => submit({ stoppedOn: null })}>
+                <SecondaryButton icon="refresh" disabled={busy} onClick={() => submit({ stoppedOn: null })} {...pilot('menopause.treat-resume')}>
                   {t('resume')}
                 </SecondaryButton>
               ) : (
-                <SecondaryButton icon="x" disabled={busy || !today} onClick={() => today && submit({ stoppedOn: today })}>
+                <SecondaryButton icon="x" disabled={busy || !today} onClick={() => today && submit({ stoppedOn: today })} {...pilot('menopause.treat-stop')}>
                   {t(isMedicine ? 'stop' : 'stopGoal')}
                 </SecondaryButton>
               )}
@@ -378,13 +382,13 @@ function DateSheet({
           <SecondaryButton block={false} onClick={onClose}>
             {t('cancel')}
           </SecondaryButton>
-          <PrimaryButton block={false} disabled={!parts} onClick={() => parts && onPick(toApiDate(partsToDate(parts, locale)))}>
+          <PrimaryButton block={false} disabled={!parts} onClick={() => parts && onPick(toApiDate(partsToDate(parts, locale)))} {...pilot('menopause.treat-date-done')}>
             {t('done')}
           </PrimaryButton>
         </div>
       }
     >
-      <CalendarPicker value={parts} onSelect={setParts} />
+      <CalendarPicker value={parts} onSelect={setParts} pilot={pilot('menopause.treat-date', 'calendar')} />
     </AppSheet>
   );
 }
@@ -424,6 +428,7 @@ export function MinutesSheet({ item, today, onClose }: { item: TreatmentItem; to
             block={false}
             loading={intake.isPending}
             onClick={() => intake.mutate({ id: item.id, date: today, taken: true, amount: minutes }, { onSuccess: onClose })}
+            {...pilot('menopause.treat-minutes-save')}
           >
             {t('save')}
           </PrimaryButton>
@@ -442,6 +447,7 @@ export function MinutesSheet({ item, today, onClose }: { item: TreatmentItem; to
         incrementLabel={t('increase')}
         locale={locale}
         onChange={setMinutes}
+        pilot={pilot('menopause.treat-minutes', 'stepper')}
       />
       {intake.isError ? (
         <p className="mtr-error" role="alert">

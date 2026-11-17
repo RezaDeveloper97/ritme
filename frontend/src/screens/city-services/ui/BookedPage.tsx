@@ -8,6 +8,7 @@ import { ReviewCityBookingForm } from '@/features/review-city-booking';
 import { getApiErrorMessage } from '@/shared/api';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, formatWeekday, fromApiDate } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { Icon, InfoNote, PrimaryButton, ScreenHeader, SecondaryButton, SkyLayer, StatusPill } from '@/shared/ui';
 
 import { bookingWhen } from '../model/book';
@@ -167,7 +168,7 @@ export function BookedPage({ id }: { id: number }) {
           reviewing ? (
             <ReviewCityBookingForm bookingId={b.id} onDone={() => setReviewing(false)} onCancel={() => setReviewing(false)} />
           ) : (
-            <SecondaryButton block={false} variant="text" onClick={() => setReviewing(true)}>
+            <SecondaryButton block={false} variant="text" onClick={() => setReviewing(true)} {...pilot('city-booked.review')}>
               {t('bookings.review')}
             </SecondaryButton>
           )

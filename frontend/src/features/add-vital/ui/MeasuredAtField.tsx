@@ -7,6 +7,7 @@ import type { Locale } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, fromApiDate, partsToDate, toApiDate, toParts, type DateParts } from '@/shared/lib/date';
 import { AppSheet } from '@/shared/sheet';
 import { CalendarPicker, Icon, PrimaryButton, SecondaryButton } from '@/shared/ui';
+import { pilot } from '@/shared/pilot';
 
 import { tehranNow, validateMeasuredAt } from '../model/validate';
 
@@ -35,7 +36,7 @@ export function MeasuredAtField({
   const clock = formatNumber(at.time.replace(/^0(\d)/, '$1'), locale);
   return (
     <>
-      <button type="button" className="nb-card vt-time" onClick={() => setOpen(true)} aria-label={`${t('add.changeTime')}: ${dayLabel} ${clock}`}>
+      <button type="button" className="nb-card vt-time" onClick={() => setOpen(true)} {...pilot('vtadd.time')} aria-label={`${t('add.changeTime')}: ${dayLabel} ${clock}`}>
         <span className="vt-time-label">{t('add.time')}</span>
         <b className="vt-time-value">
           {dayLabel}
@@ -78,8 +79,12 @@ function TimeSheet({
       title={t('add.timeSheet.title')}
       footer={
         <div className="vt-sheet-foot">
-          <SecondaryButton onClick={() => onPick(null)}>{t('add.timeSheet.now')}</SecondaryButton>
-          <PrimaryButton disabled={!!err || !/^\d{2}:\d{2}$/.test(time)} onClick={() => onPick({ date, time })}>
+          <SecondaryButton onClick={() => onPick(null)} {...pilot('vtadd.time-now')}>{t('add.timeSheet.now')}</SecondaryButton>
+          <PrimaryButton
+            disabled={!!err || !/^\d{2}:\d{2}$/.test(time)}
+            onClick={() => onPick({ date, time })}
+            {...pilot('vtadd.time-done')}
+          >
             {t('add.timeSheet.done')}
           </PrimaryButton>
         </div>
@@ -87,10 +92,15 @@ function TimeSheet({
     >
       <div className="vt-sheet">
         <p className="vt-field-title">{t('add.timeSheet.date')}</p>
-        <CalendarPicker value={parts} onSelect={setParts} />
+        <CalendarPicker value={parts} onSelect={setParts} pilot={pilot('vtadd.date', 'calendar')} />
         <label className="fld-label">
           <span className="fld-label-t">{t('add.timeSheet.clock')}</span>
-          <input className="field fld-input vt-clock" type="time" dir="ltr" value={time} onChange={(e) => setTime(e.target.value)} />
+          <input className="field fld-input vt-clock" type="time"
+            dir="ltr"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            {...pilot('vtadd.clock', 'text')}
+          />
         </label>
         {errText ? (
           <p className="vt-error" role="alert">

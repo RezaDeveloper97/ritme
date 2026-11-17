@@ -7,6 +7,7 @@ import type { Locale } from '@/shared/i18n';
 import { type DateParts, fromApiDate, partsToDate, toApiDate, toParts } from '@/shared/lib/date';
 import { AppSheet } from '@/shared/sheet';
 import { CalendarPicker, PrimaryButton, SecondaryButton } from '@/shared/ui';
+import { pilot } from '@/shared/pilot';
 
 /** The sheet date in the locale's calendar (Jalali in fa) → `Y-m-d`. Mounted only while open. */
 export function DateSheet({
@@ -34,13 +35,18 @@ export function DateSheet({
           <SecondaryButton block={false} onClick={onClose}>
             {t('cancel')}
           </SecondaryButton>
-          <PrimaryButton block={false} disabled={!parts} onClick={() => parts && onPick(toApiDate(partsToDate(parts, locale)))}>
+          <PrimaryButton
+            block={false}
+            disabled={!parts}
+            onClick={() => parts && onPick(toApiDate(partsToDate(parts, locale)))}
+            {...pilot('labu.date-done')}
+          >
             {t('pick')}
           </PrimaryButton>
         </div>
       }
     >
-      <CalendarPicker value={parts} onSelect={setParts} />
+      <CalendarPicker value={parts} onSelect={setParts} pilot={pilot('labu.calendar', 'calendar')} />
     </AppSheet>
   );
 }

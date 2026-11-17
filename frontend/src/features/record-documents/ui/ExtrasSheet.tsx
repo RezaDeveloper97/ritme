@@ -18,6 +18,7 @@ import type { Locale } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate } from '@/shared/lib/date';
 import { AppSheet } from '@/shared/sheet';
 import { ChipGroup, Icon, PillChip, PrimaryButton, SecondaryButton } from '@/shared/ui';
+import { pilot, pilotOption } from '@/shared/pilot';
 
 export type ExtrasSection = 'surgeries' | 'family_history';
 
@@ -64,7 +65,7 @@ export function ExtrasSheet({
           <SecondaryButton block={false} onClick={onClose}>
             {t('cancel')}
           </SecondaryButton>
-          <PrimaryButton block={false} loading={save.isPending} onClick={submit}>
+          <PrimaryButton block={false} loading={save.isPending} onClick={submit} {...pilot('rec.extras-save')}>
             {t('save')}
           </PrimaryButton>
         </div>
@@ -118,12 +119,13 @@ function SurgeriesEditor({ items, onChange }: { items: Surgery[]; onChange: (nex
             placeholder={t('surgeryPlaceholder')}
             disabled={full}
             onChange={(e) => setTitle(e.target.value)}
+            {...pilot('rec.surgery-input', 'text')}
           />
-          <button type="submit" className="hrec-add-btn" aria-label={t('add')} disabled={full || !title.trim()}>
+          <button type="submit" className="hrec-add-btn" aria-label={t('add')} disabled={full || !title.trim()} {...pilot('rec.surgery-add')}>
             <Icon name="plus" size={20} />
           </button>
         </div>
-        <RecordDateField label={t('pickDate')} value={date} unsetLabel={t('noDate')} clearLabel={t('noDate')} disabled={full} onChange={setDate} />
+        <RecordDateField label={t('pickDate')} value={date} unsetLabel={t('noDate')} clearLabel={t('noDate')} disabled={full} onChange={setDate} pilotId="rec.surgery-date" />
         {full ? <p className="hrec-hint">{t('max', { max: formatNumber(MAX_EXTRAS_ENTRIES, locale) })}</p> : null}
       </form>
     </>
@@ -165,15 +167,16 @@ function FamilyEditor({ items, onChange }: { items: FamilyHistoryEntry[]; onChan
             placeholder={t('conditionPlaceholder')}
             disabled={full}
             onChange={(e) => setCondition(e.target.value)}
+            {...pilot('rec.family-input', 'text')}
           />
-          <button type="submit" className="hrec-add-btn" aria-label={t('add')} disabled={full || !condition.trim()}>
+          <button type="submit" className="hrec-add-btn" aria-label={t('add')} disabled={full || !condition.trim()} {...pilot('rec.family-add')}>
             <Icon name="plus" size={20} />
           </button>
         </div>
         <span className="hrec-label">{t('relative')}</span>
-        <ChipGroup label={t('relative')}>
+        <ChipGroup label={t('relative')} pilot={pilot('rec.relative', 'choice')}>
           {RELATIVES.map((r) => (
-            <PillChip key={r} pressed={relative === r} onPressedChange={(on) => setRelative(on ? r : null)} disabled={full}>
+            <PillChip key={r} {...pilotOption(r)} pressed={relative === r} onPressedChange={(on) => setRelative(on ? r : null)} disabled={full}>
               {t(`relatives.${r}`)}
             </PillChip>
           ))}

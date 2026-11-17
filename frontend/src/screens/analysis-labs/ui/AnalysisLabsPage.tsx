@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { DEFAULT_RANGE, trendByMarker, useAnalysisSummary, useLabTrendList } from '@/entities/analysis';
 import { formatLabValue, MarkerStatePill, stateTone, trimNumber, useLabTrends } from '@/entities/lab';
 import { type Locale, useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { formatDecimal, formatNumber } from '@/shared/lib/date';
 import {
   EmptyState,
@@ -133,7 +134,7 @@ export function AnalysisLabsPage() {
                   })}
                 </ul>
               </section>
-              <PrimaryButton icon="flask" onClick={() => router.push('/labs')}>
+              <PrimaryButton icon="flask" onClick={() => router.push('/labs')} {...pilot('analysis.labs-open')}>
                 {tl('allLabs')}
               </PrimaryButton>
               {plusNote}
@@ -146,7 +147,7 @@ export function AnalysisLabsPage() {
                 body={tl('emptyBody')}
                 action={
                   <div className="alb-action">
-                    <button type="button" className="alb-cta is-live" onClick={() => router.push('/labs')} aria-describedby={locked ? 'alb-cta-note' : undefined}>
+                    <button type="button" className="alb-cta is-live" onClick={() => router.push('/labs')} {...pilot('analysis.labs-open')} aria-describedby={locked ? 'alb-cta-note' : undefined}>
                       <Icon name="flaskLh" size={18} strokeWidth={2} />
                       <span className="alb-cta-label">{tl('cta')}</span>
                     </button>

@@ -19,6 +19,7 @@ import {
 } from '@/entities/insurance';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   ChipGroup,
   EmptyState,
@@ -60,9 +61,9 @@ function StartCard() {
         {t('start.title')}
       </h2>
       <p className="ins-body">{t('start.body')}</p>
-      <ChipGroup label={t('start.purposeLabel')}>
+      <ChipGroup label={t('start.purposeLabel')} pilot={pilot('ins-quest.purpose', 'choice')}>
         {(['issue', 'renewal'] as const).map((p) => (
-          <PillChip key={p} pressed={purpose === p} onPressedChange={() => setPurpose(p)}>
+          <PillChip key={p} pressed={purpose === p} onPressedChange={() => setPurpose(p)} {...pilotOption(p)}>
             {t(`start.purpose.${p}`)}
           </PillChip>
         ))}
@@ -72,7 +73,7 @@ function StartCard() {
           {t('saveError')}
         </p>
       ) : null}
-      <PrimaryButton icon="fileDoc" loading={start.isPending} onClick={() => start.mutate({ purpose })}>
+      <PrimaryButton icon="fileDoc" loading={start.isPending} onClick={() => start.mutate({ purpose })} {...pilot('ins-quest.begin')}>
         {start.isPending ? t('start.starting') : t('start.begin')}
       </PrimaryButton>
     </section>
@@ -95,9 +96,9 @@ function AnswerRow({
         {label}
       </p>
       <div className="insq-answer">
-        <ChipGroup label={label} layout="fill">
+        <ChipGroup label={label} layout="fill" pilot={pilot(`ins-quest.answer:${question.code}`, 'choice')}>
           {(['yes', 'no'] as const).map((v) => (
-            <PillChip key={v} pressed={question.answer === v} onPressedChange={() => onAnswer(v)}>
+            <PillChip key={v} pressed={question.answer === v} onPressedChange={() => onAnswer(v)} {...pilotOption(v)}>
               {t(v)}
             </PillChip>
           ))}
@@ -169,6 +170,7 @@ function ExplanationCard({
         placeholder={t('placeholder')}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        {...pilot('ins-quest.explanation', 'text')}
       />
       <p className="ins-hint">{t('hint')}</p>
     </section>
@@ -187,7 +189,7 @@ function ReviewList({ q, answers, explanation, onEdit }: { q: InsuranceQuestionn
               <h2 id={`insq-rv-${section}`} className="ins-h">
                 {t(`sections.${sectionCode(section)}`)}
               </h2>
-              <button type="button" className="ins-more insq-edit" onClick={() => onEdit(section)}>
+              <button type="button" className="ins-more insq-edit" onClick={() => onEdit(section)} {...pilot(`ins-quest.edit-section:${section}`)}>
                 {t('review.edit')}
               </button>
             </div>
@@ -334,17 +336,17 @@ function Editor({ q, onLeave, onConfirmed }: { q: InsuranceQuestionnaire; onLeav
 
       <div className="insq-nav">
         {isReview ? (
-          <PrimaryButton icon="check" loading={confirm.isPending || update.isPending} disabled={unanswered > 0} onClick={() => void doConfirm()}>
+          <PrimaryButton icon="check" loading={confirm.isPending || update.isPending} disabled={unanswered > 0} onClick={() => void doConfirm()} {...pilot('ins-quest.confirm')}>
             {confirm.isPending ? t('confirming') : t('confirm')}
           </PrimaryButton>
         ) : (
-          <PrimaryButton loading={update.isPending} onClick={() => void go(step + 1)}>
+          <PrimaryButton loading={update.isPending} onClick={() => void go(step + 1)} {...pilot('ins-quest.next')}>
             {t('next')}
           </PrimaryButton>
         )}
         {isReview && unanswered > 0 ? <p className="ins-hint">{t('incomplete', { count: unanswered })}</p> : null}
         {step > 0 ? (
-          <SecondaryButton variant="text" onClick={() => void go(step - 1)}>
+          <SecondaryButton variant="text" onClick={() => void go(step - 1)} {...pilot('ins-quest.prev')}>
             {t('prev')}
           </SecondaryButton>
         ) : null}
@@ -375,10 +377,10 @@ function Confirmed({ q, onEdit }: { q: InsuranceQuestionnaire; onEdit: () => voi
           {t('pdf.error')}
         </p>
       ) : null}
-      <SecondaryButton icon="history" onClick={() => router.push('/insurance/status')}>
+      <SecondaryButton icon="history" onClick={() => router.push('/insurance/status')} {...pilot('ins-quest.status')}>
         {t('done.status')}
       </SecondaryButton>
-      <SecondaryButton variant="text" icon="pencil" onClick={onEdit}>
+      <SecondaryButton variant="text" icon="pencil" onClick={onEdit} {...pilot('ins-quest.edit')}>
         {t('done.edit')}
       </SecondaryButton>
     </section>

@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { REPORT_DEFAULT_RANGE, REPORT_RANGES, useSymptomsReport } from '@/entities/analysis';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { formatDayMonth, formatDecimal, formatNumber, fromApiDate } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
@@ -56,7 +57,7 @@ export function AnalysisSymptomsPage() {
           title={t('empty.title')}
           body={t('empty.body')}
           action={
-            <PrimaryButton icon="plus" block={false} onClick={() => openSheet('log')}>
+            <PrimaryButton icon="plus" block={false} onClick={() => openSheet('log')} {...pilot('analysis.log')}>
               {t('empty.cta')}
             </PrimaryButton>
           }
@@ -92,7 +93,7 @@ export function AnalysisSymptomsPage() {
           </ChartCard>
 
           {r.trend.ready && keys.length > 1 ? (
-            <div className="anr-chips" role="group" aria-label={t('symptoms.pick')}>
+            <div className="anr-chips" role="group" aria-label={t('symptoms.pick')} {...pilot('analysis.symptom-pick', 'choice')}>
               {keys.map((k) => (
                 <PillChip
                   key={k}
@@ -101,6 +102,7 @@ export function AnalysisSymptomsPage() {
                   pressed={active.includes(k)}
                   onPressedChange={() => setChosen(toggleKey(keys, active, k))}
                   className="anr-chip"
+                  {...pilotOption(k)}
                 >
                   {labels[k] ?? k}
                 </PillChip>

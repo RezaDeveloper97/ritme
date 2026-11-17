@@ -40,10 +40,11 @@
     "levelLabel": "Access to {section}"
   },
   "goalLabel": "Companionship goal",
+  "goalsHint": "You can pick more than one.",
   "goals": {
     "cycle": {
       "title": "Understand my cycle",
-      "desc": "Just know which phase I'm in and what it means."
+      "desc": "Know which phase I'm in and what it means."
     },
     "support": {
       "title": "Emotional support",

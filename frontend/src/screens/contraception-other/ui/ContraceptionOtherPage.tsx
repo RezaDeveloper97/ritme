@@ -19,6 +19,7 @@ import {
   useSaveContraceptionMethod,
 } from '@/entities/contraception';
 import { useUpdateReminder } from '@/features/manage-reminders';
+import { pilot } from '@/shared/pilot';
 import { getApiSaveErrorMessage } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import {
@@ -98,7 +99,7 @@ export function ContraceptionOtherPage() {
         icon="shield"
         title={t('empty.title')}
         body={t('empty.body')}
-        action={<PrimaryButton onClick={() => router.push('/contraception/setup')}>{t('empty.cta')}</PrimaryButton>}
+        action={<PrimaryButton onClick={() => router.push('/contraception/setup')} {...pilot('contraception.setup-open')}>{t('empty.cta')}</PrimaryButton>}
       />
     );
   } else if (!hasMethodReminders(method.method)) {
@@ -108,7 +109,7 @@ export function ContraceptionOtherPage() {
         title={t('other.noReminders.title')}
         body={t('other.noReminders.body')}
         action={
-          <PrimaryButton onClick={() => router.push('/contraception/setup')}>{t('other.noReminders.cta')}</PrimaryButton>
+          <PrimaryButton onClick={() => router.push('/contraception/setup')} {...pilot('contraception.setup-open')}>{t('other.noReminders.cta')}</PrimaryButton>
         }
       />
     );
@@ -187,6 +188,7 @@ function IudSection({ method, reminders }: { method: ContraceptionMethod; remind
         title={t('other.iud.setInserted')}
         description={t('other.iud.setInsertedSub')}
         onClick={() => router.push('/contraception/setup')}
+        pilot={pilot('contraception.iud-set')}
       />
     );
   } else {
@@ -205,6 +207,7 @@ function IudSection({ method, reminders }: { method: ContraceptionMethod; remind
               checked={stringCheck?.isActive ?? false}
               onCheckedChange={setStringCheck}
               labelledBy="ctro-string-title"
+              pilot={pilot('contraception.iud-string')}
               disabled={toggle.isPending || save.isPending}
             />
           }
@@ -251,6 +254,7 @@ function IudSection({ method, reminders }: { method: ContraceptionMethod; remind
                 aria-label={t('other.iud.followupMarkLabel')}
                 disabled={save.isPending}
                 onClick={() => save.mutate({ ...methodToPayload(method), followup_done: true })}
+                {...pilot('contraception.iud-followup-done')}
               >
                 {t('other.iud.followupMark')}
               </button>
@@ -293,6 +297,7 @@ function InjectionSection({ method }: { method: ContraceptionMethod }) {
           title={t('other.injection.set')}
           description={t('other.injection.setSub')}
           onClick={() => router.push('/contraception/setup')}
+          pilot={pilot('contraception.injection-set')}
         />
       </ListGroup>
     );
@@ -319,6 +324,7 @@ function InjectionSection({ method }: { method: ContraceptionMethod }) {
             icon="check"
             loading={save.isPending}
             onClick={() => save.mutate({ method: 'injection', injected_on: today })}
+            {...pilot('contraception.injection-done')}
           >
             {t('other.injection.done')}
           </SecondaryButton>
@@ -372,6 +378,7 @@ function ImplantSection({ method }: { method: ContraceptionMethod }) {
                 className="ctro-act nb-tone-brand"
                 aria-label={t('other.implant.setLabel')}
                 onClick={() => setOpen(true)}
+                {...pilot('contraception.implant-date')}
               >
                 {replaceOn ? t('other.implant.change') : t('other.implant.set')}
               </button>

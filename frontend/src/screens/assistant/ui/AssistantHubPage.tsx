@@ -16,6 +16,7 @@ import {
   useStartConversation,
 } from '@/entities/assistant';
 import { CreditMeter, useAiCredits } from '@/entities/ai-credit';
+import { pilot } from '@/shared/pilot';
 import { Link, useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { Card, EmptyState, Icon, IconCircle, ScreenHeader, SectionTitle, SkyLayer, UrgentCard } from '@/shared/ui';
@@ -81,7 +82,7 @@ export function AssistantHubPage() {
         <Card className="as-know">
           <div className="as-know-head">
             <strong>{t('hub.knows')}</strong>
-            <Link href="/assistant/profile" className="as-link">{t('hub.edit')}</Link>
+            <Link href="/assistant/profile" className="as-link" {...pilot('assistant.open:assistant-profile')}>{t('hub.edit')}</Link>
           </div>
           {h.profile.consent.granted && shared.length > 0 ? (
             <div className="as-tags">
@@ -98,7 +99,7 @@ export function AssistantHubPage() {
           <SectionTitle id="as-depts" title={t('hub.departments')} />
           <div className="as-depts">
             {h.departments.map((d) => (
-              <Link key={d.code} href={`/assistant/${d.code}`} className="as-dept">
+              <Link key={d.code} href={`/assistant/${d.code}`} className="as-dept" {...pilot(`assistant.dept:${d.code}`)}>
                 <IconCircle icon={deptIcon(d.icon)} tone="brand" size="md" />
                 <strong>{d.name}</strong>
                 <span>{d.tagline}</span>

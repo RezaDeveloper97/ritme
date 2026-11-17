@@ -125,7 +125,7 @@ db/migrations/        goose        db/queries/  sqlc queries per domain
 Full design and API contract: **`docs/ai-credits.md`**. Users see «اعتبار» (credits), never tokens.
 
 - **Never call a provider directly.** A handler reaches a model only through `*ai.Client`
-  (`Chat` / `Transcribe` / `ParseLog` / `Extract`) and only on a route mounted behind
+  (`Chat` / `Transcribe` / `ParseLog` / `Extract` / `PilotScript`) and only on a route mounted behind
   `platform.guard.Chain(feature)` (`newAIPlatform(d, nil)` in your `routes_<domain>.go`). No `http.Client` to an AI
   API anywhere else, no second gate, no hand-written credit or subscription check.
 - **Declare the feature slot in code:** `var FeatureFoo = ai.RegisterFeature("foo", ai.CapChat)` (the capabilities a

@@ -5,6 +5,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 
 import { useRouter, type Locale } from '@/shared/i18n';
 import { toApiDate, today } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import {
   EmptyState,
   HeaderButton,
@@ -19,9 +20,10 @@ import {
 } from '@/shared/ui';
 
 import { matchesSearch } from '../model/draft';
+import { logPilotId } from '../model/pilot-targets';
 import { isMenopausePreset } from '../model/menopause-preset';
 import { modePresetOf } from '../model/mode-presets';
-import { VOICE_LOG_ENABLED, voiceTabHidden } from '../model/voice-tab';
+import { voiceTabHidden } from '../model/voice-tab';
 import { categoryLook, type PanelKind } from '../model/presentation';
 import { useLogDayStore } from '../model/store';
 import { useLogDayHeading } from '../model/use-heading';
@@ -65,6 +67,11 @@ export interface LogDayProps {
   BodyMap?: BodyMapSlot;
   /** The voice recorder for the «ثبت با صدا» tab (B-N3-05 `features/voice-log`, passed by the screen). */
   VoiceLog?: VoiceLogSlot;
+  /**
+   * The user has no running subscription: the voice entry shows «پلاس». It stays pressable — the AI gate
+   * (asked by the recorder) explains what is missing. The screen reads it from `useAiGate('voice_log')`.
+   */
+  voiceLocked?: boolean;
   /** Page variant: the header's ×. */
   onClose?: () => void;
   /**
@@ -114,6 +121,7 @@ export function LogDay({
   mode: modeOverride,
   BodyMap,
   VoiceLog,
+  voiceLocked,
   onClose,
   onSaved,
   preset = true,
@@ -147,7 +155,7 @@ export function LogDay({
   // B-N3-06: pregnancy / postpartum days open on the board's grouped cards under the quick tiles.
   const modePreset = preset && !c.loading && !c.error ? modePresetOf(c.mode) : null;
   const noVoice = !c.loading && voiceTabHidden(c.mode);
-  const shownTab: Tab = noVoice || !VOICE_LOG_ENABLED ? 'manual' : tab;
+  const shownTab: Tab = noVoice ? 'manual' : tab;
 
   useEffect(() => {
     if (!saveQueued) return;
@@ -281,8 +289,8 @@ export function LogDay({
             categories={c.categories}
             values={c.values}
             setParam={c.setParam}
-            onVoice={VOICE_LOG_ENABLED ? () => setTab('voice') : undefined}
-            soonLabel={t('voice.soon')}
+            onVoice={() => setTab('voice')}
+            plusLabel={voiceLocked ? t('tabs.plus') : undefined}
             onBleedingHelp={() => (c.dirty ? c.save(() => router.push(MENOPAUSE_ALERT_HREF)) : router.push(MENOPAUSE_ALERT_HREF))}
           />
         ) : modePreset === 'pregnancy' ? (
@@ -317,6 +325,7 @@ export function LogDay({
                 label={t('search.label')}
                 clearLabel={t('search.clear')}
                 placeholder={t('search.placeholder')}
+                {...pilot(logPilotId.search, 'text')}
               />
             </div>
             {visible.length ? (
@@ -368,13 +377,12 @@ export function LogDay({
             {
               value: 'voice',
               icon: 'mic',
-              disabled: !VOICE_LOG_ENABLED,
               label: (
                 <>
                   {t('tabs.voice')}
-                  {!VOICE_LOG_ENABLED ? (
-                    <StatusPill tone="neutral" className="lday-tab-plus">
-                      {t('voice.soon')}
+                  {voiceLocked ? (
+                    <StatusPill tone="warm" icon="crown" className="lday-tab-plus">
+                      {t('tabs.plus')}
                     </StatusPill>
                   ) : null}
                 </>
@@ -387,6 +395,7 @@ export function LogDay({
           panelId={(v) => `${tabsId}-${v}`}
           track="surface"
           className="lday-tabs"
+          pilot={(v) => pilot(logPilotId.tab(v))}
         />
       )}
       <div id={`${tabsId}-${shownTab}`} role={menopause || noVoice ? undefined : 'tabpanel'} className="lday-panelwrap">

@@ -49,6 +49,7 @@ import {
 } from '@/shared/lib/date';
 import { getApiErrorMessage } from '@/shared/api';
 import { AppSheet, openSheet } from '@/shared/sheet';
+import { pilot } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 
@@ -153,7 +154,7 @@ function MonthNav({ label, isRtl, onPrev, onNext, onJump, fullMonth, onToggle, t
   return (
     <div className="cal-nav">
       {/* First child → RIGHT in RTL = previous month; label follows the action. */}
-      <button className="iconbtn" onClick={isRtl ? onPrev : onNext} aria-label={isRtl ? prevMonthLabel : nextMonthLabel}>
+      <button className="iconbtn" onClick={isRtl ? onPrev : onNext} aria-label={isRtl ? prevMonthLabel : nextMonthLabel} {...pilot(isRtl ? 'calendar.month-prev' : 'calendar.month-next')}>
         <Icon name={isRtl ? 'chevronRight' : 'chevronLeft'} size={20} />
       </button>
 
@@ -166,6 +167,8 @@ function MonthNav({ label, isRtl, onPrev, onNext, onJump, fullMonth, onToggle, t
         <button
           onClick={onToggle}
           className={clsx('chip', 'cal-nav-toggle', fullMonth && 'on')}
+          aria-pressed={fullMonth}
+          {...pilot('calendar.full-month')}
         >
           <Icon name={fullMonth ? 'grid' : 'calendar'} size={13} />
           {toggleLabel}
@@ -173,7 +176,7 @@ function MonthNav({ label, isRtl, onPrev, onNext, onJump, fullMonth, onToggle, t
       </div>
 
       {/* Last child → LEFT in RTL = next month; label follows the action. */}
-      <button className="iconbtn" onClick={isRtl ? onNext : onPrev} aria-label={isRtl ? nextMonthLabel : prevMonthLabel}>
+      <button className="iconbtn" onClick={isRtl ? onNext : onPrev} aria-label={isRtl ? nextMonthLabel : prevMonthLabel} {...pilot(isRtl ? 'calendar.month-next' : 'calendar.month-prev')}>
         <Icon name={isRtl ? 'chevronLeft' : 'chevronRight'} size={20} />
       </button>
     </div>
@@ -285,6 +288,7 @@ function DayCell({ cell, selectedDate, onSelect, dayNumber, marker, intensity, i
       aria-label={ariaLabel}
       aria-pressed={selected}
       aria-current={isToday ? 'date' : undefined}
+      {...pilot(`calendar.day:${toApiDate(cell.date)}`)}
       style={{
         position: 'relative',
         width: 40,
@@ -876,6 +880,7 @@ export function CalendarPage() {
             className="chip on cal-edit-btn"
             onClick={() => { setDateEditorView(null); setDateEditorOpen(true); }}
             disabled={isFutureMonth}
+            {...pilot('calendar.edit-period')}
           >
             <Icon name="pencil" size={14} />
             {tLogPeriod('dateEditor.open')}
@@ -986,6 +991,7 @@ export function CalendarPage() {
                     <button
                       className="btn cal-action is-primary"
                       onClick={() => editPeriod(selectedLoggedPeriod)}
+                      {...pilot('calendar.edit-this-period')}
                     >
                       <Icon name="drop" size={16} fill="currentColor" strokeWidth={0} />
                       {t('editThisPeriod')}
@@ -1010,6 +1016,7 @@ export function CalendarPage() {
                   <button
                     className="btn btn-primary cal-day-btn"
                     onClick={() => addToPeriodHere(selectedExtendTarget)}
+                    {...pilot('calendar.add-to-period')}
                     disabled={mutating}
                   >
                     <Icon name="drop" size={16} fill="var(--on-accent)" strokeWidth={0} />
@@ -1023,6 +1030,7 @@ export function CalendarPage() {
                   <button
                     className="btn btn-primary cal-start"
                     onClick={startPeriodHere}
+                    {...pilot('calendar.start-period-here')}
                     disabled={startPeriod.isPending}
                   >
                     <Icon name="drop" size={16} fill="var(--on-accent)" strokeWidth={0} />

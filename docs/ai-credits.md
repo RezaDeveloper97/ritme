@@ -31,8 +31,14 @@ A period without a plan (admin / challenge gift) has no credits of its own; the 
   `ai.RegisterFeature(key, capabilities…)`; the row is created at start-up (`credits.Catalog.Sync`). The admin sets
   `model_id`, `fallback_model_id`, `credit_cost`, `is_active`. A model may be assigned only if it has every
   capability the slot needs.
-- Existing slots: `assistant` (chat), `voice_log` (audio + json), `lab_analysis` (vision + json),
+- Existing slots: `assistant` (chat), `voice_log` (json), `lab_analysis` (vision + json),
   `doc_extract` (vision + json).
+- Internal slots (`ai.RegisterInternalFeature`): a model another feature calls into. `voice_stt` (audio) is the
+  speech-to-text of voice logging, so a speech-only model and a text model can share one use. The admin assigns
+  its model like any slot; it is never listed in `GET /ai/credits`, has no route and is never charged — the use
+  is charged once, on `voice_log`. The Arvan gateway serves it through `POST {base}/audio/transcriptions`.
+  Its seeded default (goose 00127) is GPT-4o Transcribe on the Arvan gateway with Gemini Flash as fallback; like
+  every model it stays editable in the panel (check `upstream_model` against the gateway's own name, and the prices).
 - `AI_PROVIDER=fake` (dev, tests, stage) replaces every model with deterministic fixtures.
 
 ## The gate (backend) — the only way to call a model

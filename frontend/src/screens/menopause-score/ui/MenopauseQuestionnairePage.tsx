@@ -12,6 +12,7 @@ import {
 import { getApiSaveErrorMessage } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatMonthLabel, formatNumber, todayParts } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import {
   Card,
   EmptyState,
@@ -126,6 +127,7 @@ function QuestionnaireForm({
                   value={answers[q.code] ?? null}
                   onChange={(v) => setAnswers((a) => ({ ...a, [q.code]: v }))}
                   locale={locale}
+                  pilot={pilot(`menopause.score-q:${q.code}`, 'choice')}
                   label={
                     <span className="msq-q-label">
                       <b className="msq-q-title">{q.title}</b>
@@ -152,7 +154,7 @@ function QuestionnaireForm({
         <p className="msq-progress" aria-live="polite">
           {progress}
         </p>
-        <PrimaryButton loading={save.isPending} disabled={!complete} onClick={submit}>
+        <PrimaryButton loading={save.isPending} disabled={!complete} onClick={submit} {...pilot('menopause.score-submit')}>
           {t('submit')}
         </PrimaryButton>
       </div>

@@ -33,6 +33,7 @@ import {
   SkyLayer,
   StatusPill,
 } from '@/shared/ui';
+import { pilot, pilotOption } from '@/shared/pilot';
 
 const isKind = (v: string | null): v is TimelineKind => (TIMELINE_KINDS as readonly string[]).includes(v ?? '');
 
@@ -80,7 +81,7 @@ export function RecordTimelinePage() {
         title={t('empty')}
         body={t('emptyBody')}
         action={
-          <PrimaryButton icon="plus" block={false} onClick={() => setUploadOpen(true)}>
+          <PrimaryButton icon="plus" block={false} onClick={() => setUploadOpen(true)} {...pilot('rectl.add')}>
             {t('add')}
           </PrimaryButton>
         }
@@ -93,7 +94,12 @@ export function RecordTimelinePage() {
           <MonthGroup key={m.key} month={m} />
         ))}
         {query.hasNextPage ? (
-          <SecondaryButton icon="chevronDown" loading={query.isFetchingNextPage} onClick={() => void query.fetchNextPage()}>
+          <SecondaryButton
+            icon="chevronDown"
+            loading={query.isFetchingNextPage}
+            onClick={() => void query.fetchNextPage()}
+            {...pilot('rectl.more')}
+          >
             {t('more')}
           </SecondaryButton>
         ) : null}
@@ -109,11 +115,11 @@ export function RecordTimelinePage() {
           title={t('title')}
           onBack={() => router.push('/record')}
           backLabel={t('back')}
-          action={<HeaderButton icon="plus" label={t('add')} onClick={() => setUploadOpen(true)} />}
+          action={<HeaderButton icon="plus" label={t('add')} onClick={() => setUploadOpen(true)} pilot={pilot('rectl.add-header')} />}
         />
-        <ChipGroup label={t('filters')} className="rec-tl-chips">
+        <ChipGroup label={t('filters')} className="rec-tl-chips" pilot={pilot('rectl.filter', 'choice')}>
           {TIMELINE_KINDS.map((k) => (
-            <PillChip key={k} pressed={kind === k} onPressedChange={() => setKind(k)}>
+            <PillChip key={k} {...pilotOption(k)} pressed={kind === k} onPressedChange={() => setKind(k)}>
               {tk(k)}
             </PillChip>
           ))}
@@ -198,7 +204,7 @@ function Row({ item }: { item: TimelineItem }) {
 
   const open = () => router.push(item.type === 'lab' ? `/labs/${item.id}` : `/record/documents/${item.id}`);
   return (
-    <button type="button" className="rec-tl-row" onClick={open}>
+    <button type="button" className="rec-tl-row" onClick={open} {...pilot(`rectl.item:${item.type}-${item.id}`)}>
       <IconCircle icon={look.icon} tone={look.tone} size="md" />
       <span className="rec-tl-text">
         <span className="rec-tl-title">{item.title || tk(item.kind)}</span>

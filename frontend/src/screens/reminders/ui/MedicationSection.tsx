@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { nextDoseAt, relativeDose, useMedications } from '@/entities/care-reminder';
 import { useToggleMedicationActive } from '@/features/manage-medication';
 import { Link, type Locale } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { formatNumber } from '@/shared/lib/date';
 import { Icon, Skeleton, SkeletonGroup, Switch } from '@/shared/ui';
 
@@ -97,6 +98,7 @@ export function MedicationSection() {
         addHref="/reminders/medication/new"
         addText={t('add')}
         addLabel={t('medications.add')}
+        pilotKey="medication"
       />
 
       <div className="rmd-list">
@@ -127,7 +129,7 @@ export function MedicationSection() {
             const on = pending && toggle.variables ? toggle.variables.isActive : row.isActive;
             return (
               <div key={row.id} className={clsx('rmd-row', !on && 'is-off')}>
-                <Link href={`/reminders/medication/${row.id}`} className="rmd-row-link">
+                <Link href={`/reminders/medication/${row.id}`} className="rmd-row-link" {...pilot(`care.med:${row.id}`)}>
                   <span className={clsx('rmd-tile', `is-${row.tone}`)} aria-hidden>
                     <Icon name={row.icon} size={20} strokeWidth={1.8} />
                   </span>
@@ -151,6 +153,7 @@ export function MedicationSection() {
                     checked={on}
                     label={t('medications.toggle', { title: row.title })}
                     disabled={pending}
+                    pilot={pilot(`care.med-active:${row.id}`)}
                     onCheckedChange={(checked) => toggle.mutate({ id: row.id, isActive: checked })}
                   />
                   <Link

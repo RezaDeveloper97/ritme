@@ -17,6 +17,7 @@ import {
 import { getApiErrorStatus } from '@/shared/api';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   Card,
   Checkbox,
@@ -83,16 +84,17 @@ function Row({
         checked={have}
         disabled={readOnly || setState.isPending || update.isPending}
         onCheckedChange={toggle}
+        pilot={pilot(`shop-checklist.have:${item.layette_item_id !== null ? `l${item.layette_item_id}` : `c${item.id}`}`)}
         label={item.title}
         description={description || undefined}
       />
       {item.category_slug && !have && item.state !== 'not_needed' ? (
-        <Link href={`/shop/${item.category_slug}`} className="shc-see">
+        <Link href={`/shop/${item.category_slug}`} className="shc-see" {...pilot(`shop-checklist.see:${item.layette_item_id !== null ? `l${item.layette_item_id}` : `c${item.id}`}`)}>
           {t('see')}
         </Link>
       ) : null}
       {readOnly ? null : (
-        <button type="button" className="shc-edit" aria-label={t('edit', { name: item.title })} onClick={() => onEdit(item)}>
+        <button type="button" className="shc-edit" aria-label={t('edit', { name: item.title })} {...pilot(`shop-checklist.edit:${item.layette_item_id !== null ? `l${item.layette_item_id}` : `c${item.id}`}`)} onClick={() => onEdit(item)}>
           <Icon name="pen" size={16} />
         </button>
       )}
@@ -222,26 +224,26 @@ export function ShopChecklistPage() {
           <InfoNote icon="eye">{t('readOnly')}</InfoNote>
         ) : (
           <div className="shc-actions">
-            <SecondaryButton variant="outline" block={false} icon="users" onClick={() => router.push('/companions')}>
+            <SecondaryButton variant="outline" block={false} icon="users" onClick={() => router.push('/companions')} {...pilot('shop-checklist.share')}>
               {t('share')}
             </SecondaryButton>
-            <SecondaryButton variant="outline" block={false} icon="plus" onClick={() => setSheet({ item: null })}>
+            <SecondaryButton variant="outline" block={false} icon="plus" onClick={() => setSheet({ item: null })} {...pilot('shop-checklist.add')}>
               {t('addItem')}
             </SecondaryButton>
           </div>
         )}
-        <ChipGroup label={t('filters')} className="shc-chips">
-          <PillChip pressed={filter === 'all'} onPressedChange={() => setFilter('all')}>
+        <ChipGroup label={t('filters')} className="shc-chips" pilot={pilot('shop-checklist.filter', 'choice')}>
+          <PillChip pressed={filter === 'all'} onPressedChange={() => setFilter('all')} {...pilotOption('all')}>
             {t('filter.all')}
           </PillChip>
-          <PillChip pressed={filter === 'essential'} onPressedChange={() => setFilter('essential')}>
+          <PillChip pressed={filter === 'essential'} onPressedChange={() => setFilter('essential')} {...pilotOption('essential')}>
             {t('filter.essential')}
           </PillChip>
-          <PillChip pressed={filter === 'first'} onPressedChange={() => setFilter('first')}>
+          <PillChip pressed={filter === 'first'} onPressedChange={() => setFilter('first')} {...pilotOption('first')}>
             {t('filter.first')}
           </PillChip>
           {chipGroups.map((k) => (
-            <PillChip key={k} pressed={filter === k} onPressedChange={() => setFilter(k)}>
+            <PillChip key={k} pressed={filter === k} onPressedChange={() => setFilter(k)} {...pilotOption(k)}>
               {t(`groups.${k}`)}
             </PillChip>
           ))}

@@ -16,6 +16,7 @@ import {
 import { useDirection } from '@/shared/i18n';
 import { toApiDate } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { pilot } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
 
 type TCal = ReturnType<typeof useTranslations>;
@@ -157,6 +158,7 @@ export function DayLogSummary({ tCal, selectedDate, onEdit }: DayLogSummaryProps
           <button
             className="chip dls-edit"
             onClick={onEdit}
+            {...pilot('calendar.log-day')}
           >
             <Icon name="pencil" size={13} />
             {tCal('dayLog.edit')}
@@ -214,6 +216,7 @@ export function DayLogSummary({ tCal, selectedDate, onEdit }: DayLogSummaryProps
         <button
           onClick={onEdit}
           className="card dls-empty"
+          {...pilot('calendar.log-day')}
         >
           <div className="dls-empty-body">
             <div className="dls-empty-title">

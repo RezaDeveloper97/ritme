@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 
 import { useLabRequests, useLabServices } from '@/entities/partner-lab';
 import { Link, useDirection, useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { Card, EmptyState, Icon, PrimaryButton, ScreenHeader, SectionTitle, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
 import { StatusBadge } from './StatusBadge';
@@ -59,7 +60,7 @@ export function HomeLabPage() {
             <ul className="hlb-list">
               {services.data.services.map((s) => (
                 <li key={s.id}>
-                  <Link href={`/services/home-lab/new?service=${s.id}`} className="hlb-row">
+                  <Link href={`/services/home-lab/new?service=${s.id}`} className="hlb-row" {...pilot(`home-lab.service:${s.id}`)}>
                     <span className="hlb-row-art" aria-hidden>
                       <Icon name={s.kind === 'checkup' ? 'stetho' : 'flask'} size={22} strokeWidth={1.6} />
                     </span>
@@ -84,7 +85,7 @@ export function HomeLabPage() {
             <ul className="hlb-list">
               {requests.data.requests.map((r) => (
                 <li key={r.id}>
-                  <Link href={`/services/home-lab/${r.id}`} className="hlb-row">
+                  <Link href={`/services/home-lab/${r.id}`} className="hlb-row" {...pilot(`home-lab.request:${r.id}`)}>
                     <span className="hlb-row-main">
                       <span className="hlb-row-title">{r.service.title}</span>
                       <span className="hlb-row-sub">{r.reference}</span>

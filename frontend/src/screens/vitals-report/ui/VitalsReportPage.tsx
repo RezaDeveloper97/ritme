@@ -47,6 +47,7 @@ import {
   SkyLayer,
   StatusPill,
 } from '@/shared/ui';
+import { pilot, pilotOption } from '@/shared/pilot';
 
 import { BpChart, VitalLineChart } from './VitalCharts';
 
@@ -113,7 +114,7 @@ export function VitalsReportPage({ type }: { type: VitalType }) {
           title={t('report.empty.title')}
           body={t('report.empty.body')}
           action={
-            <Link href={vitalAddPath(type)} className="nb-btn is-primary is-block">
+            <Link href={vitalAddPath(type)} className="nb-btn is-primary is-block" {...pilot('vtr.add')}>
               <Icon name="plus" size={18} />
               {t('report.addCta', { type: t(`types.${type}`) })}
             </Link>
@@ -151,7 +152,7 @@ export function VitalsReportPage({ type }: { type: VitalType }) {
           backLabel={t('common.back')}
           action={
             recordOn ? (
-              <HeaderButton icon="export" label={t('report.shareDoctor')} onClick={() => router.push('/record/export?section=vitals')} />
+              <HeaderButton icon="export" label={t('report.shareDoctor')} onClick={() => router.push('/record/export?section=vitals')} pilot={pilot('vtr.share')} />
             ) : undefined
           }
         />
@@ -162,11 +163,12 @@ export function VitalsReportPage({ type }: { type: VitalType }) {
                 label={t('report.filterTabs')}
                 value={filter}
                 onChange={setFilter}
+                pilot={(v) => pilot(`vtr.filter:${v}`)}
                 tabs={GLUCOSE_FILTERS.map((v) => ({ value: v, label: v === 'all' ? t('report.all') : t(`glucoseContextsShort.${v}`) }))}
               />
-              <ChipGroup label={t('report.rangeTabs')} className="vt-range-chips">
+              <ChipGroup label={t('report.rangeTabs')} className="vt-range-chips" pilot={pilot('vtr.range-chips', 'choice')}>
                 {RANGE_TABS.glucose.map((v) => (
-                  <PillChip key={v} pressed={range === v} onPressedChange={() => setRange(v)}>
+                  <PillChip key={v} {...pilotOption(v)} pressed={range === v} onPressedChange={() => setRange(v)}>
                     {t(`report.ranges.${v}`)}
                   </PillChip>
                 ))}
@@ -177,6 +179,7 @@ export function VitalsReportPage({ type }: { type: VitalType }) {
               label={t('report.rangeTabs')}
               value={range}
               onChange={setRange}
+              pilot={(v) => pilot(`vtr.range:${v}`)}
               tabs={RANGE_TABS[type].map((v) => ({ value: v, label: t(`report.ranges.${v}`) }))}
             />
           )}
@@ -198,7 +201,7 @@ function NotEnoughCard({ type, needed }: { type: VitalType; needed: number }) {
         title={<span id="vt-not-enough-title">{t('report.notEnough.title', { n: f.num(needed) })}</span>}
         body={t('report.notEnough.body')}
         action={
-          <Link href={vitalAddPath(type)} className="nb-btn is-primary is-block">
+          <Link href={vitalAddPath(type)} className="nb-btn is-primary is-block" {...pilot('vtr.add')}>
             <Icon name="plus" size={18} />
             {t('report.addCta', { type: t(`types.${type}`) })}
           </Link>
@@ -602,7 +605,7 @@ function ReadingsList({ type, from, to, glucoseUnit }: { type: VitalType; from: 
         </p>
       ) : null}
       {list.length > limit ? (
-        <button type="button" className="vt-link-btn vt-more" onClick={() => setLimit((l) => l + LIST_STEP)}>
+        <button type="button" className="vt-link-btn vt-more" {...pilot('vtr.more')} onClick={() => setLimit((l) => l + LIST_STEP)}>
           {t('report.moreReadings')}
         </button>
       ) : null}

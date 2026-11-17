@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { CENTRE_TYPES, type CentreType, type InsuranceCentre, useCentres } from '@/entities/insurance';
 import { useRouter } from '@/shared/i18n';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   ChipGroup,
   EmptyState,
@@ -184,10 +185,11 @@ export function InsuranceCentersPage() {
           clearLabel={tc('clear')}
           placeholder={tc('searchPlaceholder')}
           maxLength={80}
+          {...pilot('ins-centers.search', 'text')}
         />
-        <ChipGroup label={tc('typesLabel')}>
+        <ChipGroup label={tc('typesLabel')} pilot={pilot('ins-centers.type', 'choice')}>
           {CENTRE_TYPES.filter((x) => x !== 'other').map((x) => (
-            <PillChip key={x} pressed={type === x} onPressedChange={(on) => setType(on ? x : '')}>
+            <PillChip key={x} pressed={type === x} onPressedChange={(on) => setType(on ? x : '')} {...pilotOption(x)}>
               {tc(`types.${x}`)}
             </PillChip>
           ))}

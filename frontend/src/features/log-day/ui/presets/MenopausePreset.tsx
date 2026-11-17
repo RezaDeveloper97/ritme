@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 
 import type { LogCategory, LogDayValues, LogParamValue } from '@/entities/health-log';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { Card, ChipGroup, Icon, IconCircle, PillChip, SeverityScale, StatusPill, type Tone } from '@/shared/ui';
 
 import {
@@ -28,10 +29,10 @@ interface MenopausePresetProps {
   categories: readonly LogCategory[];
   values: LogDayValues;
   setParam: (category: string, param: string, value: LogParamValue | null) => void;
-  /** «با صدا بگو» → the sheet's voice tab (B-N3-05). */
-  /** Omitted while voice logging is paused: the card renders disabled with `soonLabel`. */
-  onVoice?: () => void;
-  soonLabel?: string;
+  /** «با صدا بگو» → the sheet's voice tab. */
+  onVoice: () => void;
+  /** «پلاس», shown while the user has no running subscription (the AI gate explains it on the voice tab). */
+  plusLabel?: string;
   /** «بیشتر بدان» under a logged bleeding → `/menopause/alert` (saves first). */
   onBleedingHelp: () => void;
 }
@@ -41,20 +42,20 @@ interface MenopausePresetProps {
  * groups as `SeverityScale` rows, the bleeding choice with the post-menopause note and the trigger chips.
  * Edits the sheet's draft like every other section — the sheet's footer saves the day in one PUT.
  */
-export function MenopausePreset({ categories, values, setParam, onVoice, soonLabel, onBleedingHelp }: MenopausePresetProps) {
+export function MenopausePreset({ categories, values, setParam, onVoice, plusLabel, onBleedingHelp }: MenopausePresetProps) {
   const t = useTranslations('logSheet.presets.menopause');
   return (
     <div className="mlog">
-      <button type="button" className="mlog-voice" onClick={onVoice} disabled={!onVoice}>
+      <button type="button" className="mlog-voice" onClick={onVoice} {...pilot('log.preset-voice')}>
         <span className="mlog-voice-mic" aria-hidden>
           <Icon name="mic" size={22} strokeWidth={1.9} />
         </span>
         <span className="mlog-voice-text">
           <span className="mlog-voice-title">
             {t('voice.title')}
-            {!onVoice ? (
-              <StatusPill tone="neutral" className="mlog-voice-plus">
-                {soonLabel}
+            {plusLabel ? (
+              <StatusPill tone="warm" icon="crown" className="mlog-voice-plus">
+                {plusLabel}
               </StatusPill>
             ) : null}
           </span>
@@ -129,13 +130,14 @@ function BleedingCard({ categories, values, setParam, onHelp }: Editable & { onH
   return (
     <Card as="section" className="mlog-card" aria-labelledby="mlog-bleeding">
       <GroupHead id="mlog-bleeding" title={t('groups.bleeding')} icon="drop" tone="period" />
-      <ChipGroup label={t('groups.bleeding')}>
+      <ChipGroup label={t('groups.bleeding')} pilot={pilot('log.preset-bleeding', 'choice')}>
         {param.options.map((o) => (
           <PillChip
             key={o.value}
             mode="single"
             tone={o.value === 'none' ? 'data' : 'period'}
             pressed={choice === o.value}
+            {...pilotOption(o.value)}
             onPressedChange={() => setParam(MENOPAUSE_BLEEDING.category, MENOPAUSE_BLEEDING.param, nextBleeding(values, o.value))}
           >
             {o.label}
@@ -169,13 +171,14 @@ function TriggersCard({ categories, values, setParam }: Editable) {
       <h3 id="mlog-triggers" className="mlog-head">
         {t('groups.triggers')}
       </h3>
-      <ChipGroup label={t('groups.triggers')}>
+      <ChipGroup label={t('groups.triggers')} pilot={pilot('log.preset-triggers', 'choice')}>
         {param.options.map((o) => (
           <PillChip
             key={o.value}
             mode="multi"
             tone="brand"
             pressed={picked.includes(o.value)}
+            {...pilotOption(o.value)}
             onPressedChange={() => setParam(MENOPAUSE_TRIGGERS.category, MENOPAUSE_TRIGGERS.param, toggleTrigger(values, o.value))}
           >
             {o.label}

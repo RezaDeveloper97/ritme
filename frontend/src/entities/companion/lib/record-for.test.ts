@@ -23,7 +23,7 @@ function link(id: number, ownerId: number, grants: Partial<CompanionGrants>, can
     grants: { ...emptyGrants(), ...grants },
     canRecordFor: canRecord,
     family: null,
-    settings: { goal: 'unknown', actionPrefs: [] },
+    settings: { goals: [], actionPrefs: [] },
   };
 }
 

@@ -2,6 +2,8 @@
 
 import { clsx } from 'clsx';
 
+import type { PilotAttrs } from '@/shared/pilot';
+
 interface SwitchProps {
   checked: boolean;
   onCheckedChange: (next: boolean) => void;
@@ -13,6 +15,8 @@ interface SwitchProps {
   compact?: boolean;
   disabled?: boolean;
   className?: string;
+  /** Autopilot name: `pilot('…')` (frontend/CLAUDE.md §11.6). */
+  pilot?: PilotAttrs;
 }
 
 /** `role=switch` toggle, 48×30, on = `--brand-fill`; the knob slides to the inline end. */
@@ -25,6 +29,7 @@ export function Switch({
   compact,
   disabled,
   className,
+  pilot,
 }: SwitchProps) {
   return (
     <button
@@ -37,6 +42,7 @@ export function Switch({
       disabled={disabled}
       className={clsx('nb-switch', compact && 'is-compact', className)}
       onClick={() => onCheckedChange(!checked)}
+      {...pilot}
     >
       <span className="nb-switch-knob" aria-hidden />
     </button>

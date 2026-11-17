@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { V2_MAX_WEEK, V2_MIN_WEEK } from '@/entities/pregnancy';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { type SegmentedTab, SegmentedTabs } from '@/shared/ui';
 
 /**
@@ -26,6 +27,7 @@ export function WeekTabs({ week }: { week: number }) {
       tabs={tabs}
       value={`${week}`}
       label={t('stripLabel')}
+      pilot={(v) => pilot(`preg.week-tab:${v}`)}
       onChange={(v) => router.replace(`/pregnancy/weeks/${v}`, { scroll: false })}
     />
   );

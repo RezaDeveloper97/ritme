@@ -24,6 +24,7 @@ import { goToGateway, useCreateBooking } from '@/features/book-visit';
 import { getApiErrorCode } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { Card, EmptyState, Icon, InfoNote, PillChip, PrimaryButton, ScreenHeader, SkyLayer, Switch, type IconName } from '@/shared/ui';
 
 const SCOPE_ICON: Record<ConsentScope, IconName> = { cycle_summary: 'chart', bbt_lh: 'thermo', assistant_summaries: 'sparkle' };
@@ -141,39 +142,39 @@ export function DoctorBookPage({ doctorId }: { doctorId: number }) {
 
       <Card as="section" aria-labelledby={`${noteId}-who`} className="dr-form">
         <h2 id={`${noteId}-who`} className="dr-h2">{t('book.forWhom')}</h2>
-        <div role="radiogroup" aria-labelledby={`${noteId}-who`} className="dr-radios">
+        <div role="radiogroup" aria-labelledby={`${noteId}-who`} className="dr-radios" {...pilot('doctor-book.for', 'choice')}>
           {options.map((o) => (
-            <button key={o.value} type="button" role="radio" aria-checked={forWhom === o.value} className={`dr-radiorow${forWhom === o.value ? ' is-on' : ''}`} onClick={() => setForWhom(o.value)}>
+            <button key={o.value} type="button" role="radio" aria-checked={forWhom === o.value} {...pilotOption(o.value)} className={`dr-radiorow${forWhom === o.value ? ' is-on' : ''}`} onClick={() => setForWhom(o.value)}>
               <span>{o.label}</span>
               <span className="dr-radio" aria-hidden />
             </button>
           ))}
         </div>
         {forWhom === 'child' ? (
-          <div className="dr-chiprow is-wrap" role="group" aria-label={t('book.child')}>
+          <div className="dr-chiprow is-wrap" role="group" aria-label={t('book.child')} {...pilot('doctor-book.child', 'choice')}>
             {quote.children.map((c) => (
-              <PillChip key={c.id} pressed={childId === c.id} onPressedChange={() => setChildId(c.id)}>
+              <PillChip key={c.id} pressed={childId === c.id} onPressedChange={() => setChildId(c.id)} {...pilotOption(String(c.id))}>
                 {c.name}
               </PillChip>
             ))}
           </div>
         ) : null}
         {forWhom === 'other' ? (
-          <input className="dr-input" value={patient} maxLength={80} onChange={(e) => setPatient(e.target.value)} placeholder={t('book.patientName')} aria-label={t('book.patientName')} />
+          <input className="dr-input" value={patient} maxLength={80} onChange={(e) => setPatient(e.target.value)} placeholder={t('book.patientName')} aria-label={t('book.patientName')} {...pilot('doctor-book.patient', 'text')} />
         ) : null}
       </Card>
 
       <Card as="section" aria-labelledby={`${noteId}-why`} className="dr-form">
         <h2 id={`${noteId}-why`} className="dr-h2">{t('book.reason')}</h2>
-        <div className="dr-chiprow is-wrap" role="group" aria-labelledby={`${noteId}-why`}>
+        <div className="dr-chiprow is-wrap" role="group" aria-labelledby={`${noteId}-why`} {...pilot('doctor-book.reason', 'choice')}>
           {quote.reasons.map((r) => (
-            <PillChip key={r.code} pressed={reason === r.code} onPressedChange={(on) => setReason(on ? r.code : undefined)}>
+            <PillChip key={r.code} pressed={reason === r.code} onPressedChange={(on) => setReason(on ? r.code : undefined)} {...pilotOption(r.code)}>
               {r.title}
             </PillChip>
           ))}
         </div>
         <label htmlFor={noteId} className="dr-h3">{t('book.note')}</label>
-        <textarea id={noteId} className="dr-input" rows={3} maxLength={1000} value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('book.notePlaceholder')} />
+        <textarea id={noteId} className="dr-input" rows={3} maxLength={1000} value={note} onChange={(e) => setNote(e.target.value)} placeholder={t('book.notePlaceholder')} {...pilot('doctor-book.note', 'text')} />
       </Card>
 
       {forWhom === 'self' ? (
@@ -186,7 +187,7 @@ export function DoctorBookPage({ doctorId }: { doctorId: number }) {
                 <strong id={`${noteId}-${s}`}>{t(`consent.${s}.title`)}</strong>
                 <span>{t(`consent.${s}.hint`)}</span>
               </span>
-              <Switch checked={share[s]} onCheckedChange={(v) => setShare((p) => ({ ...p, [s]: v }))} labelledBy={`${noteId}-${s}`} />
+              <Switch checked={share[s]} onCheckedChange={(v) => setShare((p) => ({ ...p, [s]: v }))} labelledBy={`${noteId}-${s}`} pilot={pilot(`doctor-book.share:${s}`)} />
             </div>
           ))}
           <p className="dr-fine">{t('book.shareNote')}</p>

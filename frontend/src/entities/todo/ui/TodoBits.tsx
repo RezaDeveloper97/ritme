@@ -7,6 +7,7 @@ import type { ReactNode } from 'react';
 import { Link, type Locale } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, fromApiDate } from '@/shared/lib/date';
 import { CheckTick, Icon, type Tone } from '@/shared/ui';
+import { pilot } from '@/shared/pilot';
 
 import { CATEGORY_LOOK, doneKind, itemDueKind } from '../model/board';
 import type { TodoCategory, TodoGroupKey, TodoItem, TodoTask } from '../model/types';
@@ -26,7 +27,10 @@ export function TodoCheck({
   label,
   onToggle,
   disabled,
+  pilotId,
 }: {
+  /** Autopilot name of the check (frontend/CLAUDE.md §11.6). */
+  pilotId?: string;
   done: boolean;
   tone: Tone;
   label: string;
@@ -41,6 +45,7 @@ export function TodoCheck({
       aria-label={label}
       onClick={onToggle}
       disabled={disabled}
+      {...(pilotId ? pilot(pilotId) : null)}
     >
       <span className="td-check-box" aria-hidden>
         <CheckTick on={done} />
@@ -115,13 +120,20 @@ export function TaskRow({ task, group, onToggle, href, onEdit }: TaskRowProps) {
         tone={tone}
         label={t(task.done ? 'check.unmark' : 'check.mark', { title: task.title })}
         onToggle={() => onToggle(task)}
+        pilotId={`todo.task:${task.id}`}
       />
       {href ? (
-        <Link href={href} className="td-row-main" aria-label={t('openTask', { title: task.title })}>
+        <Link href={href} className="td-row-main" aria-label={t('openTask', { title: task.title })} {...pilot(`todo.open:${task.id}`)}>
           {body}
         </Link>
       ) : (
-        <button type="button" className="td-row-main" onClick={() => onEdit?.(task)} aria-label={t('editTask', { title: task.title })}>
+        <button
+          type="button"
+          className="td-row-main"
+          onClick={() => onEdit?.(task)}
+          aria-label={t('editTask', { title: task.title })}
+          {...pilot(`todo.open:${task.id}`)}
+        >
           {body}
         </button>
       )}
@@ -163,6 +175,7 @@ export function ItemRow({ item, category, todayIso, onToggle, onDelete, busy }: 
         tone={CATEGORY_LOOK[category].tone}
         label={t(item.done ? 'check.unmark' : 'check.mark', { title: item.title })}
         onToggle={() => onToggle(item)}
+        pilotId={`todo.item:${item.id}`}
       />
       <span className="td-row-main is-static">
         <span className="td-row-title">{item.title}</span>

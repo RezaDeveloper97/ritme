@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 
 import { taskProgress, toggleDoneKey, type WeekTask } from '@/entities/pregnancy';
 import { useUpdateWeekState } from '@/features/track-pregnancy';
+import { pilot } from '@/shared/pilot';
 import { Card, CheckTick, Icon } from '@/shared/ui';
 
 interface Props {
@@ -56,6 +57,7 @@ export function PregnancyCareChecklist({ week, tasks, title, variant = 'today' }
                 role="checkbox"
                 aria-checked={task.done}
                 onClick={() => toggle(task.key)}
+                {...pilot(`preg.task:${task.key}`)}
                 className="pgn-row pgn-task"
               >
                 <span className={clsx('pgn-task-disc', task.done && 'is-done')} aria-hidden>

@@ -17,6 +17,7 @@ import {
 import { NotesField, PgCard, Segmented, Toggle } from '@/features/track-pregnancy';
 import { useDirection, type Locale } from '@/shared/i18n';
 import { addDays, diffInDays, formatDayMonth, toApiDate, today } from '@/shared/lib/date';
+import { pilot } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
 
 type T = ReturnType<typeof useTranslations>;
@@ -139,7 +140,7 @@ export function SymptomsForm({ t }: { t: T }) {
                         <span className={clsx('plog-row-name', critical && 'is-critical')}>
                           {dyn(`log.symptoms.${key}`)}
                         </span>
-                        <Toggle on={on} onClick={() => toggleSymptom(key)} />
+                        <Toggle on={on} onClick={() => toggleSymptom(key)} pilotId={`preg.symptom:${key}`} />
                       </div>
                       {on && (
                         <div className="plog-row-extra">
@@ -147,6 +148,7 @@ export function SymptomsForm({ t }: { t: T }) {
                             options={severityOptions}
                             value={typeof draft[`${key}_severity`] === 'string' ? (draft[`${key}_severity`] as string) : undefined}
                             onChange={(v) => setSeverity(key, v)}
+                            pilotId={`preg.symptom-severity:${key}`}
                           />
                         </div>
                       )}
@@ -159,7 +161,7 @@ export function SymptomsForm({ t }: { t: T }) {
         })}
 
         <PgCard title={t('log.notes')} icon="pencil">
-          <NotesField label="" value={draft.notes as string | undefined} onChange={setNotes} placeholder={t('log.notesPlaceholder')} />
+          <NotesField label="" value={draft.notes as string | undefined} onChange={setNotes} placeholder={t('log.notesPlaceholder')} pilotId="preg.v1-notes" />
         </PgCard>
       </div>
 
@@ -173,7 +175,7 @@ export function SymptomsForm({ t }: { t: T }) {
         <p className="plog-error">{t('log.saveError')}</p>
       )}
 
-      <button className="btn btn-primary plog-save" onClick={handleSave} disabled={!filled || save.isPending}>
+      <button className="btn btn-primary plog-save" {...pilot('preg.v1-save')} onClick={handleSave} disabled={!filled || save.isPending}>
         {save.isSuccess ? <Icon name="check" size={18} /> : null}
         {saveLabel}
       </button>

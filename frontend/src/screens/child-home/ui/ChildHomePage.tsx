@@ -18,6 +18,7 @@ import { getApiErrorStatus } from '@/shared/api';
 import { Link, type Locale, useDirection, useRouter } from '@/shared/i18n';
 import { formatDecimal, formatLongDate, formatNumber, fromApiDate, monthName, toParts } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { pilot } from '@/shared/pilot';
 import {
   Card,
   EmptyState,
@@ -71,7 +72,7 @@ function TopBar({ title, eyebrow, onEdit, t }: { title?: string; eyebrow?: strin
         ) : null}
       </div>
       {onEdit ? (
-        <HeaderButton variant="soft" icon="pencil" label={t('home.edit')} onClick={onEdit} />
+        <HeaderButton variant="soft" icon="pencil" label={t('home.edit')} onClick={onEdit} pilot={pilot('child.edit')} />
       ) : (
         <span className="chd-top-spacer" aria-hidden />
       )}
@@ -138,7 +139,7 @@ export function ChildHomePage({ id }: { id: number }) {
           <Card className="chd-state" role="alert">
             <IconCircle icon="warning" tone="danger" size="lg" />
             <p className="chd-state-text">{t('common.loadError')}</p>
-            <SecondaryButton icon="refresh" block={false} loading={query.isFetching} onClick={() => void query.refetch()}>
+            <SecondaryButton icon="refresh" block={false} loading={query.isFetching} onClick={() => void query.refetch()} {...pilot('child.retry')}>
               {t('common.retry')}
             </SecondaryButton>
           </Card>
@@ -208,7 +209,7 @@ function Hero({ child, t }: { child: ChildHome; t: T }) {
             : t('home.measuredOn', { date: formatLongDate(fromApiDate(latest.measuredOn), locale) })}
         </p>
       ) : null}
-      <Link href={`/children/${child.id}/growth`} className="chd-hero-cta">
+      <Link href={`/children/${child.id}/growth`} className="chd-hero-cta" {...pilot('child.add-measurement')}>
         <Icon name={child.canEdit ? 'plus' : 'chart'} size={18} />
         {child.canEdit ? t('home.addMeasurement') : t('home.viewGrowth')}
       </Link>
@@ -270,7 +271,7 @@ function NextVaccineCard({ child, t }: { child: ChildHome; t: T }) {
         {next.doseNames.length > 0 ? <span className="chd-vaccine-sub">{next.doseNames.join('، ')}</span> : null}
         <span className={clsx('chd-vaccine-due', urgent && 'is-urgent')}>{due(next.daysLeft, next.statusLabel)}</span>
       </span>
-      <Link href={`/children/${child.id}/vaccines`} className="chd-vaccine-link">
+      <Link href={`/children/${child.id}/vaccines`} className="chd-vaccine-link" {...pilot('child.vaccine-details')}>
         {t('home.details')}
       </Link>
     </Card>
@@ -278,9 +279,9 @@ function NextVaccineCard({ child, t }: { child: ChildHome; t: T }) {
 }
 
 // ── Tiles ──────────────────────────────────────────────────────
-function Tile({ href, icon, tone, title, sub }: { href: string; icon: IconName; tone: Tone; title: string; sub: string }) {
+function Tile({ href, icon, tone, title, sub, pilotId }: { href: string; icon: IconName; tone: Tone; title: string; sub: string; pilotId: string }) {
   return (
-    <Link href={href} className="chd-tile">
+    <Link href={href} className="chd-tile" {...pilot(pilotId)}>
       <IconCircle icon={icon} tone={tone} />
       <b className="chd-tile-title">{title}</b>
       <span className="chd-tile-sub">{sub}</span>
@@ -297,6 +298,7 @@ function Tiles({ child, t }: { child: ChildHome; t: T }) {
   return (
     <nav className="chd-tiles" aria-label={child.name}>
       <Tile
+        pilotId="child.tile:vaccines"
         href={`${base}/vaccines`}
         icon="syringe"
         tone="brand"
@@ -307,8 +309,9 @@ function Tiles({ child, t }: { child: ChildHome; t: T }) {
             : t('home.tiles.vaccinesComplete')
         }
       />
-      <Tile href={`${base}/growth`} icon="chart" tone="data" title={t('home.tiles.growth')} sub={child.growth.label} />
+      <Tile pilotId="child.tile:growth" href={`${base}/growth`} icon="chart" tone="data" title={t('home.tiles.growth')} sub={child.growth.label} />
       <Tile
+        pilotId="child.tile:milestones"
         href={`${base}/milestones`}
         icon="star"
         tone="warm"
@@ -323,7 +326,7 @@ function Tiles({ child, t }: { child: ChildHome; t: T }) {
             : t('home.tiles.milestonesNone')
         }
       />
-      <Tile href={`${base}/learn`} icon="bookOpen" tone="success" title={t('home.tiles.learn')} sub={t('home.tiles.learnSub')} />
+      <Tile pilotId="child.tile:learn" href={`${base}/learn`} icon="bookOpen" tone="success" title={t('home.tiles.learn')} sub={t('home.tiles.learnSub')} />
     </nav>
   );
 }

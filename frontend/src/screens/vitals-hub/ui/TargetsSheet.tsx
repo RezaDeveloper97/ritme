@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { useGlucoseTargets, useSaveTargets, useVitalFormat, type GlucoseTargetInput, type GlucoseTargets, type TargetContext } from '@/entities/vital';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { Card, ChipGroup, EmptyState, Icon, PillChip, PrimaryButton, SecondaryButton, Skeleton, SkeletonGroup } from '@/shared/ui';
 
@@ -39,7 +40,7 @@ export function TargetsCard() {
         </h2>
       </div>
       <p className="vt-card-note">{n ? t('targets.summaryCustom', { n: String(n) }) : t('targets.summaryDefault')}</p>
-      <button type="button" className="vt-link-btn" onClick={() => setOpen(true)}>
+      <button type="button" className="vt-link-btn" onClick={() => setOpen(true)} {...pilot('vt.targets-open')}>
         <Icon name={n ? 'pencil' : 'plus'} size={16} />
         {t(n ? 'targets.edit' : 'targets.open')}
       </button>
@@ -104,6 +105,7 @@ export function TargetsForm({ targets, onClose }: { targets: GlucoseTargets; onC
                     dir="ltr"
                     aria-label={t('targets.lowAria', { context: name })}
                     value={row.lowMgDl ?? ''}
+                    {...pilot(`vt.target-low:${row.context}`, 'number')}
                     onChange={(e) => update(row.context, { lowMgDl: parseTarget(e.target.value) })}
                   />
                 </label>
@@ -115,6 +117,7 @@ export function TargetsForm({ targets, onClose }: { targets: GlucoseTargets; onC
                     dir="ltr"
                     aria-label={t('targets.highAria', { context: name })}
                     value={row.highMgDl ?? ''}
+                    {...pilot(`vt.target-high:${row.context}`, 'number')}
                     onChange={(e) => update(row.context, { highMgDl: parseTarget(e.target.value) })}
                   />
                 </label>
@@ -122,9 +125,9 @@ export function TargetsForm({ targets, onClose }: { targets: GlucoseTargets; onC
                   {t('targets.unit')}
                 </span>
               </div>
-              <ChipGroup label={t('targets.setBy')}>
+              <ChipGroup label={t('targets.setBy')} pilot={pilot(`vt.target-by:${row.context}`, 'choice')}>
                 {(['doctor', 'user'] as const).map((by) => (
-                  <PillChip key={by} pressed={row.setBy === by} onPressedChange={() => update(row.context, { setBy: by })}>
+                  <PillChip key={by} {...pilotOption(by)} pressed={row.setBy === by} onPressedChange={() => update(row.context, { setBy: by })}>
                     {t(by === 'doctor' ? 'targets.setByDoctor' : 'targets.setByUser')}
                   </PillChip>
                 ))}
@@ -145,7 +148,7 @@ export function TargetsForm({ targets, onClose }: { targets: GlucoseTargets; onC
           {t('targets.error')}
         </p>
       ) : null}
-      <PrimaryButton loading={save.isPending} onClick={submit}>
+      <PrimaryButton loading={save.isPending} onClick={submit} {...pilot('vt.targets-save')}>
         {t('targets.save')}
       </PrimaryButton>
       {targets.items.length ? (

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 
 import { Link, useDirection, useRouter } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
 import { PlusBadge, PlusGate } from '@/shared/ui/plus-gate';
 
@@ -14,6 +15,8 @@ interface HubCardProps {
   sub?: ReactNode;
   /** Detail screen; the whole card becomes one link. Omitted for a card without a screen yet. */
   href?: string;
+  /** Autopilot key of this card when the href alone is not unique. */
+  pilotKey?: string;
   /** A Plus section: shows the «پلاس» badge. */
   plus?: boolean;
   /** Plus and the user isn't entitled: the body is a blurred teaser behind the lock (the server sent no data). */
@@ -27,7 +30,7 @@ interface HubCardProps {
  * is one link to its detail screen; a locked Plus card is not a link (it holds
  * the paywall button instead, and nesting it in a link would be invalid).
  */
-export function HubCard({ title, sub, href, plus, locked, className, children }: HubCardProps) {
+export function HubCard({ title, sub, href, plus, locked, className, children, pilotKey }: HubCardProps) {
   const tPlus = useTranslations('plus.gate');
   const router = useRouter();
   const rtl = useDirection() === 'rtl';
@@ -58,7 +61,11 @@ export function HubCard({ title, sub, href, plus, locked, className, children }:
   }
   if (href) {
     return (
-      <Link href={href} className={clsx('nb-card an-card is-link', className)}>
+      <Link
+        href={href}
+        className={clsx('nb-card an-card is-link', className)}
+        {...pilot(`analysis.card:${pilotKey ?? href.split('?')[0].split('/').filter((s) => s && s !== 'analysis').join('.')}`)}
+      >
         {head}
         {children}
       </Link>

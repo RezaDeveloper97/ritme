@@ -36,6 +36,7 @@ import {
 } from '@/shared/lib/date';
 import { withHandoff } from '@/shared/lib/handoff';
 import { type PdfBlock, loadPdfGenerator, shareOrDownloadFile } from '@/shared/lib/pdf';
+import { pilot } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import {
   Card,
@@ -79,7 +80,7 @@ export function PregnancyCalendarPage() {
   const month = (
     <Card as="section" className="pgn-sect" aria-label={t('calendar.title')}>
       <div className="pgn-month-head">
-        <button type="button" className="pgn-step" aria-label={t('calendar.prevMonth')} onClick={() => move(-1)}>
+        <button type="button" className="pgn-step" aria-label={t('calendar.prevMonth')} onClick={() => move(-1)} {...pilot('preg.cal-prev')}>
           <Icon name={dir === 'rtl' ? 'chevronRight' : 'chevronLeft'} size={18} />
         </button>
         <div className="pgn-month-title">
@@ -90,7 +91,7 @@ export function PregnancyCalendarPage() {
             </span>
           )}
         </div>
-        <button type="button" className="pgn-step" aria-label={t('calendar.nextMonth')} onClick={() => move(1)}>
+        <button type="button" className="pgn-step" aria-label={t('calendar.nextMonth')} onClick={() => move(1)} {...pilot('preg.cal-next')}>
           <Icon name={dir === 'rtl' ? 'chevronLeft' : 'chevronRight'} size={18} />
         </button>
       </div>
@@ -115,7 +116,7 @@ export function PregnancyCalendarPage() {
           <Icon name="warning" size={24} />
         </span>
         <p className="pgn-state-text">{t('common.loadError')}</p>
-        <SecondaryButton icon="refresh" block={false} onClick={() => void query.refetch()}>
+        <SecondaryButton icon="refresh" block={false} onClick={() => void query.refetch()} {...pilot('preg.retry')}>
           {t('common.retry')}
         </SecondaryButton>
       </Card>
@@ -129,7 +130,7 @@ export function PregnancyCalendarPage() {
           icon="heart"
           title={t('common.notActive')}
           action={
-            <Link href="/pregnancy/setup" className="nb-btn is-primary is-block">
+            <Link href="/pregnancy/setup" className="nb-btn is-primary is-block" {...pilot('preg.setup')}>
               {t('today.setupCta')}
             </Link>
           }
@@ -146,7 +147,7 @@ export function PregnancyCalendarPage() {
           title={t('calendar.screenTitle')}
           onBack={() => router.push('/pregnancy')}
           backLabel={t('common.back')}
-          action={<HeaderButton icon="plus" label={t('calendar.newVisitLabel')} onClick={() => router.push(NEW_VISIT_HREF)} />}
+          action={<HeaderButton icon="plus" label={t('calendar.newVisitLabel')} onClick={() => router.push(NEW_VISIT_HREF)} pilot={pilot('preg.new-visit')} />}
         />
         <div className="pgn-body">{body}</div>
       </div>
@@ -204,6 +205,7 @@ function MonthGrid({
               aria-pressed={isSel}
               aria-current={isToday ? 'date' : undefined}
               onClick={() => onPick(key)}
+              {...pilot(`preg.cal-day:${key}`)}
               className={clsx('pgn-day', isToday && 'is-today', m?.weekStart != null && 'is-week-start')}
             >
               <span>{formatNumber(cell.day, locale)}</span>
@@ -287,7 +289,7 @@ function SelectedDay({ data, date }: { data: PregnancyCalendar; date: string }) 
         <span className="pgn-row-desc">{sub}</span>
       </span>
       {!visits.length && (
-        <Link href={`${NEW_VISIT_HREF}&date=${date}`} aria-label={t('newVisitLabel')} className="pgn-icon-link">
+        <Link href={`${NEW_VISIT_HREF}&date=${date}`} aria-label={t('newVisitLabel')} className="pgn-icon-link" {...pilot('preg.new-visit-day')}>
           <Icon name="plus" size={18} strokeWidth={2.2} />
         </Link>
       )}
@@ -388,6 +390,7 @@ function NextVisitCard({ visit }: { visit: CalendarVisit }) {
           aria-label={t('calendar.stagesLabel')}
           disabled={!canAdvance}
           onClick={advance}
+          {...pilot('preg.visit-stage')}
         >
           <span className="pgn-stages-bars">
             {VISIT_STAGES.map((s, i) => (
@@ -438,7 +441,7 @@ function NextVisitCard({ visit }: { visit: CalendarVisit }) {
         size="half"
         title={t('calendar.stages.result')}
         footer={
-          <PrimaryButton loading={stage.busy} onClick={() => void saveNote()}>
+          <PrimaryButton loading={stage.busy} onClick={() => void saveNote()} {...pilot('preg.visit-result-save')}>
             {t('calendar.saveResult')}
           </PrimaryButton>
         }
@@ -450,6 +453,7 @@ function NextVisitCard({ visit }: { visit: CalendarVisit }) {
             maxLength={2000}
             rows={4}
             onChange={(e) => setNote(e.target.value)}
+            {...pilot('preg.visit-result', 'text')}
             className="pgn-textarea"
           />
         </label>
@@ -584,7 +588,7 @@ function ReportButton() {
 
   return (
     <>
-      <SecondaryButton icon={state === 'working' ? 'loader' : 'download'} loading={state === 'working'} onClick={() => void run()}>
+      <SecondaryButton icon={state === 'working' ? 'loader' : 'download'} loading={state === 'working'} onClick={() => void run()} {...pilot('preg.report')}>
         {state === 'working' ? t('calendar.pdf.working') : t('calendar.report')}
       </SecondaryButton>
       {state === 'error' && (

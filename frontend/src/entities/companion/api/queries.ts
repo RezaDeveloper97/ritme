@@ -63,7 +63,8 @@ export async function createCompanion(input: CreateCompanionInput): Promise<Crea
 function preferencesBody(prefs: Partial<CompanionPreferences> | undefined): Record<string, unknown> {
   const body: Record<string, unknown> = {};
   if (!prefs) return body;
-  if (prefs.goal) body.goal = prefs.goal;
+  // The whole list replaces the stored one; an empty list is «فعلاً نمی‌دانم».
+  if (prefs.goals) body.goals = prefs.goals.filter((g) => g !== 'unknown');
   if (prefs.signals) body.signals = prefs.signals;
   if (prefs.actionPrefs) body.action_prefs = prefs.actionPrefs;
   return body;

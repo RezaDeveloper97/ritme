@@ -10,6 +10,7 @@ import {
   type CompanionGrants,
   type CompanionSection,
 } from '@/entities/companion';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { useDirection } from '@/shared/i18n';
 import { IconCircle, type IconName, type Tone } from '@/shared/ui';
 
@@ -57,6 +58,7 @@ function LevelPicker({ section, value, onChange, disabled }: LevelPickerProps) {
       role="radiogroup"
       aria-label={t('access.levelLabel', { section: t(`sections.${section}`) })}
       className="cmp-levels"
+      {...pilot(`companion.access:${section}`, 'choice')}
     >
       {ACCESS_LEVELS.map((level, index) => (
         <button
@@ -71,6 +73,7 @@ function LevelPicker({ section, value, onChange, disabled }: LevelPickerProps) {
           disabled={disabled}
           className="cmp-level"
           onClick={() => onChange(level)}
+          {...pilotOption(level)}
           onKeyDown={(event) => onKeyDown(event, index)}
         >
           {t(`levels.${level}`)}

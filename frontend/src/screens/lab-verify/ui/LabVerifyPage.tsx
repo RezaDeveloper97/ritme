@@ -34,6 +34,7 @@ import {
   SkeletonGroup,
   SkyLayer,
 } from '@/shared/ui';
+import { pilot } from '@/shared/pilot';
 
 import { MarkerSheet } from './MarkerSheet';
 
@@ -195,7 +196,7 @@ export function LabVerifyPage({ id }: { id: number }) {
       ) : null}
       {toConfirm.length > 0 ? <p className="lab-lead">{t('verify.unconfirmedNote')}</p> : null}
       {toConfirm.length > 1 ? (
-        <SecondaryButton icon="check" block={false} loading={confirm.isPending} disabled={saving} onClick={() => confirm.mutate(toConfirm)}>
+        <SecondaryButton icon="check" block={false} loading={confirm.isPending} disabled={saving} onClick={() => confirm.mutate(toConfirm)} {...pilot('labv.confirm-all')}>
           {t('verify.confirmAll')}
         </SecondaryButton>
       ) : null}
@@ -214,6 +215,7 @@ export function LabVerifyPage({ id }: { id: number }) {
                 type="button"
                 className="lab-vrow-value"
                 onClick={() => setEditing({ kind: 'edit', marker: m })}
+                {...pilot(`labv.marker:${m.id}`)}
                 aria-label={t('verify.editLabel', { name: m.name, value: formatLabValue(m, locale), unit: m.unit ?? '' })}
               >
                 <span className="lab-vrow-num">{formatLabValue(m, locale)}</span>
@@ -227,6 +229,7 @@ export function LabVerifyPage({ id }: { id: number }) {
                   disabled={saving}
                   aria-label={t('verify.confirmLabel', { name: m.name, value: formatLabValue(m, locale), unit: m.unit ?? '' })}
                   onClick={() => confirm.mutate([m.id])}
+                  {...pilot(`labv.confirm:${m.id}`)}
                 >
                   {t('verify.confirm')}
                 </SecondaryButton>
@@ -239,7 +242,7 @@ export function LabVerifyPage({ id }: { id: number }) {
             </li>
           ))}
         </ul>
-        <button type="button" className="lab-add" onClick={() => setEditing({ kind: 'new' })}>
+        <button type="button" className="lab-add" onClick={() => setEditing({ kind: 'new' })} {...pilot('labv.add')}>
           <Icon name="plus" size={18} />
           <span>{t('verify.add')}</span>
         </button>

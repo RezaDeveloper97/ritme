@@ -6,6 +6,7 @@ import { useId, useState } from 'react';
 import { isFertilitySuppressed, useCycleToday } from '@/entities/cycle';
 import { findEntitlement, usePlusStatus } from '@/entities/plus';
 import { DeviceNotificationsRow } from '@/features/push-notifications';
+import { pilot } from '@/shared/pilot';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import {
@@ -100,6 +101,7 @@ function SettingsBody({ settings, save }: BodyProps) {
                   <Switch
                     checked={item.enabled}
                     labelledBy={`ntf-${item.code}-title`}
+                    pilot={pilot(`notif.category:${item.code}`)}
                     onCheckedChange={(next) => save({ categories: { [item.code]: next } })}
                   />
                 }
@@ -126,6 +128,7 @@ function SettingsBody({ settings, save }: BodyProps) {
                   aria-controls={editorId}
                   aria-label={`${t('quiet.edit')} — ${t('quiet.range', { start: clock(quiet.start), end: clock(quiet.end) })}`}
                   onClick={() => setEditing((v) => !v)}
+                  {...pilot('notif.quiet-edit')}
                 >
                   {t('quiet.range', { start: clock(quiet.start), end: clock(quiet.end) })}
                   <Icon name="pencil" size={13} className="ntf-range-icon" />
@@ -138,6 +141,7 @@ function SettingsBody({ settings, save }: BodyProps) {
               <Switch
                 checked={quiet.enabled}
                 labelledBy="ntf-quiet-title"
+                pilot={pilot('notif.quiet')}
                 onCheckedChange={(next) => {
                   if (!next) setEditing(false);
                   save({ quiet_hours: { enabled: next } });
@@ -152,6 +156,7 @@ function SettingsBody({ settings, save }: BodyProps) {
                 <input
                   type="time"
                   className="ntf-time-input"
+                  {...pilot('notif.quiet-start', 'text')}
                   defaultValue={quiet.start}
                   onBlur={(e) => onClock('start', e.target.value)}
                   onChange={(e) => onClock('start', e.target.value)}
@@ -162,12 +167,13 @@ function SettingsBody({ settings, save }: BodyProps) {
                 <input
                   type="time"
                   className="ntf-time-input"
+                  {...pilot('notif.quiet-end', 'text')}
                   defaultValue={quiet.end}
                   onBlur={(e) => onClock('end', e.target.value)}
                   onChange={(e) => onClock('end', e.target.value)}
                 />
               </label>
-              <button type="button" className="ntf-time-done" onClick={() => setEditing(false)}>
+              <button type="button" className="ntf-time-done" onClick={() => setEditing(false)} {...pilot('notif.quiet-done')}>
                 {t('quiet.done')}
               </button>
             </div>
@@ -190,6 +196,7 @@ function SettingsBody({ settings, save }: BodyProps) {
             <Switch
               checked={settings.smsReminders}
               labelledBy="ntf-sms-title"
+              pilot={pilot('notif.sms')}
               describedBy="ntf-sms-desc"
               onCheckedChange={(next) => save({ sms_reminders: next })}
             />
@@ -219,6 +226,7 @@ function SettingsBody({ settings, save }: BodyProps) {
         <Switch
           checked={settings.neutralCopy}
           labelledBy="ntf-neutral-title"
+          pilot={pilot('notif.neutral-copy')}
           describedBy="ntf-neutral-desc"
           onCheckedChange={(next) => save({ neutral_copy: next })}
         />

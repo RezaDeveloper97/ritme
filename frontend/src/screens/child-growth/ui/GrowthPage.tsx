@@ -9,6 +9,7 @@ import { getApiErrorStatus } from '@/shared/api';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatDecimal, formatLongDate, formatNumber, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { pilot } from '@/shared/pilot';
 import {
   Card,
   EmptyState,
@@ -76,7 +77,7 @@ export function ChildGrowthPage({ id }: { id: number }) {
       backLabel={t('common.back')}
       action={
         canEdit ? (
-          <HeaderButton variant="soft" icon="plus" label={t('growth.add')} onClick={() => setEditing({ kind: 'new' })} />
+          <HeaderButton variant="soft" icon="plus" label={t('growth.add')} onClick={() => setEditing({ kind: 'new' })} pilot={pilot('child.growth-add')} />
         ) : undefined
       }
     />
@@ -118,7 +119,7 @@ export function ChildGrowthPage({ id }: { id: number }) {
         <Card className="chd-state" role="alert">
           <IconCircle icon="warning" tone="danger" size="lg" />
           <p className="chd-state-text">{t('common.loadError')}</p>
-          <SecondaryButton icon="refresh" block={false} loading={series.isFetching || list.isFetching} onClick={retry}>
+          <SecondaryButton icon="refresh" block={false} loading={series.isFetching || list.isFetching} onClick={retry} {...pilot('child.retry')}>
             {t('common.retry')}
           </SecondaryButton>
         </Card>
@@ -134,6 +135,7 @@ export function ChildGrowthPage({ id }: { id: number }) {
         label={t('growth.tabsLabel')}
         value={indicator}
         onChange={setIndicator}
+        pilot={(v) => pilot(`child.growth-tab:${v}`)}
         tabs={GROWTH_INDICATORS.map((v) => ({ value: v, label: t(`growth.${v}`) }))}
       />
       {home.role === 'shared' ? (

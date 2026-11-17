@@ -14,6 +14,7 @@ import {
 } from '@/entities/companion';
 import { useUserProfile } from '@/entities/user';
 import { DisconnectSheet, useChildNames } from '@/features/invite-companion';
+import { pilot } from '@/shared/pilot';
 import { type Locale, useDirection, useRouter } from '@/shared/i18n';
 import { diffInDays, formatLongDate, formatNumber, today } from '@/shared/lib/date';
 import {
@@ -103,7 +104,7 @@ export function CompanionsPage() {
     body = (
       <>
         <EmptyState icon="users" title={t('list.emptyTitle')} body={t('list.emptyBody')} className="cmp-empty" />
-        <PrimaryButton icon="plus" onClick={add}>
+        <PrimaryButton icon="plus" onClick={add} {...pilot('companion.add')}>
           {t('list.add')}
         </PrimaryButton>
       </>
@@ -136,7 +137,7 @@ export function CompanionsPage() {
             ))}
           </ul>
         </section>
-        <SecondaryButton icon="plus" onClick={add}>
+        <SecondaryButton icon="plus" onClick={add} {...pilot('companion.add')}>
           {t('list.add')}
         </SecondaryButton>
         <p className="cmp2-privacy">
@@ -198,11 +199,11 @@ function CompanionRow({ companion, onOpen, onCut }: CompanionRowProps) {
     const hours = hoursUntil(companion.invite.expiresAt);
     when = hours > 0 ? t('list.expiresIn', { hours: formatNumber(hours, locale) }) : t('list.expired');
   }
-  const goal = companion.preferences.goal;
+  const goals = companion.preferences.goals;
 
   return (
     <div className="nb-card cmp2-row">
-      <button type="button" className="cmp2-row-main" onClick={onOpen}>
+      <button type="button" className="cmp2-row-main" onClick={onOpen} {...pilot(`companion.link:${companion.id}`)}>
         <PersonBubble name={companionName(companion)} tone="companion" />
         <span className="cmp2-row-text">
           <b className="cmp2-row-name">{name}</b>
@@ -210,7 +211,15 @@ function CompanionRow({ companion, onOpen, onCut }: CompanionRowProps) {
             <span className={active ? 'cmp2-dot is-active' : 'cmp2-dot is-invited'} aria-hidden />
             {when ? t('list.meta', { status: t(`status.${companion.status}`), when }) : t(`status.${companion.status}`)}
           </span>
-          {goal !== 'unknown' ? <span className="cmp2-row-goal">{t(`goals.${goal}.title`)}</span> : null}
+          {goals.length ? (
+            <span className="cmp2-row-goals">
+              {goals.map((goal) => (
+                <span key={goal} className="cmp2-row-goal">
+                  {t(`goals.${goal}.title`)}
+                </span>
+              ))}
+            </span>
+          ) : null}
         </span>
         <Icon name={rtl ? 'chevronLeft' : 'chevronRight'} size={18} className="cmp-card-chev" />
       </button>

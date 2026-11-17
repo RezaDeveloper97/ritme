@@ -17,6 +17,7 @@ import {
 } from '@/entities/menopause';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatMonthLabel, formatNumber, fromApiDate, toParts } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   Card,
   ChipGroup,
@@ -234,7 +235,7 @@ function MedicineRow({
   const taken = item.takenToday;
   return (
     <div className="mtr-row">
-      <button type="button" className="mtr-row-main" onClick={() => onEdit(item)} aria-label={t('editA11y', { name: item.name })}>
+      <button type="button" className="mtr-row-main" onClick={() => onEdit(item)} aria-label={t('editA11y', { name: item.name })} {...pilot(`menopause.treat-edit:${item.id}`)}>
         <IconCircle icon={look.icon} tone={look.tone} size="md" />
         <span className="mtr-row-text">
           <b className="mtr-row-title">{item.name}</b>
@@ -248,6 +249,7 @@ function MedicineRow({
         aria-label={t(taken ? 'untakeA11y' : 'takeA11y', { name: item.name })}
         disabled={intake.isPending}
         onClick={() => intake.mutate({ id: item.id, date: today, taken: !taken })}
+        {...pilot(`menopause.treat-take:${item.id}`)}
       >
         {taken ? t('taken') : t('log')}
       </button>
@@ -294,9 +296,9 @@ function SideEffects({ screen }: { screen: TreatmentScreen }) {
     <section className="mtr-sec" aria-labelledby="mtr-side">
       <SectionTitle id="mtr-side" title={t('title')} />
       <Card className="mtr-side">
-        <ChipGroup label={t('label')}>
+        <ChipGroup label={t('label')} pilot={pilot('menopause.treat-side', 'choice')}>
           {screen.sideEffects.codes.map((code) => (
-            <PillChip key={code} mode="multi" tone="bloom" pressed={selected.includes(code)} onPressedChange={(on) => toggle(code, on)}>
+            <PillChip key={code} mode="multi" tone="bloom" pressed={selected.includes(code)} onPressedChange={(on) => toggle(code, on)} {...pilotOption(code)}>
               {t(`codes.${code}`)}
             </PillChip>
           ))}
@@ -395,7 +397,7 @@ function LifestyleRow({
   };
   return (
     <div className="mtr-row">
-      <button type="button" className="mtr-row-main" onClick={() => onEdit(item)} aria-label={t('editA11y', { name: item.name })}>
+      <button type="button" className="mtr-row-main" onClick={() => onEdit(item)} aria-label={t('editA11y', { name: item.name })} {...pilot(`menopause.treat-edit:${item.id}`)}>
         <IconCircle icon={look.icon} tone={look.tone} size="md" />
         <span className="mtr-row-text">
           <b className="mtr-row-title">{item.name}</b>
@@ -416,6 +418,7 @@ function LifestyleRow({
           })}
           disabled={intake.isPending}
           onClick={log}
+          {...pilot(`menopause.treat-goal:${item.id}`)}
         >
           {doneToday ? <Icon name="check" size={14} strokeWidth={2.6} /> : null}
           {t('lifestyle.progress', { amount: formatNumber(goal.amount, locale), target: formatNumber(goal.target, locale) })}
@@ -445,7 +448,7 @@ function SuggestionRow({ tip, index, onAdd }: { tip: TreatmentTip; index: number
           {sub ? <span className="mtr-row-sub">{sub}</span> : null}
         </span>
       </span>
-      <button type="button" className="mtr-take is-open" onClick={onAdd} aria-label={t('lifestyle.addA11y', { name: tip.title ?? '' })}>
+      <button type="button" className="mtr-take is-open" onClick={onAdd} aria-label={t('lifestyle.addA11y', { name: tip.title ?? '' })} {...pilot(`menopause.treat-suggest:${tip.code}`)}>
         <Icon name="plus" size={14} strokeWidth={2.6} />
         {t('add')}
       </button>
@@ -462,7 +465,7 @@ function StoppedSection({ items, onEdit }: { items: TreatmentItem[]; onEdit: (it
       <Card className="mtr-list" padding="none">
         {items.map((item) => (
           <div key={item.id} className="mtr-row is-stopped">
-            <button type="button" className="mtr-row-main" onClick={() => onEdit(item)} aria-label={t('editA11y', { name: item.name })}>
+            <button type="button" className="mtr-row-main" onClick={() => onEdit(item)} aria-label={t('editA11y', { name: item.name })} {...pilot(`menopause.treat-edit:${item.id}`)}>
               <IconCircle icon={item.kind === 'lifestyle' ? 'run' : 'pill'} tone="neutral" size="md" />
               <span className="mtr-row-text">
                 <b className="mtr-row-title">{item.name}</b>

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import { type AppModules, moduleOfRoute, useAppModules } from '@/entities/app-module';
 import { useCurrentUser } from '@/entities/user';
+import { pilot } from '@/shared/pilot';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { openSheet } from '@/shared/sheet';
@@ -177,6 +178,7 @@ export function SearchPage() {
             clearLabel={t('field.clear')}
             placeholder={t('field.placeholder')}
             maxLength={SEARCH_MAX_LENGTH}
+            {...pilot('search.query', 'text')}
             autoFocus
             autoComplete="off"
           />

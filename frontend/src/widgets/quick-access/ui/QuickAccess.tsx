@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { useTranslations } from 'next-intl';
 
 import { Link } from '@/shared/i18n';
+import { pilot } from '@/shared/pilot';
 import { openSheet } from '@/shared/sheet';
 import { Icon, type IconName, type Tone } from '@/shared/ui';
 
@@ -45,18 +46,18 @@ export function QuickAccess({ className }: { className?: string }) {
         {qa.visible.map((s) => (
           <li key={s.id}>
             {s.sheet ? (
-              <button type="button" className="qac-tile" onClick={() => openSheet(s.sheet as string)}>
+              <button type="button" className="qac-tile" onClick={() => openSheet(s.sheet as string)} {...pilot(`home.quick:${s.id}`)}>
                 <ShortcutFace id={s.id} icon={s.icon} tone={s.tone} />
               </button>
             ) : (
-              <Link href={s.href as string} className="qac-tile">
+              <Link href={s.href as string} className="qac-tile" {...pilot(`home.quick:${s.id}`)}>
                 <ShortcutFace id={s.id} icon={s.icon} tone={s.tone} />
               </Link>
             )}
           </li>
         ))}
         <li>
-          <button type="button" className="qac-tile" onClick={() => openSheet(QUICK_ACCESS_SHEET)}>
+          <button type="button" className="qac-tile" onClick={() => openSheet(QUICK_ACCESS_SHEET)} {...pilot('home.quick-edit')}>
             <span className="qac-ic is-edit" aria-hidden>
               <Icon name="plus" size={22} strokeWidth={2} />
             </span>

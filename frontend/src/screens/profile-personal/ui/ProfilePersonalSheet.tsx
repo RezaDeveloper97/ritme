@@ -10,6 +10,7 @@ import {
   type UpdateProfileInput,
   useUpdateProfile,
 } from '@/features/edit-profile';
+import { pilot } from '@/shared/pilot';
 import { getApiErrorMessage } from '@/shared/api';
 import type { Locale } from '@/shared/i18n';
 import { birthYearRange, type DateParts, toApiDate, today, toParts, todayParts } from '@/shared/lib/date';
@@ -91,6 +92,7 @@ function PersonalForm({ profile }: { profile: UserProfile }) {
           <SectionLabel>{t('personal.nameLabel')}</SectionLabel>
           <div className="field">
             <input
+              {...pilot('personal.name', 'text')}
               value={name}
               placeholder={t('personal.namePlaceholder')}
               onChange={(e) => setName(e.target.value)}
@@ -107,6 +109,7 @@ function PersonalForm({ profile }: { profile: UserProfile }) {
           <div className="card prof-wheel-card">
             <DateWheels
               idPrefix="pp-birth"
+              pilotId="personal.birthday"
               value={birth}
               onChange={setBirth}
               minYear={birthYears.min}
@@ -120,6 +123,7 @@ function PersonalForm({ profile }: { profile: UserProfile }) {
           <SectionLabel>{t('personal.weightLabel')}</SectionLabel>
           <div className="card prof-wheel-card is-tall">
             <RulerPicker
+              pilot={pilot('personal.weight', 'ruler')}
               min={30}
               max={200}
               value={weight}
@@ -135,6 +139,7 @@ function PersonalForm({ profile }: { profile: UserProfile }) {
           <SectionLabel>{t('personal.heightLabel')}</SectionLabel>
           <div className="card prof-wheel-card is-tall">
             <RulerPicker
+              pilot={pilot('personal.height', 'ruler')}
               min={100}
               max={220}
               value={height}
@@ -156,6 +161,7 @@ function PersonalForm({ profile }: { profile: UserProfile }) {
           className="btn btn-primary"
           onClick={handleSave}
           disabled={update.isPending}
+          {...pilot('personal.save')}
         >
           {update.isPending ? t('saving') : t('save')}
         </button>

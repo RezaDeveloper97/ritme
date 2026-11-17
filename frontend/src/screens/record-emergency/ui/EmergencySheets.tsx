@@ -6,6 +6,7 @@ import { type FormEvent, type ReactNode, useEffect, useId, useState } from 'reac
 import { type OwnerEmergencyCard, useSaveEmergencyCard } from '@/entities/health-record';
 import { AppSheet } from '@/shared/sheet';
 import { PrimaryButton, SecondaryButton } from '@/shared/ui';
+import { pilot } from '@/shared/pilot';
 
 import { isValidLast4, isValidPhone, normalizeLast4, normalizePhone } from '../model/forms';
 
@@ -56,7 +57,7 @@ export function ContactSheet({ open, onClose, card }: SheetProps) {
       title={t('contactTitle')}
       footer={
         <div className="rem-sheet-btns">
-          <PrimaryButton type="submit" form={formId} loading={save.isPending}>
+          <PrimaryButton type="submit" form={formId} loading={save.isPending} {...pilot('recem.contact-save')}>
             {t('save')}
           </PrimaryButton>
           {card.contact ? (
@@ -74,12 +75,12 @@ export function ContactSheet({ open, onClose, card }: SheetProps) {
       <form id={formId} className="rem-form" onSubmit={submit} noValidate>
         <Field label={t('contactName')}>
           {(id) => (
-            <input id={id} className="hrec-input" value={name} maxLength={60} autoComplete="off" onChange={(e) => setName(e.target.value)} />
+            <input id={id} className="hrec-input" value={name} maxLength={60} autoComplete="off" onChange={(e) => setName(e.target.value)} {...pilot('recem.contact-name', 'text')} />
           )}
         </Field>
         <Field label={t('contactRelation')}>
           {(id) => (
-            <input id={id} className="hrec-input" value={relation} maxLength={30} autoComplete="off" onChange={(e) => setRelation(e.target.value)} />
+            <input id={id} className="hrec-input" value={relation} maxLength={30} autoComplete="off" onChange={(e) => setRelation(e.target.value)} {...pilot('recem.contact-relation', 'text')} />
           )}
         </Field>
         <Field label={t('contactPhone')} error={touched && !phoneOk ? t('phoneError') : null}>
@@ -95,6 +96,7 @@ export function ContactSheet({ open, onClose, card }: SheetProps) {
               aria-invalid={touched && !phoneOk}
               aria-describedby={describedBy}
               onChange={(e) => setPhone(e.target.value)}
+              {...pilot('recem.contact-phone', 'text')}
             />
           )}
         </Field>
@@ -142,7 +144,7 @@ export function InsuranceSheet({ open, onClose, card }: SheetProps) {
       title={t('insuranceTitle')}
       footer={
         <div className="rem-sheet-btns">
-          <PrimaryButton type="submit" form={formId} loading={save.isPending}>
+          <PrimaryButton type="submit" form={formId} loading={save.isPending} {...pilot('recem.insurance-save')}>
             {t('save')}
           </PrimaryButton>
           {card.insurance ? (
@@ -156,7 +158,7 @@ export function InsuranceSheet({ open, onClose, card }: SheetProps) {
       <form id={formId} className="rem-form" onSubmit={submit} noValidate>
         <Field label={t('insuranceLabel')}>
           {(id) => (
-            <input id={id} className="hrec-input" value={label} maxLength={60} autoComplete="off" onChange={(e) => setLabel(e.target.value)} />
+            <input id={id} className="hrec-input" value={label} maxLength={60} autoComplete="off" onChange={(e) => setLabel(e.target.value)} {...pilot('recem.insurance-label', 'text')} />
           )}
         </Field>
         <Field label={t('insuranceLast4')} hint={t('insuranceHint')} error={touched && !ok ? t('last4Error') : null}>
@@ -172,6 +174,7 @@ export function InsuranceSheet({ open, onClose, card }: SheetProps) {
               aria-invalid={touched && !ok}
               aria-describedby={describedBy}
               onChange={(e) => setLast4(e.target.value)}
+              {...pilot('recem.insurance-last4', 'text')}
             />
           )}
         </Field>

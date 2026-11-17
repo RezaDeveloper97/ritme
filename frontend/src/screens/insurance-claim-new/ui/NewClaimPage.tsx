@@ -14,6 +14,7 @@ import {
 import { KIND_LOOK, type TimelineItemKind } from '@/entities/health-record';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { type DateParts, formatLongDate, fromApiDate, partsToDate, toApiDate, today, toParts } from '@/shared/lib/date';
+import { pilot, pilotOption } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import {
   Avatar,
@@ -51,13 +52,13 @@ function DateSheet({ value, onClose, onPick }: { value: string; onClose: () => v
           <SecondaryButton block={false} onClick={onClose}>
             {t('cancel')}
           </SecondaryButton>
-          <PrimaryButton block={false} disabled={!parts} onClick={() => parts && onPick(toApiDate(partsToDate(parts, locale)))}>
+          <PrimaryButton block={false} disabled={!parts} onClick={() => parts && onPick(toApiDate(partsToDate(parts, locale)))} {...pilot('ins-claim-new.date-done')}>
             {t('done')}
           </PrimaryButton>
         </div>
       }
     >
-      <CalendarPicker value={parts} onSelect={setParts} />
+      <CalendarPicker value={parts} onSelect={setParts} pilot={pilot('ins-claim-new.calendar', 'calendar')} />
     </AppSheet>
   );
 }
@@ -103,9 +104,9 @@ function Form({ memberOptions, ibanLast4, defaultMemberId }: { memberOptions: { 
           <h2 id="ins-n-who" className="ins-label">
             {tn('who')}
           </h2>
-          <div className="ins-whos" role="group" aria-labelledby="ins-n-who">
+          <div className="ins-whos" role="group" aria-labelledby="ins-n-who" {...pilot('ins-claim-new.who', 'choice')}>
             {memberOptions.map((m) => (
-              <button key={m.id} type="button" className="ins-who" aria-pressed={draft.memberId === m.id} onClick={() => patch({ memberId: m.id })}>
+              <button key={m.id} type="button" className="ins-who" aria-pressed={draft.memberId === m.id} {...pilotOption(String(m.id))} onClick={() => patch({ memberId: m.id })}>
                 <Avatar name={m.name} size="md" />
                 <span className="ins-who-t">{m.name}</span>
               </button>
@@ -118,9 +119,9 @@ function Form({ memberOptions, ibanLast4, defaultMemberId }: { memberOptions: { 
         <h2 id="ins-n-type" className="ins-label">
           {tn('costType')}
         </h2>
-        <div className="ins-chips" role="group" aria-labelledby="ins-n-type">
+        <div className="ins-chips" role="group" aria-labelledby="ins-n-type" {...pilot('ins-claim-new.cost-type', 'choice')}>
           {CLAIM_COST_TYPES.map((c) => (
-            <PillChip key={c} pressed={draft.costType === c} onPressedChange={() => patch({ costType: c })}>
+            <PillChip key={c} pressed={draft.costType === c} onPressedChange={() => patch({ costType: c })} {...pilotOption(c)}>
               {t(`costTypes.${costTypeKey(c)}`)}
             </PillChip>
           ))}
@@ -137,9 +138,10 @@ function Form({ memberOptions, ibanLast4, defaultMemberId }: { memberOptions: { 
             autoComplete="off"
             placeholder={tn('centrePlaceholder')}
             onChange={(e) => patch({ centreName: e.target.value })}
+            {...pilot('ins-claim-new.centre', 'text')}
           />
         </label>
-        <button type="button" className="ins-date ins-date-wide" onClick={() => setDatePicker(true)}>
+        <button type="button" className="ins-date ins-date-wide" onClick={() => setDatePicker(true)} {...pilot('ins-claim-new.date')}>
           <span className="ins-date-l">{tn('date')}</span>
           <span className="ins-date-v">
             <Icon name="calendar" size={16} />
@@ -151,6 +153,7 @@ function Form({ memberOptions, ibanLast4, defaultMemberId }: { memberOptions: { 
           locale={locale}
           value={draft.amount}
           max={MAX_AMOUNT}
+          pilot={pilot('ins-claim-new.amount')}
           onChange={(v) => patch({ amount: v })}
         />
         {touched && problems.includes('amount') ? (
@@ -165,7 +168,7 @@ function Form({ memberOptions, ibanLast4, defaultMemberId }: { memberOptions: { 
           <h2 id="ins-n-docs" className="ins-label">
             {tn('docs')}
           </h2>
-          <button type="button" className="ins-more ins-more-btn" onClick={() => setPickFor('other')}>
+          <button type="button" className="ins-more ins-more-btn" onClick={() => setPickFor('other')} {...pilot('ins-claim-new.doc-add:other')}>
             {tn('fromRecord')}
           </button>
         </div>
@@ -185,7 +188,7 @@ function Form({ memberOptions, ibanLast4, defaultMemberId }: { memberOptions: { 
                     {tn('attached')}
                   </StatusPill>
                 ) : (
-                  <SecondaryButton block={false} onClick={() => setPickFor(slot)}>
+                  <SecondaryButton block={false} onClick={() => setPickFor(slot)} {...pilot(`ins-claim-new.doc-add:${slot}`)}>
                     {tn('add')}
                   </SecondaryButton>
                 )}
@@ -224,7 +227,7 @@ function Form({ memberOptions, ibanLast4, defaultMemberId }: { memberOptions: { 
       ) : null}
 
       <div className="ins-cta">
-        <PrimaryButton icon="check" loading={create.isPending} onClick={submit}>
+        <PrimaryButton icon="check" loading={create.isPending} onClick={submit} {...pilot('ins-claim-new.submit')}>
           {tn('submit')}
         </PrimaryButton>
       </div>

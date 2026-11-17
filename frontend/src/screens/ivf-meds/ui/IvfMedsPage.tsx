@@ -21,6 +21,7 @@ import {
 import { Link, type Locale, useDirection, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatDecimal, formatNumber, formatWeekday, fromApiDate } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { pilot, pilotOption } from '@/shared/pilot';
 import {
   Card,
   EmptyState,
@@ -146,7 +147,7 @@ export function IvfMedsPage() {
               title={t('meds.noCycleTitle')}
               body={t('meds.noCycleBody')}
               action={
-                <Link href="/ivf" className="nb-btn is-outline is-block">
+                <Link href="/ivf" className="nb-btn is-outline is-block" {...pilot('ivf.meds-home')}>
                   {t('meds.noCycleCta')}
                 </Link>
               }
@@ -224,7 +225,7 @@ function Schedule({ view, t }: { view: IvfMedsView; t: T }) {
 
       <Inventory meds={view.meds} today={view.today.date} t={t} />
 
-      <Link href="/ivf/meds/new" className="ivfm-add">
+      <Link href="/ivf/meds/new" className="ivfm-add" {...pilot('ivf.med-add')}>
         <Icon name="plus" size={18} />
         {t('meds.add')}
       </Link>
@@ -330,6 +331,7 @@ function DoseRow({
             }
             disabled={action.busy}
             onClick={() => action.onToggle(dose)}
+            {...pilot(`ivf.dose:${dose.medId}-${dose.slot.replace(/[^0-9A-Za-z]/g, '')}`)}
           >
             {dose.taken ? t('doses.done') : t('doses.log')}
           </button>
@@ -386,7 +388,7 @@ function SitePicker({
         {t('meds.sites.title')}
       </h2>
       <Card className="ivfm-sites">
-        <div role="radiogroup" aria-label={t('meds.sites.label')} className="ivfm-site-grid">
+        <div role="radiogroup" aria-label={t('meds.sites.label')} className="ivfm-site-grid" {...pilot('ivf.site', 'choice')}>
           {codes.map((code, index) => {
             const isLast = note.last === code;
             return (
@@ -401,6 +403,7 @@ function SitePicker({
                 tabIndex={index === tabStop ? 0 : -1}
                 className={clsx('ivfm-site', isLast && 'is-last')}
                 onClick={() => onPick(code)}
+                {...pilotOption(code)}
                 onKeyDown={(event) => onKeyDown(event, index)}
               >
                 <span className="ivfm-site-name">{siteName(code)}</span>
@@ -478,6 +481,7 @@ function Inventory({ meds, today, t }: { meds: readonly IvfMed[]; today: string;
                   )
                 }
                 onClick={() => router.push(`/ivf/meds/${med.id}`)}
+                pilot={pilot(`ivf.stock:${med.id}`)}
               />
             );
           })}

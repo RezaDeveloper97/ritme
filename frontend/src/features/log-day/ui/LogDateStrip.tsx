@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 
 import { useLogDays } from '@/entities/health-log';
+import { pilot } from '@/shared/pilot';
 import type { Locale } from '@/shared/i18n';
 import {
   addDays,
@@ -17,6 +18,8 @@ import {
   weekdayLabels,
   weekOf,
 } from '@/shared/lib/date';
+
+import { logPilotId } from '../model/pilot-targets';
 
 /** Days shown before / after the selected one (nbl_Log_Sheet_Cycle: ۷ … ۱۲ … ۱۳). */
 const BEFORE = 5;
@@ -69,6 +72,7 @@ export function LogDateStrip({ date, onSelect }: { date: string; onSelect: (date
             aria-label={tone ? `${name} · ${t('dates.logged')}` : name}
             disabled={key > todayKey}
             onClick={() => onSelect(key)}
+            {...pilot(logPilotId.date(key))}
           >
             <span className="nb-date-wd" aria-hidden>
               {shortWeekday(day, locale)}

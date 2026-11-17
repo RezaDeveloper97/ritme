@@ -23,6 +23,7 @@ import { type Locale, useDirection, useRouter } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate, today } from '@/shared/lib/date';
 import { openLocalFile } from '@/shared/lib/local-files';
 import { type PdfBlock, loadPdfGenerator, shareOrDownloadFile } from '@/shared/lib/pdf';
+import { pilot } from '@/shared/pilot';
 import { openSheet } from '@/shared/sheet';
 import { EmptyState, Icon, ScreenHeader, SegmentedTabs, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
@@ -126,6 +127,7 @@ function RecordItem({ record, last }: { record: CheckupRecord; last: boolean }) 
           className="flex w-full flex-col gap-0.5 text-start"
           aria-label={`${t('detail.editRecord')}: ${record.checkupTitle ?? t('title')}`}
           onClick={() => openSheet(MARK_DONE_SHEET, editRecordSheetArg(record))}
+          {...pilot(`ckh.record:${record.id}`)}
         >
           <span className="text-[11.5px] font-bold text-(--ink-3)">{formatCheckupMonth(record.doneOn, locale)}</span>
           <span className="text-[14px] font-extrabold text-(--ink)">{record.checkupTitle ?? t('title')}</span>
@@ -210,6 +212,7 @@ export function CheckupHistoryPage({ type }: { type: number | null }) {
               type="button"
               className="nb-hbtn"
               aria-label={t('history.export')}
+              {...pilot('ckh.export')}
               disabled={pdf.state === 'working'}
               onClick={() => void pdf.run()}
             >
@@ -225,6 +228,7 @@ export function CheckupHistoryPage({ type }: { type: number | null }) {
             onChange={setFilter}
             label={t('history.title')}
             panelId={() => PANEL_ID}
+            pilot={(v) => pilot(`ckh.tab:${v}`)}
           />
 
           <div id={PANEL_ID} role="tabpanel" aria-label={t(`history.tabs.${filter}`)}>
@@ -256,6 +260,7 @@ export function CheckupHistoryPage({ type }: { type: number | null }) {
                     className="nb-btn is-outline is-block"
                     disabled={query.isFetchingNextPage}
                     onClick={() => void query.fetchNextPage()}
+                    {...pilot('ckh.more')}
                   >
                     {query.isFetchingNextPage ? t('loading') : t('history.loadMore')}
                   </button>
@@ -267,6 +272,7 @@ export function CheckupHistoryPage({ type }: { type: number | null }) {
           <button
             type="button"
             className="card flex items-center gap-3 p-4 text-start"
+            {...pilot('ckh.summary')}
             disabled={pdf.state === 'working'}
             onClick={() => void pdf.run()}
           >

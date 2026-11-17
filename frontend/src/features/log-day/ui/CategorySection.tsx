@@ -4,10 +4,12 @@ import { useTranslations } from 'next-intl';
 import { forwardRef, useState, type ReactNode } from 'react';
 
 import type { LogCategory, LogDayValues, LogOption, LogParam, LogParamValue } from '@/entities/health-log';
+import { pilot } from '@/shared/pilot';
 import type { Locale } from '@/shared/i18n';
 import { Accordion, Icon } from '@/shared/ui';
 
 import { asBool, asItems, categoryEntries, type LabelContext } from '../model/draft';
+import { logPilotId } from '../model/pilot-targets';
 import { categoryLook, panelOf, type PanelKind } from '../model/presentation';
 import { ParamField } from './ParamField';
 
@@ -46,6 +48,7 @@ export const CategorySection = forwardRef<HTMLDivElement, CategorySectionProps>(
         open={open}
         onOpenChange={onOpenChange}
         className="lday-acc"
+        pilot={pilot(logPilotId.category(category.code))}
       >
         {open ? <SectionBody {...props} /> : null}
       </Accordion>
@@ -73,6 +76,8 @@ function SectionBody(props: CategorySectionProps) {
       extraOptions={extraOptions(cat, p.code)}
       hideLabel={category.params.length === 1}
       emptyText={cat === 'meds' && p.code === 'taken' ? t('meds.empty') : undefined}
+      pilotId={logPilotId.param(cat, p.code)}
+      levelPilotId={logPilotId.level(cat, p.code)}
       {...extra}
     />
   );
@@ -100,6 +105,7 @@ function SectionBody(props: CategorySectionProps) {
             ? {
                 label: t('bleeding.spotting'),
                 pressed: spottingOn,
+                pilotId: logPilotId.param(cat, 'spotting'),
                 onToggle: () => {
                   setParam(cat, 'spotting', spottingOn ? null : true);
                   if (!spottingOn) setParam(cat, 'flow', null);
@@ -129,6 +135,7 @@ function SectionBody(props: CategorySectionProps) {
             ? {
                 label: none.label,
                 pressed: noneOn,
+                pilotId: logPilotId.param(cat, 'none'),
                 onToggle: () => {
                   setParam(cat, 'none', noneOn ? null : true);
                   if (!noneOn) setParam(cat, 'location', null);
@@ -155,7 +162,13 @@ function SectionBody(props: CategorySectionProps) {
       {nodes}
       {detail.length ? (
         <>
-          <button type="button" className="lday-more" aria-expanded={details} onClick={() => setDetails(!details)}>
+          <button
+            type="button"
+            className="lday-more"
+            aria-expanded={details}
+            onClick={() => setDetails(!details)}
+            {...pilot(logPilotId.more(cat))}
+          >
             {details ? t('less') : t('more')}
             <Icon name="chevronDown" size={16} className="lday-more-chev" />
           </button>
@@ -163,7 +176,7 @@ function SectionBody(props: CategorySectionProps) {
         </>
       ) : null}
       {panel && panelHasMore && linkLabel ? (
-        <button type="button" className="lday-panel-link" onClick={() => onOpenPanel(panel)}>
+        <button type="button" className="lday-panel-link" onClick={() => onOpenPanel(panel)} {...pilot(logPilotId.panel(panel))}>
           {linkLabel}
         </button>
       ) : null}

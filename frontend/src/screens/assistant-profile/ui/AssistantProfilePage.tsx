@@ -13,6 +13,7 @@ import {
   useAssistantProfile,
   useSaveProfile,
 } from '@/entities/assistant';
+import { pilot } from '@/shared/pilot';
 import { useRouter } from '@/shared/i18n';
 import { Card, InfoNote, PrimaryButton, ScreenHeader, SkyLayer, Switch } from '@/shared/ui';
 
@@ -65,7 +66,7 @@ export function AssistantProfilePage() {
                       <strong id={`as-sw-${k}`}>{t(`profile.keys.${k}` as 'profile.keys.age')}</strong>
                       <span>{hint}</span>
                     </span>
-                    <Switch checked={shared.includes(k)} onCheckedChange={(on) => toggle(k, on)} labelledBy={`as-sw-${k}`} />
+                    <Switch checked={shared.includes(k)} onCheckedChange={(on) => toggle(k, on)} labelledBy={`as-sw-${k}`} pilot={pilot(`assistant.share:${k}`)} />
                   </div>
                 );
               })}
@@ -74,7 +75,7 @@ export function AssistantProfilePage() {
         <InfoNote icon="shield">{t('profile.note')}</InfoNote>
         {save.isError ? <p className="as-error" role="alert">{errText(save.error)}</p> : null}
         {saved ? <p className="as-ok" role="status">{t('profile.saved')}</p> : null}
-        <PrimaryButton block loading={save.isPending} disabled={!dirty} onClick={() => save.mutate(shared, { onSuccess: () => setSaved(true) })}>
+        <PrimaryButton block loading={save.isPending} disabled={!dirty} onClick={() => save.mutate(shared, { onSuccess: () => setSaved(true) })} {...pilot('assistant.profile-save')}>
           {t('profile.save')}
         </PrimaryButton>
       </div>

@@ -34,6 +34,7 @@ import {
   SkeletonGroup,
   SkyLayer,
 } from '@/shared/ui';
+import { pilot } from '@/shared/pilot';
 
 /**
  * `/todo/lists/[id]` — one list (nbl_/nbd_Todo_List): «خرید · ۳ از ۵ مانده»,
@@ -55,7 +56,7 @@ export function TodoListPage({ id }: { id: number }) {
       subtitle={task?.list ? t('list.remaining', { open: task.list.open, total: task.list.total }) : undefined}
       onBack={back}
       backLabel={t('common.back')}
-      action={task ? <HeaderButton label={t('list.more')} icon="moreH" onClick={() => setMenuOpen(true)} /> : undefined}
+      action={task ? <HeaderButton label={t('list.more')} icon="moreH" onClick={() => setMenuOpen(true)} pilot={pilot('tdl.menu')} /> : undefined}
     />
   );
 
@@ -135,7 +136,14 @@ function ListBody({ task, items }: { task: TodoTask; items: TodoItem[] }) {
       {open.length ? <ul className="td-rows">{open.map(row)}</ul> : items.length ? null : <p className="td-list-empty">{t('list.empty')}</p>}
       <AddItemForm taskId={task.id} />
       {done.length ? (
-        <Accordion title={t('list.doneSection', { count: done.length })} icon="checkCircle" tone="success" defaultOpen className="td-done-acc">
+        <Accordion
+          title={t('list.doneSection', { count: done.length })}
+          icon="checkCircle"
+          tone="success"
+          defaultOpen
+          className="td-done-acc"
+          pilot={pilot('tdl.done-section')}
+        >
           <ul className="td-rows">{done.map(row)}</ul>
         </Accordion>
       ) : null}
@@ -159,7 +167,7 @@ function AddItemForm({ taskId }: { taskId: number }) {
 
   if (!editing) {
     return (
-      <button type="button" className="td-additem" onClick={() => setEditing(true)}>
+      <button type="button" className="td-additem" onClick={() => setEditing(true)} {...pilot('tdl.add-open')}>
         <Icon name="plus" size={20} />
         {t('list.addItem')}
       </button>
@@ -180,8 +188,9 @@ function AddItemForm({ taskId }: { taskId: number }) {
          
         autoFocus
         enterKeyHint="done"
+        {...pilot('tdl.add-title', 'text')}
       />
-      <button type="submit" className="td-additem-save" disabled={!title.trim() || add.isPending} aria-busy={add.isPending || undefined}>
+      <button type="submit" className="td-additem-save" {...pilot('tdl.add-save')} disabled={!title.trim() || add.isPending} aria-busy={add.isPending || undefined}>
         {t('list.addItemSave')}
       </button>
       {error ? (
@@ -227,6 +236,7 @@ function ListMenu({ task, open, onClose, onDeleted }: { task: TodoTask; open: bo
             <button
               type="button"
               className="td-menu-row"
+              {...pilot('tdl.edit')}
               onClick={() => {
                 close();
                 openSheet('todo-add', String(task.id));
