@@ -378,17 +378,6 @@ func TestAlerts_ActionsAndIDOR(t *testing.T) {
 	// Unknown action.
 	assert.Equal(t, http.StatusNotFound, h.do(t, http.MethodPost, base+"/alerts/"+id+"/actions/delete", tok, "en", "").status)
 
-	h.do(t, http.MethodPut, base+"/days/2026-09-23", tok, "en", `{"visit_note":"ask about iron"}`)
-	r = h.do(t, http.MethodPost, base+"/alerts/"+id+"/actions/add_to_visit_note", tok, "en", "")
-	require.Equal(t, http.StatusOK, r.status, r.raw)
-	want := "ask about iron\nVomiting on 3 of the last 7 days, 3 of them severe"
-	assert.Equal(t, want, r.data()["visit_note"])
-	assert.Equal(t, true, r.data()["alert"].(map[string]any)["is_read"])
-	assert.Equal(t, 1, h.inbox(uid, "rule_key = 'preg.vomiting' AND state = 'added_to_visit_note'"))
-	// Idempotent.
-	r = h.do(t, http.MethodPost, base+"/alerts/"+id+"/actions/add_to_visit_note", tok, "en", "")
-	assert.Equal(t, want, r.data()["visit_note"])
-
 	r = h.do(t, http.MethodPost, base+"/alerts/"+id+"/actions/ack", tok, "en", "")
 	require.Equal(t, http.StatusOK, r.status, r.raw)
 	assert.Equal(t, true, r.data()["alert"].(map[string]any)["is_acked"])

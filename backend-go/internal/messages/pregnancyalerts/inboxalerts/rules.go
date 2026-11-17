@@ -46,7 +46,7 @@ func anyOf(items ...rules.Condition) []rules.Group { return []rules.Group{{Op: "
 func c(fact, op string, v any) rules.Condition { return rules.Condition{Fact: fact, Op: op, Value: v} }
 
 var (
-	followUp = []string{"add_to_visit_note", "ack"}
+	followUp = []string{"ack"}
 	call     = []string{"call", "ack"}
 )
 
@@ -81,13 +81,13 @@ var Defs = []Def{
 		Level: rules.LevelFollowSoon, Prio: 1000, Locked: true, Actions: call,
 		Groups: all(c("preg.fetal_movement", "eq", "low_session"))},
 	{Key: "preg.bp_high", Legacy: "bp_high", Name: "Pregnancy: BP ≥ 140/90 (follow-up level)", Kind: rules.KindClinical,
-		Level: rules.LevelWorthFollowUp, Prio: 700, Actions: []string{"call", "add_to_visit_note", "ack"}, Readings: true,
+		Level: rules.LevelWorthFollowUp, Prio: 700, Actions: call, Readings: true,
 		Groups: all(c("preg.bp_last_category", "eq", "high"), c("preg.bp_high_level", "eq", "follow_up"))},
 	{Key: "preg.bp_high_urgent", Legacy: "bp_high", Name: "Pregnancy: BP ≥ 140/90 (urgent level)", Kind: rules.KindClinical,
-		Level: rules.LevelFollowSoon, Prio: 790, Actions: []string{"call", "add_to_visit_note", "ack"}, Readings: true,
+		Level: rules.LevelFollowSoon, Prio: 790, Actions: call, Readings: true,
 		Groups: all(c("preg.bp_last_category", "eq", "high"), c("preg.bp_high_level", "eq", "urgent"))},
 	{Key: "preg.bp_severe", Legacy: "bp_high", Name: "Pregnancy: BP ≥ 160/110", Kind: rules.KindSafety,
-		Level: rules.LevelFollowSoon, Prio: 1000, Locked: true, Actions: []string{"call", "add_to_visit_note", "ack"}, Readings: true,
+		Level: rules.LevelFollowSoon, Prio: 1000, Locked: true, Actions: call, Readings: true,
 		Groups: all(c("preg.bp_last_category", "eq", "severe"))},
 	{Key: "preg.gdm", Legacy: "sugar_high", Name: "Pregnancy: blood sugar above the GDM targets", Kind: rules.KindClinical,
 		Level: rules.LevelWorthFollowUp, Prio: 650, Actions: followUp, Readings: true,

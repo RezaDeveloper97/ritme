@@ -55,7 +55,7 @@ func TestPregnancyClassification(t *testing.T) {
 func TestPregnancyModalJSON(t *testing.T) {
 	cp := AlertCopy{}
 	a := jsonx.Obj("rule_key", "bp_high", "level", "urgent", "title", "T", "what_we_saw", "W", "advice", "A",
-		"contact", "C", "actions", []any{jsonx.Obj("key", "call", "label", "Call"), jsonx.Obj("key", "add_to_visit_note", "label", "x"),
+		"contact", "C", "actions", []any{jsonx.Obj("key", "call", "label", "Call"), jsonx.Obj("key", "open_week", "label", "x"),
 			jsonx.Obj("key", "ack", "label", "Ok")})
 	m := cp.PregnancyModalJSON(a, "en", "fa").(*jsonx.OrderedMap)
 	rule, _ := m.Get("rule")

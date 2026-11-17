@@ -94,8 +94,8 @@ func fail(err error, locale string) error {
 	return err
 }
 
-// act runs one action and answers {alert[, visit_note]} with msg.
-func (h *Handlers) act(c fiber.Ctx, run func(uid, id uint64, locale string) (Row, any, bool, error), msgKey string) error {
+// act runs one action and answers {alert} with msg.
+func (h *Handlers) act(c fiber.Ctx, run func(uid, id uint64) (Row, error), msgKey string) error {
 	uid, err := h.user(c)
 	if err != nil {
 		return err
@@ -105,7 +105,7 @@ func (h *Handlers) act(c fiber.Ctx, run func(uid, id uint64, locale string) (Row
 	if !ok {
 		return httpx.NotFound()
 	}
-	row, note, withNote, err := run(uid, n, locale)
+	row, err := run(uid, n)
 	if err != nil {
 		return fail(err, locale)
 	}
@@ -113,33 +113,21 @@ func (h *Handlers) act(c fiber.Ctx, run func(uid, id uint64, locale string) (Row
 	if err != nil {
 		return err
 	}
-	out := jsonx.Obj("alert", items[0])
-	if withNote {
-		out.Set("visit_note", note)
-	}
-	return httpx.OK(c, out, T(msgKey, locale))
+	return httpx.OK(c, jsonx.Obj("alert", items[0]), T(msgKey, locale))
 }
 
 // Ack is POST /alerts/{id}/ack.
 func (h *Handlers) Ack(c fiber.Ctx) error {
-	return h.act(c, func(uid, n uint64, _ string) (Row, any, bool, error) {
+	return h.act(c, func(uid, n uint64) (Row, error) {
 		r, err := h.s.Ack(c.Context(), uid, n, civildate.LocalNow(c, clock.FromContext(c, h.clock)))
-		return r, nil, false, err
+		return r, err
 	}, "messages.acknowledged")
-}
-
-// VisitNote is POST /alerts/{id}/visit-note → data {alert, visit_note}.
-func (h *Handlers) VisitNote(c fiber.Ctx) error {
-	return h.act(c, func(uid, n uint64, locale string) (Row, any, bool, error) {
-		r, note, err := h.s.VisitNote(c.Context(), uid, n, civildate.LocalNow(c, clock.FromContext(c, h.clock)), locale)
-		return r, note, true, err
-	}, "messages.noted")
 }
 
 // Dismiss is POST /alerts/{id}/dismiss: 409 ack_required for an urgent row not yet acknowledged.
 func (h *Handlers) Dismiss(c fiber.Ctx) error {
-	return h.act(c, func(uid, n uint64, _ string) (Row, any, bool, error) {
+	return h.act(c, func(uid, n uint64) (Row, error) {
 		r, err := h.s.Dismiss(c.Context(), uid, n, civildate.LocalNow(c, clock.FromContext(c, h.clock)))
-		return r, nil, false, err
+		return r, err
 	}, "messages.dismissed")
 }

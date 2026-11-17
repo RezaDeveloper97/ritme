@@ -153,6 +153,4 @@ var AnalysisManifest = map[string]Entry{
 	"pregnancy.UpdateFetalMovement":       {Bumps: "TestBumpAnalysis_PregnancyLogs"},
 	"pregnancy.RecordFlowBleedingSymptom": {Exempt: "runs inside the health-log write that revision.Bump bumps (engine_rev and analysis_rev); bleeding is not a pregnancy-analysis symptom"},
 	"pregnancy.DeleteDailyExtras":         {Exempt: "no caller (dead query)"},
-	"pregnancy.SetDailyVisitNote":         {Exempt: "visit_note only: no analysis report reads it"},
-	"messages.SetInboxVisitNote":          {Exempt: "pregnancy_daily_extras.visit_note only: no analysis report reads it"},
 }

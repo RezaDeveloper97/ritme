@@ -15,12 +15,10 @@
     },
     "none": "—",
     "messages": {
-        "action_done": "Done",
-        "visit_note_added": "Added to your visit note"
+        "action_done": "Done"
     },
     "actions": {
         "ack": "Got it, thanks",
-        "add_to_visit_note": "Add to visit note",
         "call": "Call your doctor or midwife",
         "call_maternity": "Call the maternity unit",
         "log_weight": "Log weight",

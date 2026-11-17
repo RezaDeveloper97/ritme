@@ -330,14 +330,12 @@
     "whatWeSaw": "چه دیدیم",
     "howSure": "چقدر مطمئنیم",
     "actions": {
-      "add_to_visit_note": "افزودن به یادداشت ویزیت",
       "ack": "دیدم، ممنون",
       "log_weight": "ثبت وزن",
       "log_symptoms": "ثبت علائم",
       "open_week": "دیدن هفته",
       "call": "تماس"
     },
-    "addedToNote": "به یادداشت ویزیت اضافه شد",
     "call": "تماس",
     "today": "امروز",
     "yesterday": "دیروز",

@@ -161,8 +161,6 @@ type Querier interface {
 	SetCareItemActive(ctx context.Context, arg SetCareItemActiveParams) (int64, error)
 	SetCareItemSortOrder(ctx context.Context, arg SetCareItemSortOrderParams) (int64, error)
 	SetContractionAlertAt(ctx context.Context, arg SetContractionAlertAtParams) error
-	// Alert action add_to_visit_note (T-M7-04): creates the day's row when missing, keeps the other fields.
-	SetDailyVisitNote(ctx context.Context, arg SetDailyVisitNoteParams) error
 	SetMessageContentPayload(ctx context.Context, arg SetMessageContentPayloadParams) error
 	StopContraction(ctx context.Context, arg StopContractionParams) (int64, error)
 	StopKickSession(ctx context.Context, arg StopKickSessionParams) (int64, error)

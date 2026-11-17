@@ -388,10 +388,9 @@ func (e *Engine) List(ctx context.Context, userID uint64, now time.Time, l v2.La
 var ErrNotFound = errors.New("pregnancy alerts: not found")
 
 // Actions are the server-side alert actions.
-var Actions = []string{"ack", "add_to_visit_note"}
+var Actions = []string{"ack"}
 
-// Act runs POST /pregnancy/v2/alerts/{id}/actions/{action}: ack acknowledges the alert; add_to_visit_note appends
-// its «what we saw» line to today's visit note (once).
+// Act runs POST /pregnancy/v2/alerts/{id}/actions/{action}: ack acknowledges the alert.
 func (e *Engine) Act(ctx context.Context, userID, id uint64, act string, now time.Time, l v2.Lang) (*jsonx.OrderedMap, error) {
 	b, err := backendOf()
 	if err != nil {

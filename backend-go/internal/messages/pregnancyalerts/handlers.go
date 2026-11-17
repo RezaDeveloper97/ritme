@@ -84,7 +84,7 @@ func (h *Handlers) EvaluateFirst(log *slog.Logger) fiber.Handler {
 	}
 }
 
-// Action is POST /pregnancy/v2/alerts/{id}/actions/{action} (ack | add_to_visit_note).
+// Action is POST /pregnancy/v2/alerts/{id}/actions/{action} (ack).
 func (h *Handlers) Action(c fiber.Ctx) error {
 	uid, ok := auth.CurrentUserID(c)
 	if !ok {
@@ -100,11 +100,7 @@ func (h *Handlers) Action(c fiber.Ctx) error {
 	if err != nil {
 		return mapErr(err, l.Locale)
 	}
-	msg := T("messages.action_done", l.Locale)
-	if act == "add_to_visit_note" {
-		msg = T("messages.visit_note_added", l.Locale)
-	}
-	return httpx.OK(c, out, msg)
+	return httpx.OK(c, out, T("messages.action_done", l.Locale))
 }
 
 // AfterSave is the hook the v1 log-save handlers call (errors bubble up as 500).

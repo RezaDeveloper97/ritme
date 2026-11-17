@@ -49,12 +49,6 @@ UPDATE `message_inbox`
 SET state = 'acknowledged', acked_at = sqlc.arg(now), updated_at = sqlc.arg(now)
 WHERE id = sqlc.arg(id) AND user_id = sqlc.arg(user_id) AND open_flag = 1;
 
--- name: NoteInboxItem :execrows
--- «افزودن به یادداشت ویزیت»: an open row becomes added_to_visit_note (its ack, if any, is kept).
-UPDATE `message_inbox`
-SET state = 'added_to_visit_note', noted_at = sqlc.arg(now), updated_at = sqlc.arg(now)
-WHERE id = sqlc.arg(id) AND user_id = sqlc.arg(user_id) AND open_flag = 1;
-
 -- name: DismissInboxItem :execrows
 -- Close a row now (open or resolved) → archived. The urgent ack rule is checked by the caller.
 UPDATE `message_inbox`
@@ -89,16 +83,6 @@ WHERE user_id = sqlc.arg(user_id) AND state IN ('resolved', 'archived')
       AND (last_at < sqlc.arg(after_at) OR (last_at = sqlc.arg(after_at) AND id < sqlc.arg(after_id)))))
 ORDER BY level_rank, last_at DESC, id DESC
 LIMIT ?;
-
--- name: GetInboxVisitNote :one
--- The day's visit note the «add to visit note» action appends to (pregnancy_daily_extras, as the pregnancy alerts did).
-SELECT visit_note FROM `pregnancy_daily_extras` WHERE user_id = sqlc.arg(user_id) AND log_date = sqlc.arg(log_date) LIMIT 1;
-
--- name: SetInboxVisitNote :exec
--- Creates the day's row when missing and keeps its other fields.
-INSERT INTO `pregnancy_daily_extras` (user_id, log_date, visit_note, created_at, updated_at)
-VALUES (sqlc.arg(user_id), sqlc.arg(log_date), sqlc.arg(visit_note), sqlc.arg(now), sqlc.arg(now))
-ON DUPLICATE KEY UPDATE visit_note = VALUES(visit_note), updated_at = VALUES(updated_at);
 
 -- name: ListOpenInboxUsers :many
 -- messages.inbox_sweep: one keyset page of the users with an open row.

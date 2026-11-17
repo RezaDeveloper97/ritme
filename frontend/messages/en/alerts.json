@@ -28,8 +28,6 @@
   "urgentHint": "Please don't ignore this one. It stays open until you tell us you've seen it.",
   "actions": {
     "ack": "Got it, thanks",
-    "visitNote": "Add to visit note",
-    "visitNoteDone": "Added to your visit note",
     "dismiss": "Close",
     "call": "Call {contact}",
     "markRead": "Mark as read",

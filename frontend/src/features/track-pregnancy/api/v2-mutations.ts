@@ -145,8 +145,7 @@ export interface PregnancyAlertActionVars {
 }
 
 /**
- * «دیدم، ممنون» (`ack`) and «افزودن به یادداشت ویزیت» (`add_to_visit_note`,
- * which appends to today's `visit_note` server-side). Deep-link actions such
+ * «دیدم، ممنون» (`ack`). Deep-link actions such
  * as `log_weight` never reach this hook — the Alerts screen routes them.
  */
 export function usePregnancyAlertAction() {
@@ -155,15 +154,11 @@ export function usePregnancyAlertAction() {
     mutationFn: async ({ id, action }) => {
       await apiClient.post(`/pregnancy/v2/alerts/${id}/actions/${action}`);
     },
-    onSuccess: (_data, { action }) => {
+    onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: pregnancyKeys.v2.alerts() });
       void queryClient.invalidateQueries({ queryKey: pregnancyKeys.v2.today() });
       void queryClient.invalidateQueries({ queryKey: pregnancyKeys.alerts() });
       void queryClient.invalidateQueries({ queryKey: pregnancyKeys.alertSummary() });
-      if (action === 'add_to_visit_note') {
-        void queryClient.invalidateQueries({ queryKey: pregnancyKeys.v2.dayAll() });
-        void queryClient.invalidateQueries({ queryKey: pregnancyKeys.v2.reportAll() });
-      }
     },
   });
 }

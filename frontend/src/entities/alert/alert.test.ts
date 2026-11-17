@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { parseAlertPage } from './api/schema';
 import type { AlertItem } from './model/types';
-import { callHref, canAck, canAddToVisitNote, canDismiss, evidenceRows, groupByLevel } from './model/view';
+import { callHref, canAck, canDismiss, evidenceRows, groupByLevel } from './model/view';
 
 const row = (p: Record<string, unknown> = {}) => ({
   id: 1, level: 'info', state: 'active', title: 't', body: 'b', cta_text: null, cta_deeplink: null,
@@ -51,10 +51,9 @@ describe('urgent close rule', () => {
   });
   it('offers nothing on history items', () => {
     const h = item({ state: 'archived' });
-    expect([canAck(h), canDismiss(h), canAddToVisitNote(h)]).toEqual([false, false, false]);
+    expect([canAck(h), canDismiss(h)]).toEqual([false, false]);
   });
-  it('offers the visit note once and the ack only while active', () => {
-    expect(canAddToVisitNote(item({ state: 'added_to_visit_note' }))).toBe(false);
+  it('offers the ack only while active', () => {
     expect(canAck(item({ state: 'acknowledged' }))).toBe(false);
     expect(canAck(item())).toBe(true);
   });

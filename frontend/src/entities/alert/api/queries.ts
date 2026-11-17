@@ -28,9 +28,9 @@ export function useAlerts(state: AlertListState) {
   });
 }
 
-export type AlertAction = 'ack' | 'visit-note' | 'dismiss';
+export type AlertAction = 'ack' | 'dismiss';
 
-/** POST /alerts/{id}/ack | visit-note | dismiss. The list, the home counters and the feed all refresh afterwards. */
+/** POST /alerts/{id}/ack | dismiss. The list, the home counters and the feed all refresh afterwards. */
 export function useAlertAction() {
   const queryClient = useQueryClient();
   return useMutation<void, unknown, { id: number; action: AlertAction }>({

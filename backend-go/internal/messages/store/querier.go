@@ -27,8 +27,6 @@ type Querier interface {
 	DeleteMessageRule(ctx context.Context, id uint64) error
 	// Close a row now (open or resolved) → archived. The urgent ack rule is checked by the caller.
 	DismissInboxItem(ctx context.Context, arg DismissInboxItemParams) (int64, error)
-	// The day's visit note the «add to visit note» action appends to (pregnancy_daily_extras, as the pregnancy alerts did).
-	GetInboxVisitNote(ctx context.Context, arg GetInboxVisitNoteParams) (sql.NullString, error)
 	// T-M9-49b: the daily's account reads in one row — the companion check (GetUserGender), the stored life mode
 	// (GetMessageLifeMode), $user->profile (GetMessageProfile's columns; profile_id NULL = no row) and whether any
 	// pregnancy profile exists (the pregnancy profile is read only then).
@@ -136,16 +134,12 @@ type Querier interface {
 	// Admin rules list: today's raw rows (not rolled up yet) per rule, version, variant and event.
 	MessageRuleRawStats(ctx context.Context, sinceAt sql.NullTime) ([]MessageRuleRawStatsRow, error)
 	MessageRuleVariantStats(ctx context.Context, arg MessageRuleVariantStatsParams) ([]MessageRuleVariantStatsRow, error)
-	// «افزودن به یادداشت ویزیت»: an open row becomes added_to_visit_note (its ack, if any, is kept).
-	NoteInboxItem(ctx context.Context, arg NoteInboxItemParams) (int64, error)
 	// The condition no longer holds (all its facts were known): the row becomes history.
 	ResolveInboxItem(ctx context.Context, arg ResolveInboxItemParams) (int64, error)
 	// messages.rollup (M-13): the raw rows of [from, to) counted per (Tehran day, rule, version, variant, slot, event)
 	// into message_event_daily. The upsert overwrites, so a re-run gives the same counts. A legacy row without a version
 	// counts as version 0; without a slot, under the rule's placement.
 	RollupMessageEvents(ctx context.Context, arg RollupMessageEventsParams) error
-	// Creates the day's row when missing and keeps its other fields.
-	SetInboxVisitNote(ctx context.Context, arg SetInboxVisitNoteParams) error
 	SetMessageRuleActive(ctx context.Context, arg SetMessageRuleActiveParams) error
 	// approved_version NULL keeps the current one (submit, reject: the last approved version stays live, M-03).
 	SetMessageRuleStatus(ctx context.Context, arg SetMessageRuleStatusParams) error

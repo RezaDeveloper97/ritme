@@ -3,12 +3,12 @@
 import clsx from 'clsx';
 import { useTranslations } from 'next-intl';
 
-import { type AlertItem, type AlertLevel, callHref, canAck, canAddToVisitNote, canDismiss, evidenceRows, useAlertAction } from '@/entities/alert';
+import { type AlertItem, type AlertLevel, callHref, canAck, canDismiss, evidenceRows, useAlertAction } from '@/entities/alert';
 import { feedLinkTarget } from '@/entities/message';
 import { Link } from '@/shared/i18n';
 import { Card, Icon, IconCircle, type Tone } from '@/shared/ui';
 
-// One health alert with its actions (تماس، دیدم، یادداشت ویزیت، بستن), shown inside the notifications sheet.
+// One health alert with its actions (تماس، دیدم، بستن), shown inside the notifications sheet.
 // Moved here from the old `/alerts` screen: alerts no longer have a page of their own.
 
 type T = ReturnType<typeof useTranslations<'alerts'>>;
@@ -30,10 +30,9 @@ export function AlertCard({ alert, history, t }: { alert: AlertItem; history: bo
   const cta = feedLinkTarget(alert.ctaDeeplink);
   const ctaHref = cta?.kind === 'route' && alert.ctaText ? cta.path : null;
   const busy = mutation.isPending;
-  const run = (action: 'ack' | 'visit-note' | 'dismiss') => mutation.mutate({ id: alert.id, action });
+  const run = (action: 'ack' | 'dismiss') => mutation.mutate({ id: alert.id, action });
   const compact = alert.level === 'info' || alert.level === 'suggestion';
   const acked = alert.state === 'acknowledged' || alert.state === 'added_to_visit_note';
-  const noted = alert.state === 'added_to_visit_note';
   const urgentOpen = alert.level === 'urgent' && alert.state === 'active' && !history;
 
   const actionButtons = history ? null : (
@@ -52,12 +51,6 @@ export function AlertCard({ alert, history, t }: { alert: AlertItem; history: bo
       {canAck(alert) && (
         <button type="button" className={clsx('nb-btn is-block', tel ? 'is-outline pgn-btn-outline' : 'is-primary')} disabled={busy} onClick={() => run('ack')}>
           {t('actions.ack')}
-        </button>
-      )}
-      {(canAddToVisitNote(alert) || noted) && (
-        <button type="button" className="nb-btn is-block is-outline pgn-btn-outline" disabled={busy || noted} onClick={() => run('visit-note')}>
-          {noted ? <Icon name="check" size={18} strokeWidth={2.4} /> : null}
-          {noted ? t('actions.visitNoteDone') : t('actions.visitNote')}
         </button>
       )}
     </>
