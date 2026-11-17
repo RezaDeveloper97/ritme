@@ -10,6 +10,6 @@ Environment=HOME=/root
 ExecStart=/opt/ritme-stage-src/deploy/stage-autodeploy.sh
 StandardOutput=append:/var/log/ritme-stage-autodeploy.log
 StandardError=append:/var/log/ritme-stage-autodeploy.log
-# A full stage build (backend-go + frontend + admin-web) takes a while.
-TimeoutStartSec=45min
+# A full stage build (backend-go + frontend + admin-web) takes 30–45 min on the busy prod machine.
+TimeoutStartSec=2h
 Nice=10
