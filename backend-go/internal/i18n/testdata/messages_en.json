@@ -1459,6 +1459,7 @@
     "learn_downloads": "Downloads",
     "companion": "Companion home",
     "companion_actions": "Companion suggestions",
+    "companion_calendar": "Companion calendar",
     "companion_links": "Companion code",
     "companions": "Companions",
     "companions_new": "Invite a companion",
@@ -2372,6 +2373,9 @@
     "companion_open_companion_actions": "Companion suggestions",
     "companion_open_companion_links": "Companion code",
     "companion_add_for": "Add for partner",
+    "companion_calendar_add_medication": "Add a medication reminder from the companion calendar",
+    "companion_calendar_add_appointment": "Add a doctor's appointment from the companion calendar",
+    "companion_calendar_open_links": "Open companion links from the calendar",
     "companion_add": "Add a companion",
     "companion_open_companions_new": "Invite a companion",
     "companion_goals": "Companion goal",
@@ -2380,6 +2384,7 @@
     "companion_signal_mood": "Share “Mood” with companion",
     "companion_signal_energy": "Share “Energy” with companion",
     "companion_signal_sleep": "Share “Sleep” with companion",
+    "companion_period_days": "Share “Likely period days” with companion",
     "companion_prefs_save": "Save companion preferences",
     "companion_access_save": "Save access",
     "companion_children_save": "Save shared children",
@@ -5442,6 +5447,37 @@
     "forAll": "About the cycle, support without judging, and being a better companion.",
     "enterCode": "Enter a companion code",
     "skip": "Skip for now"
+   },
+   "calendar": {
+    "title": "My calendar",
+    "subtitle": "Your own reminders and the days to be a little more attentive",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "legendTitle": "Calendar key",
+    "legendPeriod": "{name}'s likely period days",
+    "legendAppointment": "Your appointment",
+    "periodTitle": "Likely {name}'s period",
+    "periodBody": "{name} may feel more tired or be in pain these days. A little extra care and support helps.",
+    "notShared": "{name} hasn't shared her likely period days with you. She can turn it on in her companion settings if she wants to.",
+    "disclaimer": "These days are predictions and may shift by a few days. Only upcoming days are shown.",
+    "noPartnerTitle": "You're not connected to anyone yet",
+    "noPartnerBody": "Connect with a companion code to also see the days your partner shares here.",
+    "dayEmpty": "No reminders on this day.",
+    "at": "at {time}",
+    "a11yPeriod": "likely {name}'s period day",
+    "a11yAppointments": "{count, plural, one {# appointment} other {# appointments}}",
+    "addTitle": "New reminder",
+    "addMedication": "Medication reminder",
+    "addAppointment": "Doctor's appointment",
+    "weekdays": {
+     "sat": "Sa",
+     "sun": "Su",
+     "mon": "Mo",
+     "tue": "Tu",
+     "wed": "We",
+     "thu": "Th",
+     "fri": "Fr"
+    }
    }
   },
   "companions": {
@@ -5813,6 +5849,12 @@
     "revoked": "You no longer have edit access to this section, so nothing was saved. Your access list has been refreshed.",
     "forbidden": "You don't have access to this item. Your access may have changed.",
     "viewOnly": "You can only view this section, so changes can't be saved."
+   },
+   "periodDays": {
+    "label": "Companion calendar",
+    "title": "Likely period days",
+    "desc": "Your companion sees in his calendar which days your period is likely to fall on. Upcoming predictions only — no history, no cycle numbers.",
+    "needsCycle": "To see these days, he also needs the “Cycle” section shared in access."
    }
   },
   "conditions": {

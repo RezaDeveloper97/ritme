@@ -116,6 +116,7 @@
 | `/learn/downloads` | دانلودها | learning |
 | `/companion` | خانه‌ی همدم | companion |
 | `/companion/actions` | پیشنهادهای همدم | companion |
+| `/companion/calendar` | تقویم همدم | companion |
 | `/companion/links` | کد همدم | companion |
 | `/companions` | همدم‌ها | companion |
 | `/companions/new` | دعوت از همدم | companion |
@@ -1161,6 +1162,12 @@
 | `companion.open:companion-links` | action | کد همدم | route `/companion` | — | — |
 | `companion.add-for` | action | افزودن برای همسر | route `/companion` | — | — |
 | `companion.partner:*` | action | — | route `/companion` | — | — |
+| `companion-calendar.add-medication` | action | افزودن یادآور دارو از تقویم همدم | route `/companion/calendar` | — | — |
+| `companion-calendar.add-appointment` | action | افزودن نوبت پزشک از تقویم همدم | route `/companion/calendar` | — | — |
+| `companion-calendar.open:companion-links` | action | باز کردن اتصال همدم از تقویم | route `/companion/calendar` | — | — |
+| `companion-calendar.partner:*` | action | — | route `/companion/calendar` | — | — |
+| `companion-calendar.appointment:*` | action | — | route `/companion/calendar` | — | — |
+| `companion-calendar.medication:*` | action | — | route `/companion/calendar` | — | — |
 | `companion.add` | action | افزودن همدم | route `/companions` | — | — |
 | `companion.link:*` | action | — | route `/companions` | — | — |
 | `companion.open:companions-new` | action | دعوت از همدم | — | — | — |
@@ -1170,6 +1177,7 @@
 | `companion.signal:mood` | bool | نمایش «حال‌وهوا» به همدم | — | — | — |
 | `companion.signal:energy` | bool | نمایش «انرژی» به همدم | — | — | — |
 | `companion.signal:sleep` | bool | نمایش «خواب» به همدم | — | — | — |
+| `companion.period-days` | bool | نمایش «روزهای احتمالی پریود» به همدم | — | — | — |
 | `companion.access:*` | single | — | — | — | — |
 | `companion.child:*` | bool | — | — | — | — |
 | `companion.prefs-save` | action | ذخیره‌ی ترجیحات همراهی | — | — | — |

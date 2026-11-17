@@ -80,9 +80,10 @@ interface Props {
   id?: number;
 }
 
-/** Where a companion goes back to (`?from=companion`, B-N4-06), else null. */
-function companionReturn(from: string | null): '/companion' | null {
-  return from === 'companion' ? '/companion' : null;
+/** Where a companion goes back to (`?from=companion`, B-N4-06; `?from=companion-calendar`), else null. */
+function companionReturn(from: string | null): '/companion' | '/companion/calendar' | null {
+  if (from === 'companion') return '/companion';
+  return from === 'companion-calendar' ? '/companion/calendar' : null;
 }
 
 /**

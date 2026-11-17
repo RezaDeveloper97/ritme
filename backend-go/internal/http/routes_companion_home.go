@@ -21,13 +21,16 @@ func init() {
 	Register("companion_home", func(r fiber.Router, d *Deps) {
 		guard := auth.MustGuard(r, d.Config, d.DB, d.Logger).RequireUser
 		locale := i18n.Middleware(i18n.NewRegistry(i18nstore.New(d.DB), d.Cache, d.Logger))
+		reader := shared.NewReader(d.DB).WithEngine(engineStates(r, d))
 		h := companionhome.NewHandlers(d.DB, clock.Real{}, companionhome.Options{
-			Reader: shared.NewReader(d.DB).WithEngine(engineStates(r, d)),
-			AppURL: d.Config.App.URL,
-			Logger: d.Logger,
+			Reader:   reader,
+			Forecast: reader, // GET /companion/calendar: her likely period days, only with her consent
+			AppURL:   d.Config.App.URL,
+			Logger:   d.Logger,
 			// shared children card (bloom B-N5-02)
 			Children: children.NewService(d.DB, catalog.NewReader(catalogstore.New(d.DB), d.Cache, 0, d.Logger)),
 		})
-		r.Get("/api/v1/companion/home", locale, guard, companionReadThrottle(d), h.Show) // CMP-L1
+		r.Get("/api/v1/companion/home", locale, guard, companionReadThrottle(d), h.Show)         // CMP-L1
+		r.Get("/api/v1/companion/calendar", locale, guard, companionReadThrottle(d), h.Calendar) // his calendar overlay
 	})
 }

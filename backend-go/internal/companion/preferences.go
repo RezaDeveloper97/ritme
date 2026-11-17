@@ -113,6 +113,9 @@ type Preferences struct {
 	Goals   []Goal // ordered as chosen, distinct, normalised (NormalizeGoals); empty = unknown
 	Signals SignalScope
 	Actions []ActionPref // ordered as chosen, distinct
+	// PeriodDays is her consent (off by default, goose 00128) to show the companion the days her period is likely to
+	// fall on in his calendar. It adds nothing without the cycle grant: GET /companion/calendar needs both.
+	PeriodDays bool
 }
 
 // DefaultPreferences are what a new link (and an old row) has: no goal (unknown), every signal off, no action kinds.
@@ -130,9 +133,10 @@ func (p Preferences) Goal() Goal {
 
 // PreferencesPatch is a partial update: nil fields stay as they are; a present Signals map changes only its keys.
 type PreferencesPatch struct {
-	Goals   *[]Goal
-	Signals SignalScope
-	Actions *[]ActionPref
+	Goals      *[]Goal
+	Signals    SignalScope
+	Actions    *[]ActionPref
+	PeriodDays *bool
 }
 
 // Preference validation errors (the handlers answer 422 on the field).
@@ -185,7 +189,8 @@ func (p *Preferences) Validate() error {
 
 // Apply merges a patch onto p and validates the result.
 func (p Preferences) Apply(patch PreferencesPatch) (Preferences, error) {
-	out := Preferences{Goals: slices.Clone(p.Goals), Signals: SignalScope{}, Actions: slices.Clone(p.Actions)}
+	out := Preferences{Goals: slices.Clone(p.Goals), Signals: SignalScope{}, Actions: slices.Clone(p.Actions),
+		PeriodDays: p.PeriodDays}
 	for s, on := range p.Signals {
 		out.Signals[s] = on
 	}
@@ -198,12 +203,15 @@ func (p Preferences) Apply(patch PreferencesPatch) (Preferences, error) {
 	if patch.Actions != nil {
 		out.Actions = *patch.Actions
 	}
+	if patch.PeriodDays != nil {
+		out.PeriodDays = *patch.PeriodDays
+	}
 	return out, out.Validate()
 }
 
 // Empty reports whether the patch changes nothing.
 func (patch PreferencesPatch) Empty() bool {
-	return patch.Goals == nil && len(patch.Signals) == 0 && patch.Actions == nil
+	return patch.Goals == nil && len(patch.Signals) == 0 && patch.Actions == nil && patch.PeriodDays == nil
 }
 
 // preferencesOf reads the stored columns (NULL / unknown codes read as the defaults: a code dropped from the enum
@@ -221,6 +229,7 @@ func preferencesOf(c store.Companion) Preferences {
 	}
 	p.Signals = SignalScope{SignalPain: c.SharePain, SignalMood: c.ShareMood, SignalEnergy: c.ShareEnergy,
 		SignalSleep: c.ShareSleep}
+	p.PeriodDays = c.SharePeriodDays
 	for _, code := range strings.Split(c.ActionPrefs.String, ",") {
 		if a := ActionPref(strings.TrimSpace(code)); a.Valid() && !slices.Contains(p.Actions, a) {
 			p.Actions = append(p.Actions, a)
@@ -273,7 +282,7 @@ func (s *Service) UpdatePreferences(ctx context.Context, ownerID, companionID ui
 		n, err := q.UpdateCompanionPreferences(ctx, store.UpdateCompanionPreferencesParams{
 			Goal: goalColumn(next.Goals), SharePain: next.Signals.On(SignalPain), ShareMood: next.Signals.On(SignalMood),
 			ShareEnergy: next.Signals.On(SignalEnergy), ShareSleep: next.Signals.On(SignalSleep),
-			ActionPrefs: actionsColumn(next.Actions), Now: nt(now), ID: c.ID, OwnerID: ownerID,
+			SharePeriodDays: next.PeriodDays, ActionPrefs: actionsColumn(next.Actions), Now: nt(now), ID: c.ID, OwnerID: ownerID,
 		})
 		if err != nil {
 			return fmt.Errorf("companion: preferences: %w", err)

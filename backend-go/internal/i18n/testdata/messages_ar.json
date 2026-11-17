@@ -1459,6 +1459,7 @@
     "learn_downloads": "دانلودها",
     "companion": "خانه‌ی همدم",
     "companion_actions": "پیشنهادهای همدم",
+    "companion_calendar": "تقویم همدم",
     "companion_links": "کد همدم",
     "companions": "همدم‌ها",
     "companions_new": "دعوت از همدم",
@@ -2372,6 +2373,9 @@
     "companion_open_companion_actions": "پیشنهادهای همدم",
     "companion_open_companion_links": "کد همدم",
     "companion_add_for": "افزودن برای همسر",
+    "companion_calendar_add_medication": "افزودن یادآور دارو از تقویم همدم",
+    "companion_calendar_add_appointment": "افزودن نوبت پزشک از تقویم همدم",
+    "companion_calendar_open_links": "باز کردن اتصال همدم از تقویم",
     "companion_add": "افزودن همدم",
     "companion_open_companions_new": "دعوت از همدم",
     "companion_goals": "هدف همراهی",
@@ -2380,6 +2384,7 @@
     "companion_signal_mood": "نمایش «حال‌وهوا» به همدم",
     "companion_signal_energy": "نمایش «انرژی» به همدم",
     "companion_signal_sleep": "نمایش «خواب» به همدم",
+    "companion_period_days": "نمایش «روزهای احتمالی پریود» به همدم",
     "companion_prefs_save": "ذخیره‌ی ترجیحات همراهی",
     "companion_access_save": "ذخیره‌ی دسترسی‌ها",
     "companion_children_save": "ذخیره‌ی فرزندان اشتراکی",
@@ -5442,6 +5447,37 @@
     "forAll": "دربارهٔ چرخه، حمایت بدون قضاوت و همراهی بهتر.",
     "enterCode": "واردکردن کد همراه",
     "skip": "فعلاً رد می‌کنم"
+   },
+   "calendar": {
+    "title": "تقویم من",
+    "subtitle": "یادآورهای خودت و روزهایی که حواست بیشتر باشد",
+    "prevMonth": "ماه قبل",
+    "nextMonth": "ماه بعد",
+    "legendTitle": "راهنمای تقویم",
+    "legendPeriod": "روزهای احتمالی پریود {name}",
+    "legendAppointment": "نوبت پزشک تو",
+    "periodTitle": "احتمالاً روزهای پریود {name}",
+    "periodBody": "این روزها ممکن است {name} خسته‌تر باشد یا درد داشته باشد. کمی مراقبت و همراهی بیشتر کمک می‌کند.",
+    "notShared": "{name} هنوز روزهای احتمالی پریودش را با تو به اشتراک نگذاشته. اگر بخواهد، می‌تواند از تنظیمات همراهی‌اش روشنش کند.",
+    "disclaimer": "این روزها پیش‌بینی هستند و ممکن است چند روز جابه‌جا شوند. فقط روزهای پیشِ رو نمایش داده می‌شود.",
+    "noPartnerTitle": "هنوز به کسی وصل نیستی",
+    "noPartnerBody": "با کد همراه وصل شو تا روزهایی که شریکت به اشتراک می‌گذارد را هم اینجا ببینی.",
+    "dayEmpty": "برای این روز یادآوری نداری.",
+    "at": "ساعت {time}",
+    "a11yPeriod": "احتمالاً روز پریود {name}",
+    "a11yAppointments": "{count, plural, one {# نوبت} other {# نوبت}}",
+    "addTitle": "یادآور تازه",
+    "addMedication": "یادآور دارو",
+    "addAppointment": "نوبت پزشک",
+    "weekdays": {
+     "sat": "ش",
+     "sun": "ی",
+     "mon": "د",
+     "tue": "س",
+     "wed": "چ",
+     "thu": "پ",
+     "fri": "ج"
+    }
    }
   },
   "companions": {
@@ -5813,6 +5849,12 @@
     "revoked": "دیگر اجازهٔ ویرایش این بخش را نداری؛ ثبت انجام نشد. فهرست دسترسی‌ها به‌روز شد.",
     "forbidden": "اجازهٔ دیدن این مورد را نداری. شاید دسترسی‌ات تغییر کرده باشد.",
     "viewOnly": "فقط اجازهٔ دیدن این بخش را داری؛ ذخیرهٔ تغییرات ممکن نیست."
+   },
+   "periodDays": {
+    "label": "تقویم همراه",
+    "title": "روزهای احتمالی پریود",
+    "desc": "همراهت در تقویمش می‌بیند کدام روزها احتمالاً پریود هستی. فقط پیش‌بینی روزهای آینده؛ نه سابقه، نه عدد چرخه.",
+    "needsCycle": "برای اینکه این روزها را ببیند، بخش «چرخه» را هم در دسترسی‌ها با او به اشتراک بگذار."
    }
   },
   "conditions": {
