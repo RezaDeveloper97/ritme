@@ -87,23 +87,6 @@ func (q *Queries) DismissInboxItem(ctx context.Context, arg DismissInboxItemPara
 	return result.RowsAffected()
 }
 
-const getInboxVisitNote = `-- name: GetInboxVisitNote :one
-SELECT visit_note FROM ` + "`" + `pregnancy_daily_extras` + "`" + ` WHERE user_id = ? AND log_date = ? LIMIT 1
-`
-
-type GetInboxVisitNoteParams struct {
-	UserID  uint64
-	LogDate civildate.Date
-}
-
-// The day's visit note the «add to visit note» action appends to (pregnancy_daily_extras, as the pregnancy alerts did).
-func (q *Queries) GetInboxVisitNote(ctx context.Context, arg GetInboxVisitNoteParams) (sql.NullString, error) {
-	row := q.db.QueryRowContext(ctx, getInboxVisitNote, arg.UserID, arg.LogDate)
-	var visit_note sql.NullString
-	err := row.Scan(&visit_note)
-	return visit_note, err
-}
-
 const getUserInboxItem = `-- name: GetUserInboxItem :one
 SELECT id, user_id, rule_id, version, rule_key, kind, level, state, evidence_key, hit_count, evidence,
   first_at, last_at, acked_at, noted_at, resolved_at, archived_at
@@ -661,32 +644,6 @@ func (q *Queries) MergeInboxItem(ctx context.Context, arg MergeInboxItemParams) 
 	return result.RowsAffected()
 }
 
-const noteInboxItem = `-- name: NoteInboxItem :execrows
-UPDATE ` + "`" + `message_inbox` + "`" + `
-SET state = 'added_to_visit_note', noted_at = ?, updated_at = ?
-WHERE id = ? AND user_id = ? AND open_flag = 1
-`
-
-type NoteInboxItemParams struct {
-	Now    sql.NullTime
-	ID     uint64
-	UserID uint64
-}
-
-// «افزودن به یادداشت ویزیت»: an open row becomes added_to_visit_note (its ack, if any, is kept).
-func (q *Queries) NoteInboxItem(ctx context.Context, arg NoteInboxItemParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, noteInboxItem,
-		arg.Now,
-		arg.Now,
-		arg.ID,
-		arg.UserID,
-	)
-	if err != nil {
-		return 0, err
-	}
-	return result.RowsAffected()
-}
-
 const resolveInboxItem = `-- name: ResolveInboxItem :execrows
 UPDATE ` + "`" + `message_inbox` + "`" + `
 SET state = 'resolved', resolved_at = ?, updated_at = ?
@@ -711,29 +668,4 @@ func (q *Queries) ResolveInboxItem(ctx context.Context, arg ResolveInboxItemPara
 		return 0, err
 	}
 	return result.RowsAffected()
-}
-
-const setInboxVisitNote = `-- name: SetInboxVisitNote :exec
-INSERT INTO ` + "`" + `pregnancy_daily_extras` + "`" + ` (user_id, log_date, visit_note, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?)
-ON DUPLICATE KEY UPDATE visit_note = VALUES(visit_note), updated_at = VALUES(updated_at)
-`
-
-type SetInboxVisitNoteParams struct {
-	UserID    uint64
-	LogDate   civildate.Date
-	VisitNote sql.NullString
-	Now       sql.NullTime
-}
-
-// Creates the day's row when missing and keeps its other fields.
-func (q *Queries) SetInboxVisitNote(ctx context.Context, arg SetInboxVisitNoteParams) error {
-	_, err := q.db.ExecContext(ctx, setInboxVisitNote,
-		arg.UserID,
-		arg.LogDate,
-		arg.VisitNote,
-		arg.Now,
-		arg.Now,
-	)
-	return err
 }

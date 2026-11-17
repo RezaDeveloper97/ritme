@@ -492,8 +492,7 @@ func (s *Service) rows(ctx context.Context, userID uint64, since time.Time) ([]r
 	return out, nil
 }
 
-// Act implements pregnancyalerts.Backend: ack acknowledges an open alert (idempotent); add_to_visit_note appends its
-// «what we saw» line (its title when none) to today's visit note once and marks an open alert added_to_visit_note.
+// Act implements pregnancyalerts.Backend: ack acknowledges an open alert (idempotent).
 func (s *Service) Act(ctx context.Context, q pstore.Querier, userID, id uint64, act string, now time.Time, l v2.Lang,
 ) (*jsonx.OrderedMap, error) {
 	r, err := s.get(ctx, userID, id)
@@ -505,32 +504,13 @@ func (s *Service) Act(ctx context.Context, q pstore.Querier, userID, id uint64, 
 		return nil, err
 	}
 	ts := sql.NullTime{Time: now, Valid: true}
-	var note any
-	switch act {
-	case "ack":
-		if r.open() {
-			if _, err := s.mq.AckInboxItem(ctx, mstore.AckInboxItemParams{Now: ts, ID: id, UserID: userID}); err != nil {
-				return nil, fmt.Errorf("pregnancy alerts: ack: %w", err)
-			}
-		}
-	case "add_to_visit_note":
-		t := s.texts(snap, &r, l.Locale)
-		line := t.Seen
-		if line == "" {
-			line = t.Title
-		}
-		n, err := s.appendNote(ctx, userID, civildate.FromTime(now.In(civildate.Tehran)), line, ts)
-		if err != nil {
-			return nil, err
-		}
-		note = n
-		if r.open() {
-			if _, err := s.mq.NoteInboxItem(ctx, mstore.NoteInboxItemParams{Now: ts, ID: id, UserID: userID}); err != nil {
-				return nil, fmt.Errorf("pregnancy alerts: visit note: %w", err)
-			}
-		}
-	default:
+	if act != "ack" {
 		return nil, pregnancyalerts.ErrNotFound
+	}
+	if r.open() {
+		if _, err := s.mq.AckInboxItem(ctx, mstore.AckInboxItemParams{Now: ts, ID: id, UserID: userID}); err != nil {
+			return nil, fmt.Errorf("pregnancy alerts: ack: %w", err)
+		}
 	}
 	if r, err = s.get(ctx, userID, id); err != nil {
 		return nil, err
@@ -539,7 +519,7 @@ func (s *Service) Act(ctx context.Context, q pstore.Querier, userID, id uint64, 
 	if err != nil {
 		return nil, err
 	}
-	return jsonx.Obj("alert", a[0], "visit_note", note), nil
+	return jsonx.Obj("alert", a[0]), nil
 }
 
 func (s *Service) get(ctx context.Context, userID, id uint64) (row, error) {
@@ -555,29 +535,6 @@ func (s *Service) get(ctx context.Context, userID, id uint64) (row, error) {
 	}
 	return row{ID: x.ID, RuleID: x.RuleID, RuleKey: x.RuleKey, Level: x.Level, State: x.State, Evidence: x.Evidence,
 		FirstAt: x.FirstAt, LastAt: x.LastAt, AckedAt: x.AckedAt, NotedAt: x.NotedAt}, nil
-}
-
-func (s *Service) appendNote(ctx context.Context, userID uint64, day civildate.Date, line string, ts sql.NullTime) (string, error) {
-	cur, err := s.mq.GetInboxVisitNote(ctx, mstore.GetInboxVisitNoteParams{UserID: userID, LogDate: day})
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return "", fmt.Errorf("pregnancy alerts: visit note read: %w", err)
-	}
-	note, line := strings.TrimSpace(cur.String), strings.TrimSpace(line)
-	if line == "" || strings.Contains(note, line) {
-		return note, nil
-	}
-	next := line
-	if note != "" {
-		next = note + "\n" + line
-	}
-	if rs := []rune(next); len(rs) > inbox.MaxVisitNote {
-		next = string(rs[:inbox.MaxVisitNote])
-	}
-	if err := s.mq.SetInboxVisitNote(ctx, mstore.SetInboxVisitNoteParams{UserID: userID, LogDate: day,
-		VisitNote: sql.NullString{String: next, Valid: true}, Now: ts}); err != nil {
-		return "", fmt.Errorf("pregnancy alerts: visit note write: %w", err)
-	}
-	return next, nil
 }
 
 // ---- rendering (the v2 alert shape) ----

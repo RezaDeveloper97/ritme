@@ -3,4 +3,4 @@ export { ALERT_LEVELS, type AlertEvidence, type AlertItem, type AlertLevel, type
 export { alertKeys } from './api/keys';
 export { alertItemSchema, parseAlertPage } from './api/schema';
 export { fetchAlerts, useAlertAction, useAlerts, type AlertAction } from './api/queries';
-export { callHref, canAck, canAddToVisitNote, canDismiss, evidenceRows, groupByLevel, isOpen, type AlertSection } from './model/view';
+export { callHref, canAck, canDismiss, evidenceRows, groupByLevel, isOpen, type AlertSection } from './model/view';

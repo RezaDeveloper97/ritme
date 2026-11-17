@@ -442,14 +442,14 @@ func TestPaywallGuard_FreeUserSafetyRoutes(t *testing.T) {
 	}
 	e.guarded("vitals readings", fiber.MethodGet, "/api/v1/vitals/readings", tok, nil, at, fiber.StatusOK)
 
-	// Alerts inbox: one urgent safety row (ack, then dismiss) and one clinical row (visit note).
+	// Alerts inbox: one urgent safety row (ack, then dismiss) and one clinical row (ack).
 	uid := e.seedInboxUser()
 	safetyID, clinicalID := e.inboxRow(uid, rules.KindSafety, rules.LevelFollowSoon, 1000), e.inboxRow(uid, rules.KindClinical, rules.LevelWorthFollowUp, 500)
 	r = e.guarded("alerts inbox list", fiber.MethodGet, "/api/v1/alerts", tok, nil, at, fiber.StatusOK)
 	assert.Len(t, pgList(r.data()["items"]), 2, r.Raw)
 	e.guarded("alerts inbox ack", fiber.MethodPost, fmt.Sprintf("/api/v1/alerts/%d/ack", safetyID), tok, nil, at, fiber.StatusOK)
 	e.guarded("alerts inbox dismiss", fiber.MethodPost, fmt.Sprintf("/api/v1/alerts/%d/dismiss", safetyID), tok, nil, at, fiber.StatusOK)
-	e.guarded("alerts inbox visit-note", fiber.MethodPost, fmt.Sprintf("/api/v1/alerts/%d/visit-note", clinicalID), tok, nil, at, fiber.StatusOK)
+	e.guarded("alerts inbox ack (clinical)", fiber.MethodPost, fmt.Sprintf("/api/v1/alerts/%d/ack", clinicalID), tok, nil, at, fiber.StatusOK)
 	e.guarded("alerts inbox history", fiber.MethodGet, "/api/v1/alerts?state=history", tok, nil, at, fiber.StatusOK)
 	e.guarded("alerts inbox missing id", fiber.MethodPost, "/api/v1/alerts/999999/ack", tok, nil, at, fiber.StatusNotFound)
 
@@ -493,7 +493,6 @@ func (e *paywallEnv) pregnancyRoutes(at time.Time) {
 	if list := pgList(r.data()["alerts"]); assert.NotEmpty(t, list, r.Raw) {
 		id := pgID(t, pgObj(list[0])["id"])
 		e.guarded("pregnancy v2 alert ack", fiber.MethodPost, v2+"/alerts/"+id+"/actions/ack", tok, nil, at, fiber.StatusOK)
-		e.guarded("pregnancy v2 alert visit note", fiber.MethodPost, v2+"/alerts/"+id+"/actions/add_to_visit_note", tok, nil, at, fiber.StatusOK)
 	}
 
 	const v1 = "/api/v1/pregnancy/alerts"

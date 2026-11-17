@@ -27,11 +27,5 @@ ON DUPLICATE KEY UPDATE
   visit_note = VALUES(visit_note),
   updated_at = VALUES(updated_at);
 
--- name: SetDailyVisitNote :exec
--- Alert action add_to_visit_note (T-M7-04): creates the day's row when missing, keeps the other fields.
-INSERT INTO `pregnancy_daily_extras` (user_id, log_date, visit_note, created_at, updated_at)
-VALUES (sqlc.arg(user_id), sqlc.arg(log_date), sqlc.arg(visit_note), sqlc.arg(now), sqlc.arg(now))
-ON DUPLICATE KEY UPDATE visit_note = VALUES(visit_note), updated_at = VALUES(updated_at);
-
 -- name: DeleteDailyExtras :exec
 DELETE FROM `pregnancy_daily_extras` WHERE user_id = ? AND log_date = ?;

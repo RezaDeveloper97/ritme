@@ -104,31 +104,6 @@ func (q *Queries) ListDailyExtrasRange(ctx context.Context, arg ListDailyExtrasR
 	return items, nil
 }
 
-const setDailyVisitNote = `-- name: SetDailyVisitNote :exec
-INSERT INTO ` + "`" + `pregnancy_daily_extras` + "`" + ` (user_id, log_date, visit_note, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?)
-ON DUPLICATE KEY UPDATE visit_note = VALUES(visit_note), updated_at = VALUES(updated_at)
-`
-
-type SetDailyVisitNoteParams struct {
-	UserID    uint64
-	LogDate   civildate.Date
-	VisitNote sql.NullString
-	Now       sql.NullTime
-}
-
-// Alert action add_to_visit_note (T-M7-04): creates the day's row when missing, keeps the other fields.
-func (q *Queries) SetDailyVisitNote(ctx context.Context, arg SetDailyVisitNoteParams) error {
-	_, err := q.db.ExecContext(ctx, setDailyVisitNote,
-		arg.UserID,
-		arg.LogDate,
-		arg.VisitNote,
-		arg.Now,
-		arg.Now,
-	)
-	return err
-}
-
 const upsertDailyExtras = `-- name: UpsertDailyExtras :exec
 INSERT INTO ` + "`" + `pregnancy_daily_extras` + "`" + ` (
   user_id, log_date, mood, water_glasses, heartburn_severity, constipation_severity, visit_note, created_at, updated_at

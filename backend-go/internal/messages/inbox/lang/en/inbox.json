@@ -1,7 +1,6 @@
 {
     "messages": {
         "acknowledged": "Got it. Thanks for checking.",
-        "noted": "Added to your visit note.",
         "dismissed": "Removed from the list.",
         "ack_required": "This is an urgent message. Tap «Got it» first, then you can close it.",
         "alert_closed": "This message is no longer open.",

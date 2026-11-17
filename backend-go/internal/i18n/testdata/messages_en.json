@@ -112,8 +112,6 @@
    "urgentHint": "Please don't ignore this one. It stays open until you tell us you've seen it.",
    "actions": {
     "ack": "Got it, thanks",
-    "visitNote": "Add to visit note",
-    "visitNoteDone": "Added to your visit note",
     "dismiss": "Close",
     "call": "Call {contact}",
     "markRead": "Mark as read",
@@ -12857,14 +12855,12 @@
     "whatWeSaw": "What we saw",
     "howSure": "How sure we are",
     "actions": {
-     "add_to_visit_note": "Add to visit note",
      "ack": "Got it, thanks",
      "log_weight": "Log weight",
      "log_symptoms": "Log symptoms",
      "open_week": "Open week",
      "call": "Call"
     },
-    "addedToNote": "Added to your visit note",
     "call": "Call",
     "today": "Today",
     "yesterday": "Yesterday",

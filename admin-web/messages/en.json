@@ -1783,7 +1783,6 @@
     },
     "actions": {
       "ack": "Got it",
-      "add_to_visit_note": "Add to visit note",
       "log_weight": "Log weight",
       "open_week": "Open week",
       "call": "Call"

@@ -88,7 +88,6 @@ func init() {
 		const ap = "/api/v1/alerts"
 		r.Get(ap, locale, guard, alerts.Index)
 		r.Post(ap+"/:id/ack", locale, guard, alerts.Ack)
-		r.Post(ap+"/:id/visit-note", locale, guard, alerts.VisitNote)
 		r.Post(ap+"/:id/dismiss", locale, guard, alerts.Dismiss)
 
 		r.Get(p+"/daily", locale, guard, h.Daily)

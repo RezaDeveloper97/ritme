@@ -16,7 +16,7 @@ const LegendKey = "legend"
 var AlertLevels = []string{"info", "suggestion", "follow_up", "urgent"}
 
 // AlertActions are the action keys an alert card can offer (the app maps each to a behaviour).
-var AlertActions = []string{"ack", "add_to_visit_note", "log_weight", "open_week", "call"}
+var AlertActions = []string{"ack", "log_weight", "open_week", "call"}
 
 // LogSymptoms are the symptom toggles of the Log screen (severity mild|moderate|severe).
 var LogSymptoms = []string{

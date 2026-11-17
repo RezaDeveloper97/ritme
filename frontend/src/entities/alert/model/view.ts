@@ -31,11 +31,6 @@ export function canDismiss(item: AlertItem): boolean {
   return !(item.level === 'urgent' && item.state === 'active');
 }
 
-/** The visit-note button is offered once per item. */
-export function canAddToVisitNote(item: AlertItem): boolean {
-  return isOpen(item) && item.state !== 'added_to_visit_note';
-}
-
 /** Evidence tiles («چی دیدیم» / «چقدر مطمئنیم») exist on follow_up and urgent cards only. */
 export function evidenceRows(item: AlertItem): Array<{ key: 'seen' | 'confidence'; value: string }> {
   if ((item.level !== 'urgent' && item.level !== 'follow_up') || !item.evidence) return [];

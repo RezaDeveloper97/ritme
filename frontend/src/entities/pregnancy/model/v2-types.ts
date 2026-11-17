@@ -62,7 +62,7 @@ export const ALERT_LEVELS_V2 = ['info', 'suggestion', 'follow_up', 'urgent'] as 
 export type AlertLevelV2 = (typeof ALERT_LEVELS_V2)[number];
 
 /** Server-side alert actions (`POST /pregnancy/v2/alerts/{id}/actions/{action}`). */
-export const ALERT_SERVER_ACTIONS = ['ack', 'add_to_visit_note'] as const;
+export const ALERT_SERVER_ACTIONS = ['ack'] as const;
 export type AlertServerAction = (typeof ALERT_SERVER_ACTIONS)[number];
 
 /** Visit stepper of the Calendar artboard (M3 appointment `meta.stage`). */
@@ -434,7 +434,7 @@ export interface PregnancyCalendar {
 // ── GET /pregnancy/v2/alerts ───────────────────────────────────
 
 export interface AlertActionV2 {
-  /** `ack` / `add_to_visit_note` post to the server; anything else is a deep
+  /** `ack` posts to the server; anything else is a deep
    *  link key the screen maps (e.g. `log_weight` → the log, weight focused). */
   key: string;
   label: string | null;

@@ -520,7 +520,7 @@ func TestAlertsAPI_OrderPagingForeign(t *testing.T) {
 
 	other := seedUser(t, e.db, "09120007011", "")
 	foreign := e.insertRow(other, 9, rules.LevelInfo, inbox.StateActive, base)
-	for _, act := range []string{"ack", "visit-note", "dismiss"} {
+	for _, act := range []string{"ack", "dismiss"} {
 		code, _, _ := e.call("POST", fmt.Sprintf("/api/v1/alerts/%d/%s", foreign, act))
 		assert.Equal(t, 404, code, act)
 	}
@@ -532,25 +532,6 @@ func TestAlertsAPI_OrderPagingForeign(t *testing.T) {
 	assert.Equal(t, 422, code)
 	code, _, _ = e.call("GET", "/api/v1/alerts?cursor=%25%25")
 	assert.Equal(t, 422, code)
-}
-
-// visit-note appends the «what we saw» line once and marks the row; the note is on the user-local day.
-func TestAlertsAPI_VisitNote(t *testing.T) {
-	e := newAPI(t)
-	e.dbRule(rules.KindClinical, rules.LevelWorthFollowUp, 500)
-	code, _, _ := e.call("GET", "/api/v1/messages/feed")
-	require.Equal(t, 200, code)
-	_, body, _ := e.call("GET", "/api/v1/alerts")
-	list := items(body)
-	require.Len(t, list, 1)
-	id := fmt.Sprint(list[0]["id"])
-	code, body, _ = e.call("POST", "/api/v1/alerts/"+id+"/visit-note")
-	require.Equal(t, 200, code, body)
-	data := body["data"].(map[string]any)
-	assert.Equal(t, "what we saw", data["visit_note"])
-	assert.Equal(t, "added_to_visit_note", data["alert"].(map[string]any)["state"])
-	_, body, _ = e.call("POST", "/api/v1/alerts/"+id+"/visit-note")
-	assert.Equal(t, "what we saw", body["data"].(map[string]any)["visit_note"])
 }
 
 func TestAlertsAPI_Unauthenticated(t *testing.T) {

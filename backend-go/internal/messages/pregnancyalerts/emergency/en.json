@@ -98,10 +98,6 @@
                 "label": "Call your doctor or midwife"
             },
             {
-                "key": "add_to_visit_note",
-                "label": "Add to visit note"
-            },
-            {
                 "key": "ack",
                 "label": "Got it, thanks"
             }

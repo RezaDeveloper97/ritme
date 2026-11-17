@@ -110,10 +110,10 @@ paths:
       description: >-
         Go-only (D-164, T-M10-07; SPEC §5.4.1). Every mode's alerts are messages of slot `alerts_inbox`, evaluated by the
         message engine inside `GET /messages/feed` (and by write paths that need the alert at once). Lifecycle: active →
-        acknowledged / added_to_visit_note / resolved (the condition no longer holds) → archived 30 days after the last
+        acknowledged / resolved (the condition no longer holds) → archived 30 days after the last
         hit (daily `messages.inbox_sweep`). One open row per message: a repeat with new evidence adds 1 to `hit_count`
-        and moves `last_at`; an acknowledged urgent item becomes active again (M-16). `state=open` lists active,
-        acknowledged and added_to_visit_note rows; `state=history` resolved and archived ones. Order: urgent →
+        and moves `last_at`; an acknowledged urgent item becomes active again (M-16). `state=open` lists active
+        and acknowledged rows (plus legacy added_to_visit_note ones); `state=history` resolved and archived ones. Order: urgent →
         follow_up → suggestion → info, then `last_at` newest first; 20 per page, `next_cursor` (opaque) for the next.
         `evidence` only on follow_up and urgent (`contact` only on urgent); texts in the request language when the
         rule has a translation, rendered with the values stored at the last hit. `dismissible` is false for an urgent
@@ -181,41 +181,6 @@ paths:
         - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
       responses:
         '200': {$ref: "#/components/responses/AlertAction"}
-        '401': {$ref: "#/components/responses/Unauthenticated"}
-        '404': {$ref: "#/components/responses/ModelNotFound"}
-        '409': {$ref: "#/components/responses/AlertConflict"}
-  /api/v1/alerts/{id}/visit-note:
-    post:
-      tags: [Alerts]
-      summary: Add an inbox item to today's visit note
-      description: >-
-        Go-only (D-164; generalises the pregnancy alerts' add_to_visit_note). The item's «what we saw» line in the
-        request language (its title when it has none) is appended once to the visit note of the user-local day (at
-        most 2 000 characters), and the item becomes `added_to_visit_note`. 404 for another user's id; 409
-        `alert_closed` for a history item. `Cache-Control: private, no-store`.
-      operationId: addAlertToVisitNote
-      security:
-        - {bearerAuth: []}
-      parameters:
-        - {$ref: "#/components/parameters/AcceptLanguage"}
-        - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
-      responses:
-        '200':
-          description: The item and the day's visit note
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [success, message, data]
-                properties:
-                  success: {type: boolean}
-                  message: {type: string}
-                  data:
-                    type: object
-                    required: [alert, visit_note]
-                    properties:
-                      alert: {$ref: "#/components/schemas/AlertsInboxItem"}
-                      visit_note: {type: string}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/ModelNotFound"}
         '409': {$ref: "#/components/responses/AlertConflict"}
@@ -18762,21 +18727,20 @@ paths:
   /api/v1/pregnancy/v2/alerts/{id}/actions/{action}:
     post:
       tags: [PregnancyV2]
-      summary: Run an alert action (ack, add_to_visit_note)
+      summary: Run an alert action (ack)
       description: >-
         `id` is a `message_inbox` id (D-165). `ack` acknowledges the open alert (an urgent one becomes active again on
-        new evidence). `add_to_visit_note` appends the alert's "what we saw" line (title when empty) to today's
-        `visit_note` once and marks the open alert `added_to_visit_note`.
+        new evidence).
       operationId: postPregnancyV2AlertAction
       security:
         - {bearerAuth: []}
       parameters:
         - {$ref: "#/components/parameters/AcceptLanguage"}
         - {name: id, in: path, required: true, schema: {type: integer}}
-        - {name: action, in: path, required: true, schema: {type: string, enum: [ack, add_to_visit_note]}}
+        - {name: action, in: path, required: true, schema: {type: string, enum: [ack]}}
       responses:
         '200':
-          description: The updated alert (+ today's visit note for add_to_visit_note)
+          description: The updated alert
           content:
             application/json:
               schema:
@@ -18787,10 +18751,9 @@ paths:
                   message: {type: string}
                   data:
                     type: object
-                    required: [alert, visit_note]
+                    required: [alert]
                     properties:
                       alert: {$ref: "#/components/schemas/PregnancyV2Alert"}
-                      visit_note: {type: [string, "null"]}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/ModelNotFound"}
   /api/v1/companion/home:
@@ -32064,7 +32027,7 @@ components:
             type: object
             required: [key, label]
             properties:
-              key: {type: string, enum: [ack, add_to_visit_note, log_weight, open_week, call]}
+              key: {type: string, enum: [ack, log_weight, open_week, call]}
               label: {type: string}
         contact: {type: [string, "null"], description: "Only on urgent alerts"}
         pregnancy_week: {type: [integer, "null"]}

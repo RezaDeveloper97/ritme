@@ -358,7 +358,7 @@ describe('pregnancyAlertsV2Schema', () => {
         what_we_saw: 'استفراغ در ۴ ثبت اخیر',
         how_sure: 'این الگو از ثبت‌های خودته، نه تشخیص',
         advice: 'تهوع و استفراغ در این هفته‌ها رایجه…',
-        actions: [{ key: 'add_to_visit_note', label: 'افزودن به یادداشت ویزیت' }, 'ack'],
+        actions: [{ key: 'log_symptoms', label: 'ثبت علائم' }, 'ack'],
         contact: { text: 'should be dropped for non-urgent' },
         created_at: '2026-09-22T08:00:00Z',
         date_label: 'امروز',
@@ -388,7 +388,7 @@ describe('pregnancyAlertsV2Schema', () => {
       whatWeSaw: 'استفراغ در ۴ ثبت اخیر',
       howSure: 'این الگو از ثبت‌های خودته، نه تشخیص',
       actions: [
-        { key: 'add_to_visit_note', label: 'افزودن به یادداشت ویزیت' },
+        { key: 'log_symptoms', label: 'ثبت علائم' },
         { key: 'ack', label: null },
       ],
       contact: null,
