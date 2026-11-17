@@ -5,6 +5,8 @@ Wants=network-online.target
 
 [Service]
 Type=oneshot
+# systemd sets no HOME; deploy-stage.sh (and docker's config lookup) need it.
+Environment=HOME=/root
 ExecStart=/opt/ritme-stage-src/deploy/stage-autodeploy.sh
 StandardOutput=append:/var/log/ritme-stage-autodeploy.log
 StandardError=append:/var/log/ritme-stage-autodeploy.log
