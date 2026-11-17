@@ -1,0 +1,97 @@
+# Claude Code (web) → stage, without a manual merge.
+#
+# Every push to a `claude/**` branch (what Claude Code on the web creates) runs the checks below; when they pass,
+# the branch is merged into `stage` and pushed. The server then notices the new stage commit within ~2 minutes and
+# rebuilds stage.ritmeapp.ir (deploy/stage-autodeploy.sh + systemd timer) — nothing here has to reach the server.
+#
+# A merge conflict is never forced: the job fails, stage is left untouched, and the branch needs a rebase on stage.
+# Frontend unit tests (vitest) run but do not block yet: src/app/message-scopes.test.ts is already red on stage.
+# Make them blocking (drop continue-on-error) once that file is green.
+name: claude-to-stage
+
+on:
+  push:
+    branches:
+      - "claude/**"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: backend-go
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - name: go vet
+        run: go vet ./...
+      - name: go test (unit; integration tests skip without TEST_DB_DSN)
+        run: go test -count=1 ./...
+
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: typecheck
+        run: npm run typecheck
+      - name: unit tests (not blocking yet)
+        continue-on-error: true
+        run: npx vitest run
+
+  merge:
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    # One merge into stage at a time; queued, never cancelled.
+    concurrency:
+      group: merge-into-stage
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: stage
+          fetch-depth: 0
+      - name: Merge ${{ github.ref_name }} into stage
+        env:
+          SRC_BRANCH: ${{ github.ref_name }}
+          SRC_SHA: ${{ github.sha }}
+        run: |
+          git config user.name  "ritme-ci"
+          git config user.email "ci@ritme.app"
+          git fetch origin "+refs/heads/stage:refs/remotes/origin/stage"
+          git reset --hard origin/stage
+          if git merge-base --is-ancestor "$SRC_SHA" HEAD; then
+            echo "stage already contains ${SRC_SHA::8} — nothing to merge."
+            exit 0
+          fi
+          if ! git merge --no-ff "$SRC_SHA" -m "Merge ${SRC_BRANCH} into stage (auto)"; then
+            git merge --abort || true
+            echo "::error::${SRC_BRANCH} conflicts with stage — rebase it on stage and push again. Stage was not changed."
+            exit 1
+          fi
+          git push origin HEAD:stage
+          {
+            echo "### Merged into stage"
+            echo "\`${SRC_BRANCH}\` (${SRC_SHA::8}) → stage $(git rev-parse --short HEAD)."
+            echo "The server rebuilds https://stage.ritmeapp.ir within ~2 minutes (log: /var/log/ritme-stage-autodeploy.log)."
+          } >> "$GITHUB_STEP_SUMMARY"

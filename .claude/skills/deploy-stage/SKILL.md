@@ -12,6 +12,21 @@ production (`root@89.251.8.115`), gated by HTTP Basic auth.
 ./deploy-stage.sh
 ```
 
+## Automatic deploys (no manual merge)
+
+A push to any `claude/**` branch (Claude Code on the web) runs `.github/workflows/claude-to-stage.yml`: go vet +
+go test + frontend typecheck, then merges the branch into `stage` (a conflict fails the job, stage untouched).
+On the server, `ritme-stage-autodeploy.timer` runs `deploy/stage-autodeploy.sh` every 2 min: it fetches `stage`
+into `/opt/ritme-stage-src` and, on a new commit, runs `LOCAL=1 ./deploy-stage.sh` there. So **any** new commit on
+`stage` — a manual push too — is shipped within a few minutes.
+
+- Log: `/var/log/ritme-stage-autodeploy.log`; last tried / last good commit: `/var/lib/ritme-stage-autodeploy/{last,ok}`.
+- A failed commit is not retried; retry: `rm /var/lib/ritme-stage-autodeploy/last && systemctl start ritme-stage-autodeploy`.
+- Pause: `systemctl stop ritme-stage-autodeploy.timer` (and `disable` to keep it off across reboots).
+- Install / update the units: copy `deploy/systemd/ritme-stage-autodeploy.{service,timer}` to `/etc/systemd/system/`,
+  `systemctl daemon-reload && systemctl enable --now ritme-stage-autodeploy.timer`.
+- Running `./deploy-stage.sh` from a laptop still works; avoid it while an auto-deploy is running (separate lock).
+
 ## What makes it separate from prod
 
 | | production | staging |

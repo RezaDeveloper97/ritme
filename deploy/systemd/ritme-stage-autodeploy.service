@@ -1,0 +1,13 @@
+[Unit]
+Description=Ritme staging auto-deploy (ship new commits on the stage branch)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/ritme-stage-src/deploy/stage-autodeploy.sh
+StandardOutput=append:/var/log/ritme-stage-autodeploy.log
+StandardError=append:/var/log/ritme-stage-autodeploy.log
+# A full stage build (backend-go + frontend + admin-web) takes a while.
+TimeoutStartSec=45min
+Nice=10

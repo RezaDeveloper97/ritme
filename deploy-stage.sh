@@ -39,6 +39,9 @@
 #   SERVICES="frontend" ./deploy-stage.sh
 #   NO_BUILD=1          ./deploy-stage.sh
 #   SKIP_SYNC=1         ./deploy-stage.sh
+#
+# LOCAL=1 runs it ON the server itself (no ssh, rsync to a local path). That is
+# how deploy/stage-autodeploy.sh ships every new `stage` commit unattended.
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -56,11 +59,22 @@ SERVICES="${SERVICES:-}"
 SSH_CTL="/tmp/rs-ssh-%C"   # short: macOS caps socket paths at 104 chars
 SSH_OPTS=(-i "$SSH_KEY" -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=8
   -o ControlMaster=auto -o "ControlPath=${SSH_CTL}" -o ControlPersist=300)
-trap 'ssh "${SSH_OPTS[@]}" -O exit "$SERVER" >/dev/null 2>&1 || true' EXIT
 COMPOSE="docker compose -p ritme-stage -f docker-compose.yml -f docker-compose.stage.yml"
 PROD_COMPOSE="docker compose -f docker-compose.yml -f docker-compose.prod.yml"
 
-ssh_run() { ssh "${SSH_OPTS[@]}" "$SERVER" "$@"; }
+if [[ "${LOCAL:-0}" == "1" ]]; then
+  # Already on the server: run commands here, rsync to a plain local path.
+  ssh_run() { bash -c "$*"; }
+  close_ssh() { :; }
+  RSYNC_DEST="${REMOTE_DIR}/"
+  RSYNC_SHELL=()
+else
+  ssh_run() { ssh "${SSH_OPTS[@]}" "$SERVER" "$@"; }
+  close_ssh() { ssh "${SSH_OPTS[@]}" -O exit "$SERVER" >/dev/null 2>&1 || true; }
+  RSYNC_DEST="${SERVER}:${REMOTE_DIR}/"
+  RSYNC_SHELL=(-e "ssh ${SSH_OPTS[*]}")
+fi
+trap close_ssh EXIT
 
 # ── 1. Ship the source ──────────────────────────────────────────────────────
 if [[ "${SKIP_SYNC:-0}" != "1" ]]; then
@@ -74,7 +88,7 @@ if [[ "${SKIP_SYNC:-0}" != "1" ]]; then
     # branch — no untracked scratch files, no uncommitted edits leaking into an
     # environment whose whole point is "this is what the commit does".
     SRC="$(mktemp -d)/"
-    trap 'rm -rf "${SRC%/}"; ssh "${SSH_OPTS[@]}" -O exit "$SERVER" >/dev/null 2>&1 || true' EXIT
+    trap 'rm -rf "${SRC%/}"; close_ssh' EXIT
     git archive "$BRANCH" | tar -x -C "$SRC"
     echo "==> Syncing branch '${BRANCH}' ($(git rev-parse --short "$BRANCH")) to ${SERVER}:${REMOTE_DIR} ..."
   fi
@@ -101,9 +115,9 @@ if [[ "${SKIP_SYNC:-0}" != "1" ]]; then
     --exclude 'backend/storage/logs/*' \
     --exclude 'backend/storage/framework/cache/*' \
     --exclude 'backend/database/*.sqlite' \
-    -e "ssh ${SSH_OPTS[*]}" \
+    "${RSYNC_SHELL[@]}" \
     --progress \
-    "$SRC" "${SERVER}:${REMOTE_DIR}/"
+    "$SRC" "$RSYNC_DEST"
 fi
 
 # ── 2. Preconditions on the server ──────────────────────────────────────────
