@@ -3,7 +3,7 @@ id: T-M12-04
 title: Patch vulnerable dependencies and add an audit gate (next, zod, laravel-site composer)
 milestone: M12
 type: fullstack
-status: todo
+status: done
 depends_on: []
 parallel_group: M12-SEC
 touches: [frontend/package.json, frontend/package-lock.json, frontend/next.config.ts, admin-web/package.json, admin-web/package-lock.json, admin-web/next.config.ts, laravel-site/composer.json, laravel-site/composer.lock, .github/workflows/claude-to-stage.yml]

@@ -2754,3 +2754,30 @@ Nothing needed fixing.
 - querybudget green, v6 warm counts at §8 targets (cycle 1, home 8, messages 4, fertility 2, analysis 6); bench gate 62 benchmarks, 0 allocs regressions (1 sec/op warning from machine load); ceilings locked in T-M9-49c.
 - Accepted exceptions (user, 2026-11-04): §8 "cold ≤ 5" holds for a new user on a warm process (5), fresh process is 8 (per-process caches); 304 revalidation not measured.
 - Open: k6 not re-run after 49b/49c (they only removed queries/allocs).
+
+## T-M12-05 — Purge offline downloads on logout, delete and account switch
+- `shared/pwa/offline/offline-media.ts`: items carry `ownerId` (JWT `sub`); list/get/read/purge return only the current
+  user's rows; no session → nothing returned, save refused. `wipeOffline()` deletes the `ritme-offline-media` DB, resets
+  the cached connection/key and posts `CLEAR_OFFLINE_PAGES` to the SW; connection closes on `versionchange`.
+- `shared/session/cleanup.ts`: `onSessionEnd` → dynamic import of `wipeOffline` (static import would cycle with token.ts).
+- `scripts/sw.template.js`: `CLEAR_OFFLINE_PAGES` deletes only `ritme-offline-pages-v1`, same-origin window clients only.
+- Tests: ownership (user 2 never sees user 1's items), no-session, wipe; 3 tests go red when the fix is reverted.
+  `npx vitest run src/shared/pwa src/shared/session` → 91 passed.
+- Open: manual check on a built app (download → logout → other number → «دانلودها» empty; Cache Storage cleared).
+  Pre-existing downloads have no owner tag → hidden, cleaned at next session end. SW wipe needs a controller (first
+  load before SW takes control is not covered). Pre-existing red, not from this task: 7 `message-scopes` tests
+  (T-M12-12) and steiger `insignificant-slice` on `widgets/plus-required-sheet` (from 2026-11-14).
+
+## T-M12-04 — Patch vulnerable dependencies and add an audit gate
+- next 15.5.18/15.5.26 → 15.5.29 (frontend/admin-web), eslint-config-next 15.5.29, postcss override ^8.5.33,
+  `images: { unoptimized: true }` in both next.config.ts.
+- laravel-site: enshrined/svg-sanitize ^0.22 → ^1.1.1, symfony/* and laravel/framework updated; `composer audit --locked`
+  14 advisories → 0; `php artisan test` 1413 passed / 1 skipped.
+- npm audit `--omit=dev`: frontend 1 crit + 5 high + 1 mod → 1 high (zod) + 1 mod (next-intl); admin-web 1 crit + 6 high
+  → 3 high (zod, picomatch via @parcel/watcher via next-intl; no upstream fix).
+- CI (`claude-to-stage.yml`): npm audit for both apps at `--audit-level=critical` + `composer audit --locked`.
+- Checks: typecheck + build green in both apps, admin-web vitest 243/243; frontend vitest red only on the 7 pre-existing
+  message-scopes cases (T-M12-12).
+- Follow-up **T-M12-04b**: zod 4 (frontend ~292 type errors) + next-intl 4, then raise the gate to `high`.
+- Open: live `curl /_next/image` → 400/404 on a running build (checked only via required-server-files.json).
+- Not deployed: laravel-site (ritme.app) must be redeployed with deploy-betatest.sh to ship the composer fixes.
