@@ -3,7 +3,7 @@ id: T-M12-19c
 title: make sqlc is broken by migration 00128 (JSON_ARRAY syntax)
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: []
 parallel_group: M12-TEST
 touches: [backend-go/db/migrations/00128_drop_alert_visit_note_action.sql,backend-go/sqlc.yaml,backend-go/internal]

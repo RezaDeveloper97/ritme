@@ -3008,3 +3008,10 @@ Nothing needed fixing.
   already atomic — regression guard); retry after 503/500/429/timeout once; bounded retries; permanent refusal;
   dose vs inbox are separate channels by design. -race green; retry tests red on old code.
 - Open: retry lost on restart → **T-M12-22b** (DB claim release, needs sqlc).
+
+## T-M12-19c — make sqlc green again
+- 00128: the JSON_TABLE UPDATE wrapped in PREPARE/EXECUTE/DEALLOCATE (same SQL, quotes doubled) so sqlc's parser
+  skips it. goose v3 tracks version only (no checksum) → no re-run on stage/beta. Equivalence: old vs new Up on two
+  fresh MariaDB DBs with 7 seeded rows → identical rows; second run no-op; migration test ok.
+- All stores regenerated: only diff is `companions.goal` moving last (00126 MODIFY; stores never regenerated since
+  00128 broke sqlc) — identical to generating without 00128; named fields everywhere, no behaviour change.

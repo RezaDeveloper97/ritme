@@ -292,7 +292,7 @@ func (q *Queries) GetAccess(ctx context.Context, arg GetAccessParams) (GetAccess
 }
 
 const getCompanion = `-- name: GetCompanion :one
-SELECT id, owner_id, companion_user_id, type, status, display_name, invited_at, accepted_at, revoked_at, revoked_by, created_at, updated_at, role, template, expires_at, urgent_sms, owner_confirmed_at, goal, share_pain, share_mood, share_energy, share_sleep, action_prefs FROM ` + "`" + `companions` + "`" + ` WHERE id = ? LIMIT 1
+SELECT id, owner_id, companion_user_id, type, status, display_name, invited_at, accepted_at, revoked_at, revoked_by, created_at, updated_at, role, template, expires_at, urgent_sms, owner_confirmed_at, share_pain, share_mood, share_energy, share_sleep, action_prefs, goal FROM ` + "`" + `companions` + "`" + ` WHERE id = ? LIMIT 1
 `
 
 func (q *Queries) GetCompanion(ctx context.Context, id uint64) (Companion, error) {
@@ -316,12 +316,12 @@ func (q *Queries) GetCompanion(ctx context.Context, id uint64) (Companion, error
 		&i.ExpiresAt,
 		&i.UrgentSms,
 		&i.OwnerConfirmedAt,
-		&i.Goal,
 		&i.SharePain,
 		&i.ShareMood,
 		&i.ShareEnergy,
 		&i.ShareSleep,
 		&i.ActionPrefs,
+		&i.Goal,
 	)
 	return i, err
 }
@@ -531,7 +531,7 @@ func (q *Queries) InsertUserNotification(ctx context.Context, arg InsertUserNoti
 }
 
 const listCompanionLinks = `-- name: ListCompanionLinks :many
-SELECT id, owner_id, companion_user_id, type, status, display_name, invited_at, accepted_at, revoked_at, revoked_by, created_at, updated_at, role, template, expires_at, urgent_sms, owner_confirmed_at, goal, share_pain, share_mood, share_energy, share_sleep, action_prefs FROM ` + "`" + `companions` + "`" + ` WHERE companion_user_id = ? AND status = 'active' ORDER BY id
+SELECT id, owner_id, companion_user_id, type, status, display_name, invited_at, accepted_at, revoked_at, revoked_by, created_at, updated_at, role, template, expires_at, urgent_sms, owner_confirmed_at, share_pain, share_mood, share_energy, share_sleep, action_prefs, goal FROM ` + "`" + `companions` + "`" + ` WHERE companion_user_id = ? AND status = 'active' ORDER BY id
 `
 
 // The active links in which the user is the companion, oldest first.
@@ -562,12 +562,12 @@ func (q *Queries) ListCompanionLinks(ctx context.Context, companionUserID sql.Nu
 			&i.ExpiresAt,
 			&i.UrgentSms,
 			&i.OwnerConfirmedAt,
-			&i.Goal,
 			&i.SharePain,
 			&i.ShareMood,
 			&i.ShareEnergy,
 			&i.ShareSleep,
 			&i.ActionPrefs,
+			&i.Goal,
 		); err != nil {
 			return nil, err
 		}
@@ -828,7 +828,7 @@ func (q *Queries) ListOwnerAudit(ctx context.Context, arg ListOwnerAuditParams) 
 }
 
 const listOwnerCompanions = `-- name: ListOwnerCompanions :many
-SELECT id, owner_id, companion_user_id, type, status, display_name, invited_at, accepted_at, revoked_at, revoked_by, created_at, updated_at, role, template, expires_at, urgent_sms, owner_confirmed_at, goal, share_pain, share_mood, share_energy, share_sleep, action_prefs FROM ` + "`" + `companions` + "`" + ` WHERE owner_id = ? AND status <> 'revoked' ORDER BY id
+SELECT id, owner_id, companion_user_id, type, status, display_name, invited_at, accepted_at, revoked_at, revoked_by, created_at, updated_at, role, template, expires_at, urgent_sms, owner_confirmed_at, share_pain, share_mood, share_energy, share_sleep, action_prefs, goal FROM ` + "`" + `companions` + "`" + ` WHERE owner_id = ? AND status <> 'revoked' ORDER BY id
 `
 
 // The owner's invited and active links, oldest first.
@@ -859,12 +859,12 @@ func (q *Queries) ListOwnerCompanions(ctx context.Context, ownerID uint64) ([]Co
 			&i.ExpiresAt,
 			&i.UrgentSms,
 			&i.OwnerConfirmedAt,
-			&i.Goal,
 			&i.SharePain,
 			&i.ShareMood,
 			&i.ShareEnergy,
 			&i.ShareSleep,
 			&i.ActionPrefs,
+			&i.Goal,
 		); err != nil {
 			return nil, err
 		}
