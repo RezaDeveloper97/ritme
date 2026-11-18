@@ -3,10 +3,10 @@ id: T-M12-19
 title: AI credits at the boundaries: expiry second, refund after expiry, stacked purchase, spend+refund race
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-11]
 parallel_group: M12-TEST
-touches: [backend-go/internal/ai/credits, backend-go/internal/plus]
+touches: [backend-go/internal/ai/credits, backend-go/internal/plus, backend-go/db/queries/plus, docs/ai-credits.md]
 skills: []
 verify: cd backend-go && go test -race -count=1 ./internal/ai/credits/... && make test-int PKG="./internal/ai/credits/... ./internal/plus/..."
 ---

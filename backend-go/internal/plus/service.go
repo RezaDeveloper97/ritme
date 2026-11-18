@@ -476,6 +476,10 @@ func (s *Service) Checkout(ctx context.Context, userID, planID uint64, code stri
 		if qt, err = s.quote(ctx, q, userID, planID, code, now); err != nil {
 			return err
 		}
+		// The user row before the invoice insert (see settle): a free checkout activates in this transaction.
+		if err := lockUser(ctx, q, userID); err != nil {
+			return err
+		}
 		stamp := sql.NullTime{Time: now, Valid: true}
 		invoiceID, err = q.InsertInvoice(ctx, store.InsertInvoiceParams{
 			Reference: ref, UserID: userID, PlanID: sql.NullInt64{Int64: int64(qt.Plan.ID), Valid: true}, //nolint:gosec // G115: ids are positive
@@ -677,8 +681,13 @@ func (p period) end(start time.Time) time.Time {
 }
 
 // activate adds a subscription period for a paid invoice: it starts now, or — when a period is still running or
-// queued — right after the last one ends (buying again extends, never overlaps).
+// queued — right after the last one ends (buying again extends, never overlaps). It takes the user's row lock
+// first, so concurrent settles of different invoices queue one after the other (q must be a READ COMMITTED
+// transaction's queries; the caller's own row lock — invoice, store purchase — comes before it).
 func activate(ctx context.Context, q *store.Queries, userID, planID, invoiceID uint64, p period, now time.Time) error {
+	if err := lockUser(ctx, q, userID); err != nil {
+		return err
+	}
 	start := now
 	last, err := q.LatestValidSubscription(ctx, store.LatestValidSubscriptionParams{UserID: userID, Now: now})
 	switch {
@@ -695,6 +704,15 @@ func activate(ctx context.Context, q *store.Queries, userID, planID, invoiceID u
 	})
 	if err != nil {
 		return fmt.Errorf("plus: subscription: %w", err)
+	}
+	return nil
+}
+
+// lockUser serialises the period writes of one user (T-M12-19). Lock order: the caller's own row (invoice, store
+// purchase, challenge enrollment) first, then the user row.
+func lockUser(ctx context.Context, q *store.Queries, userID uint64) error {
+	if _, err := q.LockUser(ctx, userID); err != nil {
+		return fmt.Errorf("plus: lock user: %w", err)
 	}
 	return nil
 }
@@ -758,6 +776,11 @@ func (s *Service) settle(ctx context.Context, userID uint64, reference, authorit
 			s.logger.ErrorContext(ctx, "plus: settled amount differs from invoice", "gateway", s.gateway.Name(),
 				"reference", reference, "invoice_total", inv.TotalRials, "settled", res.AmountRials)
 			return fail(ErrAmountMismatch)
+		}
+		// The user row before the first insert: its foreign-key check would take a shared lock on that row, and two
+		// settles both holding it while asking activate's exclusive lock deadlock (T-M12-19).
+		if err := lockUser(ctx, q, userID); err != nil {
+			return err
 		}
 		err = q.InsertReceipt(ctx, store.InsertReceiptParams{
 			InvoiceID: inv.ID, UserID: userID, Gateway: s.gateway.Name(), RefID: res.RefID,

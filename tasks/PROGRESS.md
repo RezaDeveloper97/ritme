@@ -2864,3 +2864,14 @@ Nothing needed fixing.
   edge rows: skip onboarding, irregular, teen, Tehran 23:59/00:01, 30 Esfand 1403.
 - Mutation-checked (ETag revision, UTC "today", D-207 override). No production bug.
 - Note: by D-207 onboarding users keep declared lengths until «خودکار» is on — they never get median predictions by default.
+
+## T-M12-19 — AI credits at the boundaries (+ concurrent-settle overlap fix)
+- Tests: `credits_boundaries_int_test.go` (period end second `[starts_at, ends_at)`, back-to-back hand-over, refund
+  after expiry, spend+refund race conserves credits), `plus_credits_stack_int_test.go` (stacked purchase: one bucket
+  per period, only the running one counts; concurrent settles never overlap). Mutation-checked.
+- **Money bug fixed:** concurrent settles of two invoices of one user overlapped periods (4 paid months → 2 lost,
+  PlanTotal ×2–×3). Now `LockUser` (users row FOR UPDATE) before the first insert in settle, Checkout (free invoice),
+  store billing, `activate` and `GrantDays`; lock order row → user everywhere. Green natively and under -race (docker).
+- Rules 7–8 written in docs/ai-credits.md (user decision: refund goes back to its own bucket; expired period share ends).
+- sqlc output for plus copied from a scratch run because `make sqlc` is broken by 00128 → **T-M12-19c**.
+- Remaining lock-order risk in challenges rewards + admin period edits → **T-M12-19b**.
