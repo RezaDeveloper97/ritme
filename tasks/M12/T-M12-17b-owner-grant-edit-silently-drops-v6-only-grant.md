@@ -3,7 +3,7 @@ id: T-M12-17b
 title: Owner grant edit silently drops v6-only grants (urgent alert, vitals, household)
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-17]
 parallel_group: M12-TEST
 touches: [backend-go/internal/companion,backend-go/internal/family/grants.go,backend-go/internal/family/grants_test.go,backend-go/internal/http/routine_family_int_test.go]

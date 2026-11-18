@@ -13,7 +13,6 @@ package http_test
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/gofiber/fiber/v3"
@@ -450,20 +449,16 @@ func TestRoutineFamily_CodeWriteInviteWaitsThenModeChangePauses(t *testing.T) {
 	f.legacyGrants(linkID, map[string]any{"appointments": "edit", "meds": "view", "cycle": "view"})
 	f.table("reviewed", reza.Token, map[string]famWant{"appointments": famOK, "meds": famOK})
 	e.MustOK(fiber.StatusCreated, fiber.MethodPost, famCareAppts, famApptBody("Reza after review", "2026-10-07 12:00", sara.ID), reza.Token)
+	// The urgent-alert switch stays on through the change and its review (F-23, T-M12-17b).
+	assert.Equal(t, map[uint64]map[string]string{sara.ID: {"appointments": "write", "meds": "view", "urgent_alert": "view"}},
+		f.meAsMember(reza.Token))
 }
 
 // TestRoutineFamily_GrantEditKeepsUrgentAlert: the owner's grant edit must not switch the urgent alert off. F-23
 // says the urgent-alert switch stays on through a mode change and its review; the review re-approval today is the
 // /companions grant edit, which only knows the legacy sections.
-//
-// KNOWN BUG (T-M12-17 finding): PUT /companions/{id}/grants maps the legacy sections to a full v6 set (toV6) and
-// family.Grants.Apply deletes every row not in it, so urgent_alert (and vitals, household, fetal_activity,
-// ttc_fertility) granted by a v6 invite is silently switched off by any owner grant edit. Skipped until fixed; run it
-// with FAMILY_KNOWN_BUGS=1.
+// Found by T-M12-17, fixed by T-M12-17b (the edit is scoped to the legacy domains, family.Change.Scope).
 func TestRoutineFamily_GrantEditKeepsUrgentAlert(t *testing.T) {
-	if os.Getenv("FAMILY_KNOWN_BUGS") == "" {
-		t.Skip("known bug: the /companions grant edit drops v6-only grants (urgent_alert); FAMILY_KNOWN_BUGS=1 runs it")
-	}
 	f := newFamFlow(t)
 	e := f.e
 	reza := f.member()

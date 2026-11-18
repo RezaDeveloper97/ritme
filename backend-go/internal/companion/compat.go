@@ -42,6 +42,19 @@ func sectionDomain(s Section) (family.Domain, bool) {
 	return family.DomainNone, false
 }
 
+// legacyScope are the v6 domains a legacy section can name (every section, teen card included): the only domains a
+// /companions grant edit changes. The v6-only domains (urgent_alert, vitals, household, fetal_activity,
+// ttc_fertility) cannot be expressed there and are kept as stored (T-M12-17b).
+var legacyScope = func() []family.Domain {
+	out := []family.Domain{}
+	for _, s := range append(append([]Section{}, Sections...), TeenSections...) {
+		if d, ok := sectionDomain(s); ok {
+			out = append(out, d)
+		}
+	}
+	return out
+}()
+
 // toV6 maps legacy grants to the v6 set (legacy levels capped to each domain's maximum, as the 00110 migration does).
 func toV6(g Grants) map[family.Domain]family.Level {
 	out := map[family.Domain]family.Level{}

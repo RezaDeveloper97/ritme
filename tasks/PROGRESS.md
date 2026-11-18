@@ -2924,3 +2924,13 @@ Nothing needed fixing.
   404 vs 403, needsOwner, projection without Decide).
 - **Bug found** → **T-M12-17b**: owner grant edit drops v6-only grants incl. urgent alert (skipped test until fixed).
 - Known gap (T-M11-09): member writes to owner meds/appointments are direct (201), not proposals (202) per F-04/F-05.
+
+## T-M12-17b — Owner grant edit kept v6-only grants
+- `family.Change.Scope`: a scoped Apply only touches the named domains (nil = full set, old behaviour for invite /
+  accept / share request / mutual). `companion.SetGrants` passes `legacyScope` (domains the legacy sections map to),
+  so urgent_alert, vitals, household, fetal_activity, ttc_fertility survive edits and re-approve (F-23). Audit/diff
+  list only real changes; consent event counts kept rows.
+- Tests: `family/grants_test.go`, `companion/grant_edit_int_test.go`, unskipped `TestRoutineFamily_GrantEditKeepsUrgentAlert`
+  + urgent kept after review in the mode-change flow. Red on old code.
+- Open (user): a paused epoch-bound v6 grant (e.g. vitals) is not re-stamped by a legacy edit — stays paused until the
+  "keep as before" card (T-M11-07) re-stamps all.

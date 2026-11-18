@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	rootdb "github.com/ritme/backend-go/db"
@@ -46,7 +47,8 @@ const (
 	ChangeShareRequest = "share_request"
 )
 
-// Change is one grant change: the complete new grant set of a link (a domain left out is off).
+// Change is one grant change: the new grant set of a link. Without a Scope it is the complete set (a domain left out
+// is off); with one it covers only the Scope's domains (see Scope).
 type Change struct {
 	LinkID   uint64
 	OwnerID  uint64
@@ -54,6 +56,11 @@ type Change struct {
 	ActorID  uint64 // who made the change (the owner; the member on an accepted share request is still owner-approved)
 	Role     Role
 	Set      map[Domain]Level
+	// Scope, when non-nil, limits the change to these domains: a domain of the scope left out of Set is off, every
+	// other stored grant is kept exactly as it is (level and mode epoch, no diff). The legacy /companions grant edit
+	// passes the domains its sections can express, so a v6-only grant (urgent_alert, vitals, household,
+	// fetal_activity, ttc_fertility) survives it (T-M12-17b, F-23). nil = the whole registry (the complete set).
+	Scope []Domain
 	// ExpiresAt is the link's expiry (zero = none), recorded in the consent scope.
 	ExpiresAt time.Time
 	Reason    string
@@ -104,6 +111,7 @@ func (Grants) Apply(ctx context.Context, tx store.DBTX, c Change) (Applied, erro
 	if err != nil {
 		return Applied{}, err
 	}
+	inScope := func(d Domain) bool { return c.Scope == nil || slices.Contains(c.Scope, d) }
 	current, err := q.ListGrants(ctx, c.LinkID)
 	if err != nil {
 		return Applied{}, fmt.Errorf("family: apply: grants: %w", err)
@@ -117,7 +125,7 @@ func (Grants) Apply(ctx context.Context, tx store.DBTX, c Change) (Applied, erro
 	reapprove := c.Reason == ChangeOwnerEdit || c.Reason == ChangeReapprove
 	for code, lv := range old { // rows not in the new set: removed (also every legacy / unknown code)
 		d, ok := ParseDomain(code)
-		if ok && c.Set[d] > LevelOff {
+		if ok && (!inScope(d) || c.Set[d] > LevelOff) {
 			continue
 		}
 		if err := q.DeleteGrant(ctx, store.DeleteGrantParams{CompanionID: c.LinkID, Section: code}); err != nil {
@@ -127,6 +135,14 @@ func (Grants) Apply(ctx context.Context, tx store.DBTX, c Change) (Applied, erro
 	}
 	domains := map[string]string{}
 	for _, d := range GrantDomains {
+		if !inScope(d) { // kept as stored; still part of what the member is granted (consent scope)
+			if prev, had := old[d.String()]; had {
+				if l, ok := ParseLevel(prev); ok && l > LevelOff {
+					domains[d.String()] = l.String()
+				}
+			}
+			continue
+		}
 		l := c.Set[d]
 		if l == LevelOff {
 			continue
