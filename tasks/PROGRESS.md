@@ -2974,3 +2974,11 @@ Nothing needed fixing.
 - Docs (main session): engine-v6 README §5, DECISIONS M-08 note, frontend comment.
 - Open: SMS reminders → **T-M12-21d**; appointments `scheduled_at` still Tehran wall-clock (separate decision);
   hourly chains double-fire in the spring gap by definition.
+
+## T-M12-11d — Status banner seed and cycle daily card follow the M8 copy
+- goose **00130_status_banner_copy_m8** (data-only, `go_only_seeds`): `banner.end_missing` title/body and
+  `banner.overdue` body → M8 fa text, only where the value still equals the 00112 text; Down symmetric.
+- `cycle/view/daily_card.go` title → «پایان پریود ثبت نشده»; 8 goldens patched for that string → deviation **D-212**.
+- `feed_int_test.go`: overdue CTA key is `test` (home.json) — reverts T-M12-20's `cta` change.
+- `TestFeedInt_BannerSeed` green; messages + cycle int green; `make contract ROUTES=cycle` 125 passed; contract-v6 80 passed.
+- Not checked: sqlc parse of 00130 (sqlc broken by 00128, T-M12-19c); 00130 uses only JSON_SET/EXTRACT/UNQUOTE.

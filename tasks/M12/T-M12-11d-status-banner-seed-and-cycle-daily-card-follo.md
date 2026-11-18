@@ -3,7 +3,7 @@ id: T-M12-11d
 title: Status banner seed and cycle daily card follow the M8 Persian copy (migration)
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-11c,T-M12-13]
 parallel_group: M12-TEST
 touches: [backend-go/db/migrations,backend-go/internal/cycle/view,backend-go/contract/cases,backend-go/internal/messages]

@@ -361,7 +361,7 @@ func TestFeedInt_BannerSeed(t *testing.T) {
 			return rules.Variant{Title: get("endMissing", "title"), Body: get("endMissing", "text"), CTALabel: get("endMissing", "cta")}
 		case "overdue":
 			return rules.Variant{Title: strings.ReplaceAll(get("banner", "overdue", "title"), "{n}", "{days_late}"),
-				Body: get("banner", "overdue", "text"), CTALabel: get("banner", "overdue", "cta")}
+				Body: get("banner", "overdue", "text"), CTALabel: get("banner", "overdue", "test")}
 		}
 		return rules.Variant{Title: get("banner", "askLast", "title"), Body: get("banner", "askLast", "text"), CTALabel: get("banner", "askLast", "cta")}
 	}
