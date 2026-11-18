@@ -3,7 +3,7 @@ id: T-M12-21
 title: Jalali and timezone edge tables for cycle engine, medication schedule and reminder planner
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: []
 parallel_group: M12-TEST
 touches: [backend-go/internal/cycle/engine, backend-go/internal/care/medication_test.go, backend-go/internal/reminders, backend-go/internal/platform/usertz]

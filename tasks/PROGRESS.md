@@ -2795,3 +2795,15 @@ Nothing needed fixing.
 - Verify: vet + lint clean, auth + ratelimit unit/int green. `internal/http` int: 10 tests red with
   `companion_forbidden` — identical on a clean HEAD worktree → follow-up **T-M12-11b**.
 - Open: Redis error → send/verify fail closed (500) — a Redis outage blocks login; no guard without Redis (tests only).
+
+## T-M12-21 — Jalali and timezone edge tables
+- Tests only (no bug in touches): `cycle/engine/calendar_edges_test.go` (leap Esfand 1403/1404, period across
+  Esfand→Farvardin, cycle length across Nowruz incl. 21/20/45/46 bounds, predictions on Jalali boundaries, 23:30 vs
+  00:30 in Tehran/Berlin DST/Kathmandu/Kiritimati/Pago Pago), `care/medication_test.go` (Berlin DST daily dose,
+  midnight slots, quiet-hours edges), `reminders/planner_test.go` (cycle reminders across Nowruz, quiet hours,
+  Berlin DST), `platform/usertz/usertz_test.go` (local-day edges, header vs stored zone).
+- Sensitivity shown by mutation of planner/usertz/engine (each made tables red, then restored).
+- Found: frontend jalaliday shows all of 1404 one day off → **T-M12-21b**.
+- Open (user decision): medication doses, `/care/upcoming`, reminders and quiet hours run on Tehran time; DECISIONS
+  M-08 says local time for the message engine. Tests pin current behaviour.
+- Minor: `usertz.Parse` accepts lower-case zone names on macOS only (case-insensitive FS).

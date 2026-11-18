@@ -11,6 +11,7 @@ import (
 
 	rootdb "github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/care/store"
+	"github.com/ritme/backend-go/internal/notifications"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
 )
@@ -298,4 +299,143 @@ func TestAppointmentsDue(t *testing.T) {
 	require.Len(t, due, 1)
 	assert.Equal(t, "امروز ساعت 11:00", due[0].When("fa"))
 	assert.Equal(t, "دکتر احمدی · امروز ساعت 11:00", due[0].Message("fa").Body)
+}
+
+// T-M12-21 — timezone and quiet-hours edge tables for the medication schedule.
+
+// medRow is an active, notifying medication row with times slots on every day, starting on start.
+func medRow(id uint64, start string, times ...string) store.Reminder {
+	meta := `{"v":1,"form":"tablet","times":[`
+	for i, s := range times {
+		if i > 0 {
+			meta += ","
+		}
+		meta += `"` + s + `"`
+	}
+	meta += `],"weekdays":[0,1,2,3,4,5,6],"amount":1,"duration":"ongoing","notify":true}`
+	return store.Reminder{
+		ID: id, UserID: 7, Type: TypeMedication, Title: "آهن", IsActive: true,
+		StartsOn: civildate.NullDate{Date: civildate.MustParse(start), Valid: true},
+		Meta:     rootdb.NullRawJSON{V: []byte(meta), Valid: true},
+	}
+}
+
+// A daily 08:00 dose seen by a Berlin user's window across both 2026 DST changes. The schedule is on the Tehran
+// clock (Occurrence.At, README §5: care stays on Tehran under X-07) and Tehran has no DST since 2022, so the
+// invariants hold: one dose per day, no day skipped or doubled when Berlin's day is 23 or 25 hours long, exactly
+// 24 h apart, keyed by the Tehran day. Whether the dose should instead follow the Berlin wall clock (M-08) is an
+// open product question; the Berlin hours below pin today's behaviour.
+func TestOccurrences_DailyDoseAcrossBerlinDST(t *testing.T) {
+	berlin, err := time.LoadLocation("Europe/Berlin")
+	require.NoError(t, err)
+	rows := []store.Reminder{medRow(1, "2026-01-01", "08:00")}
+	cases := []struct {
+		name       string
+		from, to   time.Time // Berlin midnights
+		wantDays   []string
+		berlinHour []int // the Berlin wall-clock hour of each dose (Tehran 08:00 = 05:30 CET / 06:30 CEST)
+	}{
+		{
+			name: "spring forward 2026-03-29 (23-hour Berlin day)",
+			from: time.Date(2026, 3, 28, 0, 0, 0, 0, berlin), to: time.Date(2026, 3, 31, 0, 0, 0, 0, berlin),
+			wantDays: []string{"2026-03-28", "2026-03-29", "2026-03-30"}, berlinHour: []int{5, 6, 6},
+		},
+		{
+			name: "fall back 2026-10-25 (25-hour Berlin day)",
+			from: time.Date(2026, 10, 24, 0, 0, 0, 0, berlin), to: time.Date(2026, 10, 27, 0, 0, 0, 0, berlin),
+			wantDays: []string{"2026-10-24", "2026-10-25", "2026-10-26"}, berlinHour: []int{6, 5, 5},
+		},
+		{
+			// Boundary/negative: the 23-hour Berlin day alone holds exactly one dose.
+			name: "the spring-forward Berlin day only",
+			from: time.Date(2026, 3, 29, 0, 0, 0, 0, berlin), to: time.Date(2026, 3, 30, 0, 0, 0, 0, berlin),
+			wantDays: []string{"2026-03-29"}, berlinHour: []int{6},
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			occ := Occurrences(rows, c.from, c.to)
+			require.Len(t, occ, len(c.wantDays))
+			for i, o := range occ {
+				assert.Equal(t, c.wantDays[i], o.Day.String())
+				at := o.At.In(civildate.Tehran)
+				assert.Equal(t, [2]int{8, 0}, [2]int{at.Hour(), at.Minute()}, "08:00 Tehran")
+				assert.Equal(t, c.berlinHour[i], o.At.In(berlin).Hour(), "Berlin hour of %s", o.Day)
+				assert.Equal(t, 30, o.At.In(berlin).Minute())
+				if i > 0 {
+					assert.Equal(t, 24*time.Hour, o.At.Sub(occ[i-1].At), "no DST jump in the schedule")
+				}
+			}
+		})
+	}
+}
+
+// Window ends and Tehran midnight: a 00:00 and a 23:59 slot belong to their own day; the window is [from, to).
+func TestOccurrences_MidnightSlotsAndWindowEdges(t *testing.T) {
+	rows := []store.Reminder{medRow(1, "2026-03-19", "00:00", "23:59")}
+	nowruz := time.Date(2026, 3, 21, 0, 0, 0, 0, civildate.Tehran) // 1 Farvardin 1405
+	cases := []struct {
+		name     string
+		from, to time.Time
+		want     []string
+	}{
+		{"29 Esfand 1404 → Nowruz", nowruz.Add(-time.Minute), nowruz.Add(time.Minute), []string{"1:2026-03-20:23:59", "1:2026-03-21:00:00"}},
+		{"from exactly 00:00 is inclusive", nowruz, nowruz.Add(time.Minute), []string{"1:2026-03-21:00:00"}},
+		{"to exactly 00:00 is exclusive", nowruz.Add(-time.Hour), nowruz, []string{"1:2026-03-20:23:59"}},
+		{"empty window (negative)", nowruz, nowruz, nil},
+		{"before starts_on (negative)", time.Date(2026, 3, 18, 0, 0, 0, 0, civildate.Tehran), time.Date(2026, 3, 19, 0, 0, 0, 0, civildate.Tehran), nil},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			var got []string
+			for _, o := range Occurrences(rows, c.from, c.to) {
+				got = append(got, o.ID())
+			}
+			assert.Equal(t, c.want, got)
+		})
+	}
+}
+
+// A dose exactly at the quiet-hours start is silenced, one exactly at the end goes out: the window is [start, end)
+// on the Tehran clock, as Pusher.Tick and GET /care/upcoming decide it (notifications.Decide).
+func TestMedicationDose_QuietHoursBoundaries(t *testing.T) {
+	p := notifications.Defaults() // quiet 23:00 → 08:00
+	require.True(t, p.QuietEnabled)
+	require.Equal(t, [2]int{23 * 60, 8 * 60}, [2]int{p.QuietStart, p.QuietEnd})
+	sameDay := notifications.Defaults()
+	sameDay.QuietStart, sameDay.QuietEnd = 13*60, 15*60
+	off := notifications.Defaults()
+	off.QuietEnabled = false
+	empty := notifications.Defaults()
+	empty.QuietStart, empty.QuietEnd = 9*60, 9*60
+
+	cases := []struct {
+		name  string
+		prefs notifications.Preferences
+		slot  string
+		send  bool
+	}{
+		{"22:59, a minute before the start", p, "22:59", true},
+		{"23:00, exactly the start", p, "23:00", false},
+		{"00:00, inside the wrapped window", p, "00:00", false},
+		{"07:59, a minute before the end", p, "07:59", false},
+		{"08:00, exactly the end", p, "08:00", true},
+		{"same-day window: 13:00 start", sameDay, "13:00", false},
+		{"same-day window: 15:00 end", sameDay, "15:00", true},
+		{"same-day window: 12:59", sameDay, "12:59", true},
+		{"quiet hours off: 23:00", off, "23:00", true},
+		{"start == end is an empty window: 09:00", empty, "09:00", true},
+	}
+	from := time.Date(2026, 3, 20, 0, 0, 0, 0, civildate.Tehran) // 29 Esfand 1404, the night into Nowruz
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			occ := Occurrences([]store.Reminder{medRow(1, "2026-03-01", c.slot)}, from, from.Add(24*time.Hour))
+			require.Len(t, occ, 1)
+			d := notifications.Decide(c.prefs, notifications.Medications, occ[0].At, time.Time{})
+			assert.Equal(t, c.send, d.Send)
+			if !c.send {
+				assert.Equal(t, notifications.ReasonQuietHours, d.Reason)
+			}
+		})
+	}
 }
