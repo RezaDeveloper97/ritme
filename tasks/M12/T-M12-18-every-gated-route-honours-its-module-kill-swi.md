@@ -3,7 +3,7 @@ id: T-M12-18
 title: Every gated route honours its module kill-switch (table test over the router)
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-11]
 parallel_group: M12-TEST
 touches: [backend-go/internal/http/modules_int_test.go, backend-go/internal/modules, frontend/src/entities/app-module]

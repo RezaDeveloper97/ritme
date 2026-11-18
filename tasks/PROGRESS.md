@@ -2892,3 +2892,13 @@ Nothing needed fixing.
   bucket, extra unlocked), replayed bank callbacks change nothing. Asserts ledger rows + `ai_usage_logs`.
 - testenv: `Request.Raw` / `ContentType` for multipart and form posts.
 - Mutation-checked (spend order, inclusive end, refund, extra without subscription). No bug found.
+
+## T-M12-18 — Every gated route honours its module kill-switch
+- `internal/http/modules_routes_int_test.go`: walks the Fiber route table, `modules.ModuleOf` per route; off → 403
+  `module_disabled` for every route of the module, on → never; fails on a named-but-ungated route, a prefix with no
+  route, or a module with no gated routes (4 UI-only modules allowed). 572 routes, 270 gated, 16 modules.
+- `internal/modules`: `Prefixes()` / `AlwaysOpen()` accessors; **fix:** `/api/v1/analysis/postpartum` was gated only in
+  its handler → now in the central gate.
+- Frontend `entities/app-module/model/kill-switch.test.ts` (20 cases, `moduleOfRoute` / `modeAvailable`).
+- Open (user): routes whose path names no module, ungated today — `/labs`, `/checkups`, `/partners/lab-requests`,
+  `/analysis/labs`, `/shared-reports` (record/doctors?), `/emergency-cards/:token` (likely stays open).
