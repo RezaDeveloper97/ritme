@@ -3,7 +3,7 @@ id: T-M12-21b
 title: Frontend Jalali dates are one day off for the whole year 1404 (jalaliday leap rule)
 milestone: M12
 type: frontend
-status: todo
+status: done
 depends_on: []
 parallel_group: M12-TEST
 touches: [frontend/src/shared/lib/date,frontend/src/screens/analysis-monthly/model,frontend/package.json,frontend/package-lock.json]

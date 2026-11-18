@@ -2807,3 +2807,13 @@ Nothing needed fixing.
 - Open (user decision): medication doses, `/care/upcoming`, reminders and quiet hours run on Tehran time; DECISIONS
   M-08 says local time for the message engine. Tests pin current behaviour.
 - Minor: `usertz.Parse` accepts lower-case zone names on macOS only (case-insensitive FS).
+
+## T-M12-21b — Frontend Jalali dates one day off for 1404
+- Root cause: jalaliday 2.3.0 made 1404 leap (official: 1403) → every day from Nowruz 1404 to 2026-03-20 rendered one
+  Jalali day off; Esfand 1404 built as 30 days from 2026-02-19.
+- Fix: `shared/lib/date/jalaali.ts` — line-by-line TS port of the backend converter
+  (`backend-go/internal/checkups/engine/jalali.go`, jalaali-js algorithm); `calendar.ts` uses it, dayjs only for
+  Gregorian math; `jalaliday` removed from package.json/lock. Public `shared/lib/date` API unchanged.
+- Tests: reference dates, leap years 1399–1410, invalid/clamped input, backend parity table 1399–1411 (generated from
+  Go), daily round-trip 2020–2033, monthly-analysis boundaries. On the old code: 22 of 88 red.
+- Open: screenshot Esfand 1404 (29 days, starts Friday) + a 1404 monthly analysis on the running app.

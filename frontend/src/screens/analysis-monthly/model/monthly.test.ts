@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
+import { toParts } from '@/shared/lib/date';
+
 import { deltaTone, formatYm, neighbour, parseYm, placeMonth, resolveMonth, signed, type MonthBounds } from './monthly';
 
 const bounds: MonthBounds = { current: { year: 1405, month: 7 }, earliest: { year: 1403, month: 8 } };
@@ -30,6 +32,26 @@ describe('monthly model', () => {
     expect(resolveMonth({ year: 1405, month: 7 }, 'jalali', 'fa')).toEqual({ year: 1405, month: 7 });
     // Esfand → Farvardin across the year (the jalaliday setter pitfall).
     expect(resolveMonth({ year: 2026, month: 3 }, 'gregorian', 'fa')).toEqual({ year: 1404, month: 12 });
+  });
+
+  // T-M12-21b: the backend's `analysis/monthly.go` answers a jalali month with
+  // Gregorian `from`/`to` (engine.FromJalali / JalaliMonthEnd). The screen labels
+  // those days through shared/lib/date, so for 1404 they must read as the 1st
+  // and last day of the same Jalali month — jalaliday put them one day off.
+  it.each([
+    ['1404-01', '2025-03-21', '2025-04-20', 31],
+    ['1404-07', '2025-09-23', '2025-10-22', 30],
+    ['1404-12', '2026-02-20', '2026-03-20', 29],
+    ['1403-12', '2025-02-19', '2025-03-20', 30],
+    ['1405-01', '2026-03-21', '2026-04-20', 31],
+  ] as const)('labels the backend bounds of %s as that month', (ym, from, to, lastDay) => {
+    const { year, month } = parseYm(ym)!;
+    const at = (iso: string) => {
+      const [y, m, d] = iso.split('-').map(Number);
+      return toParts(new Date(y, m - 1, d), 'fa');
+    };
+    expect(at(from)).toEqual({ year, month, day: 1 });
+    expect(at(to)).toEqual({ year, month, day: lastDay });
   });
 
   it('colours deltas', () => {
