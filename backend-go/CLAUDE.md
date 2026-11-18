@@ -33,6 +33,8 @@ Verify (what `/verify-all` runs): `go vet ./... && go test ./... && golangci-lin
 A local dev database with the goose baseline, a seeded user and OTP login without SMS (`SMS_PROVIDER=log`, code read
 from `otp_verifications`) is a step-by-step recipe in `.claude/skills/local-dev/SKILL.md` and `README.md` → *Local dev*.
 
+- `make test-race` (CI: `-race`, integration included) · `make test-race-docker` (this Mac: cgo can't link; runs in a golang container on the test-stack network, DB `ritme_race`). `make test`/`test-int` fall back to `CGO_ENABLED=0` when cgo can't link. Under `CI=true` a missing `TEST_DB_DSN` fails (opt out with `TESTDB_OPTIONAL=1`). Latency-budget tests skip under `-race` via `platform/racedet`.
+
 ## Dependencies (parallel agents — read this)
 
 Many agents edit `backend-go/` at the same time in one working tree. `go.mod` / `go.sum` are shared files.

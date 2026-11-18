@@ -42,6 +42,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/metrics"
+	"github.com/ritme/backend-go/internal/platform/racedet"
 )
 
 const feedKeysDir = "../../contract/fixtures/keys"
@@ -392,6 +393,9 @@ func TestFeedInt_BannerSeed(t *testing.T) {
 
 // Budget (T-M10-06): the feed with a warm engine state and 200 active rules, ≤ 20 ms p95 and ≤ 3 queries plus auth.
 func TestFeedInt_Budget(t *testing.T) {
+	if racedet.Enabled {
+		t.Skip("latency budget is meaningless under -race")
+	}
 	configcache.SetEnabled(true)
 	defer configcache.SetEnabled(false)
 	e := newFeedEnv(t, "09120006103", civildate.MustParse("2026-10-05"))

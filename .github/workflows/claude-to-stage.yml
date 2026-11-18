@@ -1,6 +1,7 @@
 # Claude Code (web) → stage, without a manual merge.
 #
-# Every push to a `claude/**` branch (what Claude Code on the web creates) runs the checks below; when they pass,
+# Every push to a `claude/**` branch (what Claude Code on the web creates) runs the checks below — the backend job is
+# ci.yml (go vet + `go test -race ./...` with integration tests on real MariaDB/Redis); when they pass,
 # the branch is merged into `stage` and pushed. The server then notices the new stage commit within ~2 minutes and
 # rebuilds stage.ritmeapp.ir (deploy/stage-autodeploy.sh + systemd timer) — nothing here has to reach the server.
 #
@@ -19,22 +20,9 @@ permissions:
   contents: read
 
 jobs:
+  # go vet + the full Go suite with -race, integration tests against MariaDB/Redis service containers (T-M12-11).
   backend:
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    defaults:
-      run:
-        working-directory: backend-go
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: backend-go/go.mod
-          cache-dependency-path: backend-go/go.sum
-      - name: go vet
-        run: go vet ./...
-      - name: go test (unit; integration tests skip without TEST_DB_DSN)
-        run: go test -count=1 ./...
+    uses: ./.github/workflows/ci.yml
 
   frontend:
     runs-on: ubuntu-latest

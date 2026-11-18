@@ -2817,3 +2817,15 @@ Nothing needed fixing.
 - Tests: reference dates, leap years 1399–1410, invalid/clamped input, backend parity table 1399–1411 (generated from
   Go), daily round-trip 2020–2033, monthly-analysis boundaries. On the old code: 22 of 88 red.
 - Open: screenshot Esfand 1404 (29 days, starts Friday) + a 1404 monthly analysis on the running app.
+
+## T-M12-11 — Integration tests with -race in CI
+- New `.github/workflows/ci.yml` (`backend-race`): MariaDB 11.4 + Redis 7 services, `go vet`, `make test-race`, guard that
+  `TestBaselineAppliedToFreshMariaDB` really PASSed. Triggers: push stage/main, PRs, workflow_call/dispatch.
+  `claude-to-stage.yml` backend job = `uses: ./.github/workflows/ci.yml` → auto-merge waits on it.
+- `testdb`: `CI=true` + empty `TEST_DB_DSN` → fail (opt out `TESTDB_OPTIONAL=1`, set on the nightly classifier step).
+- Makefile: cgo probe fallback, `test-race`, `test-race-docker` (DB `ritme_race`, build-cache volume).
+- Main session: `platform/racedet` + skip of 3 latency-budget tests under `-race`; backend-go/CLAUDE.md Commands line.
+- Race run (full, docker): 0 DATA RACE. Red on HEAD: 10 `internal/http` companion (T-M12-11b) + 6 in care/loss/
+  messages/notifications → **T-M12-11c**.
+- **Do not push `stage` before T-M12-11b and T-M12-11c are done** — CI would block every claude/** auto-merge.
+- Open: no real CI run yet (no push in this session).

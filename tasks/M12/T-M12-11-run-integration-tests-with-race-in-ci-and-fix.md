@@ -3,7 +3,7 @@ id: T-M12-11
 title: Run integration tests with -race in CI and fix local `make test` on this Mac
 milestone: M12
 type: fullstack
-status: todo
+status: done
 depends_on: []
 parallel_group: M12-TEST
 touches: [.github/workflows/claude-to-stage.yml, .github/workflows/ci.yml, backend-go/Makefile, backend-go/internal/platform/db/testdb]
