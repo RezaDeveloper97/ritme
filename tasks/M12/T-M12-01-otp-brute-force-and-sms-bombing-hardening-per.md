@@ -3,7 +3,7 @@ id: T-M12-01
 title: OTP brute-force and SMS-bombing hardening (per-number caps, failure budget, atomic send)
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: []
 parallel_group: M12-SEC
 touches: [backend-go/internal/auth, backend-go/internal/http/routes_auth.go, backend-go/internal/platform/ratelimit, backend-go/db/queries/auth, backend-go/internal/platform/config/config.go, docs/go-migration/deviations.md, backend-go/api/openapi.yaml]

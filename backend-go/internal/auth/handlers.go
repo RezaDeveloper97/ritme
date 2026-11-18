@@ -78,6 +78,15 @@ type Handlers struct {
 	logger            *slog.Logger
 	signupHooks       []SignupHook
 	consents          SignupConsents // nil = verify-otp asks no signup consents (Laravel behaviour)
+	otpGuard          *OTPGuard      // nil = no per-number caps / failure budget / send lock (tests without Redis)
+}
+
+// UseOTPGuard turns on the per-number OTP guard (T-M12-01). Call it while wiring routes.
+func (h *Handlers) UseOTPGuard(g *OTPGuard) { h.otpGuard = g }
+
+// refused is the framework throttle 429 ("Too Many Attempts." + Retry-After, X-RateLimit-*) of a per-number refusal.
+func refused(r *OTPRefusal, now time.Time) error {
+	return httpx.TooManyRequests(r.RetryAfter, r.Limit, 0, now.Unix()+int64(r.RetryAfter))
 }
 
 // SignupConsents are the mandatory signup consents (internal/consent.Signup; injected because consent imports auth).
@@ -243,6 +252,40 @@ func (h *Handlers) SendOTP(c fiber.Ctx) error {
 		return fmt.Errorf("auth: recent otp: %w", err)
 	}
 
+	// T-M12-01 (S-02): one send per number at a time — parallel sends that all passed the check above get the
+	// resend answer instead of each dispatching an SMS. The lock is kept after a send (it ends with the resend window).
+	if g := h.otpGuard; g != nil {
+		ok, retry, err := g.AcquireSend(ctx, mobile, now)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return httpx.Fail(fiber.StatusTooManyRequests, "Please wait before requesting a new OTP",
+				"data", jsonx.Obj("retry_after", retry))
+		}
+		// T-M12-01 (S-01): per-number send caps, the same for registered and unknown numbers.
+		refusal, err := g.CountSend(ctx, mobile, now)
+		if err != nil {
+			g.ReleaseSend(ctx, mobile)
+			return err
+		}
+		if refusal != nil {
+			g.ReleaseSend(ctx, mobile)
+			return refused(refusal, now)
+		}
+	}
+
+	if err := h.writeOtp(ctx, mobile, now); err != nil {
+		if h.otpGuard != nil {
+			h.otpGuard.ReleaseSend(ctx, mobile)
+		}
+		return err
+	}
+	return httpx.OK(c, jsonx.Obj("expires_in", int(OTPExpiresIn/time.Second)), "OTP sent successfully")
+}
+
+// writeOtp replaces the number's codes with a new one and queues its SMS.
+func (h *Handlers) writeOtp(ctx context.Context, mobile string, now time.Time) error {
 	code, err := GenerateOTP(OTPLength)
 	if err != nil {
 		return err
@@ -266,8 +309,7 @@ func (h *Handlers) SendOTP(c fiber.Ctx) error {
 		h.logger.ErrorContext(ctx, "OTP SMS dispatch failed inline",
 			slog.String("mobile", sms.MaskMobile(mobile)), slog.String("error", err.Error()))
 	}
-
-	return httpx.OK(c, jsonx.Obj("expires_in", int(OTPExpiresIn/time.Second)), "OTP sent successfully")
+	return nil
 }
 
 // GenerateOTP is SmsService::generateOtp: random_int(10^(n-1), 10^n - 1) from crypto/rand.
@@ -291,6 +333,18 @@ func (h *Handlers) VerifyOTP(c fiber.Ctx) error {
 	}
 	mobile, code := str(data, "mobile"), str(data, "code")
 
+	// T-M12-01 (S-01): a number whose failure budget is spent is refused outright — even the right code — until the
+	// lock ends; checked before any lookup so a locked number answers the same whether or not it has an account.
+	if h.otpGuard != nil {
+		refusal, err := h.otpGuard.Locked(ctx, mobile, now)
+		if err != nil {
+			return err
+		}
+		if refusal != nil {
+			return refused(refusal, now)
+		}
+	}
+
 	otp, err := h.q.GetLatestUnverifiedOtp(ctx, mobile)
 	if errors.Is(err, sql.ErrNoRows) {
 		return httpx.Fail(fiber.StatusBadRequest, "No OTP found. Please request a new one.")
@@ -311,6 +365,11 @@ func (h *Handlers) VerifyOTP(c fiber.Ctx) error {
 		return httpx.Fail(fiber.StatusTooManyRequests, "Too many attempts. Please request a new OTP.")
 	}
 	if subtle.ConstantTimeCompare([]byte(otp.Code), []byte(code)) != 1 {
+		if h.otpGuard != nil {
+			if err := h.otpGuard.RecordFailure(ctx, mobile, now); err != nil {
+				return err
+			}
+		}
 		return httpx.Fail(fiber.StatusUnprocessableEntity, "Invalid OTP code")
 	}
 	// T-M10-23: only after the code matched (no account probing), and before the OTP is spent, so the same code can

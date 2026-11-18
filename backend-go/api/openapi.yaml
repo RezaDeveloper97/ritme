@@ -1368,19 +1368,31 @@ paths:
                 message: Validation failed
                 errors: {mobile: ["Mobile number must be a valid Iranian mobile number (e.g., 09123456789)"]}
         '429':
-          description: Too many requests
+          description: |
+            Either the resend window (`Please wait before requesting a new OTP` + `retry_after`; also a send that lost
+            the per-number send lock to a parallel one), or the framework throttle `Too Many Attempts.` with
+            `Retry-After` / `X-RateLimit-*`: the per-IP `otp_send` limiter (5/min, IPv6 per /64) or, Go only
+            (T-M12-01, D-211), the per-number send caps (3 codes / 15 min, 10 / 24 h; `X-RateLimit-Limit` = the cap
+            hit). Identical for registered and unknown numbers.
+          headers:
+            Retry-After: {schema: {type: integer}}
+            X-RateLimit-Limit: {schema: {type: integer}}
+            X-RateLimit-Remaining: {schema: {type: integer}}
+            X-RateLimit-Reset: {schema: {type: integer}}
           content:
             application/json:
               schema:
-                type: object
-                required: [success, message, data]
-                properties:
-                  success: {type: boolean}
-                  message: {type: string}
-                  data:
-                    type: object
-                    required: [retry_after]
-                    properties: {retry_after: {type: integer}}
+                anyOf:
+                  - type: object
+                    required: [success, message, data]
+                    properties:
+                      success: {type: boolean}
+                      message: {type: string}
+                      data:
+                        type: object
+                        required: [retry_after]
+                        properties: {retry_after: {type: integer}}
+                  - {$ref: "#/components/schemas/FrameworkError"}
               example:
                 success: false
                 message: Please wait before requesting a new OTP
@@ -1429,7 +1441,8 @@ paths:
       description: |
         Verifies the OTP code and returns access token. Creates user if new.
 
-        403 for a blocked user (Persian message in every locale). 429 after 5 wrong attempts.
+        403 for a blocked user (Persian message in every locale). 429 after 5 wrong attempts, or (Go only, T-M12-01)
+        while the number is locked by its failure budget.
 
         Go only (T-M10-23, D-174): a **new** account must send `consents` with the version shown of every mandatory
         signup consent (`terms`, `health_data_processing`), else 422 `consent_required` (checked after the code matched,
@@ -1536,13 +1549,24 @@ paths:
                 message: Validation failed
                 errors: {mobile: ["قالب شماره موبایل معتبر نیست."], code: ["کد تایید باید 4 نویسه باشد."]}
         '429':
-          description: Too many attempts
+          description: |
+            `Too many attempts. Please request a new OTP.` after 5 wrong tries of one code, or the framework throttle
+            `Too Many Attempts.` with `Retry-After` / `X-RateLimit-*`: the per-IP `otp_verify` limiter (10/min, IPv6
+            per /64) or, Go only (T-M12-01, D-211), a number locked by its failure budget (10 wrong codes / 24 h lock
+            it for 1 h, even the right code is refused; `X-RateLimit-Limit` = 10).
+          headers:
+            Retry-After: {schema: {type: integer}}
+            X-RateLimit-Limit: {schema: {type: integer}}
+            X-RateLimit-Remaining: {schema: {type: integer}}
+            X-RateLimit-Reset: {schema: {type: integer}}
           content:
             application/json:
               schema:
-                type: object
-                required: [success, message]
-                properties: {success: {type: boolean}, message: {type: string}}
+                anyOf:
+                  - type: object
+                    required: [success, message]
+                    properties: {success: {type: boolean}, message: {type: string}}
+                  - {$ref: "#/components/schemas/FrameworkError"}
               example: {success: false, message: Too many attempts. Please request a new OTP.}
   /api/v1/banners/ads:
     get:

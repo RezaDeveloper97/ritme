@@ -2781,3 +2781,17 @@ Nothing needed fixing.
 - Follow-up **T-M12-04b**: zod 4 (frontend ~292 type errors) + next-intl 4, then raise the gate to `high`.
 - Open: live `curl /_next/image` → 400/404 on a running build (checked only via required-server-files.json).
 - Not deployed: laravel-site (ritme.app) must be redeployed with deploy-betatest.sh to ship the composer fixes.
+
+## T-M12-01 — OTP brute-force and SMS-bombing hardening
+- New `internal/auth/otpguard.go` (Redis): per-number send lock (`SET NX`, 60 s), sliding send caps (3 / 15 min,
+  10 / 24 h), failure budget across codes (10 wrong / 24 h → number locked 1 h, `slog.Warn` masked +
+  `auth_otp_lockouts_total`). Decisions use the request clock (`X-Test-Now`); keys hold `sha256(mobile)`.
+- Named per-IP limiters `otp_send` (5/min) and `otp_verify` (10/min); IPv6 keyed on /64 (`ratelimit.ClientNet/NamedNet`).
+- Env: `OTP_SEND_MAX_SHORT`, `OTP_SEND_SHORT_WINDOW_MINUTES`, `OTP_SEND_MAX_DAILY`, `OTP_SEND_DAILY_WINDOW_HOURS`,
+  `OTP_FAILURE_MAX`, `OTP_FAILURE_WINDOW_HOURS`, `OTP_LOCK_MINUTES`, `OTP_SEND_LOCK_SECONDS` (defaults as above).
+- Code stays 4 digits (user decision). Deviation **D-211** proposed — needs user OK. OpenAPI 429 updated.
+- Tests: `otpguard_test.go` (miniredis), `otp_guard_int_test.go` (a–e from Acceptance), ratelimit /64 tests; each
+  fix was reverted once and the matching tests went red.
+- Verify: vet + lint clean, auth + ratelimit unit/int green. `internal/http` int: 10 tests red with
+  `companion_forbidden` — identical on a clean HEAD worktree → follow-up **T-M12-11b**.
+- Open: Redis error → send/verify fail closed (500) — a Redis outage blocks login; no guard without Redis (tests only).

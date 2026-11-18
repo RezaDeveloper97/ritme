@@ -98,9 +98,11 @@ func NewModule(d Deps) (*Module, error) {
 	rdbQueue.Register(spec, SendOTPSMSHandler(smsSvc))
 
 	issuer := passport.NewIssuer(keys.Private, q, clock.Real{}, d.Config.Passport.TokenLifetimeDays)
+	h := NewHandlers(q, issuer, rdbQueue, clock.Real{}, d.Config.Passport.RefreshWindowDays, logger)
+	h.UseOTPGuard(NewOTPGuard(d.Cache, d.Config.SMS.OTP, logger))
 	return &Module{
 		Guard:    NewGuardWith(keys.Public, q, clock.Real{}, logger),
-		Handlers: NewHandlers(q, issuer, rdbQueue, clock.Real{}, d.Config.Passport.RefreshWindowDays, logger),
+		Handlers: h,
 		Limiter:  limiter,
 		Queue:    rdbQueue,
 	}, nil
@@ -127,6 +129,30 @@ func (m *Module) Throttle(n int) fiber.Handler {
 		return func(c fiber.Ctx) error { return c.Next() }
 	}
 	return m.Limiter.Middleware(n, time.Minute, ThrottleIdentity)
+}
+
+// OTP per-IP limits (T-M12-01): send-otp and verify-otp count on limiters of their own (no longer one shared
+// counter per IP), and IPv6 clients are keyed on their /64.
+const (
+	OTPSendPerIPPerMinute   = 5
+	OTPVerifyPerIPPerMinute = 10
+)
+
+// ThrottleOTPSend is the per-IP limiter of send-otp (`otp_send`).
+func (m *Module) ThrottleOTPSend() fiber.Handler {
+	return m.namedNet("otp_send", OTPSendPerIPPerMinute)
+}
+
+// ThrottleOTPVerify is the per-IP limiter of verify-otp (`otp_verify`).
+func (m *Module) ThrottleOTPVerify() fiber.Handler {
+	return m.namedNet("otp_verify", OTPVerifyPerIPPerMinute)
+}
+
+func (m *Module) namedNet(name string, n int) fiber.Handler {
+	if m.Limiter == nil {
+		return func(c fiber.Ctx) error { return c.Next() }
+	}
+	return m.Limiter.NamedNet(name, n, time.Minute, nil)
 }
 
 // SendOTPSMSHandler is SendOtpSmsJob::handle: fails the try when every provider failed.

@@ -274,6 +274,25 @@ type SMS struct {
 	Provider  string
 	Kavenegar Kavenegar
 	SMSIR     SMSIR
+	// OTP are the per-number OTP guards (T-M12-01, S-01/S-02).
+	OTP OTPLimits
+}
+
+// OTPLimits are the per-number OTP guards (T-M12-01): send caps, the failure budget across codes and the send lock.
+type OTPLimits struct {
+	// SendShortMax codes per SendShortWindow (OTP_SEND_MAX_SHORT 3 / OTP_SEND_SHORT_WINDOW_MINUTES 15).
+	SendShortMax    int
+	SendShortWindow time.Duration
+	// SendDailyMax codes per SendDailyWindow (OTP_SEND_MAX_DAILY 10 / OTP_SEND_DAILY_WINDOW_HOURS 24).
+	SendDailyMax    int
+	SendDailyWindow time.Duration
+	// FailureMax wrong codes per FailureWindow lock the number for LockFor
+	// (OTP_FAILURE_MAX 10 / OTP_FAILURE_WINDOW_HOURS 24 / OTP_LOCK_MINUTES 60).
+	FailureMax    int
+	FailureWindow time.Duration
+	LockFor       time.Duration
+	// SendLock is the per-number send lock (SET NX) around delete/insert/dispatch (OTP_SEND_LOCK_SECONDS 60).
+	SendLock time.Duration
 }
 
 // Kavenegar holds KAVENEGAR_*.
@@ -692,6 +711,16 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 				TemplateID: e.integer("SMSIR_TEMPLATE_ID", 511293),
 				LineNumber: e.str("SMSIR_LINE_NUMBER", ""),
 			},
+			OTP: OTPLimits{
+				SendShortMax:    e.integer("OTP_SEND_MAX_SHORT", 3),
+				SendShortWindow: time.Duration(e.integer("OTP_SEND_SHORT_WINDOW_MINUTES", 15)) * time.Minute,
+				SendDailyMax:    e.integer("OTP_SEND_MAX_DAILY", 10),
+				SendDailyWindow: time.Duration(e.integer("OTP_SEND_DAILY_WINDOW_HOURS", 24)) * time.Hour,
+				FailureMax:      e.integer("OTP_FAILURE_MAX", 10),
+				FailureWindow:   time.Duration(e.integer("OTP_FAILURE_WINDOW_HOURS", 24)) * time.Hour,
+				LockFor:         time.Duration(e.integer("OTP_LOCK_MINUTES", 60)) * time.Minute,
+				SendLock:        time.Duration(e.integer("OTP_SEND_LOCK_SECONDS", 60)) * time.Second,
+			},
 		},
 		Telegram: Telegram{
 			BotToken: e.str("TELEGRAM_BOT_TOKEN", ""),
@@ -894,6 +923,10 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 		}
 	default:
 		e.fail("REMINDER_SMS_PROVIDER: %q is not one of none, fake, gateway", cfg.ReminderSMS.Provider)
+	}
+	if o := cfg.SMS.OTP; o.SendShortMax < 1 || o.SendDailyMax < 1 || o.FailureMax < 1 || o.SendShortWindow <= 0 ||
+		o.SendDailyWindow <= 0 || o.FailureWindow <= 0 || o.LockFor <= 0 || o.SendLock <= 0 {
+		e.fail("OTP_*: every OTP send cap, failure budget, window and lock must be positive")
 	}
 	if cfg.ReminderSMS.DailyCap < 1 || cfg.ReminderSMS.DailyCap > 48 {
 		e.fail("REMINDER_SMS_DAILY_CAP: %d is not between 1 and 48", cfg.ReminderSMS.DailyCap)
