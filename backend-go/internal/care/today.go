@@ -166,7 +166,7 @@ func (h *Handlers) Today(c fiber.Ctx) error {
 	if err != nil {
 		return fmt.Errorf("care: today intakes: %w", err)
 	}
-	appts, err := h.q.ListAppointmentsFrom(c, store.ListAppointmentsFromParams{
+	appts, err := h.q.NextAppointmentFrom(c, store.NextAppointmentFromParams{ // at most one row, cancelled skipped in SQL
 		UserID: userID, ScheduledAt: sql.NullTime{Time: now, Valid: true},
 	})
 	if err != nil {

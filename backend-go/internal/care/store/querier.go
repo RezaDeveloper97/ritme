@@ -50,8 +50,8 @@ type Querier interface {
 	// the structured fields are in `meta` (internal/care). Every query is scoped by user_id.
 	// Soonest first; the scope (upcoming/past/all) is applied by internal/care.
 	ListAppointments(ctx context.Context, userID uint64) ([]Reminder, error)
-	// Appointments at or after a moment, soonest first (GET /care/today's next_appointment);
-	// cancelled ones are skipped by internal/care.
+	// Appointments at or after a moment, soonest first, cancelled ones included (the family projection lists both).
+	// Bounded by care.MaxAppointments (1000), the hard ceiling on a user's appointment rows, so it never truncates.
 	ListAppointmentsFrom(ctx context.Context, arg ListAppointmentsFromParams) ([]Reminder, error)
 	// The doses the user ticked in a date range (GET /care/upcoming).
 	ListIntakesBetween(ctx context.Context, arg ListIntakesBetweenParams) ([]ListIntakesBetweenRow, error)
@@ -72,6 +72,10 @@ type Querier interface {
 	// the year-2000 marker, T-M12-22b), oldest first, after the cursor.
 	ListUnpushedNotifications(ctx context.Context, arg ListUnpushedNotificationsParams) ([]ListUnpushedNotificationsRow, error)
 	MarkReminderSMSSent(ctx context.Context, arg MarkReminderSMSSentParams) error
+	// GET /care/today's next_appointment: the earliest not-cancelled appointment at or after a moment (zero or one row).
+	// meta.status is scheduled | cancelled; anything else reads as scheduled (care.ParseAppointment), so only an exact
+	// 'cancelled' is skipped here.
+	NextAppointmentFrom(ctx context.Context, arg NextAppointmentFromParams) ([]Reminder, error)
 	// Old claims; a released marker is old by construction, so it waits until its dose day is past every lookback.
 	PruneReminderPushes(ctx context.Context, arg PruneReminderPushesParams) error
 	PruneReminderSMS(ctx context.Context, sentAt time.Time) error

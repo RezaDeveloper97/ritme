@@ -88,3 +88,16 @@ every request p95 < 60 ms warm / 200 ms cold, the whole two-wave open (`web_home
 cold, errors < 0.1 %. Checked with `k6 inspect` only; **no load run was made against any server** in this task, so
 there are no measured k6 results yet (acceptance item left open: run `make loadtest SCENARIO=web_home` after adding
 `web_home` to `scenarios=(...)` in `loadtest/run.sh`, which is outside this task's `touches:`).
+
+## T-M12-32 — `user_notifications` listing index (EXPLAIN evidence)
+
+goose 00131 / Laravel twin: `user_notifications_user_id_created_at_id_index (user_id, created_at DESC, id)` — DESC
+because the query orders `created_at DESC, id` (mixed directions; an all-ascending index still filesorted on
+MariaDB 11.4). 5,000 rows for the user + 5,000 for another:
+
+| | key | extra |
+|---|---|---|
+| before | `user_notifications_user_id_read_at_index` | Using index condition; Using filesort |
+| after (offset 0 / 4980 / 6000) | `user_notifications_user_id_created_at_id_index` | Using where |
+
+Test: `internal/home/store/notifications_index_int_test.go` (drops the index → filesort returns).

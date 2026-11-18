@@ -418,8 +418,11 @@ type AI struct {
 	// `model=input/output[/audio]` in USD per 1M tokens (audio = audio input tokens; default = input). A model
 	// missing from the table is priced at the table's highest rates (never free). The fake is always free.
 	Prices map[string]AIPrice
-	Gemini Gemini
-	Arvan  Arvan
+	// AssistantHistoryTurns (AI_ASSISTANT_HISTORY_TURNS, default 20, 1..200) is how many of the newest stored turns
+	// of an assistant conversation go back to the model with a new message; only those are read (T-M12-32).
+	AssistantHistoryTurns int
+	Gemini                Gemini
+	Arvan                 Arvan
 }
 
 // Arvan holds ARVAN_AI_* — the ArvanCloud AI gateway (docs.arvancloud.ir/fa/aiaas/gateway). Empty key or base URL =
@@ -759,7 +762,8 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 			Timeout:         time.Duration(e.integer("AI_HTTP_TIMEOUT_SECONDS", 30)) * time.Second,
 			DailyCostCapUSD: e.float("AI_DAILY_COST_CAP_USD", 5),
 			// B-N6-05b: per-user daily cost cap.
-			UserDailyCostCapUSD: e.float("AI_USER_DAILY_COST_CAP_USD", 0.25),
+			UserDailyCostCapUSD:   e.float("AI_USER_DAILY_COST_CAP_USD", 0.25),
+			AssistantHistoryTurns: e.integer("AI_ASSISTANT_HISTORY_TURNS", 20),
 			Gemini: Gemini{
 				APIKey:  e.str("GEMINI_API_KEY", ""),
 				Model:   e.str("GEMINI_MODEL", "gemini-flash-latest"),
@@ -889,6 +893,9 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 	}
 	if cfg.AI.DailyCostCapUSD < 0 {
 		e.fail("AI_DAILY_COST_CAP_USD: must be 0 or more")
+	}
+	if n := cfg.AI.AssistantHistoryTurns; n < 1 || n > 200 {
+		e.fail("AI_ASSISTANT_HISTORY_TURNS: must be between 1 and 200")
 	}
 	if cfg.AI.UserDailyCostCapUSD < 0 {
 		e.fail("AI_USER_DAILY_COST_CAP_USD: must be 0 or more")

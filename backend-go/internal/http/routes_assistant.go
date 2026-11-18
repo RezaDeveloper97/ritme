@@ -45,6 +45,7 @@ func init() {
 			Bookings:        telemedBookings(d, false),
 			Box:             box,
 			BookingNotFound: telemed.ErrBookingNotFound,
+			HistoryTurns:    d.Config.AI.AssistantHistoryTurns, // T-M12-32
 			Logger:          d.Logger,
 		})
 		h := assistant.NewHandlers(svc, assistantQuota(platform), clock.Real{})

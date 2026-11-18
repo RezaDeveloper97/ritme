@@ -3092,3 +3092,12 @@ Nothing needed fixing.
   up to schema (3 tables + `pushed_at`). Deviation **D-213**; D-96 extended with the 22 T-M12-14 keys.
 - Open: old clients (incl. Android) get 403 on export/delete until they add the step; export paging of big tables
   (throttle + step-up + cap cover DoS now); no UI render test (vitest is node-only).
+
+## T-M12-32 — Indexes and limits: notifications listing, next appointment, assistant history
+- goose **00131_user_notifications_listing_index** + Laravel twin `2026_11_18_000131_…`: `(user_id, created_at DESC,
+  id)`; filesort gone (EXPLAIN in perf.md); schema-diff OK (249 tables). Response order/shape unchanged.
+- `/care/today`: new `NextAppointmentFrom` (cancelled filtered in SQL, LIMIT 1); `ListAppointmentsFrom` LIMIT 1000
+  (= MaxAppointments) for the family projection.
+- Assistant: `ListRecentChatMessages` (last N user/assistant-with-body, DESC LIMIT) feeds the model;
+  `AI_ASSISTANT_HISTORY_TURNS` (default 20, 1–200); full conversation listing unchanged. Wired in routes_assistant.go.
+- Tests with negative/mutation checks; contract notifications/assistant/home green; budgets unchanged.

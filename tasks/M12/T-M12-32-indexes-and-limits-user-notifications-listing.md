@@ -3,10 +3,10 @@ id: T-M12-32
 title: Indexes and limits: user_notifications listing, next appointment, assistant history
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: []
 parallel_group: M12-PERF
-touches: [backend-go/db/migrations, backend-go/db/queries/home, backend-go/db/queries/care, backend-go/db/queries/assistant, backend-go/internal/home, backend-go/internal/care, backend-go/internal/assistant]
+touches: [backend/database/migrations, backend-go/internal/platform/config/config.go, backend-go/db/migrations, backend-go/db/queries/home, backend-go/db/queries/care, backend-go/db/queries/assistant, backend-go/internal/home, backend-go/internal/care, backend-go/internal/assistant]
 skills: []
 verify: cd backend-go && make sqlc && go vet ./... && make test-int PKG="./internal/home/... ./internal/care/... ./internal/assistant/..."
 ---
