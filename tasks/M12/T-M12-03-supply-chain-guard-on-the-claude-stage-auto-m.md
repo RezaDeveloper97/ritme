@@ -3,7 +3,7 @@ id: T-M12-03
 title: Supply-chain guard on the claude/** → stage auto-merge and root auto-deploy
 milestone: M12
 type: release
-status: todo
+status: done
 depends_on: []
 parallel_group: M12-SEC
 touches: [.github/workflows/claude-to-stage.yml, deploy/stage-autodeploy.sh, deploy/systemd/ritme-stage-autodeploy.service, docs/quality-2026-11/autodeploy.md]
@@ -32,3 +32,8 @@ S-06: any push to `claude/**` reaches the production host as root within minutes
 - An unsigned / unknown-key commit on `stage` is refused by the script (show the test run in PROGRESS.md).
 - The user has applied the server-side unit change (report the exact commands; do not run them over ssh without their OK).
 - Test cases reviewed: every new test has at least one negative/boundary case and fails when the fix is reverted (say how you checked).
+
+
+## Decision (user, 2026-11-18)
+Guard = (a) signed commits from an allow-listed key, verified on the server. No PR review gate.
+

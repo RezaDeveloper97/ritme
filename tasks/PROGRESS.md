@@ -3042,3 +3042,15 @@ Nothing needed fixing.
 - `catalog.test.ts` guard: every catalog id matching /share|invite|consent|send|export|join|delete|pay/ must be in
   confirm/block (engine's `matchesAny`), except a reviewed `INERT` set of field/navigation ids (invite form fields,
   `city-join.*` fields — their submit is confirmed). Negative case included. `docs/autopilot.md` updated.
+
+## T-M12-03 — Signed-commit guard on the stage auto-deploy
+- Decision (user): signed commits from an allow-listed SSH key, verified on the server.
+- `deploy/stage-autodeploy.sh`: verifies every commit in anchor..new — accepted only if SSH-signed by
+  `/etc/ritme/allowed_signers` (root-owned, not writable), or a clean unsigned 2-parent merge whose tree equals
+  `git merge-tree` of its parents (the Action's merge), or reached only via a signed merge's second parent.
+  Fail closed (no signers/anchor/old git/unknown key → REFUSED, no build). `--self-test`: 14 cases, mutation-checked.
+- Unit runs `/usr/local/sbin/ritme-stage-autodeploy` (installed copy, never the checkout).
+- Workflow: merge waits on backend (ci.yml, race + int) and frontend gates; advisory "Signatures" step via repo var
+  `RITME_ALLOWED_SIGNERS`.
+- **User steps pending** (not applied): signing key on the Mac + repo git config, install script/unit/allowed_signers
+  and the anchor on the server — exact commands in `docs/quality-2026-11/autodeploy.md`.
