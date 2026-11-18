@@ -2989,3 +2989,12 @@ Nothing needed fixing.
   `CountReminderSMSSince`). Appointments unchanged. `NewWorker` takes `remindersms.Prefs` (Getter + usertz.Reader).
 - New `worker_int_test.go`: Berlin 08:00 once across both DST days (+02:30 gap/overlap), cap resets at local
   midnight, quiet hours on her clock; Tehran/no-zone unchanged. Red on old code.
+
+## T-M12-19b — User-row lock in challenge rewards and admin period edits
+- `challenges.CompleteTask`: `LockUser` right after `LockUserEnrollment` (new sqlc query in db/queries/challenges;
+  generated in the scratchpad without 00128, T-M12-19c). Before: two challenges finishing together → 1213 deadlock.
+- `admin/billing.ExtendSubscription`: `inTxLocked` takes the user lock (plusstore.LockUser) before the subscription
+  row; owner re-checked → 404. Before: extend racing a settle overlapped periods.
+- Lock order audit: plus (invoice/purchase → user → insert), challenges (enrollment → user → grants → GrantDays),
+  admin extend (user → subscription → queued updates); no path takes subscription → user.
+- Tests: `TestChallenges_TwoRunsOfOneUserFinishTogether`, `TestExtendRacingSettleNeverOverlaps`; 3× native + 3× race-docker green, red without locks.

@@ -3,7 +3,7 @@ id: T-M12-19b
 title: Lock the user row in challenge rewards and admin period edits (deadlock and overlap)
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-19]
 parallel_group: M12-TEST
 touches: [backend-go/internal/challenges,backend-go/internal/admin,backend-go/db/queries/challenges]
