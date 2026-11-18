@@ -2982,3 +2982,10 @@ Nothing needed fixing.
 - `feed_int_test.go`: overdue CTA key is `test` (home.json) — reverts T-M12-20's `cta` change.
 - `TestFeedInt_BannerSeed` green; messages + cycle int green; `make contract ROUTES=cycle` 125 passed; contract-v6 80 passed.
 - Not checked: sqlc parse of 00130 (sqlc broken by 00128, T-M12-19c); 00130 uses only JSON_SET/EXTRACT/UNQUOTE.
+
+## T-M12-21d — SMS reminders on the user's local time zone
+- `remindersms.Worker`: per-user zone (`usertz.Zones`), `care.OccurrencesIn`, quiet hours via `prefs.InZone`; daily
+  cap counted from local midnight (`notifications.WallTime(day,0,loc)` → Tehran wall-clock for the existing
+  `CountReminderSMSSince`). Appointments unchanged. `NewWorker` takes `remindersms.Prefs` (Getter + usertz.Reader).
+- New `worker_int_test.go`: Berlin 08:00 once across both DST days (+02:30 gap/overlap), cap resets at local
+  midnight, quiet hours on her clock; Tehran/no-zone unchanged. Red on old code.

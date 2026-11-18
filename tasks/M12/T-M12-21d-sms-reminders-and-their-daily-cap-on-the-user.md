@@ -3,7 +3,7 @@ id: T-M12-21d
 title: SMS reminders and their daily cap on the user's local time zone
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-21c]
 parallel_group: M12-TEST
 touches: [backend-go/internal/remindersms]

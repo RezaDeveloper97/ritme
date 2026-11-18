@@ -14,6 +14,7 @@ import (
 	"github.com/ritme/backend-go/internal/care/store"
 	"github.com/ritme/backend-go/internal/notifications"
 	"github.com/ritme/backend-go/internal/platform/civildate"
+	"github.com/ritme/backend-go/internal/platform/usertz"
 )
 
 const (
@@ -30,10 +31,19 @@ const (
 // Audience lists the users who get reminders by SMS now (plus.Service.PlusUsers).
 type Audience func(ctx context.Context, now time.Time) ([]uint64, error)
 
-// Worker texts the due reminders of the audience.
+// Prefs reads a user's notification settings and stored time zone (the profile store).
+type Prefs interface {
+	notifications.Getter
+	usertz.Reader
+}
+
+// Worker texts the due reminders of the audience. Doses, quiet hours and the daily cap are on each user's own clock
+// (her stored user_profiles.timezone, Asia/Tehran when none — T-M12-21d, like the Web Push sender of T-M12-21c);
+// appointment reminders stay the stored Tehran wall-clock instant of the visit.
 type Worker struct {
 	q        *store.Queries
-	prefs    notifications.Getter
+	prefs    Prefs
+	zones    *usertz.Zones
 	audience Audience
 	sender   Sender
 	locale   func(ctx context.Context) string // the wording language of the tokens (the default language)
@@ -43,12 +53,12 @@ type Worker struct {
 }
 
 // NewWorker wires the worker.
-func NewWorker(db store.DBTX, prefs notifications.Getter, audience Audience, sender Sender,
+func NewWorker(db store.DBTX, prefs Prefs, audience Audience, sender Sender,
 	locale func(ctx context.Context) string, dailyCap int, logger *slog.Logger) *Worker {
 	if logger == nil {
 		logger = slog.Default()
 	}
-	return &Worker{q: store.New(db), prefs: prefs, audience: audience, sender: sender, locale: locale,
+	return &Worker{q: store.New(db), prefs: prefs, zones: usertz.NewZones(prefs), audience: audience, sender: sender, locale: locale,
 		dailyCap: max(dailyCap, 1), logger: logger}
 }
 
@@ -82,7 +92,8 @@ type due struct {
 
 // Tick texts the reminders that came due in the last Lookback and returns how many SMS went out. Each occurrence
 // is claimed in reminder_sms first, so several processes never text it twice; one that is switched off, ticked,
-// inside quiet hours or over the day's cap stays claimed and silent.
+// inside quiet hours or over the day's cap stays claimed and silent. The day of the cap starts at the user's local
+// midnight.
 func (w *Worker) Tick(ctx context.Context, now time.Time) (int, error) {
 	now = now.In(civildate.Tehran)
 	if now.Sub(w.pruned) > time.Hour {
@@ -111,8 +122,32 @@ func (w *Worker) Tick(ctx context.Context, now time.Time) (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("remindersms: appointments: %w", err)
 	}
+	zones := map[uint64]*time.Location{}
+	zone := func(userID uint64) (*time.Location, error) {
+		if loc, ok := zones[userID]; ok {
+			return loc, nil
+		}
+		loc, err := w.zones.For(ctx, userID)
+		if err != nil {
+			return nil, fmt.Errorf("remindersms: zone: %w", err)
+		}
+		zones[userID] = loc
+		return loc, nil
+	}
+	byUser := map[uint64][]store.Reminder{}
+	for _, r := range meds {
+		byUser[r.UserID] = append(byUser[r.UserID], r)
+	}
+	var doses []care.Occurrence
+	for userID, rows := range byUser {
+		loc, err := zone(userID)
+		if err != nil {
+			return 0, err
+		}
+		doses = append(doses, care.OccurrencesIn(rows, from, to, loc)...)
+	}
 	var list []due
-	for _, o := range care.Occurrences(meds, from, to) {
+	for _, o := range doses {
 		list = append(list, due{
 			userID: o.Med.Row.UserID, reminderID: o.Med.Row.ID, key: o.Key(), at: o.At,
 			category: notifications.Medications, dose: &o,
@@ -152,13 +187,18 @@ func (w *Worker) Tick(ctx context.Context, now time.Time) (int, error) {
 			if u.prefs, err = notifications.Load(ctx, w.prefs, d.userID); err != nil {
 				return sent, err
 			}
+			loc, err := zone(d.userID)
+			if err != nil {
+				return sent, err
+			}
+			u.prefs = u.prefs.InZone(loc)
 			mobile, err := w.q.GetUserMobile(ctx, d.userID)
 			if err != nil {
 				return sent, fmt.Errorf("remindersms: mobile: %w", err)
 			}
 			u.mobile = mobile.String
 			count, err := w.q.CountReminderSMSSince(ctx, store.CountReminderSMSSinceParams{
-				UserID: d.userID, SentAt: civildate.InTehran(now).TehranMidnight(),
+				UserID: d.userID, SentAt: localMidnight(now, loc),
 			})
 			if err != nil {
 				return sent, fmt.Errorf("remindersms: count: %w", err)
@@ -199,4 +239,11 @@ func (w *Worker) Tick(ctx context.Context, now time.Time) (int, error) {
 		sent++
 	}
 	return sent, nil
+}
+
+// localMidnight is the start of now's day on the user's clock loc, as the Tehran wall-clock instant reminder_sms.sent_at
+// is stored in. A midnight skipped by a daylight-saving change is the first valid instant of the day
+// (notifications.WallTime); for Asia/Tehran it is the Tehran midnight the cap always used.
+func localMidnight(now time.Time, loc *time.Location) time.Time {
+	return notifications.WallTime(civildate.FromTime(now.In(loc)), 0, loc).In(civildate.Tehran)
 }
