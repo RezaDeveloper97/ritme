@@ -2883,3 +2883,12 @@ Nothing needed fixing.
   and press, costs from API only, unknown balance fails open (server gate still enforces).
 - `apiClient.test.ts`: 5 parallel session 401s → one cleanup + one `ritme:session-cleared`; non-session 401, proxy
   401, 402/403 gate answers never log out; mixed 200/401 → one teardown. Mutation-checked. No bug found.
+
+## T-M12-16 — Routine flow: buy plan → AI spend → pack → period end → renew
+- `routine_credits_int_test.go` (`TestRoutineCredits_BuySpendPackExpireRenew`) on the real voice-log AI route with the
+  fake provider and fake gateway; costs/credits from DB fixtures. 13 steps: no subscription 402, purchase grant,
+  spend, provider failure → refund to the period bucket, exhaustion 402 with full payload, credit pack, straddling
+  spend (plan then extra), half-open `ends_at`, gated route after expiry (provider never called), renewal (fresh
+  bucket, extra unlocked), replayed bank callbacks change nothing. Asserts ledger rows + `ai_usage_logs`.
+- testenv: `Request.Raw` / `ContentType` for multipart and form posts.
+- Mutation-checked (spend order, inclusive end, refund, extra without subscription). No bug found.

@@ -12,6 +12,7 @@
 package testenv
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"database/sql"
@@ -179,9 +180,12 @@ func (r Reply) ETag() string { return r.Header.Get(fiber.HeaderETag) }
 type Request struct {
 	Method, Path string
 	Body         any // JSON-encoded unless nil
-	Token        string
-	Now          string            // X-Test-Now; "" = Env.Now
-	Header       map[string]string // extra headers (If-None-Match, X-Timezone, …)
+	// Raw is sent verbatim instead of Body (a multipart upload, a form post) with ContentType.
+	Raw         []byte
+	ContentType string
+	Token       string
+	Now         string            // X-Test-Now; "" = Env.Now
+	Header      map[string]string // extra headers (If-None-Match, X-Timezone, …)
 }
 
 // Do sends method path with a JSON body (nil = none) and a bearer token ("" = anonymous) at Env.Now.
@@ -199,8 +203,12 @@ func (e *Env) Send(r Request) Reply {
 		require.NoError(e.T, err)
 		rd = strings.NewReader(string(raw))
 	}
+	ct := "application/json"
+	if r.Raw != nil {
+		rd, ct = bytes.NewReader(r.Raw), r.ContentType
+	}
 	req := httptest.NewRequestWithContext(context.Background(), r.Method, r.Path, rd)
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", ct)
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Accept-Language", e.Lang)
 	if r.Token != "" {

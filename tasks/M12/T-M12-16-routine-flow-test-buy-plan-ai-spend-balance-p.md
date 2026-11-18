@@ -3,7 +3,7 @@ id: T-M12-16
 title: Routine flow test: buy plan → AI spend → balance → period end → spend refused → credit pack
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-11]
 parallel_group: M12-TEST
 touches: [backend-go/internal/http/routine_credits_int_test.go]
