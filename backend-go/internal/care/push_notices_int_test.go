@@ -206,7 +206,7 @@ func TestUpcomingListsDosesAndAppointmentReminders(t *testing.T) {
 	e.prefs(t, uid, `{}`, true, false)
 	require.Equal(t, 201, e.do(t, "POST", "/api/v1/care/medications", tok, "fa", folic).status)
 	res := e.do(t, "POST", "/api/v1/care/appointments", tok, "fa",
-		`{"title":"سونوگرافی NT","scheduled_at":"2026-09-30 10:30:00","remind_before":"1d"}`)
+		`{"kind":"in_person","topic":"ultrasound","title":"سونوگرافی NT","scheduled_at":"2026-09-30 10:30:00","remind_before":"1d"}`)
 	require.Equal(t, 201, res.status, res.raw)
 	apptID := uint64(res.body["data"].(map[string]any)["id"].(float64))
 

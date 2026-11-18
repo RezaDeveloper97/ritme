@@ -3,7 +3,7 @@ id: T-M12-11c
 title: Fix the 6 integration tests red on HEAD in care, loss, messages, notifications
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-11]
 parallel_group: M12-TEST
 touches: [backend-go/internal/care,backend-go/internal/loss,backend-go/internal/messages,backend-go/internal/notifications]

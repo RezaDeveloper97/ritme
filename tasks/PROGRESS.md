@@ -2845,3 +2845,12 @@ Nothing needed fixing.
   Go coverage on the same race run via `COVER_FLAGS` → `coverage-go` artifact + summary. `@vitest/coverage-v8` 3.2.7.
 - Baseline: frontend statements 24.2 %, admin-web 12.5 % (report only, no thresholds).
 - frontend 2347/2347, admin-web 243/243, actionlint clean. Open: browser raw-key check; first real CI run.
+
+## T-M12-11c — six red integration tests (care, loss, messages, notifications)
+- care Upcoming: test body lacked required `kind`/`topic` (required since T-M3-02) → test fixed.
+- care Today fixture: doses gained `amount/unit/unit_label/meal` (2026-11-10 form redesign, used by frontend) → expected updated.
+- loss ×2: asserted the retired `pregnancy_alerts` table (T-M10-08c/D-165 moved alerts to message_inbox); every
+  privacy guarantee (pregnancy_mode 0, preg.* inbox archived, life_mode cycle, reminders paused, follow-ups erased,
+  moods deleted) re-checked green → dead assertions removed. No privacy regression.
+- notifications defaults: gained `sms_reminders: true` (OpenAPI required, used by the frontend) → expected updated.
+- messages BannerSeed: seed stale after the M8 copy pass → **T-M12-11d** (migration).
