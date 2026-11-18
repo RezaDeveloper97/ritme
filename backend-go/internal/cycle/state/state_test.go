@@ -221,7 +221,7 @@ func TestFor_StampedeIsOneLoadOnePrepare(t *testing.T) {
 		})
 	}
 	started.Wait()
-	time.Sleep(20 * time.Millisecond) // let the 50 calls reach the flight
+	time.Sleep(20 * time.Millisecond) //nolint:sleep // lets the 50 calls reach the flight; the single-load assertion holds for any scheduling
 	close(st.gate)
 	wg.Wait()
 

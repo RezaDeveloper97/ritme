@@ -2934,3 +2934,12 @@ Nothing needed fixing.
   + urgent kept after review in the mode-change flow. Red on old code.
 - Open (user): a paused epoch-bound v6 grant (e.g. vitals) is not re-stamped by a legacy edit — stays paused until the
   "keep as before" card (T-M11-07) re-stamps all.
+
+## T-M12-20 — Deterministic tests
+- Pinned clocks: labs (`setupAt`, self-skip removed, new month-boundary refund test), admin/users v2 (30 Jun 23:59),
+  safety scenarios (today + month/year end, 30 Esfand, 1 Farvardin), services, voicelog (31 Dec 23:59 Tehran).
+- admin/messages simulate: orphan grant inserted with FK checks off on a dedicated connection (FK from 00129).
+- Golden sweeps kept and now required (goldens exist; legacy engine still imported — delete with T-M9-51).
+- Sleeps: 5 annotated `//nolint:sleep // reason` (no hook to observe); `make lint-tests` fails on a bare sleep;
+  `LINT_TESTS_LEGACY` allow-lists 7 files outside touches (follow-up). Inbox/aicredits/cityservices left (relative offsets).
+- Unit packages 3× green, race via docker green. `TestFeedInt_BannerSeed` red → T-M12-11d (also fixed a `test`→`cta` typo).

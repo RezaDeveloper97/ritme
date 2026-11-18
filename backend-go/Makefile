@@ -71,7 +71,7 @@ BENCHSTAT ?= $(shell command -v benchstat 2>/dev/null || { p="$$(go env GOPATH)/
 SQLC_VERSION ?= v1.31.1
 SQLC ?= $(shell command -v sqlc 2>/dev/null || { p="$$(go env GOPATH)/bin/sqlc"; [ -x "$$p" ] && echo "$$p"; } || echo "go run github.com/sqlc-dev/sqlc/cmd/sqlc@$(SQLC_VERSION)")
 
-.PHONY: help run test test-int test-race test-race-docker test-db-up test-db-down lint fmt vet sqlc schema-diff contract contract-record contract-v6 contract-v6-update docker \
+.PHONY: lint-tests help run test test-int test-race test-race-docker test-db-up test-db-down lint fmt vet sqlc schema-diff contract contract-record contract-v6 contract-v6-update docker \
 	bench bench-baseline bench-compare bench-gate
 
 help: ## List targets
@@ -110,6 +110,17 @@ test-race-docker: test-db-up ## -race in a Linux container on the test stack (Ma
 
 vet: ## go vet
 	go vet ./...
+
+# T-M12-20: a sleep in a test makes CI flaky. Every time.Sleep( in a _test.go needs `//nolint:sleep // <reason>` on the same
+# line. LINT_TESTS_LEGACY are sleeps from before the rule, not yet reviewed: remove a file from the list once its sleeps are
+# replaced or annotated.
+LINT_TESTS_LEGACY = internal/messages/compiled/cache_test.go internal/auth/passport/export_test.go \
+	internal/platform/queue/queue_test.go internal/platform/queue/queue_int_test.go \
+	internal/platform/configcache/configcache_test.go internal/http/routes_messages_v2_int_test.go cmd/api/observability_test.go
+lint-tests: ## fail on time.Sleep( in _test.go without //nolint:sleep // reason
+	@bad=$$(grep -rn --include='*_test.go' 'time\.Sleep(' internal cmd 2>/dev/null | grep -v '//nolint:sleep // .\+' \
+		| grep -v -F $(foreach f,$(LINT_TESTS_LEGACY),-e $(f):) || true); \
+	if [ -n "$$bad" ]; then echo "time.Sleep in tests needs '//nolint:sleep // reason' on the same line:"; echo "$$bad"; exit 1; fi
 
 lint: ## golangci-lint (v2)
 	golangci-lint run

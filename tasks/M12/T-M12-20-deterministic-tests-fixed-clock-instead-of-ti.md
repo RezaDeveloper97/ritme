@@ -3,7 +3,7 @@ id: T-M12-20
 title: Deterministic tests: fixed clock instead of time.Now, no sleeps, no self-skips, golden sweeps recorded or removed
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-11]
 parallel_group: M12-TEST
 touches: [backend-go/internal/labs/labs_int_test.go, backend-go/internal/admin/users/v2_int_test.go, backend-go/internal/admin/messages/simulate_int_test.go, backend-go/internal/admin/aicredits/api_int_test.go, backend-go/internal/cityservices/admin_dir_int_test.go, backend-go/internal/messages/inbox/inbox_int_test.go, backend-go/internal/safety/scenarios_test.go, backend-go/internal/services/services_test.go, backend-go/internal/voicelog/voicelog_test.go, backend-go/internal/messages/feed_int_test.go, backend-go/internal/assistant/security_int_test.go, backend-go/internal/platform/idempotency/idempotency_test.go, backend-go/internal/cycle/state/state_test.go, backend-go/internal/analysis/cache_test.go, backend-go/internal/cycle/legacy/golden_sweep_test.go, backend-go/internal/cycle/view/golden_sweep_test.go]

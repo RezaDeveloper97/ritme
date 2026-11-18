@@ -254,7 +254,7 @@ func TestFeedInt_SlotsShownEligibleAndSelected(t *testing.T) {
 	require.Equal(t, 200, st, body)
 	require.Len(t, slotItems(body, "urgent_modal"), 1)
 	assert.Empty(t, slotItems(body, "daily_challenge"), "no product message right after a safety one (SPEC §5.4.1)")
-	time.Sleep(1500 * time.Millisecond) // past one flush interval
+	time.Sleep(1500 * time.Millisecond) //nolint:sleep // negative assertion: nothing may be logged after one flush interval, so it cannot poll
 	assert.Equal(t, served, e.count(shown, e.uid))
 
 	// A switched-off module empties its slot: daily_advice still has a candidate today (advice[3]).
@@ -361,7 +361,7 @@ func TestFeedInt_BannerSeed(t *testing.T) {
 			return rules.Variant{Title: get("endMissing", "title"), Body: get("endMissing", "text"), CTALabel: get("endMissing", "cta")}
 		case "overdue":
 			return rules.Variant{Title: strings.ReplaceAll(get("banner", "overdue", "title"), "{n}", "{days_late}"),
-				Body: get("banner", "overdue", "text"), CTALabel: get("banner", "overdue", "test")}
+				Body: get("banner", "overdue", "text"), CTALabel: get("banner", "overdue", "cta")}
 		}
 		return rules.Variant{Title: get("banner", "askLast", "title"), Body: get("banner", "askLast", "text"), CTALabel: get("banner", "askLast", "cta")}
 	}
