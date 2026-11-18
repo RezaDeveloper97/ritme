@@ -3,7 +3,7 @@ id: T-M12-13b
 title: Admin user delete removes tokens, OTP rows and Redis keys like self-delete
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-13]
 parallel_group: M12-TEST
 touches: [backend-go/internal/admin/users,backend-go/internal/profile/account_keys.go]

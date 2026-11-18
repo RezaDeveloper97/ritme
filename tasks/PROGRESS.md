@@ -2957,3 +2957,10 @@ Nothing needed fixing.
 - Tests: coverage (schema-driven, export xor excluded, no stale rows) + behaviour (A's row per table present, B's
   never; sealed text opened, no ciphertext). Mutation-checked.
 - Deviation: generic string-built loader (constants only) instead of sqlc → **T-M12-14b**.
+
+## T-M12-13b — Admin user delete = self-delete
+- `admin/users.Destroy` → `mustExist` → `RevokeUserTokens` (keeps `revoked_tokens` in response/audit) →
+  `profile.Service.DeleteAccount` (tokens deleted, OTP rows, companion notices, cascades, files, `PurgeUserKeys`) →
+  `user.delete` audit row. `WithCache` wired in `routes_admin_core.go` (main session).
+- `admin/users/delete_int_test.go`: through the real admin route; deleted user zero rows/keys/files, control user
+  untouched, audit kept, second delete 404; red with the old path.
