@@ -81,6 +81,23 @@ var Budgets = []Budget{
 	{"analysis monthly", "/api/v1/analysis/monthly/:ym", "/api/v1/analysis/monthly/2026-09", enums.LifeModeCycle, 14, 6, ""},
 	{"analysis ttc", "/api/v1/analysis/ttc", "/api/v1/analysis/ttc", enums.LifeModeTTC, 15, 6, ""},
 	{"analysis pregnancy", "/api/v1/analysis/pregnancy", "/api/v1/analysis/pregnancy", enums.LifeModePregnancy, 18, 6, ""},
+	// T-M12-30 (P-05): the GETs the web home fires on every open (docs/quality-2026-11/perf.md §web-home fan-out).
+	// Measured on the fixture users, cold = fresh process, warm = caches filled; each row is the measured count.
+	// pregnancy v2 today: 21 warm is the alert-evaluation middleware on top of the 5-query read (follow-up F-1).
+	{"care today", "/api/v1/care/today", "/api/v1/care/today", enums.LifeModeCycle, 5, 4, ""},
+	{"checkups home", "/api/v1/checkups/home", "/api/v1/checkups/home", enums.LifeModeCycle, 5, 4, ""},
+	{"todo", "/api/v1/todo", "/api/v1/todo", enums.LifeModeCycle, 8, 6, ""},
+	{"home notifications", "/api/v1/home/notifications", "/api/v1/home/notifications?per_page=50", enums.LifeModeCycle, 4, 3, ""},
+	{"modules", "/api/v1/modules", "/api/v1/modules", enums.LifeModeCycle, 1, 0, ""},
+	{"profile", "/api/v1/profile", "/api/v1/profile", enums.LifeModeCycle, 4, 3, ""},
+	{"fertility today", "/api/v1/fertility/today", "/api/v1/fertility/today", enums.LifeModeTTC, 6, 4, ""},
+	{"banners ads", "/api/v1/banners/ads", "/api/v1/banners/ads?mode=cycle", enums.LifeModeCycle, 4, 3, ""},
+	{"learning courses", "/api/v1/learning/courses", "/api/v1/learning/courses", enums.LifeModeCycle, 5, 3, ""},
+	{"logs taxonomy", "/api/v1/logs/taxonomy", "/api/v1/logs/taxonomy", enums.LifeModeCycle, 6, 4, ""},
+	{"logs day", "/api/v1/logs/days/:date", "/api/v1/logs/days/2026-10-20", enums.LifeModeCycle, 3, 2, ""},
+	{"pregnancy v2 today", "/api/v1/pregnancy/v2/today", "/api/v1/pregnancy/v2/today", enums.LifeModePregnancy, 27, 21, ""},
+	{"companion home", "/api/v1/companion/home", "/api/v1/companion/home", enums.LifeModeCompanion, 9, 7, ""},
+	{"teen today", "/api/v1/teen/today", "/api/v1/teen/today", enums.LifeModeTeen, 12, 7, ""},
 }
 
 // Auth is the auth step alone (passport Verify, T-M9-09): cold loads the OAuth client list once, warm is the one

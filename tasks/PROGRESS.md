@@ -3070,3 +3070,11 @@ Nothing needed fixing.
 - Open (user): deploy (prod proxy reload + stage + beta), firewall: origin :443 only from Arvan ranges via
   DOCKER-USER ipset (stage must be behind the CDN first), docker `ip6tables: true` / AAAA removal so IPv6 clients
   don't share one bucket; `vhost-instructor-stage.inc` cookie still lacks `Secure`.
+
+## T-M12-30 — Query budgets for the web home fan-out
+- 14 budget rows (cold/warm at measured counts) in `querybudget/budgets.go`; teen/companion seeding in the int test.
+- Real cold web-home fan-out = 30 GETs in two waves (P-05 estimated 18–20) — table with file:line in
+  `docs/quality-2026-11/perf.md`; `loadtest/web_home.js` + thresholds (per request p95 60/200 ms warm/cold, whole
+  open 400/1200 ms, errors < 0.1 %); added to `loadtest/run.sh` scenarios (main session); `k6 inspect` ok.
+- Not done: no k6 run against a server (command in perf.md). Follow-ups → **T-M12-30b** (pregnancy v2 today 21 warm,
+  /todo 6 warm, row-growth budgets).

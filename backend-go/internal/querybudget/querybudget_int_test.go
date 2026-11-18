@@ -69,6 +69,13 @@ func TestQueryBudgets(t *testing.T) {
 		require.NoError(t, err)
 		tokens[mode] = tok.AccessToken
 	}
+	// T-M12-30: modes without a benchfixtures history (teen, companion) are a bare account + life-stage row.
+	for i, mode := range []enums.LifeMode{enums.LifeModeTeen, enums.LifeModeCompanion} {
+		uid := seedBare(t, db, mode, fmt.Sprintf("0912000%04d", 8100+i))
+		tok, err := iss.Issue(context.Background(), uid, time.Now())
+		require.NoError(t, err)
+		tokens[mode] = tok.AccessToken
+	}
 
 	defer configcache.SetEnabled(false)
 	var report strings.Builder
@@ -233,6 +240,23 @@ func seedUser(t *testing.T, db *sql.DB, u benchfixtures.User, mobile string) uin
 	}
 	bulk(t, db, "health_log_entries", "user_id, log_date, category, param, item, value_code, value_num", rows)
 	bulk(t, db, "fertility_logs", "user_id, log_date, lh_test, cervical_mucus", fert)
+	return uid
+}
+
+// seedBare writes an account and its life-stage row only (teen: life_mode teen; companion: a male account).
+func seedBare(t *testing.T, db *sql.DB, mode enums.LifeMode, mobile string) uint64 {
+	t.Helper()
+	res, err := db.Exec(`INSERT INTO users (name, mobile, created_at, updated_at) VALUES ('Bench', ?, '2025-09-01 09:00:00', '2025-09-01 09:00:00')`, mobile)
+	require.NoError(t, err)
+	id, err := res.LastInsertId()
+	require.NoError(t, err)
+	uid := uint64(id) //nolint:gosec // auto-increment id
+	gender, lifeMode := "female", string(mode)
+	if mode == enums.LifeModeCompanion {
+		gender, lifeMode = "male", string(enums.LifeModeCycle)
+	}
+	exec(t, db, `INSERT INTO user_life_profiles (user_id, gender, life_mode, onboarding_completed_at, created_at, updated_at)
+		VALUES (?, ?, ?, NOW(), NOW(), NOW())`, uid, gender, lifeMode)
 	return uid
 }
 

@@ -3,7 +3,7 @@ id: T-M12-30
 title: Query budgets for the real web-home fan-out and a web_home k6 scenario
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-11]
 parallel_group: M12-PERF
 touches: [backend-go/internal/querybudget, backend-go/loadtest/web_home.js, backend-go/loadtest/thresholds.js, docs/quality-2026-11/perf.md]
