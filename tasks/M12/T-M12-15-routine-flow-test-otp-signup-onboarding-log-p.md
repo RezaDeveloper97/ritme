@@ -3,7 +3,7 @@ id: T-M12-15
 title: Routine flow test: OTP signup → onboarding → log period → today/calendar prediction
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-11]
 parallel_group: M12-TEST
 touches: [backend-go/internal/http/routine_signup_int_test.go, backend-go/internal/http/testenv]

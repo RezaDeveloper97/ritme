@@ -2854,3 +2854,13 @@ Nothing needed fixing.
   moods deleted) re-checked green → dead assertions removed. No privacy regression.
 - notifications defaults: gained `sms_reminders: true` (OpenAPI required, used by the frontend) → expected updated.
 - messages BannerSeed: seed stale after the M8 copy pass → **T-M12-11d** (migration).
+
+## T-M12-15 — Routine flow test: signup → onboarding → period → today/calendar
+- `internal/http/testenv` (shared helper for T-M12-16/17/18): real app + middleware (test clock, usertz, module gate),
+  real test DB + Redis (random prefix), `SignUp()`, `OTP()`, consents from the server's own 422, `Mobile()` counter,
+  `Do/MustOK/Send`, `Reply.Data/List/ETag`, `User()`, `Count()`, `Path()`.
+- `routine_signup_int_test.go`: signup (wrong code, consent_required, spent code, 401), onboarding, today with concrete
+  day/phase/predictions/future_cycles, ETag/304 across every write, period start/end, calendar vs §2.36, period edit;
+  edge rows: skip onboarding, irregular, teen, Tehran 23:59/00:01, 30 Esfand 1403.
+- Mutation-checked (ETag revision, UTC "today", D-207 override). No production bug.
+- Note: by D-207 onboarding users keep declared lengths until «خودکار» is on — they never get median predictions by default.
