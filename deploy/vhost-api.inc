@@ -27,7 +27,13 @@ include /etc/nginx/conf.d/go-routes.inc;
 # (backend-go upstream) at cutover.
 location ^~ /api/instructor/v1/media {
     proxy_pass http://backend_upstream;
-    include /etc/nginx/conf.d/proxy-params.inc;
+    # proxy-params.inc inlined: it sets 120s timeouts, and repeating a directive in one location fails `nginx -t`.
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host  $host;
     proxy_request_buffering off;
     proxy_read_timeout 300s;
     proxy_send_timeout 300s;
@@ -35,7 +41,14 @@ location ^~ /api/instructor/v1/media {
 location ^~ /api/v1/media/ {
     access_log off;
     proxy_pass http://backend_upstream;
-    include /etc/nginx/conf.d/proxy-params.inc;
+    # proxy-params.inc inlined (its 120s read timeout would duplicate the 300s below).
+    proxy_http_version 1.1;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host  $host;
+    proxy_send_timeout 120s;
     proxy_set_header Range    $http_range;
     proxy_set_header If-Range $http_if_range;
     proxy_buffering off;

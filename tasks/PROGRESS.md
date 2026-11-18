@@ -3054,3 +3054,19 @@ Nothing needed fixing.
   `RITME_ALLOWED_SIGNERS`.
 - **User steps pending** (not applied): signing key on the Mac + repo git config, install script/unit/allowed_signers
   and the anchor on the server — exact commands in `docs/quality-2026-11/autodeploy.md`.
+
+## T-M12-02 — Client IP only from the CDN (beta/stage); stage gate bypass closed — files done, deploy blocked on user
+- `deploy/cdn-real-ip.inc`: ArvanCloud IPv4 ranges (ips.txt, 2026-11-18) + `real_ip_header X-Forwarded-For;
+  real_ip_recursive on;`, included in beta/stage server blocks; vhosts send `X-Real-IP`/`X-Forwarded-For` =
+  `$remote_addr` only (beta "rightmost XFF" map removed; stage no longer appends client XFF).
+- Go `cmd/api/app.go`: `TRUSTED_PROXIES` (default loopback + private ranges; public/catch-all entries dropped with a
+  warning) instead of 0.0.0.0/0; tests incl. forged XFF from an untrusted peer, mutation-checked.
+- `stage-gate.sh`: exemption = exact subnets of the stage frontend container's networks (gateway /32 excluded),
+  GET/HEAD on the SSR public endpoints only; fail closed. `ritme_stage` cookie `Secure`.
+- `deploy/smoke/forged-xff.sh` (run against stage/beta after deploy).
+- Main session: `docker-compose.prod.yml` mounts `cdn-real-ip.inc`; fixed a latent `nginx -t` break in
+  `deploy/vhost-api.inc` (duplicate `proxy_read_timeout` in the two media locations from 1eb8f4d7 — proxy-params
+  inlined, 300s kept).
+- Open (user): deploy (prod proxy reload + stage + beta), firewall: origin :443 only from Arvan ranges via
+  DOCKER-USER ipset (stage must be behind the CDN first), docker `ip6tables: true` / AAAA removal so IPv6 clients
+  don't share one bucket; `vhost-instructor-stage.inc` cookie still lacks `Secure`.

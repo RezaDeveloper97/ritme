@@ -3,7 +3,7 @@ id: T-M12-02
 title: Trust the client IP only from the CDN on beta/stage; close the stage gate private-address bypass
 milestone: M12
 type: release
-status: todo
+status: blocked
 depends_on: []
 parallel_group: M12-SEC
 touches: [deploy/beta-ssl.conf, deploy/vhost-beta.inc, deploy/vhost-beta-admin.inc, deploy/vhost-stage.inc, deploy/stage-gate.sh, deploy/cdn-real-ip.inc, backend-go/cmd/api/app.go, deploy/smoke]
@@ -33,3 +33,8 @@ S-03/S-04/S-05: a request straight to the origin with a forged X-Forwarded-For d
 - Smoke script green on stage (and on beta once the user OKs it).
 - Access log on stage shows real client IPs, not CDN edges or 172.x.
 - Test cases reviewed: every new test has at least one negative/boundary case and fails when the fix is reverted (say how you checked).
+
+## Blocked (2026-11-18)
+Files done and tested offline (nginx -t, docker smoke, Go tests). Waiting for the user's OK to (1) sync `deploy/` +
+compose to the shared prod proxy (`NO_BUILD=1 ./deploy.sh` proxy reload — touches prod hosts), (2) `/deploy-stage`,
+(3) beta deploy, then run `deploy/smoke/forged-xff.sh` on stage/beta. Firewall/IPv6 items for the user are in PROGRESS.

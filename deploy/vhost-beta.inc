@@ -12,9 +12,12 @@
 ## Same-origin, so no CORS. Every target is a request-time variable (Docker DNS): this file is loaded by
 ## PRODUCTION's proxy, so a missing beta container must 502 its own paths, never fail `nginx -t` for everyone.
 ##
-## Forwarded headers are spelled out everywhere (no proxy-params.inc): the client IP is $beta_client_ip
-## (beta-ssl.conf — the rightmost X-Forwarded-For entry, the one ArvanCloud appended) and the scheme is always
-## https, because ArvanCloud decides the public scheme whatever it used to reach this origin.
+## Forwarded headers are spelled out everywhere (no proxy-params.inc): the client IP is $remote_addr as resolved by
+## cdn-real-ip.inc (T-M12-02) and is forwarded ALONE — never the client's own X-Forwarded-For chain — and the scheme
+## is always https, because ArvanCloud decides the public scheme whatever it used to reach this origin.
+
+# Client IP: $remote_addr is the real client only after cdn-real-ip.inc (ArvanCloud edges trusted, nothing else).
+include /etc/nginx/conf.d/cdn-real-ip.inc;
 
 client_max_body_size 25m;
 
@@ -28,8 +31,8 @@ set $beta_frontend_target   http://beta-frontend:3000;
 
 proxy_http_version 1.1;
 proxy_set_header Host              $host;
-proxy_set_header X-Real-IP         $beta_client_ip;
-proxy_set_header X-Forwarded-For   $beta_client_ip;
+proxy_set_header X-Real-IP         $remote_addr;
+proxy_set_header X-Forwarded-For   $remote_addr;
 proxy_set_header X-Forwarded-Proto https;
 proxy_set_header X-Forwarded-Host  $host;
 proxy_set_header X-Forwarded-Port  443;
