@@ -19,6 +19,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ritme/backend-go/internal/auth/passport"
 )
 
 // DefaultCORSOrigins mirrors the fallback list in backend/config/cors.php.
@@ -1022,6 +1024,10 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 	cfg.CycleEngine = loadCycleEngine(e)
 	if cfg.App.IsProduction() && cfg.App.Debug {
 		e.fail("APP_DEBUG must be false when APP_ENV=production")
+	}
+	// S-13 (T-M12-07): the committed contract key pair is public; production refuses to start on it.
+	if err := passport.CheckStorageKey(cfg.StoragePath, cfg.App.Env); err != nil {
+		e.fail("STORAGE_PATH: %v", err)
 	}
 
 	if len(e.errs) > 0 {

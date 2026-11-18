@@ -3,10 +3,10 @@ id: T-M12-07
 title: Secrets hygiene: blank APP_KEY in examples, refuse the contract key in production, CI secret grep
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: []
 parallel_group: M12-SEC
-touches: [.env.example, .env.stage.example, backend-go/internal/platform/config/config.go, backend-go/internal/auth/passport, .github/workflows/claude-to-stage.yml, scripts/secret-scan.sh]
+touches: [docs/quality-2026-11/secrets.md, backend-go/internal/platform/config/passport_key_test.go, .env.example, .env.stage.example, backend-go/internal/platform/config/config.go, backend-go/internal/auth/passport, .github/workflows/claude-to-stage.yml, scripts/secret-scan.sh]
 skills: []
 verify: bash scripts/secret-scan.sh && cd backend-go && CGO_ENABLED=0 go test ./internal/platform/config/... ./internal/auth/passport/...
 ---

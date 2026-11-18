@@ -3109,3 +3109,10 @@ Nothing needed fixing.
   **T-M12-30c**.
 - `TestHomeReadsConstantInRows` (N=1 vs 20: care today, todo, todo v6, checkups home, home notifications) and
   `TestTightenedRowFailsWhenExceeded`. Budgets: todo 7/5, todo v6 9/3.
+
+## T-M12-07 — Secrets hygiene
+- APP_KEY emptied in both example env files (old value never printed; it can't boot Laravel — 23-byte key).
+- backend-go refuses to boot in `APP_ENV=production` with the committed contract Passport key (fingerprint only in code).
+- `scripts/secret-scan.sh` (+ `--self-test`), gate job `secrets` before the stage merge; repo scan green.
+- **User**: run the MATCH/different checks and the beta volume key-hash check in `docs/quality-2026-11/secrets.md`
+  (beta = production env → would refuse to boot on the fixture key).

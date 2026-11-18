@@ -7,8 +7,8 @@
 #
 # A merge conflict is never forced: the job fails, stage is left untouched, and the branch needs a rebase on stage.
 #
-# Gates (T-M12-03): `merge` needs BOTH jobs green — backend (go vet + go test -race with integration, ci.yml) and
-# frontend (audits, typecheck, vitest). No step of a gate may carry `continue-on-error`.
+# Gates (T-M12-03): `merge` needs every job green — backend (go vet + go test -race with integration, ci.yml),
+# frontend (audits, typecheck, vitest) and secrets (scripts/secret-scan.sh, T-M12-07). No step of a gate may carry `continue-on-error`.
 #
 # Signatures: the real gate is on the server (deploy/stage-autodeploy.sh verifies every new stage commit against the
 # pinned /etc/ritme/allowed_signers and refuses anything else). The "signatures" step below is an early, advisory copy
@@ -33,6 +33,18 @@ jobs:
   # go vet + the full Go suite with -race, integration tests against MariaDB/Redis service containers (T-M12-11).
   backend:
     uses: ./.github/workflows/ci.yml
+
+  # Tracked files must carry no secret: a real APP_KEY in *.example, a private key outside the test fixtures, AWS /
+  # GitHub / Google / Slack tokens (T-M12-07). Hits print file:line + rule only, never the value.
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: secret-scan self-test
+        run: bash scripts/secret-scan.sh --self-test
+      - name: secret-scan
+        run: bash scripts/secret-scan.sh
 
   frontend:
     runs-on: ubuntu-latest
@@ -70,7 +82,7 @@ jobs:
           if-no-files-found: warn
 
   merge:
-    needs: [backend, frontend]
+    needs: [backend, frontend, secrets]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
