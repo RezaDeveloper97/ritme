@@ -3,7 +3,7 @@ id: T-M12-17
 title: Routine flow test: family invite → accept → domain-limited reads → revoke → 403
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-11]
 parallel_group: M12-TEST
 touches: [backend-go/internal/http/routine_family_int_test.go]

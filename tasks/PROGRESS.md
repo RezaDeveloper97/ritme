@@ -2915,3 +2915,12 @@ Nothing needed fixing.
   and behaviour (447 rows / 177 tables seeded, control user untouched, files and keys gone, re-signup = fresh account).
 - Fixtures fixed for the new FKs: messages/rules (main session), admin/messages simulate (T-M12-20).
 - Follow-up **T-M12-13b** (admin delete path). Open (user): payment/order retention — currently deleted by cascade.
+
+## T-M12-17 — Routine flow: family invite → domain-limited reads → raise → revoke → mode change
+- `routine_family_int_test.go`: full domain table (404 before link / after link delete per F-21, 403 on denied domain,
+  200 granted only, no notes/topic in DTOs, `no-store`), view can't write, raise to write, domain removal beats
+  If-None-Match (no stale cache), F-27 code-only write invite waits `awaiting_owner`, owner confirm, F-23 mode change
+  pauses owner-data domains and keeps urgent alert, re-approve restores. Mutation-checked (Decide level, epoch pause,
+  404 vs 403, needsOwner, projection without Decide).
+- **Bug found** → **T-M12-17b**: owner grant edit drops v6-only grants incl. urgent alert (skipped test until fixed).
+- Known gap (T-M11-09): member writes to owner meds/appointments are direct (201), not proposals (202) per F-04/F-05.
