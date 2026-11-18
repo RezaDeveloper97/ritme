@@ -33,6 +33,8 @@ func init() {
 			StoragePath:    d.Config.StoragePath,
 			Logger:         d.Logger,
 			ExportSections: accountexport.Sections(d.DB, box),
+			// T-M12-13: account deletion purges the user's Redis keys (engine cache, idempotency, message state).
+			Cache: d.Cache,
 		})
 
 		r.Get("/api/v1/profile", locale, guard, h.Show)

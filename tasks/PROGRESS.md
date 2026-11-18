@@ -2902,3 +2902,16 @@ Nothing needed fixing.
 - Frontend `entities/app-module/model/kill-switch.test.ts` (20 cases, `moduleOfRoute` / `modeAvailable`).
 - Open (user): routes whose path names no module, ungated today — `/labs`, `/checkups`, `/partners/lab-requests`,
   `/analysis/labs`, `/shared-reports` (record/doctors?), `/emergency-cards/:token` (likely stays open).
+
+## T-M12-13 — Account delete removes every user row, file and key
+- Leaking before: `message_events`, `admin_health_access_requests`, `lab_jobs`, `oauth_auth_codes`,
+  `oauth_device_codes`, `user_profiles_dedupe_backup` (no FK, no hand delete); OTP rows for her number (blocked
+  re-signup); Redis `cycle-engine:`, `idem:`, `msg:*`, `seen:/logged:`, `family:ra:` keys.
+- goose **00129_user_fk_cascades** (orphans deleted, FK CASCADE added in place) + Laravel twin
+  `2026_11_18_000129_add_user_fk_cascades.php`; `make schema-diff` OK (249 tables).
+- `DeleteAccount`: OTP rows deleted in the tx; `PurgeUserKeys` (SCAN+UNLINK) after commit; `Cache` wired in
+  `routes_profile.go` (main session).
+- Tests: schema-driven (every user column cascades or is on the allow-list in `docs/quality-2026-11/user-tables.md`)
+  and behaviour (447 rows / 177 tables seeded, control user untouched, files and keys gone, re-signup = fresh account).
+- Fixtures fixed for the new FKs: messages/rules (main session), admin/messages simulate (T-M12-20).
+- Follow-up **T-M12-13b** (admin delete path). Open (user): payment/order retention — currently deleted by cascade.

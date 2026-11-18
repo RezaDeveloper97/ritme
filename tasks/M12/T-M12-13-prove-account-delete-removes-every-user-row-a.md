@@ -3,7 +3,7 @@ id: T-M12-13
 title: Prove account delete removes every user row and file (schema-driven test) and fix the gaps
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-11]
 parallel_group: M12-TEST
 touches: [backend-go/internal/profile, backend-go/internal/profile/delete_complete_int_test.go, backend-go/db/migrations, backend-go/internal/files, docs/quality-2026-11/user-tables.md]
