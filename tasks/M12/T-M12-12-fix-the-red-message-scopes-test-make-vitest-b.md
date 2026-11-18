@@ -3,7 +3,7 @@ id: T-M12-12
 title: Fix the red message-scopes test, make vitest blocking, run admin-web tests, add coverage reports
 milestone: M12
 type: frontend
-status: todo
+status: done
 depends_on: []
 parallel_group: M12-TEST
 touches: [frontend/src/app/message-scopes.ts, frontend/src/app/message-scopes.test.ts, frontend/src/app/[locale], frontend/vitest.config.ts, admin-web/vitest.config.ts, .github/workflows/claude-to-stage.yml, .github/workflows/ci.yml, backend-go/Makefile]

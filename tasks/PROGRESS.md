@@ -2837,3 +2837,11 @@ Nothing needed fixing.
 - Tests: owner-confirm step (`POST /family/members/{id}/confirm`) after accept in `securityPair`, companion home,
   delegated write, loss, children (children also asserts nothing is visible before confirmation).
 - `make test-int PKG=./internal/http/...` → ok. Note added to T-M11-08. Makefile `test-int` now honours `RUN=`.
+
+## T-M12-12 — message-scopes fixed, vitest blocking, admin-web in CI, coverage reports
+- `message-scopes.ts`: companions −teen; home +logSheet −log −search; ivf +home +notifications; postpartum,
+  postpartum/setup, services +home; pregnancy +home −search (each removal justified by the import graph).
+- CI: vitest blocking with coverage artifact (frontend); `ci.yml` admin-web job (typecheck + vitest + coverage);
+  Go coverage on the same race run via `COVER_FLAGS` → `coverage-go` artifact + summary. `@vitest/coverage-v8` 3.2.7.
+- Baseline: frontend statements 24.2 %, admin-web 12.5 % (report only, no thresholds).
+- frontend 2347/2347, admin-web 243/243, actionlint clean. Open: browser raw-key check; first real CI run.

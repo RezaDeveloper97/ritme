@@ -58,7 +58,7 @@ const PREGNANCY = ['common', 'nav', 'pregnancy'] as const satisfies readonly Mes
 
 /** Per route: the namespaces its screen (and everything it imports) uses. */
 export const ROUTE_NAMESPACES = {
-  home: ['aiCredit', 'articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'companions', 'conditions', 'fertility', 'home', 'homeLab', 'learn', 'log', 'logPeriod', 'loss', 'menopause', 'nav', 'notifications', 'plus', 'profileEdit', 'search', 'teen', 'todo'], // B-N8-03 widgets/learn-home-card; CB-NAV-03 «برای امروز» to-do row (entities/todo barrel); B-N2-08 trial banner + sheet; CB-NAV-02 header search button; CB-MENO-05 menopause home; CB-TEEN-02 teen home; CB-TEEN-03 widgets/linked-teen-card (entities/companion barrel); CB-LOSS-03b care re-entry row (entities/loss)
+  home: ['aiCredit', 'articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'companions', 'conditions', 'fertility', 'home', 'homeLab', 'learn', 'logPeriod', 'logSheet', 'loss', 'menopause', 'nav', 'notifications', 'plus', 'profileEdit', 'teen', 'todo'], // B-N8-03 widgets/learn-home-card; CB-NAV-03 «برای امروز» to-do row (entities/todo barrel); B-N2-08 trial banner + sheet; CB-NAV-02 header search button; CB-MENO-05 menopause home; CB-TEEN-02 teen home; CB-TEEN-03 widgets/linked-teen-card (entities/companion barrel); CB-LOSS-03b care re-entry row (entities/loss)
   calendar: ['calendar', 'common', 'log', 'logPeriod', 'nav', 'vitals'], // vitals: the selected day's readings (DayVitals → entities/vital ReadingRow)
   log: ['aiCredit', 'aiGate', 'autopilot', 'children', 'common', 'logSheet', 'nav', 'plus', 'voiceLog'], // autopilot = features/voice-log runs the script it gets (shared/autopilot); // CB-NAV-03: children = widgets/log-later via screens/log; // B-N3-03: /log renders the log sheet v2 as a page
   logCustomize: ['common', 'logCustomize', 'logSheet'], // B-N3-04 /log/customize (the log sheet's gear; categoryLook comes via features/log-day)
@@ -72,7 +72,7 @@ export const ROUTE_NAMESPACES = {
   profileLanguage: ['common', 'me'], // B-N1-10 /profile/language
   profileNotifications: ['common', 'me', 'plus', 'pwa'], // plus: entities/plus barrel (SMS Plus row); pwa: features/push-notifications device row; // B-N1-11 /profile/notifications
   profilePrivacy: ['account', 'common', 'companions', 'me', 'recordExport'], // B-N1-12 /profile/privacy (DeleteAccountConfirm = account; B-N4-04 companions section)
-  companions: ['children', 'common', 'companions', 'teen'], // B-N4-10b family strip children (features/invite-companion → entities/child); B-N4-04 /companions (Hamdam_List); CB-TEEN-03 parent code card (widgets/linked-teen-card)
+  companions: ['children', 'common', 'companions'], // B-N4-10b family strip children (features/invite-companion → entities/child); B-N4-04 /companions (Hamdam_List); CB-TEEN-03 parent code card (widgets/linked-teen-card)
   companionsNew: ['aiCredit', 'children', 'common', 'companions', 'plus'], // plus: widgets/plus-required-sheet (the invite code is Plus-only); B-N4-10b ChildrenPicker (entities/child); companion-v2 /companions/new (intro → goal → [children] → scope → actions → code → preview)
   companionDetail: ['children', 'common', 'companions'], // B-N4-10b children editor (entities/child); B-N4-04 /companions/[id] (grants, renew, revoke)
   companion: ['children', 'common', 'companionHome', 'companions', 'nav', 'teen'], // B-N4-05 /companion (Hamdam_Home, companion nav; companions = entities/companion barrel); CB-TEEN-03 linked teen cards
@@ -98,7 +98,7 @@ export const ROUTE_NAMESPACES = {
   plusCredits: ['aiCredit', 'common', 'credits', 'nav', 'plus'], // /plus/credits «خرید اعتبار» (screens/credits-buy) // B-N2-07 /plus/checkout
   plusSuccess: ['aiCredit', 'common', 'credits', 'plus'], // B-N2-07 /plus/success + gateway return /plus/return
   plusManage: ['aiCredit', 'common', 'plus'], // B-N2-07 /plus/manage
-  pregnancy: ['care', 'common', 'loss', 'nav', 'pregnancyV2', 'search', 'teen', 'todo', 'notifications'], // CB-NAV-04b widgets/quick-access reads entities/teen; CB-NAV-03b «برای امروز» to-do row (widgets/for-today); CB-NAV-02 header search button; B-N5-10 post-loss care row (entities/loss)
+  pregnancy: ['care', 'common', 'home', 'loss', 'nav', 'notifications', 'pregnancyV2', 'teen', 'todo'], // CB-NAV-04b widgets/quick-access reads entities/teen; CB-NAV-03b «برای امروز» to-do row (widgets/for-today); CB-NAV-02 header search button; B-N5-10 post-loss care row (entities/loss)
   pregnancyLog: [...PREGNANCY, 'aiCredit', 'aiGate', 'autopilot', 'logSheet', 'plus', 'pregnancyV2', 'voiceLog'], // B-N3-06: default tab = log sheet v2 (pregnancy preset)
   pregnancyWeek: ['common', 'nav', 'pregnancyV2'],
   pregnancyKicks: ['common', 'pregnancyTools'], // B-N5-08 /pregnancy/kicks (Log_Kick)
@@ -116,7 +116,7 @@ export const ROUTE_NAMESPACES = {
   contraceptionOther: ['common', 'contraception'], // CB-CONTRA-03 /contraception/other
   uiKit: ['common'], // dev-only /dev/ui-kit showcase (B-N1-03)
   autopilotLab: ['autopilot', 'autopilotCatalog', 'common', 'logSheet'], // dev-only /dev/autopilot (script runner + agent manifest; logSheet = features/log-day barrel via widgets/autopilot-manifest)
-  services: ['common', 'conditions', 'nav', 'services', 'notifications'], // «خدمات» tab (B-N1-04, hub B-N7-01); CB-COND-07b: entities/condition barrel ships the nudge card
+  services: ['common', 'conditions', 'home', 'nav', 'notifications', 'services'], // «خدمات» tab (B-N1-04, hub B-N7-01); CB-COND-07b: entities/condition barrel ships the nudge card
   programs: ['common', 'conditions', 'nav'], // CB-COND-02 /programs (nbl_Cond_Hub, services hub, bottom nav)
   pelvic: ['common', 'nav', 'pelvic'], // CB-PELV-02 /programs/pelvic (nbl_Pelvic_Plan, bottom nav) + /kegel below
   pelvicKegel: ['common', 'pelvic'], // CB-PELV-02 /programs/pelvic/kegel (nbl_Pelvic_Kegel, full-screen flow, no nav)
@@ -132,8 +132,8 @@ export const ROUTE_NAMESPACES = {
   menopauseScore: ['common', 'menopause', 'nav'], // CB-MENO-08 /menopause/score (menopause tab «علائم», bottom nav)
   menopauseScoreQuestionnaire: ['common', 'menopause', 'nav'], // CB-MENO-08 /menopause/score/questionnaire (form, no nav; same screen slice as /menopause/score)
   menopauseReport: ['common', 'healthRecord', 'menopause', 'plus', 'record', 'recordExport'], // CB-MENO-11 /menopause/report (doctor report on bloom's builder, back header, no nav; record: the record-export barrel's CB-REC-05 code page)
-  postpartum: ['care', 'children', 'common', 'logSheet', 'nav', 'postpartum', 'teen', 'todo', 'notifications'], // CB-NAV-04b quick-access → entities/teen; CB-NAV-03b «برای امروز» (widgets/today-reminders → care, widgets/for-today → todo) + «دسترسی سریع»; B-N5-04 /postpartum (v15_Main; mood chips save through features/log-day); B-N5-05 hero children row + child vaccines (entities/child)
-  postpartumSetup: ['care', 'children', 'common', 'logSheet', 'nav', 'postpartum', 'teen', 'todo', 'notifications'], // CB-NAV-04b quick-access → entities/teen; CB-NAV-03b same screen slice as /postpartum; B-N5-04 /postpartum/setup (same screen slice as /postpartum)
+  postpartum: ['care', 'children', 'common', 'home', 'logSheet', 'nav', 'notifications', 'postpartum', 'teen', 'todo'], // CB-NAV-04b quick-access → entities/teen; CB-NAV-03b «برای امروز» (widgets/today-reminders → care, widgets/for-today → todo) + «دسترسی سریع»; B-N5-04 /postpartum (v15_Main; mood chips save through features/log-day); B-N5-05 hero children row + child vaccines (entities/child)
+  postpartumSetup: ['care', 'children', 'common', 'home', 'logSheet', 'nav', 'notifications', 'postpartum', 'teen', 'todo'], // CB-NAV-04b quick-access → entities/teen; CB-NAV-03b same screen slice as /postpartum; B-N5-04 /postpartum/setup (same screen slice as /postpartum)
   postpartumRecovery: ['common', 'postpartum'], // B-N5-04 /postpartum/recovery (v15_Recovery, back header)
   postpartumMood: ['common', 'postpartum'], // B-N5-04 /postpartum/mood (v15_MoodCheck, EPDS + safety)
   children: ['children', 'common', 'nav'], // B-N5-05 /children (v15_Children; «کودک» tab for 0 / ≥2 children)
@@ -141,7 +141,7 @@ export const ROUTE_NAMESPACES = {
   childHome: ['babyLog', 'children', 'common', 'nav'], // B-N5-05 /children/[id] (v16_ChildHome, «کودک» tab root); B-N5-07 «امروز» rows (features/baby-log)
   logFeed: ['babyLog', 'children', 'common'], // B-N5-07 /children/[id]/feeding + /children/feeding (nbl_Log_Feed, close header, no nav; children = entities/child barrel)
   childSection: ['children', 'common'], // B-N5-06 /children/[id]/{growth,vaccines,milestones,learn} (v16_Growth / _Vaccines / _Milestones / _Learn; back header, no nav)
-  ivf: ['care', 'common', 'ivf', 'nav', 'teen', 'todo'], // CB-NAV-04b quick-access → entities/teen; CB-NAV-03b «برای امروز» (care reminders + to-do row) + «دسترسی سریع»; CB-IVF-02 /ivf (nbl_IVF_Home, TTC IVF sub-mode home)
+  ivf: ['care', 'common', 'home', 'ivf', 'nav', 'notifications', 'teen', 'todo'], // CB-NAV-04b quick-access → entities/teen; CB-NAV-03b «برای امروز» (care reminders + to-do row) + «دسترسی سریع»; CB-IVF-02 /ivf (nbl_IVF_Home, TTC IVF sub-mode home)
   ivfScan: ['common', 'ivf'], // CB-IVF-04 /ivf/scan (nbl_IVF_Scan, back header, no nav)
   lossStart: ['common', 'companions', 'loss'], // CB-LOSS-02 /loss (Loss_Start, full screen, no nav; companions = entities/companion barrel)
   lossCare: ['common', 'loss'], // CB-LOSS-02 /loss/care (Loss_Care; «ثبت» opens the shell's log sheet)

@@ -54,6 +54,8 @@ endef
 # and the Redis tests use random key prefixes, so packages may run in parallel.
 RACE_P               ?= 4
 RACE_TIMEOUT         ?= 30m
+# Report-only coverage on the same run (T-M12-12): make test-race COVER_FLAGS='-coverprofile=cover.out -coverpkg=./...'
+COVER_FLAGS          ?=
 # test-race-docker: a Linux Go container on the test stack's network (cgo works there). Its own scratch
 # database $(RACE_DB) for the few tests that use TEST_DB_DSN directly — never ritme_test, which
 # `make test-int` runs share.
@@ -87,11 +89,11 @@ test-db-up: ## Start MariaDB 11.4 + Redis for integration tests
 test-db-down: ## Stop and wipe the test databases
 	$(COMPOSE_TEST) down -v
 
-test-int: test-db-up ## Integration tests: make test-int PKG=./internal/content/...
-	env $(CGO_PROBE) TEST_DB_DSN='$(TEST_DB_DSN)' TEST_DB_ADMIN_DSN='$(TEST_DB_ADMIN_DSN)' TEST_REDIS_ADDR='$(TEST_REDIS_ADDR)' go test -count=1 -p 1 $(PKG)
+test-int: test-db-up ## Integration tests: make test-int PKG=./internal/content/... [RUN=TestName]
+	env $(CGO_PROBE) TEST_DB_DSN='$(TEST_DB_DSN)' TEST_DB_ADMIN_DSN='$(TEST_DB_ADMIN_DSN)' TEST_REDIS_ADDR='$(TEST_REDIS_ADDR)' go test -count=1 -p 1 $(if $(RUN),-run '$(RUN)') $(PKG)
 
 test-race: ## Full suite with -race, integration included (needs cgo + TEST_DB_DSN/TEST_REDIS_ADDR; CI runs this)
-	CGO_ENABLED=1 go test -race -count=1 -p $(RACE_P) -timeout $(RACE_TIMEOUT) $(PKG)
+	CGO_ENABLED=1 go test -race -count=1 -p $(RACE_P) -timeout $(RACE_TIMEOUT) $(COVER_FLAGS) $(PKG)
 
 test-race-docker: test-db-up ## -race in a Linux container on the test stack (Mac without a cgo linker): make test-race-docker [PKG=…]
 	$(COMPOSE_TEST) exec -T mariadb mariadb -uroot -proot -e "CREATE DATABASE IF NOT EXISTS \`$(RACE_DB)\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; GRANT ALL ON \`$(RACE_DB)\`.* TO 'ritme'@'%';"

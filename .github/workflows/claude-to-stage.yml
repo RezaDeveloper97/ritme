@@ -49,9 +49,15 @@ jobs:
         run: composer audit --locked
       - name: typecheck
         run: npm run typecheck
-      - name: unit tests (not blocking yet)
-        continue-on-error: true
-        run: npx vitest run
+      - name: unit tests + coverage (report only)
+        run: npx vitest run --coverage --coverage.reporter=text-summary --coverage.reporter=json-summary --coverage.reporter=lcov
+      - name: Upload frontend coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-frontend
+          path: frontend/coverage
+          if-no-files-found: warn
 
   merge:
     needs: [backend, frontend]

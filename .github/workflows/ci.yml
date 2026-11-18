@@ -78,7 +78,25 @@ jobs:
       - name: go vet
         run: go vet ./...
       - name: go test -race (unit + integration)
-        run: make test-race
+        # Coverage rides on the same -race run (no second pass); report only, no threshold (T-M12-12).
+        run: make test-race COVER_FLAGS='-coverprofile=cover.out -coverpkg=./...'
+      - name: Go coverage summary
+        if: always()
+        run: |
+          if [ -s cover.out ]; then
+            go tool cover -func=cover.out > cover-func.txt
+            tail -n 1 cover-func.txt
+            { echo '### Go coverage (report only)'; echo '```'; tail -n 1 cover-func.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload Go coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-go
+          path: |
+            backend-go/cover.out
+            backend-go/cover-func.txt
+          if-no-files-found: warn
       - name: Integration tests ran (not skipped)
         run: |
           # testdb's own suite always uses the database: if it skipped, the env above is broken.
@@ -86,3 +104,30 @@ jobs:
           echo "$out" | tail -n 5
           echo "$out" | grep -q -- '--- PASS: TestBaselineAppliedToFreshMariaDB' \
             || { echo "::error::integration test did not run against the service database"; exit 1; }
+
+  # Admin web (T-M12-12): typecheck + vitest, blocking; coverage is a report only.
+  admin-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: admin-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: admin-web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: typecheck
+        run: npm run typecheck
+      - name: unit tests + coverage (report only)
+        run: npx vitest run --coverage --coverage.reporter=text-summary --coverage.reporter=json-summary --coverage.reporter=lcov
+      - name: Upload admin-web coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-admin-web
+          path: admin-web/coverage
+          if-no-files-found: warn
