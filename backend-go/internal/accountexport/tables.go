@@ -2,8 +2,8 @@ package accountexport
 
 // T-M12-14 (finding T-04): every user table is in the export or on the documented exclusion list
 // (docs/quality-2026-11/user-tables.md → "Account export"). The tables below had no export section; they are read
-// with one fixed statement each — table, owner predicate, order and hidden columns are constants in this file (never
-// request input) and the owner's id is the only bound value — and serialised from the column types: integers as
+// with one sqlc query each (db/queries/profile/export_*.sql: explicit column list, owner's id the only bound value;
+// T-M12-14b) — hidden columns are simply not selected — and serialised from the generated field types: integers as
 // numbers, DECIMAL as the DB string, DATE as "Y-m-d", DATETIME / TIMESTAMP as the Laravel datetime, JSON columns
 // (CHECK json_valid) decoded, everything else as text. Text a domain seals at rest is opened for the owner (the AD
 // binds each seal to her, so another account's blob never opens; one that does not open exports as null). Link
@@ -14,13 +14,15 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"regexp"
+	"reflect"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/profile/model"
 )
@@ -29,9 +31,7 @@ import (
 type spec struct {
 	key    string // the part's key inside the section
 	table  string
-	where  string // owner predicate; every `?` binds the owner's id
-	order  string // ORDER BY (default "id")
-	hidden []string
+	hidden []string                              // columns the export never carries: not selected by the sqlc query, checked by the column guard
 	each   func(uid uint64, o *jsonx.OrderedMap) // opens sealed text, adjusts the row
 }
 
@@ -41,155 +41,146 @@ type group struct {
 	parts []spec
 }
 
-const (
-	ownChildren  = "child_id IN (SELECT id FROM `children` WHERE owner_id = ?)"
-	ownCompanion = "companion_id IN (SELECT id FROM `companions` WHERE owner_id = ? OR companion_user_id = ?)"
-	ownBooking   = "booking_id IN (SELECT id FROM `telemed_bookings` WHERE user_id = ?)"
-	byUser       = "user_id = ?"
-)
-
 // tableGroups are the sections (and parts of existing sections) read through the generic loader, in output order.
 func tableGroups(box Box) []group {
 	return []group{
 		{key: "cycle", parts: []spec{
-			{key: "preferences", table: "cycle_preferences", where: byUser},
-			{key: "skips", table: "cycle_skips", where: byUser},
-			{key: "predictions", table: "engine_prediction_log", where: byUser},
+			{key: "preferences", table: "cycle_preferences"},
+			{key: "skips", table: "cycle_skips"},
+			{key: "predictions", table: "engine_prediction_log"},
 		}},
 		{key: "fertility", parts: []spec{
-			{key: "logs", table: "fertility_logs", where: byUser, order: "log_date, id"},
+			{key: "logs", table: "fertility_logs"},
 		}},
 		{key: "health_log", parts: []spec{
-			{key: "custom_items", table: "health_log_custom_items", where: byUser},
-			{key: "preferences", table: "health_log_preferences", where: byUser},
+			{key: "custom_items", table: "health_log_custom_items"},
+			{key: "preferences", table: "health_log_preferences"},
 		}},
 		{key: "pregnancy_tools", parts: []spec{
-			{key: "alerts", table: "pregnancy_alerts", where: byUser},
-			{key: "contraction_sessions", table: "pregnancy_contraction_sessions", where: byUser},
-			{key: "contractions", table: "pregnancy_contractions", where: byUser},
-			{key: "daily_extras", table: "pregnancy_daily_extras", where: byUser, order: "log_date, id"},
-			{key: "kick_sessions", table: "pregnancy_kick_sessions", where: byUser},
-			{key: "week_state", table: "pregnancy_week_user_state", where: byUser, order: "week, id"},
+			{key: "alerts", table: "pregnancy_alerts"},
+			{key: "contraction_sessions", table: "pregnancy_contraction_sessions"},
+			{key: "contractions", table: "pregnancy_contractions"},
+			{key: "daily_extras", table: "pregnancy_daily_extras"},
+			{key: "kick_sessions", table: "pregnancy_kick_sessions"},
+			{key: "week_state", table: "pregnancy_week_user_state"},
 		}},
 		{key: "health_record", parts: []spec{
-			{key: "record", table: "health_records", where: byUser},
-			{key: "pregnancies", table: "health_record_pregnancies", where: byUser},
-			{key: "documents", table: "record_documents", where: byUser},
-			{key: "document_files", table: "record_document_files", where: byUser},
-			{key: "document_links", table: "record_document_links", where: byUser},
-			{key: "emergency_card", table: "emergency_cards", where: byUser, hidden: []string{"public_token_hash"}},
-			{key: "share_links", table: "health_share_links", where: byUser, hidden: []string{"token_hash", "code_hash", "code_payload"}},
-			{key: "share_link_views", table: "health_share_link_views", where: byUser},
+			{key: "record", table: "health_records"},
+			{key: "pregnancies", table: "health_record_pregnancies"},
+			{key: "documents", table: "record_documents"},
+			{key: "document_files", table: "record_document_files"},
+			{key: "document_links", table: "record_document_links"},
+			{key: "emergency_card", table: "emergency_cards", hidden: []string{"public_token_hash"}},
+			{key: "share_links", table: "health_share_links", hidden: []string{"token_hash", "code_hash", "code_payload"}},
+			{key: "share_link_views", table: "health_share_link_views"},
 		}},
 		{key: "labs", parts: []spec{
-			{key: "reports", table: "lab_reports", where: byUser},
-			{key: "markers", table: "lab_markers", where: byUser, order: "lab_id, sort_order, id"},
-			{key: "files", table: "lab_files", where: byUser, hidden: []string{"path"}},
-			{key: "partner_requests", table: "partner_lab_requests", where: byUser, each: partnerPayload(box)},
+			{key: "reports", table: "lab_reports"},
+			{key: "markers", table: "lab_markers"},
+			{key: "files", table: "lab_files", hidden: []string{"path"}},
+			{key: "partner_requests", table: "partner_lab_requests", each: partnerPayload(box)},
 		}},
 		{key: "checkups", parts: []spec{
-			{key: "types", table: "checkup_types", where: byUser}, // her own checkup types (catalog rows have no user)
-			{key: "records", table: "checkup_records", where: byUser},
-			{key: "settings", table: "user_checkup_settings", where: byUser},
+			{key: "types", table: "checkup_types"}, // her own checkup types (catalog rows have no user)
+			{key: "records", table: "checkup_records"},
+			{key: "settings", table: "user_checkup_settings"},
 		}},
 		{key: "vitals", parts: []spec{
-			{key: "plan_items", table: "vital_plan_items", where: byUser},
-			{key: "readings", table: "vital_readings", where: byUser, order: "measured_at, id"},
-			{key: "targets", table: "vital_targets", where: byUser},
+			{key: "plan_items", table: "vital_plan_items"},
+			{key: "readings", table: "vital_readings"},
+			{key: "targets", table: "vital_targets"},
 		}},
 		{key: "care", parts: []spec{
-			{key: "reminder_intakes", table: "reminder_intakes", where: byUser, order: "intake_date, id"},
+			{key: "reminder_intakes", table: "reminder_intakes"},
 		}},
 		{key: "children", parts: []spec{
-			{key: "children", table: "children", where: "owner_id = ?"},
-			{key: "guardians", table: "child_guardians", where: "user_id = ? OR " + ownChildren},
-			{key: "measurements", table: "child_measurements", where: ownChildren},
-			{key: "milestones", table: "child_milestone_checks", where: ownChildren},
-			{key: "vaccines", table: "child_vaccine_doses", where: ownChildren},
-			{key: "feeds", table: "baby_feeds", where: ownChildren},
-			{key: "sleeps", table: "baby_sleeps", where: ownChildren},
-			{key: "diapers", table: "baby_diapers", where: ownChildren},
-			{key: "med_doses", table: "baby_med_doses", where: ownChildren},
+			{key: "children", table: "children"},
+			{key: "guardians", table: "child_guardians"},
+			{key: "measurements", table: "child_measurements"},
+			{key: "milestones", table: "child_milestone_checks"},
+			{key: "vaccines", table: "child_vaccine_doses"},
+			{key: "feeds", table: "baby_feeds"},
+			{key: "sleeps", table: "baby_sleeps"},
+			{key: "diapers", table: "baby_diapers"},
+			{key: "med_doses", table: "baby_med_doses"},
 		}},
 		{key: "family", parts: []spec{
-			{key: "families", table: "families", where: "owner_id = ? OR spouse_user_id = ?"},
-			{key: "family_children", table: "family_children", where: ownChildren},
-			{key: "companions", table: "companions", where: "owner_id = ? OR companion_user_id = ?"},
-			{key: "companion_grants", table: "companion_grants", where: ownCompanion},
-			{key: "invites", table: "companion_invites", where: "owner_id = ?", hidden: []string{"code_hash"}},
-			{key: "activity", table: "companion_audit_logs", where: "owner_id = ?", hidden: []string{"payload_sealed"}},
-			{key: "attendance", table: "family_attendance", where: "member_id = ?"},
+			{key: "families", table: "families"},
+			{key: "family_children", table: "family_children"},
+			{key: "companions", table: "companions"},
+			{key: "companion_grants", table: "companion_grants"},
+			{key: "invites", table: "companion_invites", hidden: []string{"code_hash"}},
+			{key: "activity", table: "companion_audit_logs", hidden: []string{"payload_sealed"}},
+			{key: "attendance", table: "family_attendance"},
 			// Alerts and notices about her own data (her side as the owner); a member's copy is the owner's data.
-			{key: "member_alerts", table: "family_member_alerts", where: "owner_id = ?"},
-			{key: "member_notices", table: "family_member_notices", where: "owner_id = ?"},
-			{key: "nudges", table: "family_nudges", where: "owner_id = ? OR member_id = ?"},
-			{key: "owner_state", table: "family_owner_state", where: "owner_id = ?", order: "owner_id"},
-			{key: "proposals", table: "family_proposals", where: "actor_id = ? OR approver_id = ?",
+			{key: "member_alerts", table: "family_member_alerts"},
+			{key: "member_notices", table: "family_member_notices"},
+			{key: "nudges", table: "family_nudges"},
+			{key: "owner_state", table: "family_owner_state"},
+			{key: "proposals", table: "family_proposals",
 				hidden: []string{"payload_sealed", "dedupe_key", "pending_key"}},
-			{key: "share_requests", table: "family_share_requests", where: "from_user_id = ? OR to_user_id = ?"},
+			{key: "share_requests", table: "family_share_requests"},
 		}},
 		{key: "todo", parts: []spec{
-			{key: "tasks", table: "todo_tasks", where: byUser},
-			{key: "items", table: "todo_items", where: byUser},
-			{key: "suggestion_events", table: "todo_suggestion_events", where: byUser},
+			{key: "tasks", table: "todo_tasks"},
+			{key: "items", table: "todo_items"},
+			{key: "suggestion_events", table: "todo_suggestion_events"},
 		}},
 		{key: "teen", parts: []spec{
-			{key: "profile", table: "teen_profiles", where: byUser},
-			{key: "kit_checks", table: "teen_kit_checks", where: byUser},
+			{key: "profile", table: "teen_profiles"},
+			{key: "kit_checks", table: "teen_kit_checks"},
 		}},
 		{key: "challenges", parts: []spec{
-			{key: "enrollments", table: "challenge_enrollments", where: byUser},
-			{key: "task_completions", table: "challenge_task_completions",
-				where: "enrollment_id IN (SELECT id FROM `challenge_enrollments` WHERE user_id = ?)"},
-			{key: "reward_grants", table: "challenge_reward_grants", where: byUser},
-			{key: "daily_completions", table: "user_challenge_completions", where: byUser},
-			{key: "task_template_completions", table: "user_task_completions", where: byUser},
+			{key: "enrollments", table: "challenge_enrollments"},
+			{key: "task_completions", table: "challenge_task_completions"},
+			{key: "reward_grants", table: "challenge_reward_grants"},
+			{key: "daily_completions", table: "user_challenge_completions"},
+			{key: "task_template_completions", table: "user_task_completions"},
 		}},
 		{key: "assistant", parts: []spec{
-			{key: "conversations", table: "assistant_conversations", where: byUser, each: assistantSummary(box)},
-			{key: "messages", table: "assistant_messages", order: "conversation_id, id",
-				where: "conversation_id IN (SELECT id FROM `assistant_conversations` WHERE user_id = ?)", each: assistantBody(box)},
-			{key: "handoffs", table: "assistant_handoffs", where: byUser, each: assistantHandoff(box)},
-			{key: "settings", table: "assistant_profile_settings", where: byUser},
+			{key: "conversations", table: "assistant_conversations", each: assistantSummary(box)},
+			{key: "messages", table: "assistant_messages", each: assistantBody(box)},
+			{key: "handoffs", table: "assistant_handoffs", each: assistantHandoff(box)},
+			{key: "settings", table: "assistant_profile_settings"},
 		}},
 		{key: "telemed", parts: []spec{
-			{key: "bookings", table: "telemed_bookings", where: byUser, hidden: []string{"authority"}},
-			{key: "consents", table: "telemed_booking_consents", where: ownBooking},
-			{key: "messages", table: "telemed_messages", where: ownBooking, order: "booking_id, id", each: telemedBody(box)},
-			{key: "prescription_items", table: "telemed_prescription_items", where: ownBooking},
-			{key: "reviews", table: "telemed_reviews", where: byUser},
+			{key: "bookings", table: "telemed_bookings", hidden: []string{"authority"}},
+			{key: "consents", table: "telemed_booking_consents"},
+			{key: "messages", table: "telemed_messages", each: telemedBody(box)},
+			{key: "prescription_items", table: "telemed_prescription_items"},
+			{key: "reviews", table: "telemed_reviews"},
 		}},
 		{key: "learning", parts: []spec{
-			{key: "instructor", table: "learning_instructors", where: byUser},
-			{key: "grants", table: "learning_grants", where: byUser},
-			{key: "progress", table: "learning_progress", where: byUser},
+			{key: "instructor", table: "learning_instructors"},
+			{key: "grants", table: "learning_grants"},
+			{key: "progress", table: "learning_progress"},
 		}},
 		{key: "plus", parts: []spec{
-			{key: "subscriptions", table: "plus_subscriptions", where: byUser},
-			{key: "trials", table: "plus_trials", where: byUser},
-			{key: "invoices", table: "plus_invoices", where: byUser, hidden: []string{"authority"}},
-			{key: "receipts", table: "plus_receipts", where: byUser},
-			{key: "store_purchases", table: "plus_store_purchases", where: byUser, hidden: []string{"purchase_token"}},
-			{key: "usage_counters", table: "plus_usage_counters", where: byUser},
+			{key: "subscriptions", table: "plus_subscriptions"},
+			{key: "trials", table: "plus_trials"},
+			{key: "invoices", table: "plus_invoices", hidden: []string{"authority"}},
+			{key: "receipts", table: "plus_receipts"},
+			{key: "store_purchases", table: "plus_store_purchases", hidden: []string{"purchase_token"}},
+			{key: "usage_counters", table: "plus_usage_counters"},
 		}},
 		{key: "ai_credits", parts: []spec{
-			{key: "grants", table: "ai_credit_grants", where: byUser},
-			{key: "spends", table: "ai_credit_spends", where: byUser},
+			{key: "grants", table: "ai_credit_grants"},
+			{key: "spends", table: "ai_credit_spends"},
 		}},
 		{key: "notifications", parts: []spec{
-			{key: "inbox", table: "user_notifications", where: byUser},
-			{key: "smart_messages", table: "message_inbox", where: byUser},
-			{key: "message_events", table: "message_events", where: byUser},
+			{key: "inbox", table: "user_notifications"},
+			{key: "smart_messages", table: "message_inbox"},
+			{key: "message_events", table: "message_events"},
 		}},
 		{key: "activity", parts: []spec{
-			{key: "events", table: "analytics_events", where: byUser},
-			{key: "days", table: "user_activity_days", where: byUser, order: "day"},
+			{key: "events", table: "analytics_events"},
+			{key: "days", table: "user_activity_days"},
 		}},
 		{key: "account_records", parts: []spec{
-			{key: "consent_events", table: "consent_events", where: byUser},
-			{key: "profile_backups", table: "user_profiles_dedupe_backup", where: byUser},
+			{key: "consent_events", table: "consent_events"},
+			{key: "profile_backups", table: "user_profiles_dedupe_backup"},
 			// Metadata of every stored file — never the bytes, the storage path or the hash.
-			{key: "files", table: "files", where: byUser, hidden: []string{"path", "sha256"}},
+			{key: "files", table: "files", hidden: []string{"path", "sha256"}},
 		}},
 	}
 }
@@ -197,16 +188,14 @@ func tableGroups(box Box) []group {
 // shopExtra / directoryExtra are generic parts appended to the existing shop and directory sections.
 var (
 	shopExtra = []spec{
-		{key: "carts", table: "shop_carts", where: byUser},
-		{key: "cart_items", table: "shop_cart_items", where: "cart_id IN (SELECT id FROM `shop_carts` WHERE user_id = ?)"},
+		{key: "carts", table: "shop_carts"},
+		{key: "cart_items", table: "shop_cart_items"},
 	}
 	directoryExtra = []spec{
 		// A venue listing she claimed as its owner, with its services and slots.
-		{key: "owned_listings", table: "city_service_listings", where: "owner_user_id = ?"},
-		{key: "owned_listing_services", table: "city_service_services",
-			where: "listing_id IN (SELECT id FROM `city_service_listings` WHERE owner_user_id = ?)"},
-		{key: "owned_listing_slots", table: "city_service_slots",
-			where: "listing_id IN (SELECT id FROM `city_service_listings` WHERE owner_user_id = ?)"},
+		{key: "owned_listings", table: "city_service_listings"},
+		{key: "owned_listing_services", table: "city_service_services"},
+		{key: "owned_listing_slots", table: "city_service_slots"},
 	}
 )
 
@@ -255,42 +244,15 @@ func Coverage() map[string]string {
 	return out
 }
 
-// tables reads generic parts; the JSON columns are learnt once from the schema's json_valid CHECKs.
+// tables reads generic parts through the sqlc readers of export_gen.go.
 type tables struct {
-	db       *sql.DB
-	once     sync.Once
-	jsonCols map[string]bool // "table.column"
-	jsonErr  error
+	db   *sql.DB
+	once sync.Once
+	read map[string]fetcher
 }
 
-var jsonValid = regexp.MustCompile("^json_valid\\(`([^`]+)`\\)$")
-
-func (x *tables) loadJSONCols(ctx context.Context) error {
-	x.once.Do(func() {
-		x.jsonCols = map[string]bool{}
-		rows, err := x.db.QueryContext(ctx,
-			`SELECT table_name, check_clause FROM information_schema.check_constraints WHERE constraint_schema = DATABASE()`)
-		if err != nil {
-			x.jsonErr = fmt.Errorf("accountexport: json columns: %w", err)
-			return
-		}
-		defer func() { _ = rows.Close() }()
-		for rows.Next() {
-			var tbl, clause string
-			if err := rows.Scan(&tbl, &clause); err != nil {
-				x.jsonErr = fmt.Errorf("accountexport: json columns: %w", err)
-				return
-			}
-			if m := jsonValid.FindStringSubmatch(clause); m != nil {
-				x.jsonCols[tbl+"."+m[1]] = true
-			}
-		}
-		if err := rows.Err(); err != nil {
-			x.jsonErr = fmt.Errorf("accountexport: json columns: %w", err)
-		}
-	})
-	return x.jsonErr
-}
+// fetcher runs one table's sqlc query for the owner.
+type fetcher func(ctx context.Context, uid uint64) ([]any, error)
 
 // part is a spec as a section part for uid.
 func (x *tables) part(ctx context.Context, uid uint64, s spec) part {
@@ -298,88 +260,86 @@ func (x *tables) part(ctx context.Context, uid uint64, s spec) part {
 }
 
 func (x *tables) rows(ctx context.Context, uid uint64, s spec) ([]any, error) {
-	if err := x.loadJSONCols(ctx); err != nil {
-		return nil, err
+	x.once.Do(func() { x.read = fetchers(x.db) })
+	var list []any
+	var err error
+	cols := exportColumns[s.table]
+	if f, ok := x.read[s.table]; ok {
+		list, err = f(ctx, uid)
+	} else if s.table == dedupeBackupTable {
+		cols, list, err = dedupeBackupRows(ctx, x.db, uid)
+	} else {
+		err = errors.New("no reader")
 	}
-	order := s.order
-	if order == "" {
-		order = "id"
-	}
-	args := make([]any, strings.Count(s.where, "?"))
-	for i := range args {
-		args[i] = uid
-	}
-	// Table, predicate and order are constants of this file; the owner's id is the only bound value.
-	q := "SELECT * FROM `" + s.table + "` WHERE " + s.where + " ORDER BY " + order //nolint:gosec // G202: constants only
-	rows, err := x.db.QueryContext(ctx, q, args...)
 	if err != nil {
 		return nil, fmt.Errorf("accountexport: %s: %w", s.table, err)
 	}
-	defer func() { _ = rows.Close() }()
-	types, err := rows.ColumnTypes()
-	if err != nil {
-		return nil, fmt.Errorf("accountexport: %s: %w", s.table, err)
-	}
-	vals := make([]any, len(types))
-	ptrs := make([]any, len(types))
-	for i := range vals {
-		ptrs[i] = &vals[i]
-	}
-	out := []any{}
-	for rows.Next() {
-		if err := rows.Scan(ptrs...); err != nil {
-			return nil, fmt.Errorf("accountexport: %s: %w", s.table, err)
-		}
+	out := make([]any, 0, len(list))
+	for _, r := range list {
 		o := jsonx.NewObject()
-		for i, ct := range types {
-			col := ct.Name()
-			if contains(s.hidden, col) {
-				continue
+		v := reflect.ValueOf(r)
+		if len(cols) != v.NumField() {
+			return nil, fmt.Errorf("accountexport: %s: %d columns, %d fields", s.table, len(cols), v.NumField())
+		}
+		for i, col := range cols {
+			c := cell(v.Field(i))
+			if str, isStr := c.(string); isStr && jsonTextColumns[s.table+"."+col] {
+				c = model.DecodeJSONColumn(json.RawMessage(str))
 			}
-			o.Set(col, x.value(s.table, col, ct.DatabaseTypeName(), vals[i]))
+			o.Set(col, c)
 		}
 		if s.each != nil {
 			s.each(uid, o)
 		}
 		out = append(out, o)
 	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("accountexport: %s: %w", s.table, err)
-	}
 	return out, nil
 }
 
-// value serialises one cell by its column type (see the file comment).
-func (x *tables) value(table, col, dbType string, v any) any {
-	switch t := v.(type) {
-	case nil:
-		return nil
-	case time.Time:
-		if dbType == "DATE" {
-			return t.Format(time.DateOnly)
-		}
-		return jsonx.DateTime(t)
-	case []byte:
-		if x.jsonCols[table+"."+col] {
-			return model.DecodeJSONColumn(json.RawMessage(t))
-		}
-		return string(t)
-	case string:
-		if x.jsonCols[table+"."+col] {
-			return model.DecodeJSONColumn(json.RawMessage(t))
-		}
-		return t
-	}
-	return v // int64, uint64, float64, bool
-}
+var (
+	timeType = reflect.TypeOf(time.Time{})
+	rawType  = reflect.TypeOf(json.RawMessage(nil))
+	dateType = reflect.TypeOf(civildate.Date{})
+)
 
-func contains(list []string, s string) bool {
-	for _, x := range list {
-		if x == s {
-			return true
+// cell serialises one sqlc field like the former column-type switch: DATE "Y-m-d", DATETIME the Laravel datetime,
+// JSON decoded, tinyint(1) as 0/1, DECIMAL / text as strings, integers and floats as numbers, NULL as null.
+func cell(v reflect.Value) any {
+	t := v.Type()
+	if v.Kind() == reflect.Struct && t != timeType && t != dateType && v.FieldByName("Valid").IsValid() { // sql.Null*, civildate.NullDate
+		if !v.FieldByName("Valid").Bool() {
+			return nil
+		}
+		return cell(v.Field(0))
+	}
+	switch t {
+	case timeType:
+		return jsonx.DateTime(v.Interface().(time.Time)) //nolint:forcetypeassert // checked by type
+	case dateType:
+		return v.Interface().(civildate.Date).String() //nolint:forcetypeassert // checked by type
+	case rawType:
+		return model.DecodeJSONColumn(v.Interface().(json.RawMessage)) //nolint:forcetypeassert // checked by type
+	}
+	switch v.Kind() {
+	case reflect.String:
+		return v.String()
+	case reflect.Bool:
+		if v.Bool() {
+			return int64(1)
+		}
+		return int64(0)
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return v.Int()
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return v.Uint()
+	case reflect.Float32, reflect.Float64:
+		return v.Float()
+	case reflect.Slice:
+		if v.Type().Elem().Kind() == reflect.Uint8 {
+			return string(v.Bytes())
 		}
 	}
-	return false
+	return v.Interface()
 }
 
 // generic is a section of generic parts.

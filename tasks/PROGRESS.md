@@ -3025,3 +3025,12 @@ Nothing needed fixing.
 - Tests: restart retries once, bounded with a fresh Pusher per tick, concurrent processes deliver once, not past
   lookback; -race green; red on T-M12-22 code. Retry rules in `docs/care-reminders/README.md`.
 - Note: a released row shows `pushed_at` 2000-01-01 in the account export for the few minutes until retry.
+
+## T-M12-14b — Account export loader on sqlc
+- 24 `db/queries/profile/export_<section>.sql` files, one `AcctExport<Table>` query per table with an explicit column
+  list (hidden columns never selected), `CAST(sqlc.arg(uid) AS UNSIGNED)` owner predicate; `export_gen.go` registry +
+  `jsonTextColumns`. String-built SQL removed; exception: `user_profiles_dedupe_backup` (created via PREPARE in 00096,
+  invisible to sqlc) read by one constant query in `dedupe_backup.go`.
+- Export JSON byte-identical to the old loader on the seeded fixture (one-off diff, 48 comparisons).
+- `TestAccountExport_ColumnGuard`: every live column of an exported table is exported xor hidden — a new column
+  needs a decision. Lint 0 issues.

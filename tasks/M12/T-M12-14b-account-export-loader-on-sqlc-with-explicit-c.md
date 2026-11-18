@@ -3,7 +3,7 @@ id: T-M12-14b
 title: Account export loader on sqlc with explicit column lists
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-14,T-M12-19c]
 parallel_group: M12-TEST
 touches: [backend-go/internal/accountexport,backend-go/db/queries/profile]
