@@ -123,8 +123,9 @@ func TestLoss_PrivacyOfFollowupsAndNotices(t *testing.T) {
 	for _, tok := range []string{ali, reza} {
 		e.step(tok, "gender", map[string]any{"gender": "male"})
 	}
-	_, code := e.invite(sara, map[string]any{"type": "partner", "grants": map[string]any{"appointments": "edit", "pregnancy": "view"}})
+	aliLink, code := e.invite(sara, map[string]any{"type": "partner", "grants": map[string]any{"appointments": "edit", "pregnancy": "view"}})
 	require.Equal(t, fiber.StatusOK, e.do(fiber.MethodPost, "/api/v1/companions/accept", ali, map[string]any{"code": code}).Status)
+	e.confirm(sara, aliLink)
 	_, code = e.invite(sara, map[string]any{"type": "partner", "grants": map[string]any{"appointments": "view", "pregnancy": "view"}})
 	require.Equal(t, fiber.StatusOK, e.do(fiber.MethodPost, "/api/v1/companions/accept", reza, map[string]any{"code": code}).Status)
 

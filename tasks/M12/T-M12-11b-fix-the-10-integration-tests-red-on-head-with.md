@@ -3,7 +3,7 @@ id: T-M12-11b
 title: Fix the 10 integration tests red on HEAD with companion_forbidden in internal/http
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: []
 parallel_group: M12-TEST
 touches: [backend-go/internal/http,backend-go/internal/companion,backend-go/internal/family]

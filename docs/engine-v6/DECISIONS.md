@@ -564,6 +564,7 @@ T-M10-01 writes these rows in `docs/go-migration/deviations.md`; implementing ta
 | F-24 | "Night shift" on Fam_PPostpartum | A household to-do item «شیفت شب» assigned to one person for tonight (one tap); no new data type. |
 | F-25 | Household list for a mutual pair | One household list per owner; a member sees each owner's list labelled with the owner's name; lists are never merged in storage. |
 | F-26 | Child medication («دارو» in the child profile) | A dose log only (name, dose text, time, who gave it), written by guardians and visible to guardians; no schedule, reminders or dosing advice in M11. |
+| F-27 | Code-only invite (no phone) with any write level | Generalises F-11 (user decision 2026-11-18, T-M12-11b): a code-only invite that grants **any** domain at write level or above — including meds/appointments proposals (F-04) — waits as `awaiting_owner` until the owner confirms, like child write, urgent alert and vitals. The member sees nothing before confirmation. |
 
 All F rows: **Owner** user · **Status** accepted (user, 2026-10-21, T-M11-01 — every recommended default, no changes; F-18 kept, so T-M11-16 stays in the queue) · **Blocks** T-M11-02 … T-M11-23 (each task names the rows it reads). Reference: `family.md`.
 

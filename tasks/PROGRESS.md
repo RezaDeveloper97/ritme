@@ -2829,3 +2829,11 @@ Nothing needed fixing.
   messages/notifications → **T-M12-11c**.
 - **Do not push `stage` before T-M12-11b and T-M12-11c are done** — CI would block every claude/** auto-merge.
 - Open: no real CI run yet (no push in this session).
+
+## T-M12-11b — 10 internal/http companion tests red since f91cb154
+- Root cause: T-M11-08 `needsOwner` (family/invites/service.go:467-500) puts code-only invites with any write level
+  (plus urgent/vitals/child write, spouse with children) into `awaiting_owner`; the tests expected an active link.
+- User decision 2026-11-18: keep the strict rule → new **F-27** in docs/engine-v6/DECISIONS.md (generalises F-11).
+- Tests: owner-confirm step (`POST /family/members/{id}/confirm`) after accept in `securityPair`, companion home,
+  delegated write, loss, children (children also asserts nothing is visible before confirmation).
+- `make test-int PKG=./internal/http/...` → ok. Note added to T-M11-08. Makefile `test-int` now honours `RUN=`.
