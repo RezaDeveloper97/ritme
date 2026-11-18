@@ -3101,3 +3101,11 @@ Nothing needed fixing.
 - Assistant: `ListRecentChatMessages` (last N user/assistant-with-body, DESC LIMIT) feeds the model;
   `AI_ASSISTANT_HISTORY_TURNS` (default 20, 1–200); full conversation listing unchanged. Wired in routes_assistant.go.
 - Tests with negative/mutation checks; contract notifications/assistant/home green; budgets unchanged.
+
+## T-M12-30b — Query counts: /todo, row growth; pregnancy today attributed
+- `/todo`: board + notification prefs in one sqlc `ListBoard` → v6 3 warm (was 4), v1 5 (cycle/service loads 3).
+- `TestQueryAttribution` (per sqlc name): pregnancy v2 today = 6 page reads + 15 alert-evaluation reads (`al.EvaluateFirst`).
+  Not cut — alert engine outside touches and time-based urgent alerts (H-05 kick window) need a due-time-aware cache →
+  **T-M12-30c**.
+- `TestHomeReadsConstantInRows` (N=1 vs 20: care today, todo, todo v6, checkups home, home notifications) and
+  `TestTightenedRowFailsWhenExceeded`. Budgets: todo 7/5, todo v6 9/3.

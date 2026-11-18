@@ -3,7 +3,7 @@ id: T-M12-30b
 title: Pregnancy v2 today and todo query counts; row-growth budgets for home reads
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-30]
 parallel_group: M12-PERF
 touches: [backend-go/internal/http/routes_pregnancy_v2.go,backend-go/internal/pregnancy,backend-go/internal/todo,backend-go/db/queries/todo,backend-go/internal/querybudget]

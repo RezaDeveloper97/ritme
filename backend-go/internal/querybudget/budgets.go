@@ -83,10 +83,19 @@ var Budgets = []Budget{
 	{"analysis pregnancy", "/api/v1/analysis/pregnancy", "/api/v1/analysis/pregnancy", enums.LifeModePregnancy, 18, 6, ""},
 	// T-M12-30 (P-05): the GETs the web home fires on every open (docs/quality-2026-11/perf.md §web-home fan-out).
 	// Measured on the fixture users, cold = fresh process, warm = caches filled; each row is the measured count.
-	// pregnancy v2 today: 21 warm is the alert-evaluation middleware on top of the 5-query read (follow-up F-1).
+	// pregnancy v2 today (T-M12-30b profile, TestQueryAttribution): warm 21 = the Today read 6 (auth, profile, week
+	// details, week state, today extras, tip payloads) + the daily alert evaluation 15 (pregnancyalerts.EvaluateFirst:
+	// profile ×2, symptoms, extras, weekly logs, week log, fetal, contractions, kick sessions ×2, today extras, last
+	// weight, vitals, log measurements, open inbox). Cutting the evaluation needs a change in
+	// internal/messages/pregnancyalerts (time-driven rules, H-05), outside T-M12-30b's scope — see the task report.
 	{"care today", "/api/v1/care/today", "/api/v1/care/today", enums.LifeModeCycle, 5, 4, ""},
 	{"checkups home", "/api/v1/checkups/home", "/api/v1/checkups/home", enums.LifeModeCycle, 5, 4, ""},
-	{"todo", "/api/v1/todo", "/api/v1/todo", enums.LifeModeCycle, 8, 6, ""},
+	// T-M12-30b: the board, its item counts and the reminder switch's notification categories are one read (ListBoard).
+	// v1 warm 5 = auth + board + the suggestion's v1 cycle load (profile, histories, logs; internal/cycle/service).
+	// v6 warm 3 = auth + board + the engine-state revisions (the suggestion reads the cached state). Row growth:
+	// TestHomeReadsConstantInRows (1 vs 20 lists, care rows, checkups, notifications).
+	{"todo", "/api/v1/todo", "/api/v1/todo", enums.LifeModeCycle, 7, 5, ""},
+	{"todo v6", "/api/v1/todo", "/api/v1/todo", enums.LifeModeCycle, 9, 3, config.CycleEngineV6},
 	{"home notifications", "/api/v1/home/notifications", "/api/v1/home/notifications?per_page=50", enums.LifeModeCycle, 4, 3, ""},
 	{"modules", "/api/v1/modules", "/api/v1/modules", enums.LifeModeCycle, 1, 0, ""},
 	{"profile", "/api/v1/profile", "/api/v1/profile", enums.LifeModeCycle, 4, 3, ""},
