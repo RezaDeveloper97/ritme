@@ -27,6 +27,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/config"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
+	"github.com/ritme/backend-go/internal/platform/usertz"
 	"github.com/ritme/backend-go/internal/platform/validation"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
 )
@@ -98,9 +99,9 @@ func endpointHash(endpoint string) string {
 // Occurrence is one dose at its wall-clock time.
 type Occurrence struct {
 	Med  Medication
-	Day  civildate.Date
+	Day  civildate.Date // the dose day on the user's clock
 	Slot string
-	At   time.Time // Tehran
+	At   time.Time // the slot on Day in the user's zone (OccurrencesIn)
 }
 
 // ID is the stable key of the dose: "<reminder>:<Y-m-d>:<HH:MM>".
@@ -108,10 +109,23 @@ func (o Occurrence) ID() string {
 	return fmt.Sprintf("%d:%s:%s", o.Med.Row.ID, o.Day.String(), o.Slot)
 }
 
-// Occurrences are the doses of the active, notifying medications in rows with from ≤ At < to, sorted by time.
+// Occurrences is OccurrencesIn on the Asia/Tehran clock (a user without a stored zone; senders that do not resolve
+// one yet, e.g. internal/remindersms).
 func Occurrences(rows []store.Reminder, from, to time.Time) []Occurrence {
+	return OccurrencesIn(rows, from, to, civildate.Tehran)
+}
+
+// OccurrencesIn are the doses of the active, notifying medications in rows with from ≤ At < to, sorted by time. The
+// stored slots are wall-clock times of the user's zone loc (T-M12-21c, like M-08): «۸ صبح» is 08:00 where she is,
+// across daylight-saving changes too. Each (day, slot) is one instant (notifications.WallTime): a slot inside the
+// hour skipped when clocks go forward fires once at the transition (02:30 → 03:00 local), a slot in the hour
+// repeated when they go back fires once, at its first occurrence — never skipped, never doubled.
+func OccurrencesIn(rows []store.Reminder, from, to time.Time, loc *time.Location) []Occurrence {
+	if loc == nil {
+		loc = civildate.Tehran
+	}
 	out := []Occurrence{}
-	first, last := civildate.InTehran(from), civildate.InTehran(to)
+	first, last := civildate.FromTime(from.In(loc)), civildate.FromTime(to.In(loc))
 	for _, r := range rows {
 		if !r.IsActive {
 			continue
@@ -126,7 +140,7 @@ func Occurrences(rows []store.Reminder, from, to time.Time) []Occurrence {
 				if !ok {
 					continue
 				}
-				at := day.TehranMidnight().Add(time.Duration(minute) * time.Minute)
+				at := notifications.WallTime(day, minute, loc)
 				if !at.Before(from) && at.Before(to) {
 					out = append(out, Occurrence{Med: m, Day: day, Slot: slot, At: at})
 				}
@@ -218,8 +232,11 @@ func (d AppointmentDue) Message(locale string) notifications.Message {
 	}
 }
 
-// PrefsGetter loads a user's notification settings (the profile store).
-type PrefsGetter = notifications.Getter
+// PrefsGetter loads a user's notification settings and stored time zone (the profile store).
+type PrefsGetter interface {
+	notifications.Getter
+	usertz.Reader
+}
 
 // SetPush gives the handlers what the push endpoints need: the VAPID settings and the settings reader.
 func (h *Handlers) SetPush(cfg config.Push, prefs PrefsGetter) {
@@ -321,7 +338,9 @@ func (h *Handlers) Unsubscribe(c fiber.Ctx) error {
 // Upcoming is GET /care/upcoming?hours=N (default 48, max 168): the reminders that will fire from now on, already
 // rendered for the lock screen — what the Android shell arms as local alarms: medication doses and the reminders
 // of scheduled appointments (the visit − remind_before). Ticked doses, reminders in quiet hours and a kind whose
-// category («داروها» / «نوبت پزشک») is off are left out; at most UpcomingMaxItems, soonest first.
+// category («داروها» / «نوبت پزشک») is off are left out; at most UpcomingMaxItems, soonest first. Doses, quiet hours
+// and the wall-clock strings are on the user's clock (the request's zone: X-Timezone → stored → Asia/Tehran,
+// T-M12-21c); appointment visits stay the stored Tehran wall-clock instant.
 func (h *Handlers) Upcoming(c fiber.Ctx) error {
 	userID, err := h.user(c)
 	if err != nil {
@@ -338,6 +357,7 @@ func (h *Handlers) Upcoming(c fiber.Ctx) error {
 	if raw, _ := v.Validated().Get("hours"); raw != nil && phpval.ToString(raw) != "" {
 		hours = int(phpval.ToFloat(raw))
 	}
+	loc := civildate.Zone(c)
 	type entry struct {
 		at   time.Time
 		item *jsonx.OrderedMap
@@ -349,7 +369,7 @@ func (h *Handlers) Upcoming(c fiber.Ctx) error {
 		for _, e := range list[:min(len(list), UpcomingMaxItems)] {
 			items = append(items, e.item)
 		}
-		return httpx.OK(c, jsonx.Obj("generated_at", now.Format(wallClock), "items", items))
+		return httpx.OK(c, jsonx.Obj("generated_at", now.In(loc).Format(wallClock), "items", items))
 	}
 	if h.prefs == nil {
 		return out()
@@ -358,6 +378,7 @@ func (h *Handlers) Upcoming(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	prefs = prefs.InZone(loc)
 	from, to := now.Add(time.Second), now.Add(time.Duration(hours)*time.Hour)
 	add := func(kind, id string, reminderID uint64, day civildate.Date, slot string, at time.Time, m notifications.Message) {
 		p := notifications.Render(prefs, m, locale)
@@ -367,7 +388,7 @@ func (h *Handlers) Upcoming(c fiber.Ctx) error {
 			"reminder_id", reminderID,
 			"date", day.String(),
 			"slot", slot,
-			"at", at.Format(wallClock),
+			"at", at.In(loc).Format(wallClock),
 			"at_ms", at.UnixMilli(),
 			"title", p.Title,
 			"body", p.Body,
@@ -380,13 +401,13 @@ func (h *Handlers) Upcoming(c fiber.Ctx) error {
 			return fmt.Errorf("care: upcoming medications: %w", err)
 		}
 		taken, err := h.q.ListIntakesBetween(c, store.ListIntakesBetweenParams{
-			UserID: userID, FromDate: civildate.InTehran(now), ToDate: civildate.InTehran(to),
+			UserID: userID, FromDate: civildate.FromTime(now.In(loc)), ToDate: civildate.FromTime(to.In(loc)),
 		})
 		if err != nil {
 			return fmt.Errorf("care: upcoming intakes: %w", err)
 		}
 		n := 0
-		for _, o := range Occurrences(meds, from, to) {
+		for _, o := range OccurrencesIn(meds, from, to, loc) {
 			if n >= UpcomingMaxItems {
 				break
 			}
@@ -430,6 +451,7 @@ type PushSender func(ctx context.Context, payload []byte, sub store.PushSubscrip
 type Pusher struct {
 	q      *store.Queries
 	prefs  PrefsGetter
+	zones  *usertz.Zones // each user's stored zone: doses and quiet hours are on her clock (T-M12-21c)
 	logger *slog.Logger
 	send   PushSender
 	pruned time.Time
@@ -455,7 +477,7 @@ func NewPusher(db store.DBTX, prefs PrefsGetter, cfg config.Push, logger *slog.L
 		_ = resp.Body.Close()
 		return resp.StatusCode, nil
 	}
-	return &Pusher{q: store.New(db), prefs: prefs, logger: logger, send: send}
+	return &Pusher{q: store.New(db), prefs: prefs, zones: usertz.NewZones(prefs), logger: logger, send: send}
 }
 
 // WithSender replaces the delivery (tests).
@@ -482,7 +504,8 @@ func (p *Pusher) Loop(ctx context.Context, now func() time.Time) {
 
 // Tick pushes the doses that came due in the last PushLookback and returns how many reminders went out. Each dose
 // is claimed in reminder_pushes first, so several processes (API + worker) never announce it twice; a dose that is
-// already ticked, switched off or inside quiet hours stays claimed and silent.
+// already ticked, switched off or inside quiet hours stays claimed and silent. Doses and quiet hours are on each
+// user's stored zone (usertz.Zones; none = Asia/Tehran), so «۸ صبح» reaches a user in Berlin at 08:00 Berlin.
 func (p *Pusher) Tick(ctx context.Context, now time.Time) (int, error) {
 	now = now.In(civildate.Tehran)
 	if now.Sub(p.pruned) > time.Hour {
@@ -500,9 +523,26 @@ func (p *Pusher) Tick(ctx context.Context, now time.Time) (int, error) {
 		subs  []store.PushSubscription
 		taken map[civildate.Date][]store.ListIntakesOnDateRow
 	}
+	byUser := map[uint64][]store.Reminder{}
+	for _, r := range meds {
+		byUser[r.UserID] = append(byUser[r.UserID], r)
+	}
+	var due []Occurrence
+	zones := map[uint64]*time.Location{}
+	for userID, rows := range byUser {
+		loc, err := p.zones.For(ctx, userID)
+		if err != nil {
+			return 0, fmt.Errorf("care: push zone: %w", err)
+		}
+		zones[userID] = loc
+		due = append(due, OccurrencesIn(rows, now.Add(-PushLookback), now.Add(time.Second), loc)...)
+	}
+	slices.SortStableFunc(due, func(a, b Occurrence) int {
+		return cmp.Or(a.At.Compare(b.At), cmp.Compare(a.Med.Row.ID, b.Med.Row.ID))
+	})
 	users := map[uint64]*userState{}
 	sent := 0
-	for _, o := range Occurrences(meds, now.Add(-PushLookback), now.Add(time.Second)) {
+	for _, o := range due {
 		userID := o.Med.Row.UserID
 		n, err := p.q.ClaimReminderPush(ctx, store.ClaimReminderPushParams{
 			UserID: userID, ReminderID: o.Med.Row.ID, IntakeDate: o.Day, Slot: o.Slot, SentAt: now,
@@ -519,6 +559,7 @@ func (p *Pusher) Tick(ctx context.Context, now time.Time) (int, error) {
 			if u.prefs, err = notifications.Load(ctx, p.prefs, userID); err != nil {
 				return sent, err
 			}
+			u.prefs = u.prefs.InZone(zones[userID])
 			if u.subs, err = p.q.ListPushSubscriptions(ctx, userID); err != nil {
 				return sent, fmt.Errorf("care: push subscriptions: %w", err)
 			}

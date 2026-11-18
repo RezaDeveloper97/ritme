@@ -20,7 +20,7 @@ import (
 // 00123) and claims each one before it sends, so the API and the worker never announce a row twice.
 //
 // A row is announced once, when it is new, unread, its category is on (notifications.DecideNotice) and the user
-// has a subscription. Inside quiet hours it waits for the end of the window; everything else is claimed and stays
+// has a subscription. Inside quiet hours (on the user's stored zone) it waits for the end of the window; everything else is claimed and stays
 // silent. «متن خنثی» replaces the text with «اعلان تازه» (notifications.RenderNotice).
 
 const (
@@ -115,6 +115,11 @@ func (p *Pusher) TickNotices(ctx context.Context, now time.Time) (int, error) {
 					if u.prefs, err = notifications.Load(ctx, p.prefs, row.UserID); err != nil {
 						return sent, err
 					}
+					loc, err := p.zones.For(ctx, row.UserID) // quiet hours on her stored zone (T-M12-21c)
+					if err != nil {
+						return sent, fmt.Errorf("care: notice zone: %w", err)
+					}
+					u.prefs = u.prefs.InZone(loc)
 					u.hasPrefs = true
 				}
 				if d := notifications.DecideNotice(u.prefs, row.Type, now); !d.Send {

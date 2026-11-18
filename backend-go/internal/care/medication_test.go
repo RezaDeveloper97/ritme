@@ -320,52 +320,135 @@ func medRow(id uint64, start string, times ...string) store.Reminder {
 	}
 }
 
-// A daily 08:00 dose seen by a Berlin user's window across both 2026 DST changes. The schedule is on the Tehran
-// clock (Occurrence.At, README §5: care stays on Tehran under X-07) and Tehran has no DST since 2022, so the
-// invariants hold: one dose per day, no day skipped or doubled when Berlin's day is 23 or 25 hours long, exactly
-// 24 h apart, keyed by the Tehran day. Whether the dose should instead follow the Berlin wall clock (M-08) is an
-// open product question; the Berlin hours below pin today's behaviour.
+// A daily 08:00 dose of a Berlin user across both 2026 DST changes (T-M12-21c, user decision 2026-11-18: care is
+// on the user's clock, like M-08). The dose stays 08:00 Berlin wall-clock: one dose per day, no day skipped or
+// doubled when Berlin's day is 23 or 25 hours long, keyed by the Berlin day; the gap between two doses is 23 h / 25 h
+// across a change. (Before T-M12-21c it was 08:00 Tehran = 05:30 CET / 06:30 CEST.)
 func TestOccurrences_DailyDoseAcrossBerlinDST(t *testing.T) {
 	berlin, err := time.LoadLocation("Europe/Berlin")
 	require.NoError(t, err)
 	rows := []store.Reminder{medRow(1, "2026-01-01", "08:00")}
 	cases := []struct {
-		name       string
-		from, to   time.Time // Berlin midnights
-		wantDays   []string
-		berlinHour []int // the Berlin wall-clock hour of each dose (Tehran 08:00 = 05:30 CET / 06:30 CEST)
+		name     string
+		from, to time.Time // Berlin midnights
+		wantDays []string
+		gaps     []time.Duration // between consecutive doses
 	}{
 		{
 			name: "spring forward 2026-03-29 (23-hour Berlin day)",
 			from: time.Date(2026, 3, 28, 0, 0, 0, 0, berlin), to: time.Date(2026, 3, 31, 0, 0, 0, 0, berlin),
-			wantDays: []string{"2026-03-28", "2026-03-29", "2026-03-30"}, berlinHour: []int{5, 6, 6},
+			wantDays: []string{"2026-03-28", "2026-03-29", "2026-03-30"}, gaps: []time.Duration{23 * time.Hour, 24 * time.Hour},
 		},
 		{
 			name: "fall back 2026-10-25 (25-hour Berlin day)",
 			from: time.Date(2026, 10, 24, 0, 0, 0, 0, berlin), to: time.Date(2026, 10, 27, 0, 0, 0, 0, berlin),
-			wantDays: []string{"2026-10-24", "2026-10-25", "2026-10-26"}, berlinHour: []int{6, 5, 5},
+			wantDays: []string{"2026-10-24", "2026-10-25", "2026-10-26"}, gaps: []time.Duration{25 * time.Hour, 24 * time.Hour},
 		},
 		{
 			// Boundary/negative: the 23-hour Berlin day alone holds exactly one dose.
 			name: "the spring-forward Berlin day only",
 			from: time.Date(2026, 3, 29, 0, 0, 0, 0, berlin), to: time.Date(2026, 3, 30, 0, 0, 0, 0, berlin),
-			wantDays: []string{"2026-03-29"}, berlinHour: []int{6},
+			wantDays: []string{"2026-03-29"},
+		},
+		{
+			// Boundary/negative: the 25-hour Berlin day alone holds exactly one dose.
+			name: "the fall-back Berlin day only",
+			from: time.Date(2026, 10, 25, 0, 0, 0, 0, berlin), to: time.Date(2026, 10, 26, 0, 0, 0, 0, berlin),
+			wantDays: []string{"2026-10-25"},
 		},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			occ := Occurrences(rows, c.from, c.to)
+			occ := OccurrencesIn(rows, c.from, c.to, berlin)
 			require.Len(t, occ, len(c.wantDays))
 			for i, o := range occ {
 				assert.Equal(t, c.wantDays[i], o.Day.String())
-				at := o.At.In(civildate.Tehran)
-				assert.Equal(t, [2]int{8, 0}, [2]int{at.Hour(), at.Minute()}, "08:00 Tehran")
-				assert.Equal(t, c.berlinHour[i], o.At.In(berlin).Hour(), "Berlin hour of %s", o.Day)
-				assert.Equal(t, 30, o.At.In(berlin).Minute())
+				at := o.At.In(berlin)
+				assert.Equal(t, [2]int{8, 0}, [2]int{at.Hour(), at.Minute()}, "08:00 Berlin on %s", o.Day)
+				assert.Equal(t, o.Day, civildate.FromTime(at), "keyed by the Berlin day")
 				if i > 0 {
-					assert.Equal(t, 24*time.Hour, o.At.Sub(occ[i-1].At), "no DST jump in the schedule")
+					assert.Equal(t, c.gaps[i-1], o.At.Sub(occ[i-1].At), "the wall clock moves with DST")
 				}
 			}
+		})
+	}
+}
+
+// The same Berlin rows for a user without a zone (Tehran): unchanged, 08:00 Tehran, 24 h apart (Tehran has no DST
+// since 2022) — Occurrences is OccurrencesIn on the Tehran clock.
+func TestOccurrences_TehranUserUnchangedAcrossBerlinDST(t *testing.T) {
+	berlin, err := time.LoadLocation("Europe/Berlin")
+	require.NoError(t, err)
+	rows := []store.Reminder{medRow(1, "2026-01-01", "08:00")}
+	from, to := time.Date(2026, 3, 28, 0, 0, 0, 0, berlin), time.Date(2026, 3, 31, 0, 0, 0, 0, berlin)
+	occ := Occurrences(rows, from, to)
+	assert.Equal(t, occ, OccurrencesIn(rows, from, to, nil))
+	assert.Equal(t, occ, OccurrencesIn(rows, from, to, civildate.Tehran))
+	require.Len(t, occ, 3)
+	for i, o := range occ {
+		at := o.At.In(civildate.Tehran)
+		assert.Equal(t, [2]int{8, 0}, [2]int{at.Hour(), at.Minute()})
+		if i > 0 {
+			assert.Equal(t, 24*time.Hour, o.At.Sub(occ[i-1].At))
+		}
+	}
+}
+
+// DST gap and overlap rule (notifications.WallTime): a slot inside Berlin's skipped hour (02:30 on 2026-03-29) fires
+// once at the first valid instant after the gap, 03:00 CEST; a slot inside the repeated hour (02:30 on 2026-10-25)
+// fires once, at its first occurrence (02:30 CEST). Neighbouring days are untouched.
+func TestOccurrences_SlotInsideBerlinDSTGapAndOverlap(t *testing.T) {
+	berlin, err := time.LoadLocation("Europe/Berlin")
+	require.NoError(t, err)
+	rows := []store.Reminder{medRow(1, "2026-01-01", "02:30")}
+
+	spring := OccurrencesIn(rows, time.Date(2026, 3, 28, 0, 0, 0, 0, berlin), time.Date(2026, 3, 31, 0, 0, 0, 0, berlin), berlin)
+	require.Len(t, spring, 3, "one dose per day, the gap day included")
+	assert.Equal(t, "1:2026-03-29:02:30", spring[1].ID(), "keyed by the stored slot")
+	assert.Equal(t, time.Date(2026, 3, 29, 1, 0, 0, 0, time.UTC), spring[1].At.UTC(), "03:00 CEST, the transition")
+	assert.Equal(t, "03:00", spring[1].At.In(berlin).Format("15:04"))
+	assert.Equal(t, "02:30", spring[0].At.In(berlin).Format("15:04"))
+	assert.Equal(t, "02:30", spring[2].At.In(berlin).Format("15:04"))
+
+	fall := OccurrencesIn(rows, time.Date(2026, 10, 24, 0, 0, 0, 0, berlin), time.Date(2026, 10, 27, 0, 0, 0, 0, berlin), berlin)
+	require.Len(t, fall, 3, "the repeated 02:30 fires once")
+	assert.Equal(t, time.Date(2026, 10, 25, 0, 30, 0, 0, time.UTC), fall[1].At.UTC(), "02:30 CEST, the first one")
+
+	// A window holding only the second 02:30 (CET) has no dose: it already fired.
+	second := time.Date(2026, 10, 25, 1, 30, 0, 0, time.UTC)
+	assert.Empty(t, OccurrencesIn(rows, second, second.Add(time.Minute), berlin))
+	// A window holding only the skipped hour has none either; the dose is at 03:00.
+	gap := time.Date(2026, 3, 29, 1, 0, 0, 0, berlin) // 01:00 CET .. 03:00 CEST excluded
+	assert.Empty(t, OccurrencesIn(rows, gap, gap.Add(time.Hour), berlin))
+	assert.Len(t, OccurrencesIn(rows, gap, gap.Add(time.Hour+time.Second), berlin), 1)
+}
+
+// Quiet hours on the user's clock: a Berlin user's 23:00–08:00 window is 23:00–08:00 Berlin; a 22:59 Berlin dose goes
+// out, a 07:59 one waits until 08:00 Berlin, across the spring-forward change too.
+func TestMedicationDose_QuietHoursOnBerlinClock(t *testing.T) {
+	berlin, err := time.LoadLocation("Europe/Berlin")
+	require.NoError(t, err)
+	p := notifications.Defaults().InZone(berlin)
+	cases := []struct {
+		day, slot  string
+		send       bool
+		deferUntil time.Time
+	}{
+		{"2026-03-28", "22:59", true, time.Time{}},
+		{"2026-03-28", "23:00", false, time.Date(2026, 3, 29, 8, 0, 0, 0, berlin)}, // over the 23-hour night
+		{"2026-03-29", "07:59", false, time.Date(2026, 3, 29, 8, 0, 0, 0, berlin)},
+		{"2026-03-29", "08:00", true, time.Time{}},
+		{"2026-10-24", "23:30", false, time.Date(2026, 10, 25, 8, 0, 0, 0, berlin)}, // over the 25-hour night
+		{"2026-10-25", "08:00", true, time.Time{}},
+	}
+	for _, c := range cases {
+		t.Run(c.day+" "+c.slot, func(t *testing.T) {
+			from := civildate.MustParse(c.day).Midnight(berlin)
+			occ := OccurrencesIn([]store.Reminder{medRow(1, "2026-01-01", c.slot)}, from, from.AddDate(0, 0, 1), berlin)
+			require.Len(t, occ, 1)
+			d := notifications.Decide(p, notifications.Medications, occ[0].At, time.Time{})
+			assert.Equal(t, c.send, d.Send)
+			assert.True(t, c.deferUntil.Equal(d.DeferUntil), "defer %v, want %v", d.DeferUntil, c.deferUntil)
 		})
 	}
 }

@@ -240,3 +240,33 @@ func TestMiddleware_LocalDayEdges(t *testing.T) {
 		})
 	}
 }
+
+// Zones (jobs, T-M12-21c): the stored zone, Tehran for none / invalid / no profile; one read per user within the TTL.
+func TestZones_StoredZonePerUser(t *testing.T) {
+	st := &fakeStore{zones: map[uint64]sql.NullString{
+		1: {},
+		2: {String: "Europe/Berlin", Valid: true},
+		3: {String: "Not/AZone", Valid: true},
+	}}
+	z := NewZones(st)
+	at := time.Date(2026, 11, 18, 10, 0, 0, 0, time.UTC)
+	z.now = func() time.Time { return at }
+	ctx := context.Background()
+	for uid, want := range map[uint64]string{1: "Asia/Tehran", 2: "Europe/Berlin", 3: "Asia/Tehran", 4: "Asia/Tehran"} {
+		loc, err := z.For(ctx, uid)
+		require.NoError(t, err)
+		assert.Equal(t, want, loc.String(), uid)
+	}
+	assert.Equal(t, 4, st.reads)
+	_, _ = z.For(ctx, 2)
+	assert.Equal(t, 4, st.reads, "remembered")
+	at = at.Add(knownTTL + time.Second)
+	_, _ = z.For(ctx, 2)
+	assert.Equal(t, 5, st.reads, "read again after the TTL")
+
+	st.readErr = assert.AnError
+	at = at.Add(knownTTL + time.Second)
+	loc, err := z.For(ctx, 2)
+	require.ErrorIs(t, err, assert.AnError)
+	assert.Equal(t, "Asia/Tehran", loc.String())
+}

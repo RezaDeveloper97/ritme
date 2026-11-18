@@ -2964,3 +2964,13 @@ Nothing needed fixing.
   `user.delete` audit row. `WithCache` wired in `routes_admin_core.go` (main session).
 - `admin/users/delete_int_test.go`: through the real admin route; deleted user zero rows/keys/files, control user
   untouched, audit kept, second delete 404; red with the old path.
+
+## T-M12-21c — Care on the user's local time zone
+- `notifications.Preferences.Zone` (nil = Tehran) + `WallTime` (DST: gap → first valid instant, overlap → first
+  occurrence); `usertz.Zones` per-user zone for jobs (15 min cache). `care.OccurrencesIn`, `Pusher.Tick` /
+  `TickNotices` per user zone; `/care/upcoming`, `/care/today` default day, `starts_on`, intake check on the local day;
+  `reminders.Plan` local. No migration (stored times are wall-clock). OpenAPI updated.
+- Tests: Berlin rows flipped to local, gap/overlap, Tehran-unchanged tables, `care/zone_int_test.go`; red on old code.
+- Docs (main session): engine-v6 README §5, DECISIONS M-08 note, frontend comment.
+- Open: SMS reminders → **T-M12-21d**; appointments `scheduled_at` still Tehran wall-clock (separate decision);
+  hourly chains double-fire in the spring gap by definition.

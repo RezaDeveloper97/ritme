@@ -442,7 +442,7 @@ before they run.
 | M-05 | How does a clinical rule allow `confidence = low`? | Allowed iff the rule has a condition on the `confidence` fact. | user · T-M10-04 |
 | M-06 | How is a "fertile-window message" identified (removed under hormonal contraception)? | A `topics` list on the message with `fertile_window`; the validator requires it when the conditions or text use fertile/ovulation facts. | user · T-M10-02, T-M10-04 |
 | M-07 | Is safety exempt from audience and A/B, or only from caps? | Exempt from all three; the validator forces audience 100 and a single variant. | user · T-M10-02 |
-| M-08 | Timezone for schedules and quiet hours | The user-local day and clock from X-07 (supersedes "Tehran everywhere"). | user · T-M10-04 |
+| M-08 | Timezone for schedules and quiet hours | The user-local day and clock from X-07 (supersedes "Tehran everywhere"). Extended to care doses, reminders and their quiet hours (user, 2026-11-18, T-M12-21c). | user · T-M10-04 |
 | M-09 | Push channel | Model the push slot, caps and quiet hours (23–08 local) in the engine; deliver to the in-app `user_notifications` inbox; real web push is a later milestone. | user · T-M10-04, T-M10-07 |
 | M-10 | Pregnancy alert detectors | Become fact/evidence producers; thresholds come from the clinical registry; seeded rules reproduce today's behaviour; `pregnancy_alerts` rows move into the inbox. | user · T-M10-08 |
 | M-11 | What a member sees of an owner's urgent alert | A fixed neutral text per level, the time, "call her" and 115 — never the rule title, body or evidence (same as F-10). | user · T-M11-12 |

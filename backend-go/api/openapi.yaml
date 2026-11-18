@@ -1773,7 +1773,12 @@ paths:
         **active**, scheduled appointment at `scheduled_at` − `remind_before`. Left out: doses already ticked,
         reminders inside the user's quiet hours and a kind whose notification category («داروها» / «نوبت پزشک») is
         off. `title` / `body` already went through «متن خنثی» (`neutral_copy`): with it on they carry no health data.
-        Times are Tehran wall-clock; `at_ms` is the same instant in epoch milliseconds.
+        Dose times and quiet hours are wall-clock on the user's zone (T-M12-21c, like M-08): the request's
+        `X-Timezone` → the stored `user_profiles.timezone` → Asia/Tehran; «۸ صبح» is 08:00 where she is, across
+        daylight-saving changes too (a slot inside a skipped hour fires once at the first valid instant after it, a
+        slot in a repeated hour once, at its first occurrence). `generated_at` / `at` are wall-clock strings on that
+        zone; `at_ms` is the same instant in epoch milliseconds (what clients should arm). Appointment visits stay
+        their stored `scheduled_at` (Tehran wall-clock) instant.
       operationId: getCareUpcoming
       security:
         - {bearerAuth: []}
@@ -1794,7 +1799,7 @@ paths:
                     type: object
                     required: [generated_at, items]
                     properties:
-                      generated_at: {type: string, description: "`Y-m-d H:i:s`, Tehran."}
+                      generated_at: {type: string, description: "`Y-m-d H:i:s`, on the user's zone (Asia/Tehran without one)."}
                       items:
                         type: array
                         maxItems: 64
@@ -1807,7 +1812,7 @@ paths:
                             reminder_id: {type: integer}
                             date: {allOf: [{$ref: "#/components/schemas/Date"}], description: "The dose day; for an appointment the day of the visit."}
                             slot: {type: string, description: "The dose time `HH:MM`; for an appointment the time of the visit."}
-                            at: {type: string, description: "When the reminder fires, `Y-m-d H:i:s`, Tehran."}
+                            at: {type: string, description: "When the reminder fires, `Y-m-d H:i:s`, on the user's zone (Asia/Tehran without one)."}
                             at_ms: {type: integer, format: int64}
                             title: {type: string}
                             body: {type: string}
@@ -1830,7 +1835,7 @@ paths:
       security:
         - {bearerAuth: []}
       parameters:
-        - {name: date, in: query, required: false, description: "Default today (Tehran).", schema: {$ref: "#/components/schemas/Date"}}
+        - {name: date, in: query, required: false, description: "Default the user's today (her zone: `X-Timezone` → stored → Asia/Tehran, T-M12-21c).", schema: {$ref: "#/components/schemas/Date"}}
         - {$ref: "#/components/parameters/AcceptLanguage"}
       responses:
         '200':
@@ -2053,7 +2058,8 @@ paths:
       summary: Mark a dose taken
       description: |
         Idempotent: ticking the same dose again keeps the first `taken_at`. `slot` must be one of the medication's
-        `times`, and `date` must be inside its weekday/start/end window and not after today (Tehran); otherwise 422
+        `times`, and `date` must be inside its weekday/start/end window and not after the user's today (her zone:
+        `X-Timezone` → stored → Asia/Tehran, T-M12-21c); otherwise 422
         on `slot` / `date`.
       operationId: postCareMedicationsIntakes
       security:
@@ -14703,7 +14709,8 @@ paths:
       summary: Notification settings
       description: |
         Go only (B-N1-11). The categories a push may be sent for (grouped cycle · health · other, screen order),
-        the quiet-hours window (Tehran wall-clock, `start` > `end` wraps midnight) and `neutral_copy` («متن خنثی»:
+        the quiet-hours window (wall-clock on the user's zone — `X-Timezone` → stored `user_profiles.timezone` →
+        Asia/Tehran, T-M12-21c; `start` > `end` wraps midnight) and `neutral_copy` («متن خنثی»:
         push title/body never carry health data; CB-PRIV-01: it is also the «اعلان‌های محرمانه» discreet flag of the
         privacy screen and covers SMS — free-text SMS get the neutral line, templated SMS such as the companion invite
         the neutral gateway template). A user who never saved gets the defaults (fertile window, vitals
@@ -34249,7 +34256,7 @@ components:
         dose: {type: [string, number, "null"], description: "Free text (≤ 50); a number is stored as its string.", examples: ["400"]}
         unit: {type: [string, number, "null"], description: "One of `mg|mcg|ml|iu|drop` (labelled) or free text (≤ 50).", examples: [mcg]}
         form: {type: string, enum: [tablet, capsule, syrup, injection, drops]}
-        times: {type: array, minItems: 1, maxItems: 4, items: {type: string, pattern: "^\\d{2}:\\d{2}$"}, examples: [["08:00", "20:00"]]}
+        times: {type: array, minItems: 1, maxItems: 4, items: {type: string, pattern: "^\\d{2}:\\d{2}$"}, description: "Wall-clock `HH:MM` on the user's own zone (T-M12-21c): stored as typed, no conversion; Asia/Tehran when no zone is known.", examples: [["08:00", "20:00"]]}
         weekdays: {type: array, minItems: 1, maxItems: 7, items: {type: integer, minimum: 0, maximum: 6}, description: "Saturday = 0 … Friday = 6. Default: all seven."}
         amount: {type: integer, minimum: 1, maximum: 10, default: 1}
         duration: {type: string, enum: [ongoing, until_date, pregnancy_end], default: ongoing}
@@ -34370,7 +34377,7 @@ components:
         form: {type: string, enum: [tablet, capsule, syrup, injection, drops]}
         dose: {type: [string, "null"]}
         unit: {type: [string, "null"]}
-        times: {type: array, items: {type: string}, description: "Sorted `HH:MM` slots."}
+        times: {type: array, items: {type: string}, description: "Sorted `HH:MM` slots, wall-clock on the user's zone (T-M12-21c)."}
         weekdays: {type: array, items: {type: integer, minimum: 0, maximum: 6}, description: "Saturday = 0."}
         amount: {type: integer}
         duration: {type: string, enum: [ongoing, until_date, pregnancy_end]}

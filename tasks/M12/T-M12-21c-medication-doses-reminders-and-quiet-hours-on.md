@@ -3,7 +3,7 @@ id: T-M12-21c
 title: Medication doses, reminders and quiet hours on the user's local time zone
 milestone: M12
 type: fullstack
-status: todo
+status: done
 depends_on: [T-M12-11c,T-M12-21]
 parallel_group: M12-TEST
 touches: [backend-go/internal/care,backend-go/internal/notifications,backend-go/internal/reminders,backend-go/internal/platform/usertz,backend-go/api/openapi.yaml,frontend/src/features/manage-medication,frontend/src/entities/medication]
