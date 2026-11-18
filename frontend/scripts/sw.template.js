@@ -83,6 +83,17 @@ self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
+  // Session end: drop the cached downloads page (course titles). Same-origin window clients only.
+  if (event.data?.type === 'CLEAR_OFFLINE_PAGES') {
+    const src = event.source;
+    let sameOrigin = false;
+    try {
+      sameOrigin = !!src && src.type === 'window' && new URL(src.url).origin === self.location.origin;
+    } catch {
+      sameOrigin = false;
+    }
+    if (sameOrigin) event.waitUntil(caches.delete(OFFLINE_PAGES));
+  }
   if (event.data?.type === 'CLEAR_RUNTIME_CACHE') {
     event.waitUntil(caches.delete(RUNTIME));
   }

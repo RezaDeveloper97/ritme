@@ -3,7 +3,7 @@ id: T-M12-05
 title: Purge offline downloads and the downloads-page cache on logout, delete and account switch
 milestone: M12
 type: frontend
-status: todo
+status: done
 depends_on: []
 parallel_group: M12-SEC
 touches: [frontend/src/shared/pwa/offline, frontend/src/shared/session/cleanup.ts, frontend/scripts/sw.template.js, frontend/src/entities/course/api/offline.ts]
