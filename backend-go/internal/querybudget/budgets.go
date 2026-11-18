@@ -83,11 +83,13 @@ var Budgets = []Budget{
 	{"analysis pregnancy", "/api/v1/analysis/pregnancy", "/api/v1/analysis/pregnancy", enums.LifeModePregnancy, 18, 6, ""},
 	// T-M12-30 (P-05): the GETs the web home fires on every open (docs/quality-2026-11/perf.md §web-home fan-out).
 	// Measured on the fixture users, cold = fresh process, warm = caches filled; each row is the measured count.
-	// pregnancy v2 today (T-M12-30b profile, TestQueryAttribution): warm 21 = the Today read 6 (auth, profile, week
-	// details, week state, today extras, tip payloads) + the daily alert evaluation 15 (pregnancyalerts.EvaluateFirst:
-	// profile ×2, symptoms, extras, weekly logs, week log, fetal, contractions, kick sessions ×2, today extras, last
-	// weight, vitals, log measurements, open inbox). Cutting the evaluation needs a change in
-	// internal/messages/pregnancyalerts (time-driven rules, H-05), outside T-M12-30b's scope — see the task report.
+	// pregnancy v2 today: T-M12-30b measured warm 21 = the Today read 6 (auth, profile, week details, week state, today
+	// extras, tip payloads) + the daily alert evaluation 15 on every request. T-M12-30c (TestQueryAttribution): the
+	// evaluation is skipped while its input revision (user_revisions + GetV2AlertInputStamp + rule snapshot + clinical
+	// registry + build) is unchanged and the request is before its next due instant (kick window end, Tehran midnight,
+	// next visit, rule hour windows / schedules) — warm 7 = the Today read 6 + the input stamp. Cold 31 = the
+	// evaluation + the stamp read before and after it (+2) + two rule-snapshot loads with the config caches off.
+	// Safety: internal/messages/pregnancyalerts/evalcache_int_test.go.
 	{"care today", "/api/v1/care/today", "/api/v1/care/today", enums.LifeModeCycle, 5, 4, ""},
 	{"checkups home", "/api/v1/checkups/home", "/api/v1/checkups/home", enums.LifeModeCycle, 5, 4, ""},
 	// T-M12-30b: the board, its item counts and the reminder switch's notification categories are one read (ListBoard).
@@ -104,7 +106,7 @@ var Budgets = []Budget{
 	{"learning courses", "/api/v1/learning/courses", "/api/v1/learning/courses", enums.LifeModeCycle, 5, 3, ""},
 	{"logs taxonomy", "/api/v1/logs/taxonomy", "/api/v1/logs/taxonomy", enums.LifeModeCycle, 6, 4, ""},
 	{"logs day", "/api/v1/logs/days/:date", "/api/v1/logs/days/2026-10-20", enums.LifeModeCycle, 3, 2, ""},
-	{"pregnancy v2 today", "/api/v1/pregnancy/v2/today", "/api/v1/pregnancy/v2/today", enums.LifeModePregnancy, 27, 21, ""},
+	{"pregnancy v2 today", "/api/v1/pregnancy/v2/today", "/api/v1/pregnancy/v2/today", enums.LifeModePregnancy, 31, 7, ""},
 	{"companion home", "/api/v1/companion/home", "/api/v1/companion/home", enums.LifeModeCompanion, 9, 7, ""},
 	{"teen today", "/api/v1/teen/today", "/api/v1/teen/today", enums.LifeModeTeen, 12, 7, ""},
 }

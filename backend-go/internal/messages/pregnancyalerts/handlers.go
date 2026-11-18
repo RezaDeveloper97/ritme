@@ -11,6 +11,7 @@ import (
 
 	"github.com/ritme/backend-go/internal/auth"
 	"github.com/ritme/backend-go/internal/i18n"
+	"github.com/ritme/backend-go/internal/platform/cache"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/httpx"
@@ -23,11 +24,21 @@ import (
 type Handlers struct {
 	eng   *Engine
 	clock clock.Clock
+	kv    *cache.Client // nil = EvaluateFirst always evaluates
+	build string
 }
 
 // NewHandlers wires the handlers; base is the fallback clock.
 func NewHandlers(q store.Querier, base clock.Clock) *Handlers {
 	return &Handlers{eng: New(q), clock: base}
+}
+
+// WithCache keeps the last daily evaluation per user in kv, so EvaluateFirst skips a repeat evaluation whose inputs
+// have not changed and whose next due instant has not passed (T-M12-30c, evalcache.go). build identifies the binary
+// (etag.Build()). nil kv = always evaluate.
+func (h *Handlers) WithCache(kv *cache.Client, build string) *Handlers {
+	h.kv, h.build = kv, build
+	return h
 }
 
 // Engine returns the handlers' engine (the log-save hooks share it).
@@ -72,16 +83,77 @@ func (h *Handlers) Index(c fiber.Ctx) error {
 // already counts the calendar alerts (week_entered, weight_missing_week) without the Alerts screen
 // being opened first (review #10). HEAD stays read-only. Best effort: a failure is logged and the
 // screen is still served (it only shows the badge without the new alerts).
+//
+// With a cache (WithCache) a repeat read skips the evaluation only when the input revision is unchanged and the
+// request clock is before the last evaluation's next due instant (T-M12-30c, evalcache.go); anything uncertain
+// evaluates.
 func (h *Handlers) EvaluateFirst(log *slog.Logger) fiber.Handler {
 	return func(c fiber.Ctx) error {
 		uid, ok := auth.CurrentUserID(c)
 		if ok && c.Method() != fiber.MethodHead {
-			if _, err := h.eng.EvaluateAll(c, uid, h.now(c), LangOf(c)); err != nil && log != nil {
+			if err := h.evaluateDaily(c, uid, h.now(c), LangOf(c)); err != nil && log != nil {
 				log.WarnContext(c, "pregnancy alerts: evaluation before today failed", "user_id", uid, "error", err)
 			}
 		}
 		return c.Next()
 	}
+}
+
+// evaluateDaily is the daily evaluation of EvaluateFirst behind the per-user skip.
+func (h *Handlers) evaluateDaily(c fiber.Ctx, uid uint64, now time.Time, l v2.Lang) error {
+	ctx := context.Context(c)
+	revs, hasRevs := auth.CurrentRevisions(c)
+	rv, hasRules := installedRulesVersioner()
+	if h.kv == nil || !hasRevs || !hasRules {
+		_, err := h.eng.EvaluateAll(ctx, uid, now, l)
+		return err
+	}
+	today := civildate.InTehran(now)
+	// The rule version is read once: a rule edit during the evaluation leaves the stored revision behind the next
+	// read's, which then evaluates again.
+	rules, rulesErr := rv.RulesVersion(ctx)
+	rev := func(st Stamp) string { return revisionOf(revs, st, rules, h.build, today) }
+	pre, err := h.eng.InputStamp(ctx, uid, now)
+	revOK := err == nil && rulesErr == nil
+	preRev := rev(pre)
+	if revOK {
+		if v, err := h.kv.Get(ctx, evalKey(uid)); err == nil {
+			if e, ok := parseEntry(v); ok && e.fresh(preRev, now) {
+				cache.Hit(cacheName)
+				return nil
+			}
+		}
+		cache.Miss(cacheName)
+	}
+	due, err := h.eng.EvaluateDaily(ctx, uid, now, l)
+	if err != nil || !revOK || due.IsZero() || !due.After(now) {
+		return err
+	}
+	// The evaluation wrote its own inbox rows: store the stamp read after it, but only when no other input moved
+	// while it ran (else the next read evaluates again).
+	post, err := h.eng.InputStamp(ctx, uid, now)
+	if err != nil || post.Data != pre.Data {
+		return nil //nolint:nilerr // fail safe: nothing cached, the next read evaluates
+	}
+	postRev := rev(post)
+	ttl := min(due.Sub(now), 25*time.Hour) + time.Minute
+	e := entry{rev: postRev, at: now.Unix(), dueSec: due.Unix()}
+	if err := h.kv.Set(context.WithoutCancel(ctx), evalKey(uid), e.String(), ttl); err != nil {
+		cache.Error(cacheName)
+	}
+	return nil
+}
+
+// cacheName labels the skip's cache_requests_total counters.
+const cacheName = "pregnancy_alert_eval"
+
+func installedRulesVersioner() (RulesVersioner, bool) {
+	b, err := backendOf()
+	if err != nil {
+		return nil, false
+	}
+	rv, ok := b.(RulesVersioner)
+	return rv, ok
 }
 
 // Action is POST /pregnancy/v2/alerts/{id}/actions/{action} (ack).

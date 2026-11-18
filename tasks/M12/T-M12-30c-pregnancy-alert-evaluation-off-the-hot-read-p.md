@@ -3,7 +3,7 @@ id: T-M12-30c
 title: Pregnancy alert evaluation off the hot read path without missing time-based alerts
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-30b]
 parallel_group: M12-PERF
 touches: [backend-go/internal/messages/pregnancyalerts,backend-go/internal/messages/inboxalerts,backend-go/internal/http/routes_pregnancy_v2.go,backend-go/internal/pregnancy,backend-go/internal/querybudget]

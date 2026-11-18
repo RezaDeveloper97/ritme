@@ -3116,3 +3116,14 @@ Nothing needed fixing.
 - `scripts/secret-scan.sh` (+ `--self-test`), gate job `secrets` before the stage merge; repo scan green.
 - **User**: run the MATCH/different checks and the beta volume key-hash check in `docs/quality-2026-11/secrets.md`
   (beta = production env → would refuse to boot on the fixture key).
+
+## T-M12-30c — Pregnancy alert evaluation skipped on unchanged repeat reads, never past a due time
+- `pregnancyalerts/evalcache.go`: per-user Redis entry `(input revision, evaluated_at, next_due_at)`. Revision =
+  user_revisions (engine_rev, analysis_rev) + `GetV2AlertInputStamp` (kick sessions, running contraction session,
+  appointments, open preg.* inbox rows) + rule snapshot + clinical registry + binary. `NextDue` = earliest of local day
+  change (every daily/weekly rule), a running kick session's window end (H-05 urgent), the next appointment instant;
+  5-1-1 is write-driven. Skip only if revision equal AND evaluated_at ≤ now < next_due_at; any doubt / Redis down →
+  evaluate (fail safe).
+- Tests (`evalcache_int_test.go`): repeat read skips, urgent right after a qualifying log, kick alert after the window
+  with no write, week change, Redis down evaluates, NextDue table. Main session mutation check: dropping the kick due
+  → kick test red; ignoring the revision → urgent + kick tests red. vet/lint clean; budget row tightened.
