@@ -3015,3 +3015,13 @@ Nothing needed fixing.
   fresh MariaDB DBs with 7 seeded rows → identical rows; second run no-op; migration test ok.
 - All stores regenerated: only diff is `companions.goal` moving last (00126 MODIFY; stores never regenerated since
   00128 broke sqlc) — identical to generating without 00128; named fields everywhere, no behaviour change.
+
+## T-M12-22b — Durable push retry
+- A passing failure now releases the claim in the DB: `reminder_pushes.sent_at` / `user_notifications.pushed_at` =
+  `2000-01-01 00:00:00` + failed tries (seconds) — attempt counter without a schema change. Any process (also after a
+  restart) re-claims it by compare-and-set (`ReclaimReminderPush` / `ReclaimNotificationPush`); cap 3 tries, lookback
+  unchanged; permanent failures never released. In-memory queue from T-M12-22 removed. `PruneReminderPushes` keeps
+  the last 2 days so a released row's counter survives.
+- Tests: restart retries once, bounded with a fresh Pusher per tick, concurrent processes deliver once, not past
+  lookback; -race green; red on T-M12-22 code. Retry rules in `docs/care-reminders/README.md`.
+- Note: a released row shows `pushed_at` 2000-01-01 in the account export for the few minutes until retry.

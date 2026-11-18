@@ -17,7 +17,7 @@ type Querier interface {
 	ActivePregnancyDueDate(ctx context.Context, userID uint64) (civildate.NullDate, error)
 	// 1 = this process handles the row (pushes it or leaves it silent); 0 = another one already did.
 	ClaimNotificationPush(ctx context.Context, arg ClaimNotificationPushParams) (int64, error)
-	// 1 = this process pushes the dose; 0 = another one already did.
+	// 1 = this process pushes the dose; 0 = another one already did (or released it: ReclaimReminderPush).
 	ClaimReminderPush(ctx context.Context, arg ClaimReminderPushParams) (int64, error)
 	// 1 = this process handles the occurrence; 0 = another one already did.
 	ClaimReminderSMS(ctx context.Context, arg ClaimReminderSMSParams) (int64, error)
@@ -63,11 +63,26 @@ type Querier interface {
 	ListPushSubscriptions(ctx context.Context, userID uint64) ([]PushSubscription, error)
 	// Active medications of every user with at least one push subscription (the sender's working set).
 	ListPushableMedications(ctx context.Context) ([]Reminder, error)
-	// Inbox rows the push sender has not handled yet (goose 00123), oldest first, after the cursor.
+	// Durable retry (T-M12-22b, internal/care/push_retry.go): a dose no browser accepted because of a passing failure
+	// is released — its sent_at becomes the marker releaseEpoch + <failed tries> seconds (year 2000, before any real
+	// claim) — so any process takes it again on a later tick with a compare-and-set on that exact marker.
+	// The released doses among the reminders due in this tick (the unique key's reminder_id prefix).
+	ListReleasedReminderPushes(ctx context.Context, arg ListReleasedReminderPushesParams) ([]ListReleasedReminderPushesRow, error)
+	// Inbox rows the push sender has not handled yet (goose 00123) or released after a passing failure (pushed_at =
+	// the year-2000 marker, T-M12-22b), oldest first, after the cursor.
 	ListUnpushedNotifications(ctx context.Context, arg ListUnpushedNotificationsParams) ([]ListUnpushedNotificationsRow, error)
 	MarkReminderSMSSent(ctx context.Context, arg MarkReminderSMSSentParams) error
-	PruneReminderPushes(ctx context.Context, sentAt time.Time) error
+	// Old claims; a released marker is old by construction, so it waits until its dose day is past every lookback.
+	PruneReminderPushes(ctx context.Context, arg PruneReminderPushesParams) error
 	PruneReminderSMS(ctx context.Context, sentAt time.Time) error
+	// 1 = this process handles the released row again; 0 = another one took it first.
+	ReclaimNotificationPush(ctx context.Context, arg ReclaimNotificationPushParams) (int64, error)
+	// 1 = this process tries the released dose again; 0 = another one took it first.
+	ReclaimReminderPush(ctx context.Context, arg ReclaimReminderPushParams) (int64, error)
+	// The claiming process gives the row back after a passing failure (released_at = the marker of its tries).
+	ReleaseNotificationPush(ctx context.Context, arg ReleaseNotificationPushParams) error
+	// The claiming process gives the dose back after a passing failure (released_at = the marker of its tries).
+	ReleaseReminderPush(ctx context.Context, arg ReleaseReminderPushParams) error
 	UpdateAppointment(ctx context.Context, arg UpdateAppointmentParams) error
 	UpdateMedication(ctx context.Context, arg UpdateMedicationParams) error
 	// A PUT that only flips is_active / notify (review #6, T-M2-34): no full re-validation, so legacy

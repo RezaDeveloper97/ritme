@@ -3,7 +3,7 @@ id: T-M12-22b
 title: Durable push retry: release the claim in the DB after a passing failure
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-22,T-M12-19c]
 parallel_group: M12-TEST
 touches: [backend-go/db/queries/care,backend-go/internal/care,docs/care-reminders/README.md]

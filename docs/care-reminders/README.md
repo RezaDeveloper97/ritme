@@ -263,3 +263,25 @@ One VAPID backend, one `push_subscriptions` row per browser — no per-vendor co
 Install paths: Android = the shell (local alarms) or any browser with the Push API; iPhone = the PWA added to the
 home screen (the device row on the notification-settings screen says «نیاز به نصب» in a plain Safari tab).
 Appointments are not sent by Web Push yet.
+
+### Retry rules (T-M12-22, T-M12-22b)
+
+Both senders (`Tick` for doses, `TickNotices` for inbox rows) claim an item in the database before sending it, so
+the API and the worker never announce it twice. What happens after the send (`deliver`, `internal/care/push.go`;
+rules in `internal/care/push_retry.go`):
+
+| Outcome | What the sender does |
+|---|---|
+| At least one browser accepted it | Delivered. The other browsers are not tried again (the one that has it must not get it twice). |
+| No browser accepted it, at least one failed for a passing reason (timeout / network error, 429, 5xx) | The claim is **released in the database**: `reminder_pushes.sent_at` / `user_notifications.pushed_at` becomes a marker, `2000-01-01 00:00:00` (Tehran) + the number of failed tries in seconds. Any process — the same one, the other one, or one started after a restart or deploy — takes it again on a later tick with a compare-and-set on that exact marker, so only one of them retries it. |
+| 404 / 410 | The subscription is deleted. Not retried. |
+| Any other 4xx, or no subscription at all | Logged (no text). Not retried. |
+
+- At most `PushAttempts` = **3 tries in all**, across processes; after the third passing failure the item stays
+  claimed and silent (no retry storm).
+- Retries happen only inside the lookback window: a dose up to `PushLookback` (10 min) after its time, an inbox row
+  up to `NoticeLookback` (12 h) after it was written. A released dose past its window is simply never read again; a
+  released inbox row past its window (or already read) is claimed and left silent. A released inbox row inside quiet
+  hours waits for the end of the window without spending a try, like a new one.
+- No schema change: the marker lives in the existing claim columns. The hourly prune of `reminder_pushes` keeps a
+  released row until its dose day is two days past, so a prune never resets the try count of a live dose.

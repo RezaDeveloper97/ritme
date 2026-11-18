@@ -45,9 +45,10 @@ const (
 	PushEvery = 30 * time.Second
 	// PushLookback is how late a dose may still be pushed (a restart, a slow tick); older ones are dropped.
 	PushLookback = 10 * time.Minute
-	// PushAttempts is how many times one process tries a dose or an inbox row that no browser accepted because of a
-	// passing failure (timeout, 429, 5xx): once per tick, inside PushLookback / NoticeLookback. After that it stays
-	// claimed and silent. A refusal for good (404 / 410 → the subscription is dropped; any other 4xx) is never retried.
+	// PushAttempts is how many times a dose or an inbox row that no browser accepted because of a passing failure
+	// (timeout, 429, 5xx) is tried in all, by any process, on later ticks inside PushLookback / NoticeLookback (the
+	// claim is released in the database, push_retry.go). After that it stays claimed and silent. A refusal for good
+	// (404 / 410 → the subscription is dropped; any other 4xx) is never retried.
 	PushAttempts = 3
 	// PushTTL is how long a push service keeps an undelivered reminder (seconds).
 	PushTTL = 3600
@@ -460,10 +461,8 @@ type Pusher struct {
 	logger *slog.Logger
 	send   PushSender
 
-	mu           sync.Mutex // guards the fields below: one Pusher may tick from several goroutines
-	pruned       time.Time
-	retryDoses   []pending[Occurrence]                         // claimed doses to try again (push_retry.go)
-	retryNotices []pending[store.ListUnpushedNotificationsRow] // claimed inbox rows to try again
+	mu     sync.Mutex // guards pruned: one Pusher may tick from several goroutines
+	pruned time.Time
 }
 
 // NewPusher wires the sender; cfg must be Enabled.
@@ -514,30 +513,20 @@ func (p *Pusher) Loop(ctx context.Context, now func() time.Time) {
 // Tick pushes the doses that came due in the last PushLookback and returns how many reminders went out. Each dose
 // is claimed in reminder_pushes first, so several processes (API + worker) never announce it twice; a dose that is
 // already ticked, switched off or inside quiet hours stays claimed and silent. A dose no browser accepted because of
-// a passing failure stays claimed by this process, which tries it again on its next ticks (retryDose, at most
-// PushAttempts tries inside PushLookback). Doses and quiet hours are on each user's stored zone (usertz.Zones; none =
+// a passing failure is released in reminder_pushes, so any process (after a restart too) tries it again on a later
+// tick: at most PushAttempts tries inside PushLookback (push_retry.go). Doses and quiet hours are on each user's stored zone (usertz.Zones; none =
 // Asia/Tehran), so «۸ صبح» reaches a user in Berlin at 08:00 Berlin. Safe for concurrent use.
 func (p *Pusher) Tick(ctx context.Context, now time.Time) (int, error) {
 	now = now.In(civildate.Tehran)
 	if p.prunePushes(now) {
-		if err := p.q.PruneReminderPushes(ctx, now.Add(-PushLogKeep)); err != nil {
+		if err := p.q.PruneReminderPushes(ctx, store.PruneReminderPushesParams{
+			SentBefore: now.Add(-PushLogKeep), DayBefore: civildate.FromTime(now).AddDays(-2),
+		}); err != nil {
 			return 0, fmt.Errorf("care: prune pushes: %w", err)
 		}
 	}
 	users := map[uint64]*doseUser{}
 	sent := 0
-	for _, r := range takeRetries(p, &p.retryDoses) { // the doses this process claimed and could not deliver yet
-		if r.item.At.Before(now.Add(-PushLookback)) {
-			continue // too late now: dropped like any other stale dose
-		}
-		ok, err := p.pushDose(ctx, users, r.item, r.tries)
-		if err != nil {
-			return sent, err
-		}
-		if ok {
-			sent++
-		}
-	}
 	meds, err := p.q.ListPushableMedications(ctx)
 	if err != nil {
 		return sent, fmt.Errorf("care: pushable medications: %w", err)
@@ -557,17 +546,31 @@ func (p *Pusher) Tick(ctx context.Context, now time.Time) (int, error) {
 	slices.SortStableFunc(due, func(a, b Occurrence) int {
 		return cmp.Or(a.At.Compare(b.At), cmp.Compare(a.Med.Row.ID, b.Med.Row.ID))
 	})
+	released, err := p.releasedDoses(ctx, due)
+	if err != nil {
+		return sent, err
+	}
 	for _, o := range due {
-		n, err := p.q.ClaimReminderPush(ctx, store.ClaimReminderPushParams{
-			UserID: o.Med.Row.UserID, ReminderID: o.Med.Row.ID, IntakeDate: o.Day, Slot: o.Slot, SentAt: now,
-		})
+		tries, n := 0, int64(0)
+		if at, ok := released[o.ID()]; ok { // released after a passing failure: take it again (compare-and-set)
+			if tries, ok = releasedTries(at); !ok {
+				continue
+			}
+			n, err = p.q.ReclaimReminderPush(ctx, store.ReclaimReminderPushParams{
+				Now: now, ReminderID: o.Med.Row.ID, IntakeDate: o.Day, Slot: o.Slot, ReleasedAt: at,
+			})
+		} else {
+			n, err = p.q.ClaimReminderPush(ctx, store.ClaimReminderPushParams{
+				UserID: o.Med.Row.UserID, ReminderID: o.Med.Row.ID, IntakeDate: o.Day, Slot: o.Slot, SentAt: now,
+			})
+		}
 		if err != nil {
 			return sent, fmt.Errorf("care: claim push: %w", err)
 		}
 		if n == 0 {
 			continue
 		}
-		ok, err := p.pushDose(ctx, users, o, 0)
+		ok, err := p.pushDose(ctx, users, o, tries)
 		if err != nil {
 			return sent, err
 		}
@@ -578,6 +581,33 @@ func (p *Pusher) Tick(ctx context.Context, now time.Time) (int, error) {
 	return sent, nil
 }
 
+// releasedDoses maps the released doses among due (Occurrence.ID) to their stored marker (push_retry.go).
+func (p *Pusher) releasedDoses(ctx context.Context, due []Occurrence) (map[string]time.Time, error) {
+	out := map[string]time.Time{}
+	if len(due) == 0 {
+		return out, nil
+	}
+	ids, from := []uint64{}, due[0].Day
+	for _, o := range due {
+		if !slices.Contains(ids, o.Med.Row.ID) {
+			ids = append(ids, o.Med.Row.ID)
+		}
+		if o.Day.Before(from) {
+			from = o.Day
+		}
+	}
+	rows, err := p.q.ListReleasedReminderPushes(ctx, store.ListReleasedReminderPushesParams{
+		ReminderIds: ids, FromDate: from, ReleasedBefore: releasedBefore(),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("care: released pushes: %w", err)
+	}
+	for _, r := range rows {
+		out[fmt.Sprintf("%d:%s:%s", r.ReminderID, r.IntakeDate.String(), r.Slot)] = r.SentAt
+	}
+	return out, nil
+}
+
 // doseUser is what one Tick reads once per user: her settings on her zone, her browsers, the doses she ticked.
 type doseUser struct {
 	prefs notifications.Preferences
@@ -585,7 +615,7 @@ type doseUser struct {
 	taken map[civildate.Date][]store.ListIntakesOnDateRow
 }
 
-// pushDose announces the claimed dose o (tries = the earlier tries of this process) unless it is switched off, in
+// pushDose announces the claimed dose o (tries = its earlier failed tries, by any process) unless it is switched off, in
 // quiet hours or already ticked, and reports whether a browser accepted it.
 func (p *Pusher) pushDose(ctx context.Context, users map[uint64]*doseUser, o Occurrence, tries int) (bool, error) {
 	userID := o.Med.Row.UserID
@@ -628,8 +658,12 @@ func (p *Pusher) pushDose(ctx context.Context, users map[uint64]*doseUser, o Occ
 	if err != nil {
 		return false, err
 	}
-	if res == retryLater {
-		retry(p, &p.retryDoses, o, tries+1)
+	if res == retryLater && tries+1 < PushAttempts { // a passing failure: give it back for a later tick
+		if err := p.q.ReleaseReminderPush(ctx, store.ReleaseReminderPushParams{
+			ReleasedAt: releasedAt(tries + 1), ReminderID: o.Med.Row.ID, IntakeDate: o.Day, Slot: o.Slot,
+		}); err != nil {
+			return false, fmt.Errorf("care: release push: %w", err)
+		}
 	}
 	return res == delivered, nil
 }

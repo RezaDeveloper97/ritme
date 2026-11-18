@@ -80,41 +80,18 @@ func noticeMessage(row store.ListUnpushedNotificationsRow, locale string) notifi
 }
 
 // TickNotices pushes the inbox rows that are not handled yet and returns how many went out. A row no browser
-// accepted because of a passing failure stays claimed by this process, which tries it again on its next ticks
-// (push_retry.go). Safe for concurrent use.
+// accepted because of a passing failure is released (pushed_at = the retry marker), so any process — after a restart
+// too — tries it again on a later tick, at most PushAttempts tries inside NoticeLookback (push_retry.go). Safe for
+// concurrent use.
 func (p *Pusher) TickNotices(ctx context.Context, now time.Time) (int, error) {
 	now = now.In(civildate.Tehran)
 	users := map[uint64]*noticeUser{}
 	sent := 0
-	for _, r := range takeRetries(p, &p.retryNotices) { // the rows this process claimed and could not deliver yet
-		row := r.item
-		if now.Sub(row.CreatedAt.Time) > NoticeLookback {
-			continue // stale now: handled without a push
-		}
-		u, err := p.noticeUser(ctx, users, row.UserID, true)
-		if err != nil {
-			return sent, err
-		}
-		if len(u.subs) == 0 {
-			continue
-		}
-		if d := notifications.DecideNotice(u.prefs, row.Type, now); !d.Send {
-			if d.Reason == notifications.ReasonQuietHours {
-				retry(p, &p.retryNotices, row, r.tries) // waits for the end of the window, no try spent
-			}
-			continue
-		}
-		ok, err := p.pushNotice(ctx, u, row, r.tries)
-		if err != nil {
-			return sent, err
-		}
-		if ok {
-			sent++
-		}
-	}
 	var after uint64
 	for {
-		rows, err := p.q.ListUnpushedNotifications(ctx, store.ListUnpushedNotificationsParams{AfterID: after, Limit: noticeBatch})
+		rows, err := p.q.ListUnpushedNotifications(ctx, store.ListUnpushedNotificationsParams{
+			ReleasedBefore: sql.NullTime{Time: releasedBefore(), Valid: true}, AfterID: after, Limit: noticeBatch,
+		})
 		if err != nil {
 			return sent, fmt.Errorf("care: unpushed notifications: %w", err)
 		}
@@ -140,16 +117,27 @@ func (p *Pusher) TickNotices(ctx context.Context, now time.Time) (int, error) {
 					silent = true
 				}
 			}
-			n, err := p.q.ClaimNotificationPush(ctx, store.ClaimNotificationPushParams{
-				Now: sql.NullTime{Time: now, Valid: true}, ID: row.ID,
-			})
+			tries, n := 0, int64(0)
+			if row.PushedAt.Valid { // released after a passing failure: take it again (compare-and-set)
+				var ok bool
+				if tries, ok = releasedTries(row.PushedAt.Time); !ok {
+					continue
+				}
+				n, err = p.q.ReclaimNotificationPush(ctx, store.ReclaimNotificationPushParams{
+					Now: sql.NullTime{Time: now, Valid: true}, ID: row.ID, ReleasedAt: row.PushedAt,
+				})
+			} else {
+				n, err = p.q.ClaimNotificationPush(ctx, store.ClaimNotificationPushParams{
+					Now: sql.NullTime{Time: now, Valid: true}, ID: row.ID,
+				})
+			}
 			if err != nil {
 				return sent, fmt.Errorf("care: claim notification push: %w", err)
 			}
 			if n == 0 || silent {
 				continue
 			}
-			ok, err := p.pushNotice(ctx, u, row, 0)
+			ok, err := p.pushNotice(ctx, u, row, tries)
 			if err != nil {
 				return sent, err
 			}
@@ -195,7 +183,7 @@ func (p *Pusher) noticeUser(ctx context.Context, users map[uint64]*noticeUser, u
 	return u, nil
 }
 
-// pushNotice sends the claimed row (tries = the earlier tries of this process) and reports whether a browser
+// pushNotice sends the claimed row (tries = its earlier failed tries, by any process) and reports whether a browser
 // accepted it.
 func (p *Pusher) pushNotice(ctx context.Context, u *noticeUser, row store.ListUnpushedNotificationsRow, tries int) (bool, error) {
 	res, err := p.deliver(ctx, u.subs, fmt.Sprintf("n:%d", row.ID), func(locale string) notifications.Push {
@@ -204,8 +192,12 @@ func (p *Pusher) pushNotice(ctx context.Context, u *noticeUser, row store.ListUn
 	if err != nil {
 		return false, err
 	}
-	if res == retryLater {
-		retry(p, &p.retryNotices, row, tries+1)
+	if res == retryLater && tries+1 < PushAttempts { // a passing failure: give it back for a later tick
+		if err := p.q.ReleaseNotificationPush(ctx, store.ReleaseNotificationPushParams{
+			ReleasedAt: sql.NullTime{Time: releasedAt(tries + 1), Valid: true}, ID: row.ID,
+		}); err != nil {
+			return false, fmt.Errorf("care: release notification push: %w", err)
+		}
 	}
 	return res == delivered, nil
 }
