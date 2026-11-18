@@ -101,3 +101,15 @@ MariaDB 11.4). 5,000 rows for the user + 5,000 for another:
 | after (offset 0 / 4980 / 6000) | `user_notifications_user_id_created_at_id_index` | Using where |
 
 Test: `internal/home/store/notifications_index_int_test.go` (drops the index → filesort returns).
+
+## T-M12-31 — `PUT /logs/days/:date` (10-param save)
+
+| | warm | cold |
+|---|---:|---:|
+| before | 36 | 38 |
+| after | 15 | 17 |
+
+Entry writes are now 5 queries for any number of params (user lock, one day read, one `DeleteLogEntryParams`
+via FIND_IN_SET, one `InsertLogEntriesBatch` via JSON → digit-table rows, revision bump). The rest is auth, life mode,
+custom items, the `daily_health_logs` write-back and the message goal. k6 `log_burst` now drives this route — not run
+yet: `make loadtest-db && make loadtest-seed && make loadtest-api && make loadtest SCENARIO=log_burst K6_RUNNER=local`.

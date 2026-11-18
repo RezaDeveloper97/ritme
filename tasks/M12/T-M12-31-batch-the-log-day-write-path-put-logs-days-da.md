@@ -3,7 +3,7 @@ id: T-M12-31
 title: Batch the log-day write path (PUT /logs/days/:date) and measure it
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-30]
 parallel_group: M12-PERF
 touches: [backend-go/internal/healthlog, backend-go/internal/http/handlers_logs.go, backend-go/db/queries/healthlog, backend-go/internal/querybudget, backend-go/loadtest/log_burst.js]

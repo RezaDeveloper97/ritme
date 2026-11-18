@@ -3127,3 +3127,11 @@ Nothing needed fixing.
 - Tests (`evalcache_int_test.go`): repeat read skips, urgent right after a qualifying log, kick alert after the window
   with no write, week change, Redis down evaluates, NextDue table. Main session mutation check: dropping the kick due
   → kick test red; ignoring the revision → urgent + kick tests red. vet/lint clean; budget row tightened.
+
+## T-M12-31 — Batched log-day save
+- `PUT /logs/days/:date` (10 params) 36→15 warm queries: one batched DELETE (`FIND_IN_SET` on `cat.param`, sqlc can't
+  slice tuples) + one batched INSERT (JSON array → digit-table index, same pattern as `InsertMessageEventsBatch`);
+  `SaveDayWith` parses/validates inside the user lock on the single day read; legacy `POST /health-logs` sync batched too.
+- Property test (150 seeded random edits, new vs test-only old path → identical rows/day/cycle history), duplicate
+  param last-wins, revision bumps exactly once, invalid body writes nothing; write-budget row 17/15 with a fails-when-
+  exceeded test; mutation-checked (6 mutants). Contract logs/healthlog green. `log_burst.js` on the new route (k6 not run).

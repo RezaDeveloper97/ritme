@@ -114,3 +114,36 @@ var Budgets = []Budget{
 // Auth is the auth step alone (passport Verify, T-M9-09): cold loads the OAuth client list once, warm is the one
 // token-with-user JOIN. Every warm row above includes it.
 var Auth = Budget{Name: "auth verify", Route: "(guard)", Cold: 2, Warm: 1}
+
+// WriteBudget is a write route's query ceiling: a Budget plus the request it sends. Cold is the first save on a fresh
+// process; warm is the same save again (same body) with every cache filled.
+type WriteBudget struct {
+	Budget
+	// Method and Body are the request (Body is JSON).
+	Method, Body string
+}
+
+// LogSaveBody is a 10-param day save of the cycle fixture user (T-M12-31, P-06): no flow change, so no period
+// bridge; spotting, mood, sleep, energy, weight and note have legacy columns (the daily_health_logs write-back),
+// relief, discharge amount and activity duration are v2-only.
+const LogSaveBody = `{"categories":{` +
+	`"bleeding":{"spotting":false},` +
+	`"pain":{"relief":["heat","rest"]},` +
+	`"mood":{"moods":["calm","energetic"]},` +
+	`"sleep":{"duration":"6_9","quality":"good"},` +
+	`"appetite_energy":{"energy":"high"},` +
+	`"measurements":{"weight":58.4},` +
+	`"discharge":{"amount":"light"},` +
+	`"activity":{"duration":30},` +
+	`"note":{"text":"budget"}}}`
+
+// WriteBudgets are the hot writes (T-M12-31).
+var WriteBudgets = []WriteBudget{
+	// T-M12-31 (P-06), measured by TestWriteBudgets: before, warm 36 / cold 38 — the day read twice (handler + under
+	// the lock), a DELETE per param (10) and an INSERT per row (12). Now the day is read once under the lock and the
+	// entries are one DeleteLogEntryParams + one InsertLogEntriesBatch, whatever the number of params: the entry write
+	// is lock + day + delete + insert + revision bump = 5. Warm 15 = that 5 + auth, life mode (life profile, pregnancy,
+	// profile), custom items, the legacy write-back (find, update, reload, profile, mark recalculated) and the message
+	// goal after the commit. Cold +2: the stored zone and the language list (config caches off).
+	{Budget{"logs day save", "/api/v1/logs/days/:date", "/api/v1/logs/days/2026-10-20", enums.LifeModeCycle, 17, 15, ""}, "PUT", LogSaveBody},
+}
