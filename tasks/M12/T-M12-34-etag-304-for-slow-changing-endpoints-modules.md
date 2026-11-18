@@ -3,7 +3,7 @@ id: T-M12-34
 title: ETag/304 for slow-changing endpoints (modules, banners, taxonomy, enums, courses, checkups home)
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-30]
 parallel_group: M12-PERF
 touches: [backend-go/internal/platform/etag, backend-go/internal/http, backend-go/loadtest/web_home.js]

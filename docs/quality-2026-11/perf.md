@@ -113,3 +113,10 @@ Entry writes are now 5 queries for any number of params (user lock, one day read
 via FIND_IN_SET, one `InsertLogEntriesBatch` via JSON → digit-table rows, revision bump). The rest is auth, life mode,
 custom items, the `daily_health_logs` write-back and the message goal. k6 `log_burst` now drives this route — not run
 yet: `make loadtest-db && make loadtest-seed && make loadtest-api && make loadtest SCENARIO=log_burst K6_RUNNER=local`.
+
+## T-M12-34 — Body-hash ETag / 304 on low-churn reads
+
+`etag.ByBody()` on `/modules`, `/banners`, `/banners/ads`, `/logs/taxonomy`, `/health-logs/enums`, `/learning/courses`,
+`/checkups/home`: weak tag = SHA-256/2 of the body built for this request; `Vary: Authorization, Accept-Language`;
+`Cache-Control: private, no-cache` unless the handler set one. Saves bandwidth, not server work. k6 `web_home` sends
+`If-None-Match` from the second open and records `web_home_304` / `web_home_304_bytes_saved` — ratio not measured yet.

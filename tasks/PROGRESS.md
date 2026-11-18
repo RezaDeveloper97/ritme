@@ -3135,3 +3135,10 @@ Nothing needed fixing.
 - Property test (150 seeded random edits, new vs test-only old path → identical rows/day/cycle history), duplicate
   param last-wins, revision bumps exactly once, invalid body writes nothing; write-budget row 17/15 with a fails-when-
   exceeded test; mutation-checked (6 mutants). Contract logs/healthlog green. `log_burst.js` on the new route (k6 not run).
+
+## T-M12-34 — ETag/304 on low-churn home reads
+- `platform/etag.BodyTag` + `ByBody()` middleware on 7 routes (per-request body hash → never another user's body);
+  bodies unchanged. Unit + int tests (304 per route, admin toggle/banner edit → new tag, cross-user, locale, query,
+  401 untagged); mutation (path-keyed cache) → 4 tests red. web_home k6 sends If-None-Match + 304 metrics (not run).
+- Contract content/logs/healthlog/learning/teen: 155 passed; 3 teen failures pre-existing (same with ByBody off):
+  `teen/parent_link_card`, `teen/accept_after_mode_change.{none,en}` — not caused here, to triage.
