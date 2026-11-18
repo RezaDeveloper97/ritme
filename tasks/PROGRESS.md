@@ -2875,3 +2875,11 @@ Nothing needed fixing.
 - Rules 7–8 written in docs/ai-credits.md (user decision: refund goes back to its own bucket; expired period share ends).
 - sqlc output for plus copied from a scratch run because `make sqlc` is broken by 00128 → **T-M12-19c**.
 - Remaining lock-order risk in challenges rewards + admin period edits → **T-M12-19b**.
+
+## T-M12-23 — Frontend AI gate states and concurrent 401s
+- `features/ai-gate/model/gateDecision.ts` (pure, React-free): `denialFromBalance` moved here, new `guardDecision`;
+  `useAiGate` re-exports, behaviour unchanged.
+- `gateDecision.test.ts` (18): every gate error row of docs/ai-credits.md, cost-at-boundary, cost changed between render
+  and press, costs from API only, unknown balance fails open (server gate still enforces).
+- `apiClient.test.ts`: 5 parallel session 401s → one cleanup + one `ritme:session-cleared`; non-session 401, proxy
+  401, 402/403 gate answers never log out; mixed 200/401 → one teardown. Mutation-checked. No bug found.

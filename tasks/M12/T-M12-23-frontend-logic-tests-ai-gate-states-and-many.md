@@ -3,7 +3,7 @@ id: T-M12-23
 title: Frontend logic tests: AI gate states and many requests hitting a 401 at once
 milestone: M12
 type: frontend
-status: todo
+status: done
 depends_on: [T-M12-12]
 parallel_group: M12-TEST
 touches: [frontend/src/features/ai-gate, frontend/src/shared/api/apiClient.test.ts, frontend/src/shared/session]
