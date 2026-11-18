@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"slices"
+	"sync"
 	"testing"
 	"time"
 
@@ -24,9 +26,20 @@ type pushed struct {
 	payload  map[string]string
 }
 
+// sendResult is one scripted answer of the fake push service: an HTTP status, or a transport error (timeout).
+type sendResult struct {
+	status int
+	err    error
+}
+
+// fakePush is the push service: it records every attempt (safe for concurrent senders, T-M12-22), answers each
+// endpoint from its script first (one entry per attempt), then from status, then 201.
 type fakePush struct {
+	mu     sync.Mutex
 	got    []pushed
-	status map[string]int // endpoint → HTTP status (default 201)
+	status map[string]int          // endpoint → HTTP status (default 201)
+	script map[string][]sendResult // endpoint → the answers of its next attempts, in order
+	delay  time.Duration           // how long one send takes (widens the window concurrent ticks race in)
 }
 
 func (f *fakePush) send(_ context.Context, payload []byte, sub store.PushSubscription) (int, error) {
@@ -34,11 +47,45 @@ func (f *fakePush) send(_ context.Context, payload []byte, sub store.PushSubscri
 	if err := json.Unmarshal(payload, &m); err != nil {
 		return 0, err
 	}
+	f.mu.Lock()
 	f.got = append(f.got, pushed{endpoint: sub.Endpoint, payload: m})
-	if s, ok := f.status[sub.Endpoint]; ok {
+	var res *sendResult
+	if q := f.script[sub.Endpoint]; len(q) > 0 {
+		res, f.script[sub.Endpoint] = &q[0], q[1:]
+	}
+	s, ok := f.status[sub.Endpoint]
+	delay := f.delay
+	f.mu.Unlock()
+	if delay > 0 {
+		time.Sleep(delay) // a slow push service, so concurrent ticks overlap
+	}
+	switch {
+	case res != nil:
+		return res.status, res.err
+	case ok:
 		return s, nil
 	}
 	return 201, nil
+}
+
+// attempts counts the sends of the message tagged tag (to any endpoint when endpoint is "").
+func (f *fakePush) attempts(endpoint, tag string) int {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	n := 0
+	for _, g := range f.got {
+		if g.payload["tag"] == tag && (endpoint == "" || g.endpoint == endpoint) {
+			n++
+		}
+	}
+	return n
+}
+
+// all is a copy of every attempt so far.
+func (f *fakePush) all() []pushed {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return slices.Clone(f.got)
 }
 
 func (e *env) pusher(f *fakePush) *care.Pusher {

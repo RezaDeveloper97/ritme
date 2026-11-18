@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	webpush "github.com/SherClockHolmes/webpush-go"
@@ -44,6 +45,10 @@ const (
 	PushEvery = 30 * time.Second
 	// PushLookback is how late a dose may still be pushed (a restart, a slow tick); older ones are dropped.
 	PushLookback = 10 * time.Minute
+	// PushAttempts is how many times one process tries a dose or an inbox row that no browser accepted because of a
+	// passing failure (timeout, 429, 5xx): once per tick, inside PushLookback / NoticeLookback. After that it stays
+	// claimed and silent. A refusal for good (404 / 410 → the subscription is dropped; any other 4xx) is never retried.
+	PushAttempts = 3
 	// PushTTL is how long a push service keeps an undelivered reminder (seconds).
 	PushTTL = 3600
 	// PushLogKeep is how long reminder_pushes rows are kept.
@@ -454,7 +459,11 @@ type Pusher struct {
 	zones  *usertz.Zones // each user's stored zone: doses and quiet hours are on her clock (T-M12-21c)
 	logger *slog.Logger
 	send   PushSender
-	pruned time.Time
+
+	mu           sync.Mutex // guards the fields below: one Pusher may tick from several goroutines
+	pruned       time.Time
+	retryDoses   []pending[Occurrence]                         // claimed doses to try again (push_retry.go)
+	retryNotices []pending[store.ListUnpushedNotificationsRow] // claimed inbox rows to try again
 }
 
 // NewPusher wires the sender; cfg must be Enabled.
@@ -504,48 +513,53 @@ func (p *Pusher) Loop(ctx context.Context, now func() time.Time) {
 
 // Tick pushes the doses that came due in the last PushLookback and returns how many reminders went out. Each dose
 // is claimed in reminder_pushes first, so several processes (API + worker) never announce it twice; a dose that is
-// already ticked, switched off or inside quiet hours stays claimed and silent. Doses and quiet hours are on each
-// user's stored zone (usertz.Zones; none = Asia/Tehran), so «۸ صبح» reaches a user in Berlin at 08:00 Berlin.
+// already ticked, switched off or inside quiet hours stays claimed and silent. A dose no browser accepted because of
+// a passing failure stays claimed by this process, which tries it again on its next ticks (retryDose, at most
+// PushAttempts tries inside PushLookback). Doses and quiet hours are on each user's stored zone (usertz.Zones; none =
+// Asia/Tehran), so «۸ صبح» reaches a user in Berlin at 08:00 Berlin. Safe for concurrent use.
 func (p *Pusher) Tick(ctx context.Context, now time.Time) (int, error) {
 	now = now.In(civildate.Tehran)
-	if now.Sub(p.pruned) > time.Hour {
+	if p.prunePushes(now) {
 		if err := p.q.PruneReminderPushes(ctx, now.Add(-PushLogKeep)); err != nil {
 			return 0, fmt.Errorf("care: prune pushes: %w", err)
 		}
-		p.pruned = now
+	}
+	users := map[uint64]*doseUser{}
+	sent := 0
+	for _, r := range takeRetries(p, &p.retryDoses) { // the doses this process claimed and could not deliver yet
+		if r.item.At.Before(now.Add(-PushLookback)) {
+			continue // too late now: dropped like any other stale dose
+		}
+		ok, err := p.pushDose(ctx, users, r.item, r.tries)
+		if err != nil {
+			return sent, err
+		}
+		if ok {
+			sent++
+		}
 	}
 	meds, err := p.q.ListPushableMedications(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("care: pushable medications: %w", err)
-	}
-	type userState struct {
-		prefs notifications.Preferences
-		subs  []store.PushSubscription
-		taken map[civildate.Date][]store.ListIntakesOnDateRow
+		return sent, fmt.Errorf("care: pushable medications: %w", err)
 	}
 	byUser := map[uint64][]store.Reminder{}
 	for _, r := range meds {
 		byUser[r.UserID] = append(byUser[r.UserID], r)
 	}
 	var due []Occurrence
-	zones := map[uint64]*time.Location{}
 	for userID, rows := range byUser {
 		loc, err := p.zones.For(ctx, userID)
 		if err != nil {
-			return 0, fmt.Errorf("care: push zone: %w", err)
+			return sent, fmt.Errorf("care: push zone: %w", err)
 		}
-		zones[userID] = loc
 		due = append(due, OccurrencesIn(rows, now.Add(-PushLookback), now.Add(time.Second), loc)...)
 	}
 	slices.SortStableFunc(due, func(a, b Occurrence) int {
 		return cmp.Or(a.At.Compare(b.At), cmp.Compare(a.Med.Row.ID, b.Med.Row.ID))
 	})
-	users := map[uint64]*userState{}
-	sent := 0
 	for _, o := range due {
-		userID := o.Med.Row.UserID
 		n, err := p.q.ClaimReminderPush(ctx, store.ClaimReminderPushParams{
-			UserID: userID, ReminderID: o.Med.Row.ID, IntakeDate: o.Day, Slot: o.Slot, SentAt: now,
+			UserID: o.Med.Row.UserID, ReminderID: o.Med.Row.ID, IntakeDate: o.Day, Slot: o.Slot, SentAt: now,
 		})
 		if err != nil {
 			return sent, fmt.Errorf("care: claim push: %w", err)
@@ -553,70 +567,120 @@ func (p *Pusher) Tick(ctx context.Context, now time.Time) (int, error) {
 		if n == 0 {
 			continue
 		}
-		u := users[userID]
-		if u == nil {
-			u = &userState{taken: map[civildate.Date][]store.ListIntakesOnDateRow{}}
-			if u.prefs, err = notifications.Load(ctx, p.prefs, userID); err != nil {
-				return sent, err
-			}
-			u.prefs = u.prefs.InZone(zones[userID])
-			if u.subs, err = p.q.ListPushSubscriptions(ctx, userID); err != nil {
-				return sent, fmt.Errorf("care: push subscriptions: %w", err)
-			}
-			users[userID] = u
-		}
-		if !notifications.Decide(u.prefs, notifications.Medications, o.At, time.Time{}).Send {
-			continue
-		}
-		taken, ok := u.taken[o.Day]
-		if !ok {
-			if taken, err = p.q.ListIntakesOnDate(ctx, store.ListIntakesOnDateParams{UserID: userID, IntakeDate: o.Day}); err != nil {
-				return sent, fmt.Errorf("care: push intakes: %w", err)
-			}
-			u.taken[o.Day] = taken
-		}
-		if slices.ContainsFunc(taken, func(t store.ListIntakesOnDateRow) bool {
-			return t.ReminderID == o.Med.Row.ID && t.Slot == o.Slot
-		}) {
-			continue
-		}
-		delivered, err := p.deliver(ctx, u.subs, o.ID(), func(locale string) notifications.Push {
-			return notifications.Render(u.prefs, o.Message(locale), locale)
-		})
+		ok, err := p.pushDose(ctx, users, o, 0)
 		if err != nil {
 			return sent, err
 		}
-		if delivered {
+		if ok {
 			sent++
 		}
 	}
 	return sent, nil
 }
 
-// deliver sends one message to every subscription, rendered in the subscription's language, and reports whether at
-// least one push service accepted it. A subscription the push service calls gone (404 / 410) is deleted; other
-// refusals are logged without the text.
-func (p *Pusher) deliver(ctx context.Context, subs []store.PushSubscription, tag string, render func(locale string) notifications.Push) (bool, error) {
-	delivered := false
+// doseUser is what one Tick reads once per user: her settings on her zone, her browsers, the doses she ticked.
+type doseUser struct {
+	prefs notifications.Preferences
+	subs  []store.PushSubscription
+	taken map[civildate.Date][]store.ListIntakesOnDateRow
+}
+
+// pushDose announces the claimed dose o (tries = the earlier tries of this process) unless it is switched off, in
+// quiet hours or already ticked, and reports whether a browser accepted it.
+func (p *Pusher) pushDose(ctx context.Context, users map[uint64]*doseUser, o Occurrence, tries int) (bool, error) {
+	userID := o.Med.Row.UserID
+	u := users[userID]
+	if u == nil {
+		u = &doseUser{taken: map[civildate.Date][]store.ListIntakesOnDateRow{}}
+		var err error
+		if u.prefs, err = notifications.Load(ctx, p.prefs, userID); err != nil {
+			return false, err
+		}
+		loc, err := p.zones.For(ctx, userID)
+		if err != nil {
+			return false, fmt.Errorf("care: push zone: %w", err)
+		}
+		u.prefs = u.prefs.InZone(loc)
+		if u.subs, err = p.q.ListPushSubscriptions(ctx, userID); err != nil {
+			return false, fmt.Errorf("care: push subscriptions: %w", err)
+		}
+		users[userID] = u
+	}
+	if !notifications.Decide(u.prefs, notifications.Medications, o.At, time.Time{}).Send {
+		return false, nil
+	}
+	taken, ok := u.taken[o.Day]
+	if !ok {
+		var err error
+		if taken, err = p.q.ListIntakesOnDate(ctx, store.ListIntakesOnDateParams{UserID: userID, IntakeDate: o.Day}); err != nil {
+			return false, fmt.Errorf("care: push intakes: %w", err)
+		}
+		u.taken[o.Day] = taken
+	}
+	if slices.ContainsFunc(taken, func(t store.ListIntakesOnDateRow) bool {
+		return t.ReminderID == o.Med.Row.ID && t.Slot == o.Slot
+	}) {
+		return false, nil
+	}
+	res, err := p.deliver(ctx, u.subs, o.ID(), func(locale string) notifications.Push {
+		return notifications.Render(u.prefs, o.Message(locale), locale)
+	})
+	if err != nil {
+		return false, err
+	}
+	if res == retryLater {
+		retry(p, &p.retryDoses, o, tries+1)
+	}
+	return res == delivered, nil
+}
+
+// deliveryResult is how one deliver went.
+type deliveryResult int
+
+const (
+	// notDelivered: no browser accepted it for good (gone, refused, or no browser at all) — never retried.
+	notDelivered deliveryResult = iota
+	// delivered: at least one push service accepted it.
+	delivered
+	// retryLater: none accepted it and at least one failed for a passing reason (timeout, 429, 5xx).
+	retryLater
+)
+
+// deliver sends one message to every subscription, rendered in the subscription's language. At least one push
+// service accepting it is delivered (the others are not tried again: the browser that has it must not get it
+// twice). A subscription the push service calls gone (404 / 410) is deleted; other refusals are logged without the
+// text.
+func (p *Pusher) deliver(ctx context.Context, subs []store.PushSubscription, tag string, render func(locale string) notifications.Push) (deliveryResult, error) {
+	accepted, passing := false, false
 	for _, sub := range subs {
 		msg := render(sub.Locale)
 		payload, err := json.Marshal(map[string]string{"title": msg.Title, "body": msg.Body, "url": msg.URL, "tag": tag})
 		if err != nil {
-			return delivered, fmt.Errorf("care: push payload: %w", err)
+			return notDelivered, fmt.Errorf("care: push payload: %w", err)
 		}
 		status, err := p.send(ctx, payload, sub)
 		switch {
 		case err != nil:
+			passing = true
 			p.logger.WarnContext(ctx, "care: push not delivered", slog.Uint64("subscription", sub.ID), slog.String("error", err.Error()))
 		case status == nethttp.StatusNotFound || status == nethttp.StatusGone:
 			if err := p.q.DeletePushSubscriptionByID(ctx, sub.ID); err != nil {
-				return delivered, fmt.Errorf("care: drop push subscription: %w", err)
+				return notDelivered, fmt.Errorf("care: drop push subscription: %w", err)
 			}
+		case status == nethttp.StatusTooManyRequests || status >= 500:
+			passing = true
+			p.logger.WarnContext(ctx, "care: push refused for now", slog.Uint64("subscription", sub.ID), slog.Int("status", status))
 		case status >= 400:
 			p.logger.WarnContext(ctx, "care: push refused", slog.Uint64("subscription", sub.ID), slog.Int("status", status))
 		default:
-			delivered = true
+			accepted = true
 		}
 	}
-	return delivered, nil
+	switch {
+	case accepted:
+		return delivered, nil
+	case passing:
+		return retryLater, nil
+	}
+	return notDelivered, nil
 }

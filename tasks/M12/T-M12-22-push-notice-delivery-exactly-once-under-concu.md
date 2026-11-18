@@ -3,7 +3,7 @@ id: T-M12-22
 title: Push/notice delivery exactly once under concurrent ticks and after a failed send
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-11]
 parallel_group: M12-TEST
 touches: [backend-go/internal/care/push_notices_int_test.go, backend-go/internal/care, backend-go/internal/notify]

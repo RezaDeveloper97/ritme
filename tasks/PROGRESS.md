@@ -2998,3 +2998,13 @@ Nothing needed fixing.
 - Lock order audit: plus (invoice/purchase → user → insert), challenges (enrollment → user → grants → GrantDays),
   admin extend (user → subscription → queued updates); no path takes subscription → user.
 - Tests: `TestChallenges_TwoRunsOfOneUserFinishTogether`, `TestExtendRacingSettleNeverOverlaps`; 3× native + 3× race-docker green, red without locks.
+
+## T-M12-22 — Push/notice delivery exactly once
+- Bug: the claim was taken before sending and any passing failure (timeout/429/5xx) was only logged → that dose
+  reminder / inbox push was lost for good. Fix: the claiming process keeps the item in an in-memory retry queue
+  (`care/push_retry.go`), max `PushAttempts=3` within the lookback; 404/410 drop the subscription, other 4xx no retry;
+  one accepted browser = delivered. `pruned` map under a mutex.
+- Tests (`push_exactly_once_int_test.go`): 2 Pushers × concurrent Tick/TickNotices → each tag once (claims were
+  already atomic — regression guard); retry after 503/500/429/timeout once; bounded retries; permanent refusal;
+  dose vs inbox are separate channels by design. -race green; retry tests red on old code.
+- Open: retry lost on restart → **T-M12-22b** (DB claim release, needs sqlc).
