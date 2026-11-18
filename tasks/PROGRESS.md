@@ -2943,3 +2943,17 @@ Nothing needed fixing.
 - Sleeps: 5 annotated `//nolint:sleep // reason` (no hook to observe); `make lint-tests` fails on a bare sleep;
   `LINT_TESTS_LEGACY` allow-lists 7 files outside touches (follow-up). Inbox/aicredits/cityservices left (relative offsets).
 - Unit packages 3× green, race via docker green. `TestFeedInt_BannerSeed` red → T-M12-11d (also fixed a `test`→`cta` typo).
+
+## T-M12-14 — Account export covers every user table
+- Before: 96 of 177 user tables were missing from «download my data» (cycle prefs/skips, fertility, pregnancy tools,
+  health record + documents + share links, labs, checkups, vitals, children/baby logs, family/companion, todo, teen,
+  challenges, assistant, telemed, learning progress, plus/credits ledger, notifications/inbox/events, consents, files).
+- `accountexport/tables.go`: 22 new top-level sections + shop/directory parts; sealed text (assistant, telemed,
+  partner-lab) opened with each domain's AD for the owner only, other accounts' seals → null; secrets hidden
+  (token/code hashes, purchase_token, gateway authority, file path/sha256, family sealed payloads). Link tables: only
+  rows where she is a party.
+- Exclusion list (22) in `docs/quality-2026-11/user-tables.md` (credentials, D-54 epds, admin-only, derived caches,
+  queues, delivery bookkeeping, instructor catalog).
+- Tests: coverage (schema-driven, export xor excluded, no stale rows) + behaviour (A's row per table present, B's
+  never; sealed text opened, no ciphertext). Mutation-checked.
+- Deviation: generic string-built loader (constants only) instead of sqlc → **T-M12-14b**.

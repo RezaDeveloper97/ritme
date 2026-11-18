@@ -3,7 +3,7 @@ id: T-M12-14
 title: Account export covers every user table (schema-driven test)
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-13]
 parallel_group: M12-TEST
 touches: [backend-go/internal/accountexport, backend-go/internal/http/account_export_int_test.go, docs/quality-2026-11/user-tables.md]

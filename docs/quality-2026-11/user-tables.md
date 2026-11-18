@@ -92,3 +92,70 @@ Question: should any of them be kept (anonymised: `user_id` → NULL, buyer PII 
 The admin delete (`internal/admin/users.Destroy`) shares the cascades but not the hand deletes: it **revokes** her
 access tokens instead of deleting them (`oauth_access_tokens` / `oauth_refresh_tokens` rows stay), keeps the OTP rows
 and the Redis keys. Open follow-up (outside T-M12-13's paths).
+
+## Account export (T-M12-14, finding T-04)
+
+`GET /api/v1/profile/export` must carry every user table (the same schema-derived set as the delete test: every table
+with a user column, and every table below one through foreign keys). Each table is either **exported** or on the
+**exclusion list** below with a reason; health data is always exported. `internal/http/account_export_int_test.go`
+keeps this true:
+
+- **Schema test** — every user table is exported (in `accountexport.Coverage()` or the profile-package table below)
+  **or** excluded here, never both; a row here naming a table that is no longer a user table fails (stale entry).
+- **Behaviour test** — one row in every user table for user A and for a control user B (link rows join A to third
+  users), then A's export: every exported table's seeded row of A is at its `section.part` (matched by primary key),
+  none of B's rows is there, no user-id column in the whole export holds B's id, and none of B's seeded values appears
+  in the response text.
+
+Where the rows go: `internal/profile` writes the original keys (table below); `internal/accountexport` writes the
+canvas sections (typed, `accountexport.go` / `health.go` / `commerce.go`) and every other table through one fixed,
+owner-scoped statement each (`tables.go`). Sealed text is opened for the owner (assistant summaries and messages,
+telemed chat, partner-lab contact details, as before insurance / loss / shop); token and code hashes, purchase tokens,
+gateway authorities, storage paths, file hashes and family undo payloads are hidden. Link tables (families,
+companions, guardians, family alerts / notices / nudges / proposals / share requests) export only the link rows she is
+a party to — family alerts and notices only on her side as the owner (a member's copy is about the owner's data).
+
+### Exported by `internal/profile`
+
+| Table | Export key |
+|---|---|
+| `user_profiles` | `profile` |
+| `daily_health_logs` | `health_logs` |
+| `cycle_histories` | `cycle_histories` |
+| `pregnancy_profiles` | `pregnancy.profile` |
+| `pregnancy_symptom_logs` | `pregnancy.symptom_logs` |
+| `pregnancy_weekly_logs` | `pregnancy.weekly_logs` |
+| `pregnancy_fetal_movements` | `pregnancy.fetal_movements` |
+| `reminders` | `reminders` |
+| `user_consents` | `consents` |
+| `support_reports` | `support_reports` |
+| `notification_preferences` | `notification_settings` |
+| `ai_usage_logs` | `ai_usage` |
+| `user_life_profiles` | `life_profile` |
+
+### Not exported
+
+| Table | Reason |
+|---|---|
+| `oauth_access_tokens` | credentials: API tokens |
+| `oauth_auth_codes` | credentials: Passport auth codes |
+| `oauth_device_codes` | credentials: Passport device codes |
+| `oauth_clients` | credentials: OAuth client secrets (system clients, no owner) |
+| `sessions` | credentials: Laravel web sessions (admin guard) |
+| `push_subscriptions` | credentials: the device's Web Push endpoint and keys |
+| `epds_checks` | user decision D-54 (2026-10-23): EPDS answers and totals are left out of the export |
+| `plus_admin_actions` | admin-only: Plus ledger rows written by admins (retention pending, see above) |
+| `admin_health_access_requests` | admin-only: admin requests to see her health data |
+| `admin_user_activity` | admin-only: derived churn / activity metrics for the admin panel |
+| `engine_daily_snapshots` | derived cache: per-day engine view, recomputed from the exported logs |
+| `user_revisions` | derived cache: engine / analysis revision counters |
+| `lab_jobs` | queue: lab processing jobs (the reports and markers are exported) |
+| `learning_sms_outbox` | queue: course-access SMS outbox (the grants are exported) |
+| `reminder_pushes` | delivery bookkeeping: push de-duplication (reminders and intakes are exported) |
+| `reminder_sms` | delivery bookkeeping: SMS de-duplication (reminders and intakes are exported) |
+| `learning_courses` | catalog: courses she publishes as an instructor (content, not personal data; her instructor row is exported) |
+| `learning_chapters` | catalog: chapters of her published courses |
+| `learning_lessons` | catalog: lessons of her published courses |
+| `learning_groups` | catalog: her learner groups (other users' access lists) |
+| `learning_group_courses` | catalog: courses of her learner groups |
+| `learning_media` | catalog: course media uploads (storage paths) |

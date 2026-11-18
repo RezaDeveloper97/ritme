@@ -6,7 +6,8 @@
 // internal/profile/model). Text a domain seals at rest (insurance notes and questionnaire evidence, the loss private
 // note, shop buyer PII) is opened for the owner — the AD binds each seal to her, so another account's blob never
 // opens; an unreadable seal (no key, a rotated-out key) exports as null instead of failing the export. No private
-// file bytes, storage paths or hashes are exported, only file metadata. Nothing here logs a value.
+// file bytes, storage paths or hashes are exported, only file metadata. Nothing here logs a value. T-M12-14 adds every
+// other user table (tables.go); the excluded ones are listed with a reason in docs/quality-2026-11/user-tables.md.
 package accountexport
 
 import (
@@ -34,9 +35,11 @@ type Box interface {
 
 var _ Box = (*loss.NoteBox)(nil)
 
-// Sections are the canvas sections of the export, in output order.
+// Sections are the sections of the export this package owns, in output order: the canvas sections (typed), then the
+// tables added by T-M12-14 (tables.go).
 func Sections(db *sql.DB, box Box) []profile.ExportSection {
-	return []profile.ExportSection{
+	x := &tables{db: db}
+	out := []profile.ExportSection{
 		{Key: "pelvic_floor", Load: pelvicFloor(db)},
 		{Key: "contraception", Load: contraception(db)},
 		{Key: "menopause", Load: menopause(db)},
@@ -44,10 +47,14 @@ func Sections(db *sql.DB, box Box) []profile.ExportSection {
 		{Key: "condition_programs", Load: conditionPrograms(db)},
 		{Key: "loss", Load: lossPath(db, box)},
 		{Key: "insurance", Load: insuranceData(db, insurance.NewService(db, box))},
-		{Key: "shop", Load: shopData(db, order.NewService(db).WithSealer(box))},
-		{Key: "directory", Load: directory(db)},
+		{Key: "shop", Load: x.withExtra(shopData(db, order.NewService(db).WithSealer(box)), shopExtra)},
+		{Key: "directory", Load: x.withExtra(directory(db), directoryExtra)},
 		{Key: "postpartum", Load: postpartumData(db)},
 	}
+	for _, g := range tableGroups(box) {
+		out = append(out, profile.ExportSection{Key: g.key, Load: x.generic(g)})
+	}
+	return out
 }
 
 // rows serialises a query result as model attributes (casts + hidden columns), then lets each adjust the object.
