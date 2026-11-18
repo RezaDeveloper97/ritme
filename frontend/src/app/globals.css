@@ -6697,6 +6697,11 @@ html[data-app-locked] .app-shell > :not(.lk-page):not(.app-veil) { visibility: h
 .del-confirm:disabled, .del-cancel:disabled { opacity: .65; cursor: default; }
 .del-confirm:focus-visible, .del-cancel:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
+/* Step-up code (T-M12-06): one 4-digit field in the delete / export dialog */
+.stepup-form  { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.stepup-label { font-size: 13px; font-weight: 700; color: var(--text-2); }
+.otp-box.stepup-code { width: 100%; letter-spacing: .5em; text-align: center; }
+
 /* Support */
 .sup-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .sup-tile {

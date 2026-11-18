@@ -12929,6 +12929,26 @@
     "cycleActive": "Cycle mode is active",
     "pregnancyActive": "Pregnancy mode is active",
     "confirmSwitchToCycle": "Turn off pregnancy mode and go back to cycle tracking?"
+   },
+   "stepUp": {
+    "title": "Confirm it's you",
+    "exportBody": "To download all your data, we'll first text a code to your mobile number.",
+    "deleteBody": "To delete your account, we'll first text a code to your mobile number.",
+    "send": "Send code",
+    "sending": "Sending…",
+    "sent": "Enter the 4-digit code we texted you.",
+    "codeLabel": "Verification code",
+    "confirm": "Confirm",
+    "verifying": "Checking…",
+    "resend": "Resend code",
+    "cancel": "Cancel",
+    "wrongCode": "That code isn't right. Try again.",
+    "expired": "This code has expired. Get a new one.",
+    "wait": "Wait a moment, then ask for a new code.",
+    "tooMany": "Too many tries. Try again a little later.",
+    "error": "The code wasn't sent. Try again.",
+    "again": "That confirmation expired. Get a new code.",
+    "throttled": "You've done this a few times in the last hour. Try again a little later."
    }
   },
   "profile-edit": {

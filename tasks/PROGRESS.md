@@ -3078,3 +3078,17 @@ Nothing needed fixing.
   open 400/1200 ms, errors < 0.1 %); added to `loadtest/run.sh` scenarios (main session); `k6 inspect` ok.
 - Not done: no k6 run against a server (command in perf.md). Follow-ups → **T-M12-30b** (pregnancy v2 today 21 warm,
   /todo 6 warm, row-growth budgets).
+
+## T-M12-06 — Step-up OTP + throttles for export and account delete; /docs failure budget
+- Decision (user): fresh OTP for **both** delete and full export. `send-otp`/`verify-otp` with `purpose=step_up`
+  (bearer; mobile from the token user; all T-M12-01 guards) → single-use 5-min `step_up_token` (sha256 in Redis,
+  atomic Lua GET+DEL, bound to user). `GET /profile/export` and `DELETE /account` need `X-Step-Up`; missing/
+  expired/used/foreign → **403 `step_up_required`** (never 401). Limiters `account_export` / `account_delete` 3/h/user
+  run before step-up (a throttled call doesn't burn the token); export concurrency cap 4 → 429 `export_busy`.
+  `/docs`: 10 wrong passwords/min per client net → 429 (also for the right one until the window ends).
+- Frontend `features/manage-account`: StepUpSheet/Panel on privacy + backup pages (no pilot names), `shared/api/stepUp`,
+  `X-Step-Up` header option in apiClient; fa/en `profile.stepUp.*` (synced to backend translations, i18n goldens re-recorded).
+- Contract: runner `step_up: true` issues a token for Go only; profile 104 passed, public 26 passed. `dump.sql` brought
+  up to schema (3 tables + `pushed_at`). Deviation **D-213**; D-96 extended with the 22 T-M12-14 keys.
+- Open: old clients (incl. Android) get 403 on export/delete until they add the step; export paging of big tables
+  (throttle + step-up + cap cover DoS now); no UI render test (vitest is node-only).

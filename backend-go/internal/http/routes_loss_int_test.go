@@ -205,7 +205,7 @@ func TestLoss_PrivacyOfFollowupsAndNotices(t *testing.T) {
 	e.exec(`INSERT INTO companion_grants (companion_id, section, level, created_at, updated_at) VALUES (?, 'pregnancy', 'view', NOW(), NOW())`, idOfLink(t, e, ali))
 	require.Equal(t, fiber.StatusCreated, e.do(fiber.MethodPost, "/api/v1/loss", sara, map[string]any{"notify_companion": true}).Status)
 	assert.Equal(t, 1, notices(aliID), "a fresh grant → the notice again")
-	r = e.do(fiber.MethodDelete, "/api/v1/account", sara, nil)
+	r = e.doStep(fiber.MethodDelete, "/api/v1/account", sara, e.mintStepUp(sara), nil)
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
 	assert.Equal(t, 0, notices(aliID))
 }

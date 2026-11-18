@@ -100,8 +100,10 @@ func NewModule(d Deps) (*Module, error) {
 	issuer := passport.NewIssuer(keys.Private, q, clock.Real{}, d.Config.Passport.TokenLifetimeDays)
 	h := NewHandlers(q, issuer, rdbQueue, clock.Real{}, d.Config.Passport.RefreshWindowDays, logger)
 	h.UseOTPGuard(NewOTPGuard(d.Cache, d.Config.SMS.OTP, logger))
+	guard := NewGuardWith(keys.Public, q, clock.Real{}, logger)
+	h.UseStepUp(guard, NewStepUp(d.Cache)) // T-M12-06: purpose=step_up on send-otp / verify-otp
 	return &Module{
-		Guard:    NewGuardWith(keys.Public, q, clock.Real{}, logger),
+		Guard:    guard,
 		Handlers: h,
 		Limiter:  limiter,
 		Queue:    rdbQueue,

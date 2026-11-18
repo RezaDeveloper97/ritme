@@ -111,7 +111,7 @@ func TestAccountExport_CanvasSections(t *testing.T) {
 	seedCanvasData(t, e, saraID, "saratag")
 	seedCanvasData(t, e, ninaID, "ninatag")
 
-	r := e.do(fiber.MethodGet, "/api/v1/profile/export", sara, nil)
+	r := e.doStep(fiber.MethodGet, "/api/v1/profile/export", sara, e.mintStepUp(sara), nil)
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
 	data := r.data()
 
@@ -210,7 +210,7 @@ func TestAccountExport_CanvasSections(t *testing.T) {
 	}
 
 	// And the other way round.
-	r = e.do(fiber.MethodGet, "/api/v1/profile/export", nina, nil)
+	r = e.doStep(fiber.MethodGet, "/api/v1/profile/export", nina, e.mintStepUp(nina), nil)
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
 	assert.NotContains(t, r.Raw, "saratag")
 	assert.Contains(t, r.Raw, "ninatag-claim-note")
@@ -663,7 +663,7 @@ func TestAccountExport_CoversEveryUserTable(t *testing.T) {
 	}
 	t.Logf("seeded %d rows in %d user tables (%d exported, %d excluded)", len(sd.rows), len(scope), len(exported), len(excluded))
 
-	r := e.do(fiber.MethodGet, "/api/v1/profile/export", tokA, nil)
+	r := e.doStep(fiber.MethodGet, "/api/v1/profile/export", tokA, e.mintStepUp(tokA), nil)
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
 	data := r.data()
 
@@ -774,7 +774,7 @@ func TestAccountExport_NewSectionsOpenSealedText(t *testing.T) {
 	seed(saraID, "saratag", ninaID)
 	seed(ninaID, "ninatag", saraID)
 
-	r := e.do(fiber.MethodGet, "/api/v1/profile/export", sara, nil)
+	r := e.doStep(fiber.MethodGet, "/api/v1/profile/export", sara, e.mintStepUp(sara), nil)
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
 	part := func(path string) []map[string]any {
 		objs, ok := axAt(r.data(), path)

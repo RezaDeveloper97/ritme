@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { useModuleEnabled } from '@/entities/app-module';
-import { useExportData, useExportPdf } from '@/features/manage-account';
+import { StepUpSheet, useExportData, useExportPdf } from '@/features/manage-account';
 import { readLastSync } from '@/shared/api';
 import { useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { diffInDays, formatLongDate, formatTimeOfDay, today } from '@/shared/lib/date';
@@ -120,6 +120,8 @@ export function BackupPage() {
 
         <InfoNote icon="lock">{t('backup.privacy')}</InfoNote>
       </div>
+      <StepUpSheet {...json.stepUp} />
+      <StepUpSheet {...pdf.stepUp} />
     </div>
   );
 }

@@ -68,10 +68,10 @@ export const ROUTE_NAMESPACES = {
   profileAccount: ['account', 'aiCredit', 'auth', 'common', 'companions', 'me', 'nav', 'plus', 'profile', 'profileEdit', 'teen'], // B-N1-10 /profile/account (+ plus: same Me hub slice; CB-TEEN-04b teen)
   profileAppearance: ['common', 'me'], // B-N1-10 /profile/appearance
   profileDevices: ['common', 'me'], // B-N10-07 /profile/devices
-  profileBackup: ['account', 'common', 'me'], // B-N10-07 /profile/backup (export hooks reuse me.privacy.mine copy)
+  profileBackup: ['account', 'common', 'me', 'profile'], // B-N10-07 /profile/backup (export hooks reuse me.privacy.mine copy); profile: T-M12-06 step-up sheet
   profileLanguage: ['common', 'me'], // B-N1-10 /profile/language
   profileNotifications: ['common', 'me', 'plus', 'pwa'], // plus: entities/plus barrel (SMS Plus row); pwa: features/push-notifications device row; // B-N1-11 /profile/notifications
-  profilePrivacy: ['account', 'common', 'companions', 'me', 'recordExport'], // B-N1-12 /profile/privacy (DeleteAccountConfirm = account; B-N4-04 companions section)
+  profilePrivacy: ['account', 'common', 'companions', 'me', 'profile', 'recordExport'], // B-N1-12 /profile/privacy (DeleteAccountConfirm = account; B-N4-04 companions section); profile: T-M12-06 step-up sheet
   companions: ['children', 'common', 'companions'], // B-N4-10b family strip children (features/invite-companion → entities/child); B-N4-04 /companions (Hamdam_List); CB-TEEN-03 parent code card (widgets/linked-teen-card)
   companionsNew: ['aiCredit', 'children', 'common', 'companions', 'plus'], // plus: widgets/plus-required-sheet (the invite code is Plus-only); B-N4-10b ChildrenPicker (entities/child); companion-v2 /companions/new (intro → goal → [children] → scope → actions → code → preview)
   companionDetail: ['children', 'common', 'companions'], // B-N4-10b children editor (entities/child); B-N4-04 /companions/[id] (grants, renew, revoke)

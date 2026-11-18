@@ -15,7 +15,7 @@ import {
   registerBiometric,
   useAppLock,
 } from '@/features/app-lock';
-import { DeleteAccountConfirm, useExportData, useExportPdf } from '@/features/manage-account';
+import { DeleteAccountConfirm, StepUpSheet, useExportData, useExportPdf } from '@/features/manage-account';
 import { pilot } from '@/shared/pilot';
 import { type Locale, useDirection, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatLongDate, formatNumber, today } from '@/shared/lib/date';
@@ -473,6 +473,8 @@ export function PrivacyPage() {
         </aside>
       </div>
       <DeleteAccountConfirm open={deleteOpen} onClose={() => setDeleteOpen(false)} />
+      <StepUpSheet {...json.stepUp} />
+      <StepUpSheet {...pdf.stepUp} />
     </div>
   );
 }

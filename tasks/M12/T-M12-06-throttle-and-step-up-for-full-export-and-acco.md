@@ -3,10 +3,10 @@ id: T-M12-06
 title: Throttle and step-up for full export and account delete; throttle /docs basic auth
 milestone: M12
 type: backend
-status: todo
+status: done
 depends_on: [T-M12-01]
 parallel_group: M12-SEC
-touches: [backend-go/internal/http/routes_profile.go, backend-go/internal/http/routes_docs.go, backend-go/internal/profile, backend-go/internal/accountexport, backend-go/api/openapi.yaml, frontend/src/features/account-delete, frontend/src/features/account-export, frontend/messages/fa/profile.json, frontend/messages/en/profile.json]
+touches: [backend-go/internal/auth, backend-go/internal/http/routes_auth.go, docs/go-migration/deviations.md, frontend/src/shared/api, backend-go/internal/http/routes_profile.go, backend-go/internal/http/routes_docs.go, backend-go/internal/profile, backend-go/internal/accountexport, backend-go/api/openapi.yaml, frontend/src/features/account-delete, frontend/src/features/account-export, frontend/messages/fa/profile.json, frontend/messages/en/profile.json]
 skills: [new-endpoint]
 verify: cd backend-go && go vet ./... && make test-int PKG="./internal/http/... ./internal/profile/... ./internal/accountexport/..."
 ---
@@ -29,3 +29,7 @@ S-10/S-11: a stolen year-long token can pull every health record or delete the a
 ## Acceptance
 - Integration tests: 4th export in an hour → 429; 11th wrong `/docs` password → 429; (if step-up chosen) delete without a fresh step-up → 403 with a managed error code, with it → 204.
 - Test cases reviewed: every new test has at least one negative/boundary case and fails when the fix is reverted (say how you checked).
+
+
+## Decision (user, 2026-11-18)
+Step-up OTP required for **both** account delete and full export (plus the 3/hour limits).
