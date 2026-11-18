@@ -3,7 +3,7 @@ id: T-M12-08
 title: Autopilot: sharing, invite, consent and export controls require confirmation
 milestone: M12
 type: frontend
-status: todo
+status: done
 depends_on: []
 parallel_group: M12-SEC
 touches: [frontend/src/shared/autopilot/config.ts, frontend/src/app/autopilot/catalog.test.ts, docs/autopilot.md]

@@ -3034,3 +3034,11 @@ Nothing needed fixing.
 - Export JSON byte-identical to the old loader on the seeded fixture (one-off diff, 48 comparisons).
 - `TestAccountExport_ColumnGuard`: every live column of an exported table is exported xor hidden — a new column
   needs a decision. Lint 0 issues.
+
+## T-M12-08 — Autopilot: sharing/invite/consent/export controls need confirmation
+- `safety.confirmTargets`: the six named ids + 25 more the new guard flagged (companion join/renew, privacy
+  export/consent, assistant export/share, record/lab/vitals/checkup share, doctor/lab consents, city report/review/join,
+  shop share, program joins).
+- `catalog.test.ts` guard: every catalog id matching /share|invite|consent|send|export|join|delete|pay/ must be in
+  confirm/block (engine's `matchesAny`), except a reviewed `INERT` set of field/navigation ids (invite form fields,
+  `city-join.*` fields — their submit is confirmed). Negative case included. `docs/autopilot.md` updated.
