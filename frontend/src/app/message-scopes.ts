@@ -104,8 +104,8 @@ export const ROUTE_NAMESPACES = {
   pregnancyKicks: ['common', 'pregnancyTools'], // B-N5-08 /pregnancy/kicks (Log_Kick)
   pregnancyContractions: ['common', 'pregnancyTools'], // B-N5-08 /pregnancy/contractions (Log_Contraction)
   pregnancyCalendar: ['care', 'common', 'nav', 'pregnancyV2'],
-  pregnancyOnboarding: ['common', 'pregnancy', 'pregnancyV2', 'profileEdit'],
-  pregnancySetup: ['common', 'pregnancy', 'pregnancyV2', 'profileEdit'],
+  pregnancyOnboarding: ['auth', 'common', 'onboarding', 'pregnancy', 'pregnancyV2'],
+  pregnancySetup: ['auth', 'common', 'onboarding', 'pregnancy', 'pregnancyV2'],
   reminders: ['care', 'common'],
   reminderMedForm: ['care', 'common', 'companions', 'pwa'], // pwa: features/push-notifications explainer sheet (medication form only)
   reminderForm: ['care', 'common', 'companions'], // B-N4-06 medication / appointment forms: «ثبت برای چه کسی؟» (entities/companion barrel)

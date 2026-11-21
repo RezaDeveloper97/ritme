@@ -16,11 +16,11 @@ import {
   todayParts,
 } from '@/shared/lib/date';
 import { NumberStepper } from '@/shared/ui';
-import { OnbFrame } from '@/features/auth';
+import { DateRow, OnbFrame } from '@/features/auth';
 import { DateWheels } from '@/features/edit-profile';
 
 import { useSaveOnboardingStep } from '../api/onboarding';
-import { DateRow } from './fields';
+
 import { StepScreen, type StepContext } from './StepScreen';
 
 const HEIGHT = { min: 120, max: 220, fallback: 160 } as const;

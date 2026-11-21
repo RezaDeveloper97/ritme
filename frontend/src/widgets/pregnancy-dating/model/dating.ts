@@ -25,6 +25,18 @@ export interface PregnancyAnswers {
   days: number;
 }
 
+/** A fresh form: ultrasound first, the most accurate basis (nbl_Onb_Preg). */
+export const EMPTY_PREGNANCY_ANSWERS: PregnancyAnswers = {
+  basis: 'ultrasound',
+  lmp: null,
+  scanDate: null,
+  scanWeeks: null,
+  scanDays: 0,
+  dueDate: null,
+  weeks: null,
+  days: 0,
+};
+
 /** Gestational age in days on `today`, or null when the basis is incomplete / impossible. */
 export function gestationalDays(a: PregnancyAnswers, today: Date): number | null {
   let ga: number | null = null;
