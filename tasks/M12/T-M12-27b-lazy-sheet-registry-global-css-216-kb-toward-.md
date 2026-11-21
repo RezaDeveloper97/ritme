@@ -3,10 +3,10 @@ id: T-M12-27b
 title: Lazy sheet registry: global CSS 216 KB toward 114 KB
 milestone: M12
 type: frontend
-status: todo
+status: done
 depends_on: [T-M12-27]
 parallel_group: M12-perf
-touches: [frontend/src/app/sheets, frontend/src/features/log-period, frontend/src/features/skip-period, frontend/src/widgets/voice-log-slot, frontend/src/screens/log, frontend/src/screens/home,frontend/src/app/layout.tsx,frontend/src/app/ModuleRouteGate.tsx,frontend/CLAUDE.md,.claude/skills/verify-all/SKILL.md,frontend/scripts/check-bundle-size.mjs,docs/quality-2026-11/perf.md]
+touches: [frontend/src/app/sheets, frontend/src/features/log-period, frontend/src/features/skip-period, frontend/src/widgets/voice-log-slot, frontend/src/screens/log, frontend/src/screens/home,frontend/src/app/[locale]/layout.tsx, frontend/src/app/LazyGlobals.tsx, frontend/src/app/ModuleOff.tsx,frontend/src/app/ModuleRouteGate.tsx,frontend/CLAUDE.md,.claude/skills/verify-all/SKILL.md,frontend/scripts/check-bundle-size.mjs,docs/quality-2026-11/perf.md]
 skills: []
 verify: cd frontend && npm run build && npm run check:bundle && npm run lint:styles && npm run lint:dark && npm run test
 ---

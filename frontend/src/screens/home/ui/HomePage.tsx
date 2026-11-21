@@ -65,8 +65,8 @@ import {
   writeLifeModeHint,
   type LifeMode,
 } from '@/entities/user';
-import { useEndPeriod, useStartPeriod } from '@/features/log-period';
-import { canOfferSkip, SkipUndo } from '@/features/skip-period';
+import { PeriodDateEditor, useEndPeriod, useStartPeriod } from '@/features/log-period';
+import { canOfferSkip, SkipPeriodSheet, SkipUndo } from '@/features/skip-period';
 import { getApiErrorCode } from '@/shared/api';
 import { Link, useRouter, type Locale } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
@@ -154,8 +154,7 @@ const TeenHome = dynamic(() => import('@/widgets/teen-home').then((m) => m.TeenH
 const LinkedTeenCards = dynamic(() => import('@/widgets/linked-teen-card').then((m) => m.LinkedTeenCards), { loading: () => null });
 const HomeLabCards = dynamic(() => import('@/widgets/home-lab-cards').then((m) => m.HomeLabCards), { loading: () => null });
 const QuickEditSheet = dynamic(() => import('@/features/edit-profile').then((m) => m.QuickEditSheet), { loading: () => null });
-const PeriodDateEditor = dynamic(() => import('@/features/log-period').then((m) => m.PeriodDateEditor), { loading: () => null });
-const SkipPeriodSheet = dynamic(() => import('@/features/skip-period').then((m) => m.SkipPeriodSheet), { loading: () => null });
+// PeriodDateEditor / SkipPeriodSheet are lazy wrappers exported by their feature barrels (T-M12-27b).
 
 /** True from the first time `open` was true — a lazy sheet is not fetched before it is first needed, and stays mounted for its close animation. */
 function useEverOpened(open: boolean): boolean {

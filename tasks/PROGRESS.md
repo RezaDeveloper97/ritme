@@ -3197,3 +3197,13 @@ Nothing needed fixing.
   comment hid ~15 KB of HomePage). Mutation-checked (5 mutants).
 - No raw keys on cycle/TTC/menopause/teen homes, light + dark.
 - Open: `care` and `plus` still whole (needs literal keys in widgets/today-reminders and plus-trial-sheet).
+
+## T-M12-27b — Lazy sheet registry: global CSS toward 114 KB
+- CSS every route downloads 216.0 → 150.0 KB (153,553 B); /fa/home JS 386 → 376 KB gz, /fa/log JS 375 → 334 KB gz.
+- Lazy: last static sheets in the registry (article warmed on idle), `app/LazyGlobals.tsx` (notification/billing/session
+  sync, pending consents, AI gate sheet, install prompt), `ModuleOff.tsx`; `PeriodDateEditor`/`SkipPeriodSheet`/
+  `VoiceLogGated` exported as lazy wrappers from their barrels; `useVoiceLocked` → `widgets/voice-log-slot/model`.
+- Budgets: global 165 KB, heaviest route 342 KB, home JS 404 KB, log JS 359 KB. 18 before/after pairs ≤ 4 px diff.
+- `frontend/CLAUDE.md` §10.1 and verify-all (`npm run build && npm run check:bundle`) updated.
+- Open: `cal-`/`osheet-`/`pad-`/`fld-`/`jcal-` stay global (rendered by shared/ui + AppSheet); ~30 KB more via
+  `features/app-lock` → `LockScreen` → `entities/health-record` (lab/rec CSS) — a lazy card there would save it.

@@ -546,7 +546,13 @@ Env: `E2E_API_URL` (http://127.0.0.1:8020), `E2E_WEB_PORT` (3100), `E2E_BASE_URL
 ### 10.1 No inline styles
 
 `style={{ … }}` is **not** how this app is styled. Every static rule belongs in
-a class in `src/app/globals.css`.
+a class — in `src/app/globals.css` (tokens, base, shell, shared primitives) **or** in the CSS file of the slice
+that renders it (`<slice>/ui/<prefix>.css`, or `shared/ui/styles/<prefix>.css` for a family several slices
+use), imported by every file that renders the family (T-M12-27). Keep screen CSS out of `globals.css`:
+everything the root layout reaches statically is downloaded by **every** route, and layout-reachable CSS loads
+*before* `globals.css`, so it must win by specificity, not by source order (cascade ties go to `globals.css`).
+Do not import a sheet/screen/feature barrel from the layout: use `next/dynamic` (`app/sheets/registry.tsx`,
+`app/LazyGlobals.tsx`). `npm run check:bundle` (after `npm run build`) enforces the budgets.
 
 Why this is a hard rule and not a preference:
 

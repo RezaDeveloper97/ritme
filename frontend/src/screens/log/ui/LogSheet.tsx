@@ -1,18 +1,12 @@
 'use client';
 
-import { LogDay, LogDaySheetTitle, type VoiceLogSlot } from '@/features/log-day';
-import dynamic from 'next/dynamic';
+import { LogDay, LogDaySheetTitle } from '@/features/log-day';
 
-import { useAiGate } from '@/features/ai-gate';
 import { closeSheet, type SheetContentProps } from '@/shared/sheet';
-import { Skeleton } from '@/shared/ui';
 import { BodyMap } from '@/widgets/body-map';
+import { useVoiceLocked, VoiceLogGated } from '@/widgets/voice-log-slot';
 import { LogSheet as CompanionLogSheet, LogSheetTitle as CompanionLogSheetTitle, useNavMode } from '@/widgets/bottom-nav';
 import { LogLater } from '@/widgets/log-later';
-
-// T-M12-28: the recorder, the AI gate wiring and the voice manifest load when the voice tab first renders, not with the sheet.
-// (`useVoiceLocked` lives in the same module as the slot, so the sheet asks the gate itself.)
-const VoiceLogGated = dynamic(() => import('@/widgets/voice-log-slot').then((m) => m.VoiceLogGated as VoiceLogSlot), { loading: () => <Skeleton shape="card" /> });
 
 /**
  * `?sheet=log` — the nav FAB, home «ثبت امروز» and calendar «ثبت جزئیات» (B-N3-03). `arg` is the day to
@@ -25,7 +19,7 @@ export function LogSheet({ arg }: SheetContentProps) {
   const [date, focusKey] = (arg ?? '').split(':');
   const focus = focusKey && /^[a-z_]{1,40}$/.test(focusKey) ? focusKey : undefined;
   const nav = useNavMode();
-  const voiceLocked = useAiGate('voice_log').status === 'no_subscription';
+  const voiceLocked = useVoiceLocked();
   if (nav.mode === 'companion') return <CompanionLogSheet />;
   return (
     <LogDay

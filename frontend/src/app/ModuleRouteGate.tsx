@@ -1,13 +1,13 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import dynamic from 'next/dynamic';
 import type { ReactNode } from 'react';
 
 import { moduleOfRoute, useAppModulesQuery } from '@/entities/app-module';
-import { useLifeStage } from '@/entities/user';
-import { usePathname, useRouter } from '@/shared/i18n';
-import { EmptyState, PrimaryButton } from '@/shared/ui';
-import '@/shared/ui/styles/module.css';
+import { usePathname } from '@/shared/i18n';
+
+// The «not available» card (and its CSS) loads only when a module is actually off (T-M12-27b).
+const ModuleOff = dynamic(() => import('./ModuleOff').then((m) => m.ModuleOff), { ssr: false });
 
 /**
  * Deep links into a module the admin switched off (GET /modules) show a «not available» card instead of the
@@ -20,22 +20,4 @@ export function ModuleRouteGate({ children }: { children: ReactNode }) {
   const owner = moduleOfRoute(pathname);
   if (!owner || !modules.data || modules.data[owner]) return <>{children}</>;
   return <ModuleOff />;
-}
-
-function ModuleOff() {
-  const t = useTranslations('common.moduleOff');
-  const router = useRouter();
-  const life = useLifeStage();
-  // A companion account's home is the companion panel itself, so it gets no way «back» into the same card.
-  const showHome = !life.data?.companion;
-  return (
-    <main className="module-off">
-      <EmptyState
-        icon="lock"
-        title={t('title')}
-        body={t('body')}
-        action={showHome ? <PrimaryButton onClick={() => router.replace('/home')}>{t('home')}</PrimaryButton> : undefined}
-      />
-    </main>
-  );
 }

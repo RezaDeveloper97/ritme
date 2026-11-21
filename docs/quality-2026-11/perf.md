@@ -224,3 +224,22 @@ The HTML/RSC deltas are smaller in percent because they include everything else 
 **Tests and mutation checks.** `scope.test.ts` (pick: whole, subtree, siblings merge, overlap in both orders, missing path/namespace, source untouched, un-asked subtree absent) and `message-scopes.test.ts` (key finder cases incl. negatives: `format(t)` widens, `obj.t('y')` ignored, `t={t}` to a same-file component does not widen but to an imported one does; `stripComments` cases). Mutations run, each failed the named test, then reverted: drop `menopause.stages` from home (`home: every key its screen reads is inside its scope`); `menopause.home` → `menopause` (heavy-namespace test) and drop `home.title` (coverage); add a typo entry `home.skipp` (dead/misspelled entry); the old naive comment stripper (`stripComments` blind-spot test and `home.days` dead-entry check).
 
 **Manual** (production build, Go API `CYCLE_ENGINE=v6`, private DB `ritme_t29`, contract fixtures, 430 px viewport, light + dark): raw `namespace.key` text (the `e2e/support/raw-keys.ts` detector regex) over `document.body.innerText` plus `MISSING_MESSAGE` console errors: cycle, TTC, menopause and teen homes (`/fa/home`) 0 raw keys / 0 intl errors in light and dark; the pregnancy and postpartum personas redirect to `/fa/pregnancy` and `/fa/postpartum` (their own routes, not changed here) and were clean too. The first draft of the list did show `home.ring.cycleDay` / `home.nb.lateTextLong` on the cycle home — the stripper blind spot above. Screenshots were kept in the session scratchpad, not in the repo.
+
+## T-M12-27b — lazy sheet registry, lazy layout gates, split barrels
+
+Production build, `npm run check:bundle -- --report`, minified CSS / gzip JS.
+
+| | before (HEAD) | after |
+|---|---:|---:|
+| CSS every route downloads | 221,213 B (216.0 KB) | 153,553 B (150.0 KB) |
+| heaviest route CSS (`/fa/home`) | 359,773 B (43 files) | 318,303 B (36 files) |
+| `/fa/home` first-load JS (gzip) | 386,378 B | 375,649 B |
+| `/fa/log` first-load JS (gzip) | 374,726 B | 334,047 B |
+
+Lazy now: `ArticleSheet` and `MarkDoneTitle` (the last two static sheet imports; the article chunk is warmed on idle by `SheetHost`); in the root layout `NotificationSync`, `StoreBillingSync`, `SessionRefresher`, `PendingConsentsSheet`, `AiGateSheet`, `InstallPrompt` (`app/LazyGlobals.tsx`, `ssr:false`) and the «module off» card (`ModuleOff.tsx`). `PeriodDateEditor` and `SkipPeriodSheet` are exported by their feature barrels as `next/dynamic` wrappers (`ui/*Lazy.tsx`), `VoiceLogGated` likewise (`voice-log-slot`), and `useVoiceLocked` moved to `voice-log-slot/model/useVoiceLocked.ts`, so `screens/log` imports the hook without the recorder.
+
+Still in the global CSS besides `globals.css` (117 KB): `lab.css` 19.7 KB + `rec.css` 9.7 KB (+`ecard`) via `features/app-lock` -> `LockScreen` -> `entities/health-record` barrel, `lk.css` (app-lock), `pwa.css` (`UpdateGate` shares the `shared/pwa` barrel), `ruler/rp` (`shared/ui` barrel via `AppSheet`). Those barrels are outside this task's touches; making `LockScreen`'s record card lazy would take another ~30 KB off.
+
+`cal-`/`osheet-`/`pad-`/`fld-`/`jcal-` were NOT moved out of `globals.css`: they are reached from `shared/ui` (CalendarPicker, LocaleNumberField, NumberStepper) and `shared/sheet` (AppSheet), both still layout-reachable, so a slice stylesheet would again load before `globals.css`.
+
+Pixel check (production build, 430 px, light + dark, persona regular, home, calendar, log, `?sheet=log|lab-consent|quick-access|notifications|info:privacy`, `/plus/plans`, before = HEAD build): all 18 shots identical or differing by < 4 pixels (animation frame noise). The lazily loaded pending-consents sheet was also checked styled.

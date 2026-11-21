@@ -14,7 +14,7 @@
  *   2. heaviest route CSS — global + that route's own CSS, the worst page, minified bytes.
  *   3. first-load JS of /fa/home and /fa/log — gzip bytes of the scripts in the page HTML (what Next prints as "First Load JS").
  *
- * Budgets = the measured value at T-M12-27 × 1.1. Raise one only with a reason in docs/quality-2026-11/perf.md.
+ * Budgets = the measured value at T-M12-27b × 1.1. Raise one only with a reason in docs/quality-2026-11/perf.md.
  */
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
@@ -24,12 +24,12 @@ const ROOT = resolve(new URL('..', import.meta.url).pathname);
 const NEXT = join(ROOT, '.next');
 const PAGES = join(NEXT, 'server', 'app', 'fa');
 
-/** Bytes. CSS measured at T-M12-27, JS at T-M12-28 (see docs/quality-2026-11/perf.md) × 1.1, rounded up to 1 KB. */
+/** Bytes. Measured at T-M12-27b (lazy sheet registry / layout gates / split barrels) × 1.1, rounded up to 1 KB (docs/quality-2026-11/perf.md). */
 const BUDGET = {
-  globalCss: 243_712, //          measured 221_148
-  heaviestRouteCss: 411_648, //   measured 373_777 (/fa/home)
-  homeFirstLoadJsGzip: 423_936, // measured 385_062 at T-M12-28 (was 427_339 / budget 457_728)
-  logFirstLoadJsGzip: 410_624, //  measured 372_902 at T-M12-28 (was 407_211)
+  globalCss: 168_960, //          measured 153_553 (was 221_213 at T-M12-27)
+  heaviestRouteCss: 350_208, //   measured 318_303 (/fa/home)
+  homeFirstLoadJsGzip: 413_696, // measured 375_652
+  logFirstLoadJsGzip: 367_616, //  measured 334_050
 };
 
 const REPORT = process.argv.includes('--report');
