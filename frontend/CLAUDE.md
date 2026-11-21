@@ -501,6 +501,26 @@ violations each file still carries, and the gate fails only when a file goes
 
 ---
 
+
+### Browser smoke (Playwright, T-M12-25)
+
+`npm run e2e` (= `npx playwright test`) drives the main routine in a real browser, light and dark (fa): login by OTP →
+onboarding → log a period through the log sheet → home ring «روز ۱» → calendar marks today. Selectors are the autopilot
+`pilot()` names; every page is checked for raw `namespace.key` text (`e2e/support/raw-keys.ts`). Specs are
+`e2e/*.e2e.ts` (vitest never runs them). It needs a LOCAL stack, never `ritme_test`:
+
+1. A private DB: `CREATE DATABASE ritme_e2e` on the docker test stack, goose up, plus the personal-access
+   `oauth_clients` row (local-dev skill §2a).
+2. backend-go on it: `SMS_PROVIDER=log CYCLE_ENGINE=v6 DB_DATABASE=ritme_e2e HTTP_ADDR=:8020
+   CORS_ALLOWED_ORIGINS=http://localhost:3100 make run` (another port + `E2E_API_URL` if 8020 is busy).
+3. `cd frontend && npm run e2e` — starts `next dev -p 3100` itself (or reuses one); the OTP is read from
+   `otp_verifications`.
+
+Env: `E2E_API_URL` (http://127.0.0.1:8020), `E2E_WEB_PORT` (3100), `E2E_BASE_URL`, `E2E_DB_NAME` (ritme_e2e),
+`E2E_DB_CLI`, `E2E_BROWSER_CHANNEL` (`chrome` locally; CI installs Playwright's chromium). One worker on purpose
+(send-otp 5/min per IP). Keep `outputDir` outside `frontend/` (next dev reloads on writes inside it). CI: job
+`e2e-smoke`, nightly / on demand only.
+
 ## 10. Code conventions
 
 - **Components:** function components only. Presentational components take props

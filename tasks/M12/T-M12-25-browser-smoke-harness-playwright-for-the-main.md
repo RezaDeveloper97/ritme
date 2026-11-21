@@ -3,10 +3,10 @@ id: T-M12-25
 title: Browser smoke harness (Playwright) for the main routine against the local stack
 milestone: M12
 type: frontend
-status: todo
+status: done
 depends_on: [T-M12-15, T-M12-12]
 parallel_group: M12-TEST
-touches: [frontend/e2e, frontend/playwright.config.ts, frontend/package.json, .github/workflows/ci.yml]
+touches: [frontend/CLAUDE.md, frontend/e2e, frontend/playwright.config.ts, frontend/package.json, .github/workflows/ci.yml]
 skills: [local-dev, run]
 verify: cd frontend && npx playwright test
 ---

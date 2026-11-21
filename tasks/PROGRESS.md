@@ -3142,3 +3142,10 @@ Nothing needed fixing.
   401 untagged); mutation (path-keyed cache) → 4 tests red. web_home k6 sends If-None-Match + 304 metrics (not run).
 - Contract content/logs/healthlog/learning/teen: 155 passed; 3 teen failures pre-existing (same with ByBody off):
   `teen/parent_link_card`, `teen/accept_after_mode_change.{none,en}` — not caused here, to triage.
+
+## T-M12-25 — Browser smoke harness (Playwright)
+- `@playwright/test` 1.51.1 (next 15.5.29 peer), `npm run e2e`; specs `frontend/e2e/*.e2e.ts`: main routine light +
+  dark (OTP login from DB → onboarding → log period via log sheet → ring «روز ۱» → calendar today), wrong OTP / short
+  phone negatives, raw-key detector (unit + injected on the live page). Selectors = pilot names. Local: 6 passed.
+- Private DB `ritme_e2e`; system Chrome locally, Playwright chromium in CI; job `e2e-smoke` in ci.yml nightly/manual
+  (boot time unproven until the first run). How-to in frontend/CLAUDE.md §9.
