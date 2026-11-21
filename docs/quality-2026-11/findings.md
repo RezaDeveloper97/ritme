@@ -69,3 +69,60 @@ error); the 297 `*_int_test.go` files skip silently without `TEST_DB_DSN`. vites
 | T-09 | Push dedupe only tested single-tick; no concurrent ticks / retry-after-fail. | T-M12-22 |
 | T-10 | Kill-switch checked for one module only; a new ungated route would pass. | T-M12-18 |
 | T-11 | No frontend test for several requests hitting a 401 at once. | T-M12-23 |
+
+## Resolution
+
+Closed 2026-11-21 (T-M12-40). Commits are on `stage`; "accepted" = user decision recorded in the task.
+
+| ID | Status | Evidence |
+|---|---|---|
+| S-01 | fixed + accepted | `beee050a` per-number send caps, failure lockout, /64 limiters; code stays 4 digits (user, 2026-11-18, D-211) |
+| S-02 | fixed | `beee050a` atomic send lock |
+| S-03 | fixed in code, **deploy pending** | `e0d39775` Arvan real-IP + `$remote_addr` only on beta/stage, `TRUSTED_PROXIES` (T-M12-02 blocked on the user's deploy OK) |
+| S-04 | fixed in code, deploy pending | `e0d39775` stage gate exempts exact docker subnets only |
+| S-05 | fixed in code, deploy pending | `e0d39775` `Secure` gate cookie (`vhost-instructor-stage.inc` still without — open) |
+| S-06 | fixed, **server setup pending** | `f770cb23` signed commits from an allow-listed key, verified on the server; `adf662a4` builds the verified SHA |
+| S-07 | fixed | `6caef802` next/postcss; `c8624f13` zod 4, next-intl 4, Playwright 1.56; audit gate `--audit-level=high` |
+| S-08 | fixed in code, deploy pending | `6caef802` laravel-site composer updates (laravel-site deploy not run) |
+| S-09 | fixed | `f10c332b` offline downloads + cache purged on session end |
+| S-10 | fixed | `c8a2f17a` step-up OTP for delete + full export, throttles, export concurrency cap (D-213; old clients get 403) |
+| S-11 | fixed | `c8a2f17a` `/docs` failure budget per /64 |
+| S-12 | fixed, **server check pending** | `6a6d15f3` APP_KEY removed from examples; user to confirm server keys differ |
+| S-13 | fixed | `6a6d15f3` production refuses the contract Passport key; secret-scan CI job |
+| S-14 | fixed | `28b7f2e8` 31 confirm targets + regex guard |
+| S-15, S-16, S-17 | moved | T-M12-09 (production edge, blocked on purpose until cutover) |
+| P-01 | fixed | `39835708`, `3f2d3af5` global CSS 793 → 150 KB per route; `check:bundle` gate |
+| P-02, P-03 | fixed | `80303c01`, `3f2d3af5` lazy autopilot engine, voice slot, mode homes, sheets |
+| P-04 | fixed | `1500e02e` home messages 146 → 56 KB |
+| P-05 | fixed (k6 not run) | `30e2c44a`, `a48fbcc9`, `3e33c767` 14 budget rows, `web_home.js`, pregnancy today 21 → 7 warm |
+| P-06 | fixed | `78046735`, `f0b026cb` batched day save 36 → 15 queries, revision manifest |
+| P-07, P-08 | fixed | `3dbee932` listing index 00131, bounded appointment/chat reads |
+| P-09 | fixed | `21c56316` ring months in parallel (critical path 3 → 2) |
+| P-10 | fixed | `d09d40a3` body-hash ETag on 7 routes |
+| P-11 | moved | T-M12-35 (depends on T-M12-02) |
+| T-01 | fixed | `b49463f0` CI race + integration on MariaDB/Redis services |
+| T-02 | fixed | `ee2bf6e1` vitest blocking, admin-web tests, coverage reports |
+| T-03 | fixed | `2bb5f3cf`, `afa55038`, `9229dbc7` delete completeness (FKs 00129, Redis keys incl. engine/analysis caches, admin path) |
+| T-04 | fixed | `62712fe0`, `f9baeaf0` export covers all 177 user tables, column guard |
+| T-05 | fixed | `b932c30e`, `0f56588e`, `de04b059`, `f30775d3`, `a6c1138a` routine flows; `68d63114` Playwright smoke (CI job not yet run) |
+| T-06 | fixed | `5168f3c7`, `07cc4024`, `1c8c5cde`, `64dbfc4b` credit boundaries, lock order, ai-gate tests |
+| T-07 | fixed | `b75e6858`, `02ec2bb6` pinned clocks, `make lint-tests` |
+| T-08 | fixed | `ddb8c04e`, `61512258`, `2816c6cf` leap day, care + SMS on the user's zone |
+| T-09 | fixed | `030d4b16`, `17520093` concurrent ticks, retry after a passing failure |
+| T-10 | fixed | `a6c1138a` every route checked against the kill switch |
+| T-11 | fixed | `64dbfc4b` concurrent 401s |
+
+### Re-audit (independent security-auditor on `0e84f3f2..HEAD`, 2026-11-21)
+
+| ID | Sev | Finding | Status |
+|---|---|---|---|
+| R-01 | High | Account delete left `ana:{uid}` (analysis bodies, 24 h), `eng:in:{uid}` (engine inputs, 7 d — found while fixing) and `preg-alerts:eval:{uid}` in Redis | fixed `9229dbc7` |
+| R-02 | Medium | Per-number OTP caps let anyone who knows a number block her login codes for up to 24 h | **open — user decision** |
+| R-03 | Medium | SMS reminder cap reopened by hopping `X-Timezone` | fixed `ce339c87` (rolling 24 h ceiling = 2 × cap) |
+| R-04 | Low | Autodeploy verified a SHA but built the ref | fixed `adf662a4` |
+| R-05 | Low | Stage SSR exemption covers every container on `ritme-edge` | open (narrow to the frontend /32 with T-M12-02 deploy) |
+| R-06 | Low | Prod still without step-up and real-IP | moved T-M12-09 |
+| R-07 | Low | Fixture-key refusal only when `APP_ENV` is exactly `production` | open — check stage/beta env values |
+
+Full suite after the fixes: `make test-race-docker` 179 packages ok; the two red packages (revision manifest missing
+the T-M12-31 batch queries; a build race with an in-flight edit) fixed in `f0b026cb` and re-run green.
