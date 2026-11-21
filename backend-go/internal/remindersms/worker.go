@@ -167,6 +167,7 @@ func (w *Worker) Tick(ctx context.Context, now time.Time) (int, error) {
 		prefs  notifications.Preferences
 		mobile string
 		sent   int // SMS of today, this tick included
+		recent int // SMS of the last 24 hours, this tick included (zone-independent ceiling)
 		taken  map[civildate.Date][]store.ListIntakesOnDateRow
 	}
 	states := map[uint64]*userState{}
@@ -204,9 +205,19 @@ func (w *Worker) Tick(ctx context.Context, now time.Time) (int, error) {
 				return sent, fmt.Errorf("remindersms: count: %w", err)
 			}
 			u.sent = int(count)
+			// The local day follows the stored zone, which the client's X-Timezone sets: hopping between +14 and
+			// -12 would move "today" and reopen the cap. A rolling 24 h ceiling of twice the cap (the legitimate
+			// maximum around one local midnight) bounds it whatever the zone does (M12 re-audit).
+			recent, err := w.q.CountReminderSMSSince(ctx, store.CountReminderSMSSinceParams{
+				UserID: d.userID, SentAt: now.Add(-24 * time.Hour).In(civildate.Tehran),
+			})
+			if err != nil {
+				return sent, fmt.Errorf("remindersms: count 24h: %w", err)
+			}
+			u.recent = int(recent)
 			states[d.userID] = u
 		}
-		if u.mobile == "" || !u.prefs.Enabled(notifications.SMSReminders) || u.sent >= w.dailyCap ||
+		if u.mobile == "" || !u.prefs.Enabled(notifications.SMSReminders) || u.sent >= w.dailyCap || u.recent >= 2*w.dailyCap ||
 			!notifications.Decide(u.prefs, d.category, d.at, time.Time{}).Send {
 			continue
 		}
@@ -236,6 +247,7 @@ func (w *Worker) Tick(ctx context.Context, now time.Time) (int, error) {
 			return sent, fmt.Errorf("remindersms: mark sent: %w", err)
 		}
 		u.sent++
+		u.recent++
 		sent++
 	}
 	return sent, nil

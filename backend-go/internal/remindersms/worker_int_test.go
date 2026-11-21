@@ -3,6 +3,7 @@ package remindersms_test
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"io"
 	"log/slog"
 	"testing"
@@ -181,6 +182,32 @@ func TestTick_DailyCapResetsAtLocalMidnight(t *testing.T) {
 	assert.Equal(t, []string{"09120000204 00:10"}, tick(tehran(24, 0, 10)), "Berlin 22:40 capped: still her 23rd")
 	assert.Equal(t, []string{}, tick(tehran(24, 0, 20)), "Tehran: capped")
 	assert.Equal(t, []string{"09120000203 00:10"}, tick(tehran(24, 1, 40)), "her 24th: a new day")
+}
+
+// The local-day cap follows the stored zone, which the client sets; a rolling 24 h ceiling of 2 × cap holds whatever the
+// zone does. Cap 1, a Tehran user, 08:00 dose: with two SMS yesterday afternoon (outside today, inside 24 h) the dose is
+// held; with one it goes out (the boundary: 2 × cap is the legitimate maximum around one midnight).
+func TestTick_RollingCeilingIndependentOfZone(t *testing.T) {
+	for _, tc := range []struct {
+		earlier int
+		want    int
+	}{{1, 1}, {2, 0}} {
+		e := setup(t)
+		ctx := context.Background()
+		uid := e.user(t, "09120000206", "", false)
+		e.med(t, uid, `["08:00"]`)
+		var rid uint64
+		require.NoError(t, e.db.QueryRow(`SELECT id FROM reminders WHERE user_id = ?`, uid).Scan(&rid))
+		for i := range tc.earlier {
+			_, err := e.db.Exec(`INSERT INTO reminder_sms (user_id, reminder_id, occurrence, sent, sent_at) VALUES (?, ?, ?, 1, ?)`,
+				uid, rid, fmt.Sprintf("old-%d", i), time.Date(2026, 9, 23, 13+i, 0, 0, 0, civildate.Tehran))
+			require.NoError(t, err)
+		}
+		f := remindersms.NewFake(quiet)
+		sent, err := e.worker(f, 1).Tick(ctx, time.Date(2026, 9, 24, 8, 0, 30, 0, civildate.Tehran))
+		require.NoError(t, err)
+		assert.Equal(t, tc.want, sent, "%d SMS in the last 24 h", tc.earlier)
+	}
 }
 
 // Quiet hours on her clock: 22:30 Berlin is 00:00 Tehran — inside Tehran's default 23:00–08:00, outside hers.

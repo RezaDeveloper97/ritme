@@ -234,7 +234,8 @@ itself stays free (in-app, Web Push, shell alarm) — SPEC §4.3 still holds; on
   scheduled appointment at `scheduled_at − remind_before`.
 - Gate, per SMS: the user's `sms_reminders` switch (notification settings, default on) → the category switch
   («داروها» / «نوبت پزشک») and quiet hours (`notifications.Decide`; a reminder in quiet hours is dropped) → the
-  per-day cap (`REMINDER_SMS_DAILY_CAP`, default 8) → «متن خنثی»: the neutral gateway template, and no SMS at all
+  per-day cap (`REMINDER_SMS_DAILY_CAP`, default 8, counted from the user's local midnight) plus a rolling 24 h ceiling
+  of twice the cap (the stored zone comes from `X-Timezone`, so the local day alone could be reopened by zone hops) → «متن خنثی»: the neutral gateway template, and no SMS at all
   when `KAVENEGAR_TEMPLATE_REMINDER_NEUTRAL` is unset.
 - Dedupe: `reminder_sms` (goose 00122 + Laravel twin), one row per reminder occurrence, claimed with INSERT IGNORE.
 - Off by default: `REMINDER_SMS_PROVIDER=none`. `gateway` uses Kavenegar verify/lookup with the OTP credentials and
