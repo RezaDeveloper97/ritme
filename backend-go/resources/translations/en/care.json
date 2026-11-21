@@ -70,15 +70,8 @@
   "appointments": {
     "title": "Appointments & consultations",
     "empty": "No appointments yet.",
-    "rowMeta": "{time} · {kind} · {place}",
-    "rowMetaNoPlace": "{time} · {kind}",
-    "kindShort": {
-      "in_person": "In person",
-      "phone": "Phone",
-      "online": "Online"
-    },
-    "add": "Add an appointment",
-    "rowMetaNoTime": "{kind} · {place}"
+    "rowMeta": "{time} · {place}",
+    "add": "Add an appointment"
   },
   "chooser": {
     "title": "What should I remind you about?",
@@ -178,11 +171,6 @@
     "title": "Add doctor's appointment",
     "editTitle": "Edit appointment",
     "subtitle": "Doctor's appointment or consultation",
-    "kinds": {
-      "in_person": "In-person visit",
-      "phone": "Phone consultation",
-      "online": "Online consultation"
-    },
     "with": "With whom?",
     "withPlaceholder": "Doctor or counsellor name",
     "specialty": "Specialty",
@@ -214,10 +202,6 @@
     "prepPlaceholder": "e.g. previous test results, insurance booklet…",
     "save": "Save appointment",
     "saving": "Saving…",
-    "placeOnline": "Meeting link",
-    "placePhone": "Phone number",
-    "placeOnlinePlaceholder": "Skyroom, Google Meet link…",
-    "placePhonePlaceholder": "The number they will call",
     "shortDescriptionPlaceholder": "e.g. NT scan",
     "pickDate": "Pick a date",
     "pickTime": "Pick a time",

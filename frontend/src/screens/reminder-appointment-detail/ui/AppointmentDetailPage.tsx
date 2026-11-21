@@ -4,7 +4,7 @@ import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
-import { type Appointment, type AppointmentKind, useAppointment } from '@/entities/care-reminder';
+import { type Appointment, useAppointment } from '@/entities/care-reminder';
 import { useUserMode } from '@/entities/message';
 import { usePregnancyStatus } from '@/entities/pregnancy';
 import {
@@ -37,12 +37,6 @@ import {
   splitScheduled,
   weekdayOf,
 } from '../model/detail';
-
-const KIND_ICON: Record<AppointmentKind, IconName> = {
-  in_person: 'doctor',
-  phone: 'phone',
-  online: 'video',
-};
 
 /**
  * Appointment detail (`v13_AppointmentDetail`): countdown header, hero card,
@@ -129,8 +123,6 @@ function Detail({ appt }: { appt: Appointment }) {
       : null;
   const maps = mapsHref(appt);
   const topic = tf(`topics.${appt.topic}`);
-  const placeLabel =
-    appt.kind === 'online' ? tf('placeOnline') : appt.kind === 'phone' ? tf('placePhone') : td('place');
   const fires = when ? reminderMoment(when, appt.remindBefore) : null;
   const weekday = when ? weekdayOf(when.date) : null;
   // «در خصوص» is the appointment's own text: title, then the note (as in the artboard).
@@ -165,10 +157,6 @@ function Detail({ appt }: { appt: Appointment }) {
         <div className={clsx('rmd-body', cancelled && 'opacity-60')}>
           <section className="apd-hero">
             <div className="apd-hero-top">
-              <span className="apd-pill">
-                <Icon name={KIND_ICON[appt.kind]} size={14} strokeWidth={1.8} />
-                {tf(`kinds.${appt.kind}`)}
-              </span>
               {week !== null && (
                 <span className="apd-pill">{td('pregnancyWeek', { week: formatNumber(week, locale) })}</span>
               )}
@@ -206,10 +194,10 @@ function Detail({ appt }: { appt: Appointment }) {
             {appt.location && (
               <div className="rmd-row">
                 <span className="rmd-tile is-info" aria-hidden>
-                  <Icon name={appt.kind === 'online' ? 'video' : appt.kind === 'phone' ? 'phone' : 'mapPin'} size={18} />
+                  <Icon name="mapPin" size={18} />
                 </span>
                 <span className="rmd-row-body">
-                  <span className="rmd-row-meta">{placeLabel}</span>
+                  <span className="rmd-row-meta">{td('place')}</span>
                   <span className="rmd-row-title" dir="auto">{appt.location}</span>
                 </span>
                 {maps && (

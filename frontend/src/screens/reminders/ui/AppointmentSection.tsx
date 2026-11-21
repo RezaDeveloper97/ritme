@@ -1,6 +1,5 @@
 'use client';
 
-import clsx from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { useAppointments } from '@/entities/care-reminder';
@@ -16,17 +15,14 @@ type T = ReturnType<typeof useTranslations<'care'>>;
 
 function rowMeta(row: AppointmentRowState, t: T, locale: Locale): string {
   const time = row.time ? formatNumber(row.time, locale) : '';
-  const kind = t(`appointments.kindShort.${row.kind}`);
-  if (!time) return row.detail ? t('appointments.rowMetaNoTime', { kind, place: row.detail }) : kind;
-  return row.detail
-    ? t('appointments.rowMeta', { time, kind, place: row.detail })
-    : t('appointments.rowMetaNoPlace', { time, kind });
+  if (!time) return row.detail ?? '';
+  return row.detail ? t('appointments.rowMeta', { time, place: row.detail }) : time;
 }
 
 function DateTile({ row, locale }: { row: AppointmentRowState; locale: Locale }) {
   const parts = row.date ? toParts(fromApiDate(row.date), locale) : null;
   return (
-    <span className={clsx('rmd-date', `is-${row.tone}`)} aria-hidden>
+    <span className={'rmd-date is-amber'} aria-hidden>
       {parts && (
         <>
           <span className="rmd-date-day">{formatNumber(parts.day, locale)}</span>
@@ -52,7 +48,7 @@ export function AppointmentSection() {
       <SectionHead
         id="rmd-appts-title"
         title={t('appointments.title')}
-        addHref="/reminders/appointment/new?kind=in_person"
+        addHref="/reminders/appointment/new"
         addText={t('add')}
         addLabel={t('appointments.add')}
         pilotKey="appointment"

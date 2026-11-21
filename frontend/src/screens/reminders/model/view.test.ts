@@ -133,9 +133,8 @@ describe('sortMedications', () => {
 });
 
 describe('appointmentRowState', () => {
-  it('splits the wall-clock time; in person puts who in the title and the place in the meta', () => {
+  it('splits the wall-clock time; who goes in the title and the place in the meta', () => {
     expect(appointmentRowState(appt())).toMatchObject({
-      tone: 'amber',
       date: '2026-09-30',
       time: '10:30',
       titleWith: 'دکتر احمدی',
@@ -143,13 +142,9 @@ describe('appointmentRowState', () => {
     });
   });
 
-  it('shows who in the meta for a phone or online consultation', () => {
-    expect(appointmentRowState(appt({ kind: 'phone' }))).toMatchObject({ titleWith: null, detail: 'دکتر احمدی' });
-  });
-
-  it('tints consultations teal and falls back to the place', () => {
+  it('treats every kind the same and tolerates missing fields', () => {
     const row = appointmentRowState(appt({ kind: 'online', withWhom: null, scheduledAt: null }));
-    expect(row).toMatchObject({ tone: 'teal', date: null, time: null, detail: 'مطب' });
+    expect(row).toMatchObject({ titleWith: null, date: null, time: null, detail: 'مطب' });
   });
 });
 
