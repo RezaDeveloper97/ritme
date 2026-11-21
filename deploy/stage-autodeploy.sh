@@ -180,7 +180,8 @@ main() {
   git checkout --quiet --force --detach "$new"
   git clean -fdq
 
-  if LOCAL=1 BRANCH="origin/${BRANCH}" ./deploy-stage.sh; then
+  # Build the verified SHA, never the ref: a fetch during the build must not swap in an unverified tip.
+  if LOCAL=1 BRANCH="$new" ./deploy-stage.sh; then
     log "✅ deployed ${new:0:8}"
     echo "$new" > "$STATE_DIR/ok"
   else
