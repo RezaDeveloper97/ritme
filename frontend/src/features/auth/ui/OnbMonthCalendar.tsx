@@ -11,9 +11,11 @@ import {
   formatNumber,
   monthMatrix,
   shiftMonth,
+  toApiDate,
   toParts,
   weekdayLabels,
 } from '@/shared/lib/date';
+import type { PilotAttrs } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
 
 interface MonthCalendarProps {
@@ -27,6 +29,8 @@ interface MonthCalendarProps {
   /** Accessible name of the grid. */
   label: string;
   disabled?: boolean;
+  /** Autopilot name: `pilot('…', 'calendar')`; scripts set it to an ISO date (frontend/CLAUDE.md §11.6). */
+  pilot?: PilotAttrs;
 }
 
 /**
@@ -34,9 +38,9 @@ interface MonthCalendarProps {
  * a period) the following days tinted. Jalali for fa, Gregorian otherwise
  * (CLAUDE.md §7) — every date goes through `shared/lib/date`.
  */
-export function MonthCalendar({ value, onChange, min, max, span = 1, label, disabled }: MonthCalendarProps) {
+export function MonthCalendar({ value, onChange, min, max, span = 1, label, disabled, pilot }: MonthCalendarProps) {
   const locale = useLocale() as Locale;
-  const t = useTranslations('onboarding.flow.calendar');
+  const t = useTranslations('common.calendar');
   const rtl = useDirection() === 'rtl';
   const start = toParts(value ?? max, locale);
   const [view, setView] = useState({ year: start.year, month: start.month });
@@ -48,13 +52,14 @@ export function MonthCalendar({ value, onChange, min, max, span = 1, label, disa
   const canNext = key(view.year, view.month) < key(maxParts.year, maxParts.month);
 
   return (
-    <div className={clsx('nb-card onb2-cal', disabled && 'is-disabled')}>
+    <div className={clsx('nb-card onb2-cal', disabled && 'is-disabled')} {...pilot}>
       <div className="onb2-cal-nav">
         <button
           type="button"
           className="onb2-cal-btn"
           disabled={!canPrev || disabled}
-          aria-label={t('prev')}
+          aria-label={t('prevMonth')}
+          data-pilot-nav="prev"
           onClick={() => setView(shiftMonth(view.year, view.month, -1))}
         >
           <Icon name={rtl ? 'chevronRight' : 'chevronLeft'} size={20} />
@@ -66,7 +71,8 @@ export function MonthCalendar({ value, onChange, min, max, span = 1, label, disa
           type="button"
           className="onb2-cal-btn"
           disabled={!canNext || disabled}
-          aria-label={t('next')}
+          aria-label={t('nextMonth')}
+          data-pilot-nav="next"
           onClick={() => setView(shiftMonth(view.year, view.month, 1))}
         >
           <Icon name={rtl ? 'chevronLeft' : 'chevronRight'} size={20} />
@@ -95,6 +101,7 @@ export function MonthCalendar({ value, onChange, min, max, span = 1, label, disa
                     className={clsx('onb2-cal-day', picked && 'is-picked', inSpan && 'is-span')}
                     aria-pressed={picked}
                     disabled={out || disabled}
+                    data-pilot-option={toApiDate(cell.date)}
                     onClick={() => onChange(cell.date)}
                   >
                     {formatNumber(cell.day, locale)}

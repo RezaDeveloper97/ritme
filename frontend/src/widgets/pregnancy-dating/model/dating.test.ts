@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { addDays, fromApiDate, toApiDate } from '@/shared/lib/date';
 
-import { gestationalDays, pregnancyOnboardingBody, pregnancySummary, type PregnancyAnswers } from './pregnancy';
+import { gestationalDays, pregnancyOnboardingBody, pregnancySummary, type PregnancyAnswers } from './dating';
 
 const today = fromApiDate('2026-10-01');
 const base: PregnancyAnswers = {

@@ -7,6 +7,7 @@ import { clsx } from 'clsx';
 import type { Locale } from '@/shared/i18n';
 import { formatLongDate, formatNumber } from '@/shared/lib/date';
 import { toAsciiDigits } from '@/shared/lib/phone';
+import type { PilotAttrs } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
 
 interface NumFieldProps {
@@ -15,10 +16,12 @@ interface NumFieldProps {
   onChange: (value: number | null) => void;
   min: number;
   max: number;
+  /** Autopilot name of the input (frontend/CLAUDE.md §11.6). */
+  pilot?: PilotAttrs;
 }
 
 /** Label-inside numeric box («هفته ۷», «روز ۳») — locale digits in, clamped number out. */
-export function NumField({ label, value, onChange, min, max }: NumFieldProps) {
+export function NumField({ label, value, onChange, min, max, pilot }: NumFieldProps) {
   const locale = useLocale() as Locale;
   const id = useId();
   return (
@@ -28,6 +31,7 @@ export function NumField({ label, value, onChange, min, max }: NumFieldProps) {
         id={id}
         className="onb2-num-input"
         inputMode="numeric"
+        {...pilot}
         value={value == null ? '' : formatNumber(value, locale)}
         // Typing replaces the number instead of appending to it.
         onFocus={(e) => e.target.select()}
@@ -48,12 +52,14 @@ interface DateRowProps {
   /** Extra at the end of the row («۳۳ سال»). */
   trailing?: ReactNode;
   icon?: 'cake' | 'calendar';
+  /** Autopilot name of the row's toggle (it carries `aria-expanded`). */
+  pilot?: PilotAttrs;
   /** The picker shown under the row while it is open. */
   children: (close: () => void) => ReactNode;
 }
 
 /** A tappable date row that opens its picker inline (no navigation, no sheet). */
-export function DateRow({ label, value, placeholder, trailing, icon, children }: DateRowProps) {
+export function DateRow({ label, value, placeholder, trailing, icon, pilot, children }: DateRowProps) {
   const locale = useLocale() as Locale;
   const panelId = useId();
   const [open, setOpen] = useState(false);
@@ -65,6 +71,7 @@ export function DateRow({ label, value, placeholder, trailing, icon, children }:
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((o) => !o)}
+        {...pilot}
       >
         {icon ? (
           <span className="onb2-daterow-disc" aria-hidden>
