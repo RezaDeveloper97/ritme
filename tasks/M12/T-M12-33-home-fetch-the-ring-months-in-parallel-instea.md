@@ -3,10 +3,10 @@ id: T-M12-33
 title: Home: fetch the ring months in parallel instead of after /cycle/today
 milestone: M12
 type: frontend
-status: todo
+status: done
 depends_on: [T-M12-28]
 parallel_group: M12-PERF
-touches: [frontend/src/screens/home/ui/HomePage.tsx, frontend/src/entities/cycle]
+touches: [frontend/src/screens/home/ui/HomePage.tsx, frontend/src/entities/cycle, docs/quality-2026-11/perf.md]
 skills: [local-dev]
 verify: cd frontend && npm run typecheck && npm test
 ---

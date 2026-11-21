@@ -3181,3 +3181,9 @@ Nothing needed fixing.
   LinkedTeenCards, HomeLabCards, QuickEditSheet, PeriodDateEditor, SkipPeriodSheet via `next/dynamic`.
 - Bundle gate: home budget 414 KB, new /fa/log row 401 KB. `wake.test.ts` (5 cases, mutation-checked).
 - Open (→ T-M12-27b): PeriodDateEditor/SkipPeriodSheet stay first-load until their feature barrels are split.
+
+## T-M12-33 — Home: fetch the ring months in parallel instead of after /cycle/today
+- `useDayMarks` fetches prev/current/next Gregorian month at mount (`useCycleMonths`, same `cycleKeys.month` keys);
+  any ring day outside them adds its month (`homeMonthSet`, `entities/cycle/model/homeMonths.ts`, 7 tests,
+  mutation-checked). Cold /fa/home: October month starts at ~166 ms instead of ~320 ms; critical path 3 → 2.
+- Main session: `monthNext` now `shiftMonth(base, 1)` instead of `base + 31 days` (Jan 31 skipped February).

@@ -76,6 +76,7 @@ export {
   useCycleForDate,
   useCycleStatus,
   useCycleMonth,
+  useCycleMonths,
   useRecalculateCycle,
   fetchCycleToday,
   fetchCycleForDate,
@@ -89,3 +90,5 @@ export {
   cycleOverviewSchema,
 } from './api/overview';
 export type { CycleOverview } from './api/overview';
+export { homeMonthSet, shiftMonth } from './model/homeMonths';
+export type { YearMonth } from './model/homeMonths';

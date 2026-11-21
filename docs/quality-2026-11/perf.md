@@ -184,3 +184,20 @@ Verified in the built HTML/chunks: the autopilot catalog/engine (`user_cancelled
 NOT split yet: `PeriodDateEditor` (chunk 82343) and `SkipPeriodSheet` (in the home page chunk) are still first-load because `HomePage` also imports hooks from the same barrels (`features/log-period`, `features/skip-period`), and webpack keeps every re-exported module of a barrel with side effects. Fix needs those barrels split (outside this task's touches).
 
 Gate: budgets now home 423,936 B and log 410,624 B (measured x 1.1).
+
+## T-M12-33 — Home: ring months fetched in parallel (P-09)
+
+**Change.** `useDayMarks` (HomePage) no longer derives its months from the week strip + ring dates (the ring dates exist only after `/cycle/today`). It now requests previous, current and next Gregorian month at mount through `useCycleMonths` (`useQueries`, same `cycleKeys.month` key + `fetchCycleMonth` as `useCycleMonth`, so cache and in-flight requests are shared). The month set comes from the pure `homeMonthSet` (`entities/cycle/model/homeMonths.ts`); a day outside prev/current/next (long cycle, late period, pregnancy) still adds its own month (fallback), so correctness holds. "Current" is `gregYearMonth(today())` — the same helper the code used before (API months are Gregorian).
+
+**Measurement.** CDP (Playwright + Chrome, fresh context per run, 3 runs each), cold `/fa/home`, production build, +150 ms latency on every request, Go API `CYCLE_ENGINE=v6`, private DB `ritme_t33` (dropped afterwards). Persona: last period 2026-10-20, today 2026-11-21 (cycle day 33, late; ring reaches back into October). Non-preflight API requests in the first 4 s.
+
+| | before | after |
+|---|---|---|
+| `/cycle/month` requests | 3 (Nov, Dec, Oct) | 3 (Nov, Dec, Oct) |
+| all API requests | 32 | 32 |
+| October month start (ms after first request) | ~320 (after `/cycle/today` ended at ~316) | ~166 (parallel with `/cycle/today`) |
+| critical-path depth to the last month response | 3 | 2 |
+
+Runs: before month-starts 326/320/320 ms, after 166/166/168 ms; today ends ~315 ms in all. Control persona (last period 2026-11-15, ring inside Nov/Dec): before 2 month requests with no waterfall, after 3 (Oct added by prev-month prefetch, still starting at ~165 ms, no extra depth). Note: one more request than before for users whose ring never leaves the current/next month — still ≤ 3.
+
+**Tests.** `homeMonths.test.ts` (month boundary days, year roll-over both ways, leap day, fallback months, malformed/duplicate dates). Mutation check: replacing the `dates` loop with an empty loop fails the fallback test; removing the previous-month entry fails 5 of 7.

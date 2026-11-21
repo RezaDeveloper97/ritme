@@ -26,6 +26,9 @@ import {
   serverFertileEvents,
   useCycleForDate,
   useCycleMonth,
+  useCycleMonths,
+  homeMonthSet,
+  shiftMonth,
   useCycleOverview,
   useCycleStatus,
   useCycleToday,
@@ -219,31 +222,28 @@ function useDayMarks(
   engine: boolean,
   suppressed: boolean,
 ): (date: Date) => CycleDayMarker | null {
-  const sorted = [...dates].sort((a, b) => a.getTime() - b.getTime());
-  const first = sorted[0] ?? today();
-  const last = sorted[sorted.length - 1] ?? first;
-  const middle = addDays(first, Math.round(diffInDays(last, first) / 2));
-  const gA = gregYearMonth(first);
-  const gM = gregYearMonth(middle);
-  const gB = gregYearMonth(last);
-  const monthA = useCycleMonth(gA.year, gA.month);
-  const monthM = useCycleMonth(gM.year, gM.month);
-  const monthB = useCycleMonth(gB.year, gB.month);
+  // prev/current/next month start at mount, in parallel with /cycle/today (T-M12-33); a day of `dates`
+  // outside them (long cycle, late period) adds its own month — the fallback.
+  const cur = gregYearMonth(today());
+  const monthQueries = useCycleMonths(homeMonthSet(cur, dates.map(toApiDate)));
+  // The set length varies only in the fallback case, so memo on a stable signature, not a spread array.
+  const monthSig = monthQueries.map(q => `${q.dataUpdatedAt}:${q.data ? 1 : 0}`).join('|');
 
   const calcMap = useMemo(() => {
     const map = new Map<string, CycleCalculation>();
-    for (const month of [monthA.data, monthM.data, monthB.data]) {
+    for (const month of monthQueries.map(q => q.data)) {
       for (const c of month?.calculations ?? []) map.set(c.calculationDate, c);
     }
     return map;
-  }, [monthA.data, monthM.data, monthB.data]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [monthSig]);
 
   // v6: the server's per-day fields and `future_cycles` paint the dots — no browser cycle math.
   const v6 = useMemo(() => {
     const days = new Map<string, CycleMonthDay>();
     let future: CycleFutureCycle[] = [];
     let freshest = -1;
-    for (const q of [monthA, monthM, monthB]) {
+    for (const q of monthQueries) {
       if (!q.data) continue;
       for (const d of q.data.days) days.set(d.date, d);
       if (q.dataUpdatedAt > freshest && q.data.days.length > 0) {
@@ -252,7 +252,8 @@ function useDayMarks(
       }
     }
     return { days, futureMap: futureCycleDayMap(future, suppressed) };
-  }, [monthA.data, monthM.data, monthB.data, suppressed]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [monthSig, suppressed]);
 
   if (engine) {
     return (date: Date) => {
@@ -778,7 +779,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
     DEFAULT_PERIOD_DAYS;
   // v6: this month's and next month's server days + `future_cycles` (same cache as the week strip).
   const baseParts = gregYearMonth(base);
-  const nextMonthParts = gregYearMonth(addDays(base, 31));
+  const nextMonthParts = shiftMonth(baseParts, 1); // calendar month, not base+31 (Jan 31 + 31 days skipped February)
   const monthNow = useCycleMonth(baseParts.year, baseParts.month);
   const monthNext = useCycleMonth(nextMonthParts.year, nextMonthParts.month);
   const serverEvents = serverFertileEvents(
