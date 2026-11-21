@@ -61,6 +61,7 @@ import { breastfeedingAnswer, breastfeedingView } from '../model/breastfeeding';
 import { durationKey, headlineWeek, homeAlerts, splitScheduled, tileSummary } from '../model/home';
 import { MOOD_CHIPS, type MoodChip, pressedChips, toggleChip } from '../model/mood';
 import { VISIT_LOOK, visitAction, visitRows } from '../model/visits';
+import '@/shared/ui/styles/pp.css';
 
 type T = ReturnType<typeof useTranslations<'postpartum'>>;
 

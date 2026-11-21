@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 
 import { type StepUpController } from '../model/useStepUp';
 import { StepUpPanel } from './StepUpPanel';
+import '@/shared/ui/styles/del.css';
 
 /**
  * The step-up dialog in front of the data export (T-M12-06): the same calm

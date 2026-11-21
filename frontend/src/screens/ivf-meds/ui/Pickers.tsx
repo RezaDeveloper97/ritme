@@ -10,6 +10,7 @@ import { AppSheet } from '@/shared/sheet';
 import { CalendarPicker, PrimaryButton, SecondaryButton, WheelPicker } from '@/shared/ui';
 
 import { parseClock, toClock } from '../model/form';
+import '@/shared/ui/styles/ivfm.css';
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 const MINUTES = Array.from({ length: 12 }, (_, i) => i * 5);

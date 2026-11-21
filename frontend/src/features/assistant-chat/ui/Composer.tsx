@@ -5,6 +5,7 @@ import { useRef, useState } from 'react';
 
 import { uploadPhoto, useAssistantError } from '@/entities/assistant';
 import { Icon } from '@/shared/ui';
+import '@/shared/ui/styles/as.css';
 
 const MAX_RUNES = 2000;
 const MAX_PHOTO = 5 * 1024 * 1024;

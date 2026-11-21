@@ -1,0 +1,22 @@
+/* `qas-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.qas-lead { margin: 0; font-size: 13px; font-weight: 600; color: var(--text-2); }
+
+.qas-count { margin: 0; font-size: 12px; font-weight: 800; color: var(--brand); }
+
+.qas-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+
+.qas-item { display: flex; align-items: center; gap: 12px; }
+
+.qas-item + .qas-item { border-top: 1px solid var(--line); }
+
+.qas-check { flex: 1; min-inline-size: 0; }
+
+.qas-actions { display: flex; flex-direction: column; align-items: stretch; gap: 6px; padding-block-start: 4px; }
+
+.qas-reset {
+  min-block-size: 44px; background: none; border: 0; font-family: inherit; font-size: 13px; font-weight: 800;
+  color: var(--text-2); cursor: pointer;
+}
+
+.qas-reset:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 12px; }

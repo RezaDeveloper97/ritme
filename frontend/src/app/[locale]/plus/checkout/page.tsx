@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import { CheckoutPage } from '@/screens/plus-checkout';
 
 import { RouteMessages } from '../../../RouteMessages';
+import '@/shared/ui/styles/plus.css';
 
 interface Props {
   params: Promise<{ locale: string }>;

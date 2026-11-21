@@ -22,6 +22,7 @@ import {
 import { DateRow, NumField } from './fields';
 import { MonthCalendar } from './MonthCalendar';
 import { StepScreen, type StepContext } from './StepScreen';
+import '@/shared/ui/styles/onb.css';
 
 const TILE: Record<PregnancyBasis, { icon: IconName; tone: string }> = {
   lmp: { icon: 'drop', tone: 'period' },

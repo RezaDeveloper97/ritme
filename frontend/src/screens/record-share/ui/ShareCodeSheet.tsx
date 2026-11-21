@@ -32,6 +32,7 @@ import {
 } from '@/shared/ui';
 
 import { codeEntryUrl, qrTarget, toggleDocument, toggleSection } from '../model/share-code';
+import './rsh.css';
 
 const RANGES: ShareCodeInput['range'][] = ['3m', '6m', '1y'];
 

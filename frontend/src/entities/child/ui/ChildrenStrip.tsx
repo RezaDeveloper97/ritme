@@ -8,6 +8,7 @@ import { Icon } from '@/shared/ui';
 
 import type { Child } from '../model/types';
 import { ChildAvatar } from './ChildAvatar';
+import '@/shared/ui/styles/chd.css';
 
 interface ChildrenStripProps {
   items: readonly Pick<Child, 'id' | 'name' | 'initial' | 'sex'>[];

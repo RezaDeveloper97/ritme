@@ -1,0 +1,57 @@
+/* `cms-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.cms-item .nb-check-label { font-size: 13px; font-weight: 600; }
+
+.cms-item .nb-check-input:checked ~ .nb-check-text .nb-check-label { color: var(--text-2); }
+
+.cms-item.is-readonly { opacity: 1; }
+
+.cms-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-inline: calc(-1 * var(--gutter)); padding: 2px var(--gutter); }
+
+.cms-chips::-webkit-scrollbar { display: none; }
+
+.cms-chip {
+  flex-shrink: 0; min-block-size: 44px; padding: 0 16px; border-radius: 26px; border: 1.5px solid var(--line);
+  background: var(--surface); color: var(--text-2); font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; white-space: nowrap;
+}
+
+.cms-chip.is-current:not(.is-on) { border-color: var(--line-strong); color: var(--text-1); }
+
+.cms-chip.is-on { border-color: var(--brand-fill); background: var(--brand-fill); color: var(--on-brand); }
+
+.cms-chip:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.cms-card { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+
+.cms-head { display: flex; align-items: center; gap: 14px; }
+
+.cms-head-text { flex: 1; min-inline-size: 0; display: flex; flex-direction: column; gap: 4px; }
+
+.cms-items { display: flex; flex-direction: column; }
+
+.cms-item { padding-block: 10px; }
+
+.cms-item + .cms-item { border-block-start: 1px solid var(--line); }
+
+.cms-item .nb-check-label { font-size: var(--fs-base); }
+
+.cms-acts { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+
+.cms-act-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+
+.cms-act { display: flex; align-items: flex-start; gap: 12px; }
+
+.cms-act-text { flex: 1; min-inline-size: 0; display: flex; flex-direction: column; gap: 2px; }
+
+.cms-act-title { font-size: var(--fs-base); font-weight: 800; color: var(--text-1); }
+
+.cms-act-body { font-size: 12px; font-weight: 600; line-height: 1.8; color: var(--text-2); }
+
+.cms-doctor {
+  display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-radius: var(--r-card);
+  background: var(--caution-soft); border: 1px solid var(--warm-soft);
+}
+
+.cms-doctor p { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.9; color: var(--text-2); }
+
+.cms-item .nb-check-input:checked + .nb-check-box { background: var(--warm); border-color: var(--warm); color: var(--surface); }

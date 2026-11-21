@@ -27,6 +27,7 @@ import {
   SkeletonGroup,
   SkyLayer,
 } from '@/shared/ui';
+import '@/shared/ui/styles/cmp.css';
 
 /** Up to this many days the row says «از N روز پیش»; older links show the date. */
 const RELATIVE_DAYS = 30;

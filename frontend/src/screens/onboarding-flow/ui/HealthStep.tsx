@@ -22,6 +22,7 @@ import { DateWheels } from '@/features/edit-profile';
 import { useSaveOnboardingStep } from '../api/onboarding';
 import { DateRow } from './fields';
 import { StepScreen, type StepContext } from './StepScreen';
+import '@/shared/ui/styles/onb.css';
 
 const HEIGHT = { min: 120, max: 220, fallback: 160 } as const;
 const WEIGHT = { min: 30, max: 200, fallback: 60 } as const;

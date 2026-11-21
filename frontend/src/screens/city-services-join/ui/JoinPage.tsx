@@ -17,6 +17,8 @@ import { Card, EmptyState, InfoNote, PrimaryButton, ProgressSteps, ScreenHeader,
 import { useQueryClient } from '@tanstack/react-query';
 
 import { DonePage, type JoinStep, pickApplication, resumeStep, STEP_COUNT, StepDocs, StepIntro, StepPlace, StepServices } from '@/widgets/city-join-form';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/cjn.css';
 
 
 const STEP_KEYS = ['intro', 'place', 'services', 'docs'] as const;

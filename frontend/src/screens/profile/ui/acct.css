@@ -1,0 +1,76 @@
+/* `acct-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.acct-page { background: var(--page); }
+
+.acct-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; padding-bottom: 32px; }
+
+.acct-scroll > :not(.nb-hdr) { margin-inline: var(--gutter-form); }
+
+.acct-action:focus-visible,
+.acct-logout:focus-visible,
+.acct-delete:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.acct-page .nb-list { padding: 0 16px; gap: 0; }
+
+.acct-page .nb-list-rows > * { padding-block: 10px; min-height: 68px; }
+
+.acct-page .nb-list-rows > * + * { border-top: 1px solid var(--line); border-radius: 0; }
+
+.acct-page .nb-pill { flex-shrink: 0; }
+
+.acct-page .nb-list-title { padding-top: 16px; font-size: var(--fs-lg); }
+
+.acct-logout:disabled { opacity: .6; cursor: default; }
+
+.acct-photo { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 6px 0; }
+
+.acct-avatar {
+  position: relative; width: 96px; height: 96px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--bloom) 13%, transparent); border: 2px solid var(--bloom);
+  font-family: var(--font-display); font-size: 42px; line-height: 1; color: var(--bloom-deep);
+}
+
+.acct-avatar-cam {
+  position: absolute; bottom: 0; inset-inline-end: 0; width: 32px; height: 32px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--brand-fill); color: var(--on-brand);
+}
+
+.acct-photo-hint { font-size: 11.5px; font-weight: 600; color: var(--text-2); }
+
+.acct-fields { padding: 0 16px; }
+
+.acct-field { display: flex; align-items: center; gap: 12px; min-height: 60px; padding-block: 8px; }
+
+.acct-field + .acct-field { border-top: 1px solid var(--line); }
+
+.acct-field-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+.acct-field-label { font-size: 11.5px; font-weight: 700; color: var(--text-2); }
+
+.acct-field-value { font-size: 14.5px; font-weight: 800; color: var(--text-1); text-align: start; }
+
+[dir="rtl"] .acct-field-value[dir="ltr"] { text-align: end; align-self: flex-start; }
+
+.acct-action {
+  flex-shrink: 0; min-height: 44px; min-width: 44px; padding: 0 6px; background: none; border: 0; border-radius: var(--r-md);
+  font-family: inherit; font-size: 12.5px; font-weight: 800; color: var(--brand-strong); cursor: pointer;
+}
+
+.acct-logout {
+  display: flex; align-items: center; justify-content: center; gap: 8px; height: 52px; border-radius: 26px;
+  background: var(--period-soft); color: var(--period-deep); border: 0;
+  font-family: inherit; font-size: 14px; font-weight: 800; cursor: pointer;
+}
+
+.acct-delete {
+  align-self: center; min-height: 44px; padding: 6px 16px; background: none; border: 0; border-radius: 22px;
+  font-family: inherit; font-size: 13px; font-weight: 700; color: var(--text-2); cursor: pointer;
+}
+
+.acct-skel { align-items: center; }
+
+.acct-skel .nb-skel.is-card { width: 100%; }
+
+.nb-skel.is-circle.acct-skel-avatar { width: 96px; height: 96px; }

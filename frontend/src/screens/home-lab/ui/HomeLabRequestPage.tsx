@@ -30,6 +30,8 @@ import {
 } from '@/shared/ui';
 
 import { StatusBadge } from './StatusBadge';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/hlb.css';
 
 const FLOW: readonly LabStatus[] = ['requested', 'accepted', 'sampled', 'result_ready'];
 

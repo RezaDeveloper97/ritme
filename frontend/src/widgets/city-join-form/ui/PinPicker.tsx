@@ -7,6 +7,7 @@ import { Icon, SecondaryButton } from '@/shared/ui';
 import { isMapEnabled, type MapBbox, type MapPoint, NeshanMap } from '@/shared/ui/map';
 
 import { foldDigits } from '../model/join';
+import '@/shared/ui/styles/cjn.css';
 
 const round6 = (n: number): number => Math.round(n * 1e6) / 1e6;
 const parseCoord = (raw: string, limit: number): number | null => {

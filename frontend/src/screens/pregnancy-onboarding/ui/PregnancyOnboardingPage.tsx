@@ -42,6 +42,8 @@ import {
 } from '../model/setup';
 
 import { DatingStep, HistoryStep, ResultStep } from './SetupSteps';
+import './pon.css';
+import '@/shared/ui/styles/pgn.css';
 
 /** welcome → dating basis → optional history → result: the four steps of PregFull_Setup. */
 type Step = 1 | 2 | 3 | 4;

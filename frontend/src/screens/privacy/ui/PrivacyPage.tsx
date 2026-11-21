@@ -36,6 +36,7 @@ import { useConsents, useUpdateConsent } from '../api/consents';
 import { useDiscreetNotifications, useSetDiscreetNotifications } from '../api/discreet';
 import { ConsentHistorySection } from './ConsentHistorySection';
 import { ShareLinksSection } from './ShareLinksSection';
+import './prv.css';
 
 function SectionLabel({ id, children }: { id: string; children: string }) {
   return (

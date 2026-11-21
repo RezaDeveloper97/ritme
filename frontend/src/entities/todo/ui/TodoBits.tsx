@@ -11,6 +11,7 @@ import { pilot } from '@/shared/pilot';
 
 import { CATEGORY_LOOK, doneKind, itemDueKind } from '../model/board';
 import type { TodoCategory, TodoGroupKey, TodoItem, TodoTask } from '../model/types';
+import '@/shared/ui/styles/td.css';
 
 /** The 8px category dot of the chips and meta lines. */
 export function CategoryDot({ category, className }: { category: TodoCategory; className?: string }) {

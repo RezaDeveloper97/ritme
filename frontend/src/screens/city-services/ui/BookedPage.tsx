@@ -15,6 +15,9 @@ import { bookingWhen } from '../model/book';
 import { neshanHref, slotParts } from '../model/place';
 import { CsError, CsSkeleton } from './ListSkeleton';
 import { usePrice } from './PlaceSections';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/csv.css';
+import '@/shared/ui/styles/cdb.css';
 
 /**
  * `/city-services/booked/[id]` (nbl_Dir_Booked). Honest about the status: a new booking is a REQUEST the Ritme team

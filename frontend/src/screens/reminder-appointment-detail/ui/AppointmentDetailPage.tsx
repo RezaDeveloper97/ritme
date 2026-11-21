@@ -37,6 +37,10 @@ import {
   splitScheduled,
   weekdayOf,
 } from '../model/detail';
+import '@/shared/ui/styles/del.css';
+import '@/shared/ui/styles/rem.css';
+import '@/shared/ui/styles/rmd.css';
+import './apd.css';
 
 const KIND_ICON: Record<AppointmentKind, IconName> = {
   in_person: 'doctor',

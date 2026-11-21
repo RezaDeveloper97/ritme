@@ -6,6 +6,7 @@ import { type LabService, useLabServices } from '@/entities/partner-lab';
 import { Link } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
 import { Card, Icon, StatusPill } from '@/shared/ui';
+import '@/shared/ui/styles/hlb.css';
 
 /** One card per service kind: the first active service of «آزمایش در منزل» and of «چکاپ سالانه». */
 function pickPerKind(services: readonly LabService[]): LabService[] {

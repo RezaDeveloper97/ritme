@@ -9,6 +9,7 @@ import { useMounted } from '@/shared/lib/use-mounted';
 import { isAuthenticated } from '@/shared/session';
 
 import { useAppRedirect } from './useAppRedirect';
+import '@/shared/ui/styles/ws.css';
 
 /** One header/footer link. `href` is locale-less (`/places`); `match` is the prefix that marks it active. */
 export interface WebNavItem {

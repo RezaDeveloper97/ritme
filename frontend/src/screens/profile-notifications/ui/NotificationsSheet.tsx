@@ -17,6 +17,7 @@ import type { Locale } from '@/shared/i18n';
 import { Icon } from '@/shared/ui';
 
 import { AlertCard } from './AlertCard';
+import './notif.css';
 
 // ── A single notification row ─────────────────────────────────
 // Presentational; unread rows carry a brand-tinted dot and stronger title, and

@@ -10,6 +10,7 @@ import { Card, EmptyState, Icon, InfoNote, PrimaryButton, Skeleton, SkeletonGrou
 import { useAssistantConsent, useGrantConsent } from '../api/queries';
 import type { AssistantMessage, TriageLevel } from '../api/schema';
 import { EMERGENCY_PHONE, TRIAGE_TONE } from '../model/format';
+import '@/shared/ui/styles/as.css';
 
 /** Triage pill («غیر اورژانسی» …) — a suggestion of the assistant, never a diagnosis. */
 export function TriagePill({ level }: { level: TriageLevel }) {

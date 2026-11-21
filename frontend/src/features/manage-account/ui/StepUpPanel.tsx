@@ -9,6 +9,9 @@ import { toAsciiDigits } from '@/shared/lib/phone';
 import { PrimaryButton, SecondaryButton } from '@/shared/ui';
 
 import { stepUpErrorKey } from '../model/stepUpErrors';
+import './otp.css';
+import '@/shared/ui/styles/del.css';
+import './stepup.css';
 
 const CODE_LENGTH = 4;
 

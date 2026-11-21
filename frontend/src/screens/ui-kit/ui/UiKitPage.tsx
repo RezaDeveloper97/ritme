@@ -56,6 +56,7 @@ import {
   WeekDots,
   type TimelineStep,
 } from '@/shared/ui';
+import './uikit.css';
 
 const PAIN = ['بدون درد', 'شکم', 'لگن', 'یک‌طرفه پایین', 'کمر', 'سر', 'سینه'] as const;
 const LEVELS = ['کم', 'متوسط', 'شدید'] as const;

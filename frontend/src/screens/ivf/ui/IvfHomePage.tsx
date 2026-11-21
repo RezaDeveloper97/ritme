@@ -55,6 +55,7 @@ import {
   unitKey,
   whenKey,
 } from '../model/home';
+import '@/shared/ui/styles/ivf.css';
 
 type T = ReturnType<typeof useTranslations<'ivf'>>;
 

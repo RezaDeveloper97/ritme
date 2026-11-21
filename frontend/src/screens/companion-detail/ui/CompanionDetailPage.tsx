@@ -52,6 +52,7 @@ import {
   SkeletonGroup,
   SkyLayer,
 } from '@/shared/ui';
+import '@/shared/ui/styles/cmp.css';
 
 const ACTIVITY_LIMIT = 5;
 

@@ -15,6 +15,9 @@ import { ChartCard, ReportFrame, StatTiles, type StatTile } from '@/widgets/char
 import { useFertilityCycle } from '../api/ttc';
 import { isolate } from '../model/ttc';
 import { BbtChart } from './BbtChart';
+import '@/shared/ui/styles/ttc.css';
+import '@/shared/ui/styles/an.css';
+import '@/shared/ui/styles/axc.css';
 
 const SOURCE_TONE: Record<string, Tone> = { bbt: 'data', lh: 'warm', estimate: 'neutral' };
 

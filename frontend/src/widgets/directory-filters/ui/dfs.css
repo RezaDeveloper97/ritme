@@ -1,0 +1,35 @@
+/* `dfs-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.dfs-body { display: flex; flex-direction: column; gap: 18px; padding: 4px var(--gutter) 16px; }
+
+.dfs-sec { display: flex; flex-direction: column; gap: 10px; }
+
+.dfs-h { margin: 0; font-size: 14px; font-weight: 800; color: var(--text-1); }
+
+.dfs-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.dfs-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-block-size: 44px; cursor: pointer; }
+
+.dfs-switch {
+  appearance: none; flex-shrink: 0; position: relative; inline-size: 48px; block-size: 28px; margin: 0; cursor: pointer;
+  border-radius: var(--r-pill); background: var(--track); border: 1px solid var(--line); transition: background .2s ease;
+}
+
+.dfs-switch::after {
+  content: ''; position: absolute; inset-block-start: 3px; inset-inline-start: 3px; inline-size: 20px; block-size: 20px;
+  border-radius: 50%; background: var(--surface); box-shadow: 0 0 0 1px var(--line-strong); transition: transform .2s ease;
+}
+
+.dfs-switch:checked { background: var(--brand-fill); border-color: var(--brand-fill); }
+
+.dfs-switch:checked::after { transform: translateX(20px); background: var(--on-brand); }
+
+[dir='rtl'] .dfs-switch:checked::after { transform: translateX(-20px); }
+
+.dfs-switch:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.dfs-note { margin: 0; font-size: 12px; font-weight: 600; line-height: 1.8; color: var(--text-2); }
+
+.dfs-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; inline-size: 100%; }
+
+.dfs-footer > :last-child { flex: 1; }

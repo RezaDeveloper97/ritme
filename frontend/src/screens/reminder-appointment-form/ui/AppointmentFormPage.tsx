@@ -63,6 +63,8 @@ import {
   returnPathFor,
   validateForm,
 } from '../model/form';
+import '@/shared/ui/styles/rmd.css';
+import '@/shared/ui/styles/cfm.css';
 
 const KIND_ICON: Record<AppointmentKind, IconName> = {
   in_person: 'doctor',

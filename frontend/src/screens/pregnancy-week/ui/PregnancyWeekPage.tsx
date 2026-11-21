@@ -22,6 +22,8 @@ import { BottomNav } from '@/widgets/bottom-nav';
 import { swipeTarget } from '../model/swipe';
 import { WeekSections } from './WeekSections';
 import { WeekTabs } from './WeekTabs';
+import '@/shared/ui/styles/preg.css';
+import '@/shared/ui/styles/pgn.css';
 
 interface Props {
   /** Week from the URL; `null` (`/pregnancy/weeks`) opens the current week. */

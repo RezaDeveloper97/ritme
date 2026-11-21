@@ -1,0 +1,73 @@
+/* `csp-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.nb-skel.is-block.csp-skel-tabs { height: 50px; border-radius: var(--r-lg); }
+
+.csp-panel { display: flex; flex-direction: column; gap: 14px; }
+
+.csp-hero {
+  display: flex; align-items: center; gap: 14px; padding: 18px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--nb-tone) 16%, var(--surface)), var(--surface) 70%);
+}
+
+.csp-hero-b { flex: 1; min-width: 0; }
+
+.csp-hero-t { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 26px; line-height: 1.3; color: var(--text-1); }
+
+.csp-hero-s { margin: 6px 0 0; font-size: 12.5px; font-weight: 600; line-height: 1.9; color: var(--text-2); }
+
+.csp-card { display: flex; flex-direction: column; gap: 14px; padding: 18px 16px; }
+
+.csp-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+.csp-card-t { margin: 0; font-size: 15px; font-weight: 800; color: var(--text-1); }
+
+.csp-scale { font-size: 11.5px; font-weight: 700; color: var(--text-2); }
+
+.csp-typ { display: flex; flex-direction: column; gap: 8px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+
+.csp-typ-bar { position: relative; height: 12px; border-radius: 6px; background: var(--track); }
+
+.csp-band { position: absolute; inset-block: 0; border-radius: 6px; }
+
+.csp-band.is-period { background: var(--period); }
+
+.csp-band.is-fertile { background: color-mix(in srgb, var(--warm) 70%, var(--track)); }
+
+.csp-band.is-pms { background: color-mix(in srgb, var(--brand) 45%, var(--track)); }
+
+.csp-ovu {
+  position: absolute; inset-block-start: 50%; inline-size: 14px; block-size: 14px; margin-inline-start: -7px;
+  border-radius: 50%; background: var(--data); border: 2px solid var(--surface); transform: translateY(-50%);
+}
+
+.csp-axis { position: relative; display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--text-2); }
+
+.csp-axis-mid { position: absolute; transform: translateX(-50%); }
+
+[dir="rtl"] .csp-axis-mid { transform: translateX(50%); }
+
+.csp-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+
+.csp-row { display: flex; flex-direction: column; gap: 10px; padding-block: 12px; }
+
+.csp-row + .csp-row { border-top: 1px solid var(--line); }
+
+.csp-row:first-child { padding-top: 0; }
+
+.csp-row-head { display: flex; align-items: center; gap: 10px; }
+
+.csp-row-t { font-size: 14px; font-weight: 800; color: var(--text-1); }
+
+.csp-strip { position: relative; height: 14px; border-radius: 7px; background: var(--track); overflow: hidden; }
+
+.csp-heat { position: absolute; inset-block: 0; border-radius: 7px; background: var(--nb-tone); }
+
+.csp-heat.l1 { background: color-mix(in srgb, var(--nb-tone) 35%, transparent); }
+
+.csp-heat.l2 { background: color-mix(in srgb, var(--nb-tone) 65%, transparent); }
+
+.csp-note { margin: 4px 0 0; text-align: center; font-size: 12px; font-weight: 700; color: var(--text-2); }
+
+.csp-typ-bar,
+.csp-axis,
+.csp-strip { direction: ltr; }

@@ -44,6 +44,8 @@ import {
 } from '../model/cycle';
 import { ChoiceRow, DateSheet, FieldButton, FieldError, TimeSheet } from './Fields';
 import { protocolCodes, useProtocolLabel } from './protocols';
+import '@/shared/ui/styles/ivfm.css';
+import './ivfc.css';
 
 type ClockField = 'nextScan' | 'retrieval' | 'transfer';
 type DayField = 'startedOn' | 'stimStartedOn' | 'betaOn';

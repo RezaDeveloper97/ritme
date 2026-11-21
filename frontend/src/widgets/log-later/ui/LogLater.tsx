@@ -8,6 +8,8 @@ import { useDirection, useRouter } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
 import { openSheet } from '@/shared/sheet';
 import { Icon, IconCircle } from '@/shared/ui';
+import '@/shared/ui/styles/lday.css';
+import './llt.css';
 
 /** M3 appointment form (`/reminders/appointment/new`) — «نوبت یا ویزیت» plans one for later. */
 const APPOINTMENT_NEW = '/reminders/appointment/new';

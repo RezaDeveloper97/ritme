@@ -1,0 +1,149 @@
+/* `bfl-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.bfl-page { background: var(--page); }
+
+.bfl-body { display: flex; flex-direction: column; gap: 16px; padding: 14px var(--gutter-form) 170px; }
+
+.bfl-skel { display: flex; flex-direction: column; gap: 16px; }
+
+.bfl-skel .nb-skel.is-card { block-size: 170px; }
+
+.bfl-picker { justify-content: center; }
+
+.bfl-feed { display: flex; flex-direction: column; gap: 16px; }
+
+.bfl-note { margin: 0; font-size: 12.5px; font-weight: 700; line-height: 1.8; color: var(--warm-deep); }
+
+.bfl-sides { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.bfl-side,
+.bfl-bottle {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  border-radius: 28px; border: 2px solid var(--line); background: var(--surface); color: var(--text-1);
+  font: inherit; text-align: center;
+}
+
+.bfl-side { block-size: 170px; padding: 12px; cursor: pointer; transition: border-color .15s ease, background-color .15s ease; }
+
+.bfl-side:disabled { cursor: progress; }
+
+.bfl-side:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.bfl-side.is-running,
+.bfl-bottle.is-running { border-color: var(--data); background: color-mix(in srgb, var(--data) 13%, var(--surface)); }
+
+.bfl-side.is-suggested { border-color: var(--line-strong); border-style: dashed; }
+
+.bfl-side-name { font-size: 13px; font-weight: 800; }
+
+.bfl-side-clock { font-family: var(--font-display); font-size: 40px; line-height: 1; font-weight: 400; color: var(--text-1); }
+
+.bfl-side-state { font-size: 11.5px; font-weight: 800; color: var(--text-2); }
+
+.bfl-side.is-running .bfl-side-state,
+.bfl-bottle.is-running .bfl-side-state { color: var(--data-deep); }
+
+.bfl-bottle { padding: 20px 16px; gap: 10px; }
+
+.bfl-bottle .bfl-ml { align-self: stretch; margin-block-start: 6px; }
+
+.bfl-start {
+  min-block-size: 44px; padding: 0 20px; border: none; border-radius: var(--r-pill); background: var(--brand-soft);
+  color: var(--brand-ink); font: inherit; font-size: 13px; font-weight: 800; cursor: pointer;
+}
+
+.bfl-start:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.bfl-start:disabled { opacity: .6; cursor: progress; }
+
+.bfl-rows { margin: 0; display: flex; flex-direction: column; gap: 12px; }
+
+.bfl-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; min-block-size: 48px;
+  padding: 12px 14px; border-radius: 24px; border: 1px solid var(--line); background: var(--surface);
+}
+
+.bfl-row dt { font-size: 12.5px; font-weight: 700; color: var(--text-2); }
+
+.bfl-row dd { margin: 0; font-size: 13.5px; font-weight: 800; color: var(--text-1); text-align: end; }
+
+.bfl-error { margin: 0; font-size: 13px; font-weight: 700; line-height: 1.8; color: var(--danger-deep); }
+
+.bfl-link {
+  align-self: flex-start; min-block-size: 44px; padding: 0 4px; border: none; background: none;
+  font: inherit; font-size: 13px; font-weight: 800; color: var(--brand); cursor: pointer;
+}
+
+.bfl-link:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 8px; }
+
+.bfl-link:disabled { opacity: .6; cursor: progress; }
+
+.bfl-discard { align-self: center; color: var(--text-2); }
+
+.bfl-manual { display: flex; flex-direction: column; gap: 8px; }
+
+.bfl-manual-body { display: flex; flex-direction: column; gap: 12px; }
+
+.nb-card.bfl-manual-body { padding: 14px; }
+
+.bfl-manual-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.bfl-foot {
+  position: fixed; inset-inline: 0; bottom: 0; z-index: 10; margin-inline: auto; max-width: 480px;
+  display: flex; flex-direction: column; align-items: stretch; gap: 6px;
+  padding: 12px var(--gutter) calc(20px + env(safe-area-inset-bottom));
+  background: var(--surface-glass); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+
+.nb-card.bfl-card { display: flex; flex-direction: column; gap: 12px; padding: 16px; scroll-margin-block-start: 16px; }
+
+.bfl-card-head { display: flex; align-items: center; gap: 10px; }
+
+.bfl-card-head .nb-icircle { border-radius: 12px; }
+
+.bfl-card-title { margin: 0; font-size: 15px; font-weight: 800; color: var(--text-1); }
+
+.bfl-card-line { margin: 0; font-size: 12.5px; font-weight: 700; line-height: 1.8; color: var(--text-2); }
+
+.bfl-live { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+
+.bfl-live-clock { font-family: var(--font-display); font-size: 34px; line-height: 1; color: var(--text-1); }
+
+.bfl-live-sub { font-size: 12px; font-weight: 800; color: var(--brand-ink); }
+
+.bfl-diaper-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+
+.bfl-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+
+.bfl-list-row { display: flex; align-items: center; gap: 10px; min-block-size: 44px; }
+
+.bfl-list-row + .bfl-list-row { border-block-start: 1px solid var(--line); }
+
+.bfl-list-time { font-size: 12.5px; font-weight: 800; color: var(--text-1); font-variant-numeric: tabular-nums; }
+
+.bfl-list-text { flex: 1; min-width: 0; font-size: 13px; font-weight: 700; color: var(--text-2); }
+
+.bfl-icon-btn {
+  display: inline-flex; align-items: center; justify-content: center; inline-size: 44px; block-size: 44px; flex-shrink: 0;
+  border: none; border-radius: 50%; background: none; color: var(--text-2); cursor: pointer;
+}
+
+.bfl-icon-btn:hover { background: var(--surface-2); }
+
+.bfl-icon-btn:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.bfl-today-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+
+.bfl-today-row { display: flex; align-items: center; gap: 12px; min-block-size: 48px; color: var(--text-1); text-decoration: none; border-radius: 14px; }
+
+.bfl-today-row .nb-icircle { border-radius: 12px; }
+
+.bfl-today-row:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.bfl-today-label { flex: 1; font-size: 13.5px; font-weight: 700; color: var(--text-1); }
+
+.bfl-today-value { flex-shrink: 0; font-size: 12.5px; font-weight: 800; color: var(--text-2); }
+
+.bfl-today-value.is-live { color: var(--data-deep); }
+
+.bfl-today-chev { flex-shrink: 0; color: var(--text-3); }

@@ -1,0 +1,154 @@
+/* `hrec-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.hrec-page { background: var(--page); }
+
+.hrec-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 14px; min-block-size: 100%; }
+
+.hrec-scroll > :not(.nb-hdr):not(.hrec-footer) { margin-inline: var(--gutter); }
+
+.hrec-skel { display: flex; flex-direction: column; gap: 14px; }
+
+.hrec-skel-hero { block-size: 96px; border-radius: var(--r-card); }
+
+.hrec-skel-card { block-size: 150px; border-radius: var(--r-card); }
+
+.hrec-person { display: flex; align-items: center; gap: 14px; }
+
+.hrec-person-text { display: flex; flex-direction: column; gap: 4px; min-inline-size: 0; }
+
+.hrec-person-name { margin: 0; font-size: var(--fs-xl); font-weight: 800; color: var(--text-1); }
+
+.hrec-person-meta { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); }
+
+.hrec-card { display: flex; flex-direction: column; gap: 12px; }
+
+.hrec-card-head { display: flex; align-items: center; gap: 10px; }
+
+.hrec-card-title { flex: 1; margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+
+.hrec-edit {
+  flex-shrink: 0; min-block-size: 44px; min-inline-size: 44px; padding-inline: 6px; border: 0; border-radius: var(--r-sm);
+  background: none; cursor: pointer; font: inherit; font-size: var(--fs-md); font-weight: 800; color: var(--brand-strong);
+}
+
+.hrec-edit:focus-visible,
+.hrec-row.is-action:focus-visible,
+.hrec-entry-main:focus-visible,
+.hrec-entry-del:focus-visible,
+.hrec-add-btn:focus-visible,
+.hrec-tag-x:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.hrec-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+
+.hrec-tile {
+  display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: var(--r-lg);
+  background: var(--surface-3);
+}
+
+.hrec-tile-label { font-size: var(--fs-xs); font-weight: 700; color: var(--text-3); }
+
+.hrec-tile-value { font-size: var(--fs-md); font-weight: 800; color: var(--text-1); }
+
+.hrec-tile-sub { font-size: var(--fs-2xs); font-weight: 600; color: var(--text-3); }
+
+.hrec-rows { display: flex; flex-direction: column; }
+
+.hrec-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; min-block-size: 48px; padding-block: 8px;
+  border: 0; border-block-start: 1px solid var(--line); background: none; font: inherit; color: inherit; text-align: start;
+  inline-size: 100%;
+}
+
+.hrec-rows > .hrec-row:first-child { border-block-start: 0; }
+
+.hrec-row.is-action { cursor: pointer; border-radius: 0; }
+
+.hrec-row-label { flex-shrink: 0; max-inline-size: 55%; font-size: var(--fs-md); font-weight: 700; color: var(--text-1); }
+
+.hrec-row-value { font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); text-align: end; }
+
+.hrec-empty,
+.hrec-text,
+.hrec-foot,
+.hrec-hint { margin: 0; font-size: var(--fs-sm); line-height: var(--lh-body); }
+
+.hrec-empty { font-weight: 600; color: var(--text-3); }
+
+.hrec-text { font-weight: 700; color: var(--text-1); }
+
+.hrec-foot { font-weight: 600; color: var(--text-2); }
+
+.hrec-hint { font-weight: 600; color: var(--text-2); }
+
+.hrec-tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+
+.hrec-tag {
+  display: inline-flex; align-items: center; gap: 4px; min-block-size: 34px; padding-inline: 12px; border-radius: 999px;
+  border: 1px solid var(--period-line); background: var(--period-soft); color: var(--period-deep);
+  font-size: var(--fs-sm); font-weight: 700;
+}
+
+.hrec-tags.is-removable .hrec-tag { border-color: var(--line-strong); background: var(--surface-3); color: var(--text-1); padding-inline-end: 2px; }
+
+.hrec-tag-x {
+  display: inline-flex; align-items: center; justify-content: center; inline-size: 44px; block-size: 44px; margin-block: -6px;
+  border: 0; border-radius: 50%; background: none; color: var(--text-3); cursor: pointer;
+}
+
+.hrec-footer {
+  position: sticky; bottom: 0; z-index: 2; margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 12px var(--gutter) max(14px, env(safe-area-inset-bottom));
+  background: var(--surface-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+
+.hrec-footer > .nb-btn { inline-size: 100%; }
+
+.hrec-soon { display: inline-flex; }
+
+.hrec-sheet { display: flex; flex-direction: column; gap: 14px; padding-block-end: 8px; }
+
+.hrec-sheet-actions { display: flex; flex-direction: column; gap: 6px; }
+
+.hrec-error { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--danger-deep); }
+
+.hrec-label { font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); }
+
+.hrec-add { display: flex; flex-direction: column; gap: 6px; }
+
+.hrec-add-row { display: flex; gap: 8px; }
+
+.hrec-input {
+  flex: 1; min-inline-size: 0; min-block-size: 48px; padding-inline: 14px; border: 1px solid var(--line-strong);
+  border-radius: var(--r-md); background: var(--surface); color: var(--text-1); font: inherit; font-size: var(--fs-md);
+}
+
+.hrec-input::placeholder { color: var(--text-4); }
+
+.hrec-input:focus-visible { outline: none; border-color: var(--brand); box-shadow: var(--ring); }
+
+.hrec-add-btn {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; inline-size: 48px; block-size: 48px;
+  border: 0; border-radius: var(--r-md); background: var(--brand-fill); color: var(--on-brand); cursor: pointer;
+}
+
+.hrec-add-btn:disabled { background: var(--surface-3); color: var(--text-4); cursor: default; }
+
+.hrec-entries { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+
+.hrec-entry {
+  display: flex; align-items: center; gap: 4px; padding-inline-end: 4px; border: 1px solid var(--line);
+  border-radius: var(--r-lg); background: var(--surface);
+}
+
+.hrec-entry-main {
+  flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 10px; min-block-size: 52px;
+  padding-inline: 14px; border: 0; border-radius: var(--r-lg); background: none; font: inherit; color: inherit;
+  text-align: start; cursor: pointer;
+}
+
+.hrec-entry-del {
+  display: inline-flex; align-items: center; justify-content: center; inline-size: 44px; block-size: 44px; border: 0;
+  border-radius: 50%; background: none; color: var(--danger-deep); cursor: pointer;
+}
+
+.hrec-form { display: flex; flex-direction: column; gap: 12px; }

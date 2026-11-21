@@ -120,3 +120,46 @@ yet: `make loadtest-db && make loadtest-seed && make loadtest-api && make loadte
 `/checkups/home`: weak tag = SHA-256/2 of the body built for this request; `Vary: Authorization, Accept-Language`;
 `Cache-Control: private, no-cache` unless the handler set one. Saves bandwidth, not server work. k6 `web_home` sends
 `If-None-Match` from the second open and records `web_home_304` / `web_home_304_bytes_saved` — ratio not measured yet.
+
+## T-M12-27 — `globals.css` split into per-screen CSS (finding P-01)
+
+Measured on a production build (`npm run build`), minified bytes, from the prerendered `/fa/*` HTML
+(`frontend/scripts/check-bundle-size.mjs --report`). Lighthouse was **not** run: it needs a logged-in session for
+`/fa/home` and the "before" build no longer exists to compare against, so the build numbers are the evidence.
+
+| | before | after |
+|---|---:|---:|
+| `globals.css` as built (one file, every route) | 812,234 B (793 KB) | 117,145 B (114 KB) |
+| CSS every route downloads (globals + CSS reached from the layout) | 793.6 KB | 216.0 KB (221,213 B) |
+| `/fa/alerts` (lightest route) | 793.6 KB | 216.0 KB |
+| `/fa/calendar` | 793.6 KB | 252.6 KB (31 files) |
+| `/fa/log` | 793.6 KB | 251.6 KB (27 files) |
+| `/fa/home` (heaviest) | 793.6 KB | 365.1 KB (49 files) |
+| median over 158 prerendered routes | 793.6 KB | 228.3 KB |
+| `/fa/home` first-load JS (Next table) | 292 kB | 288 kB |
+| `/fa/home` first-load JS (script tags in HTML, gzip) | 404.5 KB | 406.2 KB |
+
+What moved: every class family (`nb-` excepted) that is rendered by at most 20 slices became
+`<slice>/ui/<prefix>.css` (family used by one slice) or `shared/ui/styles/<prefix>.css` (used by several; imported by every
+file that renders it, Next emits it once). A family is detected by the class names present in the CSS
+matched against the tokens in the source (exact name, or a `prefix-` stem for dynamic suffixes). Dark-mode
+and media-query overrides moved with their rule; selectors that mix a moved and a global family were duplicated per
+moved family, so the moved rule still loads after the shared primitive it overrides.
+
+What stays in `globals.css`: tokens, base/reset, Tailwind, shell and shared primitives (`nb-`, `is-`, the
+`app-shell`/`home-` bits used by the layout), the families rendered by more than 20 slices, families with no literal
+use in source (`cyc-`: built dynamically, left alone), `cal-`/`osheet-`/`pad-`/`fld-`/`jcal-` (see below), keyframes still referenced from global rules.
+
+Cascade finding: a stylesheet imported by a component the root layout reaches is emitted BEFORE `globals.css` in the
+HTML, so its rules lose to same-specificity global primitives (the calendar's `.cal-nav-toggle` vs `.chip` padding showed
+up in the before/after screenshots). Those five families were folded back into `globals.css`; after that every moved
+sheet loads after globals. Rule for new CSS: anything the layout reaches stays global or must win by specificity.
+
+Why "CSS every route downloads" is still 216 KB: the root layout statically imports the sheet registry
+(`app/sheets/registry.tsx`) and a few global gates, which pull in the CSS of the lab, plus, companion, record, onboarding
+sheets (`lab` 19 KB, `plus` 18 KB, `onb2` 14 KB, `cmp`/`cmh` 42 KB, …). That is JS-structure work, not CSS work: loading
+the sheets lazily (`next/dynamic`) would drop that CSS from the global set. Not done here (`app/` is outside this
+task's touches) — see the follow-up in the task report.
+
+Gate: `npm run check:bundle` (budgets = measured × 1.1: global 238 KB, heaviest route 402 KB, `/fa/home` JS 447 KB gz).
+The style and dark-mode gates now read every `.css` under `src/`.

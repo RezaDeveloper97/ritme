@@ -1,0 +1,7 @@
+/* `nblog-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.nblog-lead { margin: 0; font-size: var(--fs-md); font-weight: 600; color: var(--text-2); }
+
+.nblog-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+
+.nblog-grid .nb-skel.is-card { height: 96px; }

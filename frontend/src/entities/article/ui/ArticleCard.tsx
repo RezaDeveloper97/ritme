@@ -3,6 +3,7 @@
 import { Icon } from '@/shared/ui';
 
 import type { Article } from '../model/types';
+import './ac.css';
 
 export interface ArticleCardProps {
   article: Article;

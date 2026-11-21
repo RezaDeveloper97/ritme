@@ -39,6 +39,7 @@ import {
 import { ClaimDocPicker } from '@/widgets/claim-documents';
 
 import { buildSteps, nextStatuses, stepProblem, type StepDraft, stepToPayload } from '../model/steps';
+import '@/shared/ui/styles/ins.css';
 
 const MAX_NOTE = 500;
 const MAX_AMOUNT = 999_999_999;

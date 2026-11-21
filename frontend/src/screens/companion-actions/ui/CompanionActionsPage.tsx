@@ -9,6 +9,7 @@ import { useMounted } from '@/shared/lib/use-mounted';
 import { Icon, InfoNote, ScreenHeader, SectionTitle, SkyLayer } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 import { ActionCard, orderedCategories, useSuggestionsMuted } from '@/widgets/companion-support';
+import '@/shared/ui/styles/cmh.css';
 
 /**
  * `/companion/actions` — «اقدام‌های همراهی» (companion v2 compCards): the idea catalogue by support kind, the

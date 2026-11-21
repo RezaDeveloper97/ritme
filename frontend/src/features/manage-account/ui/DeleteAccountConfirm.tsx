@@ -9,6 +9,7 @@ import { Icon } from '@/shared/ui';
 
 import { useDeleteAccount } from '../api/mutations';
 import { StepUpPanel } from './StepUpPanel';
+import '@/shared/ui/styles/del.css';
 
 interface DeleteAccountConfirmProps {
   open: boolean;

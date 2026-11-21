@@ -6,6 +6,7 @@ import { clsx } from 'clsx';
 
 import { useDirection } from '@/shared/i18n';
 import { HeaderButton, Icon, PrimaryButton, ProgressSteps, SecondaryButton, SkyLayer } from '@/shared/ui';
+import '@/shared/ui/styles/onb.css';
 
 interface OnbFrameProps {
   /** Filled header segments; omit for a screen without the bar (Ready). */

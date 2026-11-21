@@ -10,6 +10,8 @@ import { useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { diffInDays, formatLongDate, formatTimeOfDay, today } from '@/shared/lib/date';
 import { Icon, InfoNote, ListGroup, ListRow, ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 import { pilot } from '@/shared/pilot';
+import '@/shared/ui/styles/me.css';
+import './bkp.css';
 
 /** `undefined` until read on the device (no server/client mismatch), then epoch ms or null (nothing written yet). */
 function useLastSync(): number | null | undefined {

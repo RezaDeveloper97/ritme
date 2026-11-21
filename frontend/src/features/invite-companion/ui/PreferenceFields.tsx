@@ -15,6 +15,7 @@ import { pilot, pilotOption } from '@/shared/pilot';
 import { CheckTick, IconCircle, type IconName, Switch, type Tone } from '@/shared/ui';
 
 import { OFFERED_SIGNALS, toggleAction, toggleGoal } from '../model/draft';
+import '@/shared/ui/styles/cmp.css';
 
 /*
  * The three v2 preference editors («هدف همراهی», «چه چیزهایی را ببیند؟»,

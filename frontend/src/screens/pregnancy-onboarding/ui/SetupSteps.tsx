@@ -35,6 +35,7 @@ import {
 } from '@/shared/ui';
 
 import { noneFirst, toggleCondition, type SetupDating, type SetupHistory } from '../model/setup';
+import '@/shared/ui/styles/pgn.css';
 
 const BLOOD_TYPES = ['A', 'B', 'AB', 'O'];
 const RH_FACTORS = ['positive', 'negative'];

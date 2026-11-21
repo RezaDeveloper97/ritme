@@ -8,6 +8,7 @@ import { diffInDays, formatMonthLabel, monthMatrix, today } from '@/shared/lib/d
 import { HeaderButton } from '@/shared/ui';
 
 import { bandEdges, type DayTone } from '../model/tones';
+import './cc.css';
 
 /** What a day cell needs to know about its date (computed by the screen). */
 export interface CalendarDayInfo {

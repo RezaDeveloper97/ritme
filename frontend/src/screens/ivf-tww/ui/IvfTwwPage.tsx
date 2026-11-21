@@ -43,6 +43,8 @@ import { countdown, dangerCopy, guidanceBody, waitProgress } from '../model/tww'
 
 import { OutcomeSheet } from './OutcomeSheet';
 import { OutcomeView } from './OutcomeView';
+import '@/shared/ui/styles/ivf.css';
+import './tww.css';
 
 type T = ReturnType<typeof useTranslations<'ivf'>>;
 

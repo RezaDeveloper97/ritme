@@ -8,6 +8,7 @@ import { EmergencyCard, TriagePill } from '@/entities/assistant';
 import { Icon } from '@/shared/ui';
 
 import type { ChatItem } from '../model/useChat';
+import '@/shared/ui/styles/as.css';
 
 interface Props {
   items: ChatItem[];

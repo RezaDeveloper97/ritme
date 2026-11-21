@@ -1,0 +1,8 @@
+/* `on-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.pg2-illu.on-hero .pg2-illu-plate,
+.pg2-illu.on-hero .pg2-illu-halo { fill: var(--on-accent); opacity: .12; }
+
+.pg2-illu.on-hero .pg2-illu-body { fill: color-mix(in srgb, var(--pink) 28%, var(--on-accent)); }
+
+.pg2-illu.on-hero .pg2-illu-ring-pk { stroke: var(--on-accent); opacity: .8; }

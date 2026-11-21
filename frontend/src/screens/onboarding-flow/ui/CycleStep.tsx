@@ -11,6 +11,7 @@ import { OnbFrame } from '@/features/auth';
 import { useSaveOnboardingStep } from '../api/onboarding';
 import { MonthCalendar } from './MonthCalendar';
 import { StepScreen, type StepContext } from './StepScreen';
+import '@/shared/ui/styles/onb.css';
 
 /** Same ranges as the cycle-settings screen (B-N1-09). */
 const PERIOD = { min: 2, max: 10, fallback: 5 } as const;

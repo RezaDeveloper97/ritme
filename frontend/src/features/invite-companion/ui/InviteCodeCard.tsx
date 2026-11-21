@@ -9,6 +9,7 @@ import { formatNumber } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
 
 import { copyText, shareText } from '../lib/share';
+import '@/shared/ui/styles/cmp.css';
 
 const CODE_SLOTS = 6;
 

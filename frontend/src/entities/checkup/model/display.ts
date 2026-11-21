@@ -3,6 +3,7 @@ import { formatMonthLabel, fromApiDate, toParts } from '@/shared/lib/date';
 import type { IconName } from '@/shared/ui';
 
 import type { CheckupItem, CheckupResult, CheckupStatus } from './types';
+import '@/shared/ui/styles/ck.css';
 
 /*
  * Display helpers shared by every checkups screen (v14): the status / result

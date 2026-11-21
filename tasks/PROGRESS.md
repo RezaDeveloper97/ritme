@@ -3149,3 +3149,16 @@ Nothing needed fixing.
   phone negatives, raw-key detector (unit + injected on the live page). Selectors = pilot names. Local: 6 passed.
 - Private DB `ritme_e2e`; system Chrome locally, Playwright chromium in CI; job `e2e-smoke` in ci.yml nightly/manual
   (boot time unproven until the first run). How-to in frontend/CLAUDE.md §9.
+
+## T-M12-27 — Split the 1 MB globals.css into per-screen CSS
+- `globals.css` 962 KB source / 793 KB built → 270 KB / 114 KB. ~105 new CSS files (`<slice>/ui/<prefix>.css` for
+  one-slice families, `shared/ui/styles/<prefix>.css` for families shared by ≤ 20 slices); 741 import lines.
+- CSS every route downloads: 793.6 KB → 216 KB (median route 228 KB, `/fa/home` 365 KB). The rest of the gap to
+  150 KB is sheet CSS pulled by the root layout's static sheet registry → follow-up **T-M12-27b**.
+- Kept global: tokens, Tailwind, shell, primitives, `nb-`/`is-`/`app-`, families used by > 20 slices, and
+  `cal-`/`osheet-`/`pad-`/`fld-`/`jcal-` (moved copies loaded before globals and lost to `.chip` — calendar pill grew).
+- New gate `npm run check:bundle` (`scripts/check-bundle-size.mjs`, reads prerendered HTML; budgets = measured × 1.1:
+  global 238 KB, heaviest route 402 KB, `/fa/home` JS 447 KB gzip). `lint:styles`/`lint:dark` scan every `.css`.
+- Fixed the known dark-gate failure (`.pgn-read-btn.is-read` raw `#fff` fallback → `var(--on-brand)`).
+- Screenshots: 173 routes × light/dark before/after, 327/346 pixel-identical; the 19 others are data/skeleton/redirect
+  state (sampled). Lighthouse not run (needs a logged-in page; build numbers used instead).

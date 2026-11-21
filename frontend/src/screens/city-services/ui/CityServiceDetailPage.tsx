@@ -11,6 +11,9 @@ import { Card, EmptyState, Icon, type IconName, InfoNote, PrimaryButton, ScreenH
 import { minPrice } from '../model/place';
 import { CsError, CsSkeleton } from './ListSkeleton';
 import { PlaceAbout, PlaceHead, PlaceInfo, PlaceReviews, PlaceServices, PlaceSlots, usePrice } from './PlaceSections';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/csv.css';
+import '@/shared/ui/styles/cdp.css';
 
 /** An http(s)-only guard for the admin-entered booking link (the server validates too). */
 function safeHref(url: string | null): string | null {

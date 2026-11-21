@@ -7,6 +7,7 @@ import { moduleOfRoute, useAppModulesQuery } from '@/entities/app-module';
 import { useLifeStage } from '@/entities/user';
 import { usePathname, useRouter } from '@/shared/i18n';
 import { EmptyState, PrimaryButton } from '@/shared/ui';
+import '@/shared/ui/styles/module.css';
 
 /**
  * Deep links into a module the admin switched off (GET /modules) show a «not available» card instead of the

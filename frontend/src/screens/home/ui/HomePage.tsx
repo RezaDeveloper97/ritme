@@ -134,6 +134,13 @@ import { InAppModal, UrgentModal } from './FeedModals';
 import { MenopauseHome } from './MenopauseHome';
 import { PlusTrialOffer } from './PlusTrialOffer';
 import { TodayLogCard } from './TodayLogCard';
+import '@/shared/ui/styles/btn.css';
+import '@/shared/ui/styles/home.css';
+import '@/shared/ui/styles/skeleton.css';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/log.css';
+import '@/shared/ui/styles/ch.css';
+import '@/shared/ui/styles/life.css';
 
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
 const faNum = (n: string | number) => String(n).replace(/[0-9]/g, d => FA[Number(d)]);

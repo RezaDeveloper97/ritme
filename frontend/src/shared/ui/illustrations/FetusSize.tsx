@@ -2,6 +2,8 @@ import clsx from 'clsx';
 
 import { isFetusIllustrationKey } from './fetus-keys';
 import { type IllustrationProps, svgA11y } from './svg-a11y';
+import '@/shared/ui/styles/pg2.css';
+import '@/shared/ui/styles/on.css';
 
 /*
  * «تقریباً هم‌اندازهٔ یک …» — the Week hero art (Week artboard) and the

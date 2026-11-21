@@ -11,6 +11,7 @@ import { Icon, Skeleton, SkeletonGroup } from '@/shared/ui';
 
 import { type AppointmentRowState, appointmentRowState, sectionStatus } from '../model/view';
 import { SectionHead } from './SectionHead';
+import '@/shared/ui/styles/rmd.css';
 
 type T = ReturnType<typeof useTranslations<'care'>>;
 

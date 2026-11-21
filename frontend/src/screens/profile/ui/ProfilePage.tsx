@@ -37,6 +37,8 @@ import { BottomNav, useNavMode } from '@/widgets/bottom-nav';
 
 import { MeErrorCard } from './MeErrorCard';
 import { firstLetter, localizeDigits, maskMobile, MODE_TONE } from './me-format';
+import '@/shared/ui/styles/me.css';
+import '@/shared/ui/styles/tone.css';
 
 /** A hub row whose feature ships with a later bloom task: visible, not tappable, «به‌زودی». */
 interface SoonRow {

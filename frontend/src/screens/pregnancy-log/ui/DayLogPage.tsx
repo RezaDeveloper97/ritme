@@ -57,6 +57,9 @@ import {
 } from "../model/draft";
 import { isConfirmedSave } from "../model/save-status";
 import { useSaveDay } from "../model/use-save-day";
+import '@/shared/ui/styles/preg.css';
+import './plog.css';
+import '@/shared/ui/styles/pgn.css';
 
 /** The Log artboard's glass row; more than eight still counts through −/+. */
 const WATER_GLASSES = 8;

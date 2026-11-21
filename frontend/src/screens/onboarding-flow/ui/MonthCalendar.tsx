@@ -15,6 +15,7 @@ import {
   weekdayLabels,
 } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
+import '@/shared/ui/styles/onb.css';
 
 interface MonthCalendarProps {
   value: Date | null;

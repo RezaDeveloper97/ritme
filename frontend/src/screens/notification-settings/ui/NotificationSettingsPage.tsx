@@ -25,6 +25,7 @@ import { PlusBadge } from '@/shared/ui/plus-gate';
 
 import { useNotificationSettings, usePmsReminderDay, useUpdateNotificationSettings } from '../api/settings';
 import { type CategoryCode, displayClock, isClock, type NotificationSettings, type SettingsPatch } from '../model/settings';
+import '@/shared/ui/styles/ntf.css';
 
 function LoadingState({ label }: { label: string }) {
   return (

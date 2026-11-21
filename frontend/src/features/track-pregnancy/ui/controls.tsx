@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 
 import { pilot, pilotOption } from '@/shared/pilot';
 import { Icon, type IconName } from '@/shared/ui';
+import '@/shared/ui/styles/has.css';
 
 /**
  * Presentational form primitives shared by the pregnancy screens (tracker,

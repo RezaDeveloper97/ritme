@@ -7,6 +7,7 @@ import { useVoiceLocked, VoiceLogGated } from '@/widgets/voice-log-slot';
 import { useRouter } from '@/shared/i18n';
 import { SkyLayer } from '@/shared/ui';
 import { BodyMap } from '@/widgets/body-map';
+import '@/shared/ui/styles/lday.css';
 
 /**
  * `/log[?date=Y-m-d]` — the log sheet v2 as a full screen (B-N3-03). Kept so existing links (week summary,

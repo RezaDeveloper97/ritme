@@ -9,6 +9,7 @@ import { Icon } from '@/shared/ui';
 
 import { dueIn, isVisitUrgent } from '../model/format';
 import type { Child } from '../model/types';
+import '@/shared/ui/styles/chd.css';
 
 type T = ReturnType<typeof useTranslations<'children'>>;
 

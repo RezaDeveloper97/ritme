@@ -1,0 +1,13 @@
+/* `ckc-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.ckc-head { display: flex; align-items: center; gap: 12px; }
+
+.ckc-head-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; text-align: start; }
+
+.ckc-counts { margin: 0; font-size: 12px; line-height: 1.6; font-weight: 600; color: var(--text-3); }
+
+.ckc-all { align-self: flex-start; }
+
+.ckc-row { border-radius: 18px; padding: 10px 12px; }
+
+.ckc-action { padding: 0 14px; border-radius: 22px; }

@@ -16,6 +16,7 @@ import {
 import { pilot } from '@/shared/pilot';
 import { Link, useRouter } from '@/shared/i18n';
 import { Card, EmptyState, Icon, IconCircle, PrimaryButton, ScreenHeader, SkyLayer } from '@/shared/ui';
+import '@/shared/ui/styles/as.css';
 
 /**
  * `/assistant/[dept]` — department intro (nbl_/nbd_v18_DeptIntro): what it knows about her (each item switchable on the

@@ -31,6 +31,8 @@ import {
 } from '@/widgets/city-join-form';
 
 import { BusinessShell } from './BusinessShell';
+import './wbz.css';
+import './wbj.css';
 
 const STEP_KEYS = ['intro', 'place', 'services', 'docs'] as const;
 const BUSINESS_HOME = '/business';

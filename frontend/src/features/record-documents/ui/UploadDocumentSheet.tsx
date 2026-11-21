@@ -22,6 +22,9 @@ import { ChipGroup, Icon, PillChip, PrimaryButton, ProgressBar, TileButton } fro
 import { pilot, pilotOption } from '@/shared/pilot';
 
 import { addFiles, type DraftError, type DraftFile, overallProgress, type PickError, validateDraft } from '../model/draft';
+import '@/shared/ui/styles/lab.css';
+import '@/shared/ui/styles/hrec.css';
+import '@/shared/ui/styles/rec.css';
 
 let seq = 0;
 const nextKey = () => `rec-file-${Date.now().toString(36)}-${++seq}`;

@@ -9,6 +9,7 @@ import { openSheet } from '@/shared/sheet';
 import { Icon, type IconName, type Tone } from '@/shared/ui';
 
 import { useQuickAccess } from '../model/use-quick-access';
+import './qac.css';
 
 /** Registry id of the edit sheet (`app/sheets/registry.tsx`). */
 export const QUICK_ACCESS_SHEET = 'quick-access';

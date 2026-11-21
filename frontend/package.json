@@ -21,6 +21,7 @@
     "lint:styles": "node scripts/check-styles.mjs",
     "lint:styles:accept": "node scripts/check-styles.mjs --update-baseline",
     "lint:dark": "node scripts/check-dark-mode.mjs",
+    "check:bundle": "node scripts/check-bundle-size.mjs",
     "copy:check": "node scripts/copy-fa/check.mjs",
     "copy:clean": "node scripts/copy-fa/clean.mjs",
     "copy:sync": "node scripts/copy-fa/sync.mjs"

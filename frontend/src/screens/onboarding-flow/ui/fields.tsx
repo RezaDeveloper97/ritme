@@ -8,6 +8,8 @@ import type { Locale } from '@/shared/i18n';
 import { formatLongDate, formatNumber } from '@/shared/lib/date';
 import { toAsciiDigits } from '@/shared/lib/phone';
 import { Icon } from '@/shared/ui';
+import '@/shared/ui/styles/has.css';
+import '@/shared/ui/styles/onb.css';
 
 interface NumFieldProps {
   label: string;

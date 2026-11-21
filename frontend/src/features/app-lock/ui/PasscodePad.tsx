@@ -7,6 +7,7 @@ import { type ReactNode, useEffect, useRef } from 'react';
 import type { Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
+import './lk.css';
 
 interface PasscodePadProps {
   /** Digits expected; `onComplete` fires when this many are entered. */

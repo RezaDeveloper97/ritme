@@ -6,6 +6,8 @@ import { useShopCategories } from '@/entities/shop';
 import { Link, useRouter } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
 import { Card, EmptyState, Icon, PrimaryButton, ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/shp.css';
 
 /**
  * `/shop` — «فروشگاه» categories (entry from the services hub tile, nbl_/nbd_v17_Main). Separate from health data:

@@ -1,0 +1,86 @@
+/* `cnb-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.cnb-page { background: var(--page); }
+
+.cnb-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; min-block-size: 100%; }
+
+.cnb-body { display: flex; flex-direction: column; gap: 14px; padding: 4px var(--gutter) 20px; }
+
+.cnb-skel { height: 120px; }
+
+.cnb-skel-tall { height: 240px; }
+
+.cnb-section { display: flex; flex-direction: column; gap: 10px; }
+
+.cnb-head { display: flex; flex-direction: column; gap: 2px; text-align: start; }
+
+.cnb-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; line-height: 1.6; color: var(--text-1); }
+
+.cnb-hint { margin: 0; font-size: 12.5px; font-weight: 700; line-height: 1.8; color: var(--text-2); }
+
+.nb-card.cnb-pads { display: flex; flex-direction: column; padding: 4px 16px; }
+
+.cnb-pad-row { display: flex; align-items: center; gap: 12px; padding-block: 12px; }
+
+.cnb-pad-row:not(:last-child) { border-bottom: 1px solid var(--line); }
+
+.cnb-stepper { flex: 1; min-width: 0; }
+
+.cnb-stepper .nb-stepper-value { min-width: 36px; }
+
+.cnb-pad {
+  position: relative; flex-shrink: 0; display: block; inline-size: 34px; block-size: 52px; overflow: hidden;
+  border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface);
+}
+
+.cnb-pad-fill { position: absolute; inset-inline: 0; bottom: 0; display: block; background: var(--period); }
+
+.cnb-pad.is-light .cnb-pad-fill { block-size: 26%; }
+
+.cnb-pad.is-medium .cnb-pad-fill { block-size: 55%; }
+
+.cnb-pad.is-heavy .cnb-pad-fill { block-size: 100%; }
+
+.nb-card.cnb-extras { display: flex; flex-direction: column; padding: 16px; }
+
+.cnb-clots { display: flex; flex-direction: column; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+
+.cnb-label { margin: 0; font-size: var(--fs-lg); font-weight: 800; line-height: 1.6; color: var(--text-1); }
+
+.cnb-flood { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 14px; }
+
+.nb-card.cnb-scores { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px; }
+
+.cnb-tile {
+  display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border-radius: 18px;
+  background: var(--surface-3); border: 1px solid var(--line); text-align: start;
+}
+
+.cnb-tile-num { font-family: var(--font-display); font-size: var(--fs-num-m); line-height: 1.1; color: var(--period-deep); }
+
+.cnb-tile-label { font-size: 12.5px; font-weight: 800; color: var(--text-2); }
+
+.cnb-alert {
+  display: flex; align-items: flex-start; gap: 12px; padding: 16px; border-radius: var(--r-card);
+  border: 1px solid var(--period); background: var(--period-soft); text-align: start;
+}
+
+.cnb-alert-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+
+.cnb-alert-title { margin: 0; font-size: 14.5px; font-weight: 800; line-height: 1.6; color: var(--text-1); }
+
+.cnb-alert-body { margin: 0; font-size: 13px; font-weight: 600; line-height: 1.9; color: var(--text-2); }
+
+.nb-card.cnb-join { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 24px 18px; text-align: center; }
+
+.cnb-join-title { margin: 0; font-size: var(--fs-xl); font-weight: 800; color: var(--text-1); }
+
+.cnb-join-body { margin: 0 0 6px; font-size: 13px; font-weight: 600; line-height: 1.9; color: var(--text-2); }
+
+.cnb-footer {
+  position: sticky; bottom: 0; z-index: 2; margin-top: auto; display: flex; flex-direction: column; gap: 8px;
+  padding: 12px var(--gutter) max(14px, env(safe-area-inset-bottom));
+  background: var(--surface-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+
+.cnb-error { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--danger-deep); }

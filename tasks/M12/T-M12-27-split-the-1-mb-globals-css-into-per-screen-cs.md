@@ -3,10 +3,10 @@ id: T-M12-27
 title: Split the 1 MB globals.css into per-screen CSS and add a CSS byte budget
 milestone: M12
 type: frontend
-status: todo
+status: done
 depends_on: [T-M12-12]
 parallel_group: M12-PERF
-touches: [frontend/src/app/globals.css, frontend/src/screens, frontend/src/widgets, frontend/src/features, frontend/scripts/check-bundle-size.mjs, frontend/package.json, frontend/scripts/check-styles.mjs, frontend/scripts/check-dark-mode.mjs]
+touches: [frontend/src/app/globals.css, frontend/src/app, frontend/src/entities, frontend/src/shared/ui/styles, frontend/src/shared, docs/quality-2026-11/perf.md, frontend/src/screens, frontend/src/widgets, frontend/src/features, frontend/scripts/check-bundle-size.mjs, frontend/package.json, frontend/scripts/check-styles.mjs, frontend/scripts/check-dark-mode.mjs]
 skills: []
 verify: cd frontend && npm run build && node scripts/check-bundle-size.mjs && npm run lint:styles && npm run lint:dark
 ---

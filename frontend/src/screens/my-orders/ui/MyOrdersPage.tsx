@@ -8,6 +8,9 @@ import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, formatNumber } from '@/shared/lib/date';
 import { pilot } from '@/shared/pilot';
 import { Card, EmptyState, Icon, PrimaryButton, ScreenHeader, SecondaryButton, Skeleton, SkeletonGroup, SkyLayer, StatusPill } from '@/shared/ui';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/shp.css';
+import './shmy.css';
 
 const STATUS_KEYS = ['placed', 'confirmed', 'shipped', 'delivered', 'cancelled'] as const;
 

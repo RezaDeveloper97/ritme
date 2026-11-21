@@ -18,6 +18,7 @@ import type { Locale } from '@/shared/i18n';
 import { pilot, pilotOption } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { ChipGroup, NumberStepper, PillChip, PrimaryButton, SecondaryButton } from '@/shared/ui';
+import './shc.css';
 
 interface Props {
   /** The row being edited; null = add a custom item. */

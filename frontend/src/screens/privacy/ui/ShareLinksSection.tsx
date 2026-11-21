@@ -6,6 +6,7 @@ import { type ShareLink, useRevokeShareLink, useShareLinks } from '@/entities/he
 import type { Locale } from '@/shared/i18n';
 import { formatDayMonth, formatLongDate } from '@/shared/lib/date';
 import { ListGroup, ListRow, Skeleton, StatusPill } from '@/shared/ui';
+import './prv.css';
 
 /**
  * «لینک‌های گزارش پزشک» (bloom B-N6-04): the owner's doctor-report share links of the last 30 days — status, opens,

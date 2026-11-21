@@ -12,6 +12,10 @@ import { pilot, pilotOption } from '@/shared/pilot';
 import { Card, Icon, PrimaryButton, SecondaryButton } from '@/shared/ui';
 
 import { bookable, monthsLabelParts, neshanHref, priceParts, safeWebsite, slotDayOffset, slotParts } from '../model/place';
+import '@/shared/ui/styles/csv.css';
+import '@/shared/ui/styles/cdh.css';
+import '@/shared/ui/styles/cdp.css';
+import '@/shared/ui/styles/cdb.css';
 
 /* CB-DIR-08 — sections of the place page (nbl_Dir_Place). Prices are the venue's own declarations, display only. */
 

@@ -12,6 +12,7 @@ import { type BannerPosition, useBanners } from '@/entities/banner';
 
 import { resolveSwipeIndex, wrapIndex } from '../lib/carousel';
 import { BannerLink } from './BannerLink';
+import './bs.css';
 
 const AUTOPLAY_MS = 5000;
 

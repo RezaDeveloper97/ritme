@@ -21,6 +21,7 @@ import { useAutosave } from '../model/use-autosave';
 import { PhotoManager } from './PhotoManager';
 import { PinPicker } from './PinPicker';
 import { SaveHint, useErrorText } from './parts';
+import '@/shared/ui/styles/cjn.css';
 
 /** Step 2 «مکان و تصاویر» (nbl_Dir_JoinForm): pin, address, photos, about, ages, amenities and weekly hours. */
 export function StepPlace({ app, onNext, onSaveError }: { app: JoinApplication; onNext: () => void; onSaveError: (e: unknown) => void }) {

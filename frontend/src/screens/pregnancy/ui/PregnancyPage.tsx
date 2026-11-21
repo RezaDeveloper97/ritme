@@ -47,6 +47,8 @@ import { QuickAccess } from '@/widgets/quick-access';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
 import { WeekRing } from './WeekRing';
+import '@/shared/ui/styles/preg.css';
+import '@/shared/ui/styles/pgn.css';
 
 type T = ReturnType<typeof useTranslations<'pregnancyV2'>>;
 

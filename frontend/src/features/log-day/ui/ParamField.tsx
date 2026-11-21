@@ -28,6 +28,7 @@ import {
   toggleItem,
 } from '../model/draft';
 import { linkHref } from '../model/presentation';
+import '@/shared/ui/styles/lday.css';
 
 export interface ParamFieldProps {
   param: LogParam;
