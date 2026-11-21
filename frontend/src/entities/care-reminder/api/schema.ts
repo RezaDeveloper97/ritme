@@ -32,7 +32,7 @@ import {
  * - ids may arrive as numbers or numeric strings.
  */
 
-const idSchema = z.union([z.number(), z.string()]).pipe(z.coerce.number().int());
+const idSchema = z.union([z.number(), z.string()]).transform(Number).pipe(z.number().int());
 
 const nullableText = z
   .string()
@@ -303,7 +303,7 @@ export const careTodaySchema = z
  */
 function optionList<T extends string>(known: readonly T[] | null) {
   return z
-    .unknown()
+    .unknown().optional()
     .transform((raw): CareOption<T>[] => {
       const entries: Array<[unknown, unknown]> = Array.isArray(raw)
         ? raw.map((o) =>

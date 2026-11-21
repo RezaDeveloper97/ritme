@@ -210,7 +210,7 @@ const lenientEnum = <T extends readonly string[]>(values: T) =>
     );
 
 /** A value-layer object that may be absent or null in v6 — default to an empty layer. */
-const orEmptyObject = <S extends z.ZodTypeAny>(schema: S) =>
+const orEmptyObject = <S extends z.ZodType>(schema: S) =>
   z.preprocess((v) => (v == null || typeof v !== 'object' ? {} : v), schema);
 
 const valueLayerFields = {

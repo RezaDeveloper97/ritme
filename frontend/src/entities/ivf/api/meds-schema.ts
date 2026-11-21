@@ -27,7 +27,7 @@ const amount = z
   .transform((v) => (v === null ? null : String(v)));
 
 /** Keep the valid items of a list, never fail the list. */
-function each<T>(schema: z.ZodType<T, z.ZodTypeDef, unknown>) {
+function each<T>(schema: z.ZodType<T, unknown>) {
   return z
     .array(z.unknown())
     .catch([])
@@ -175,7 +175,7 @@ const text = z.string().trim().min(1).nullable().catch(null);
 const catalogMeta = z.record(z.string(), z.unknown()).nullable().catch(null);
 
 /** `GET /catalog/{group}` → `data.items` (malformed items dropped, never the list). */
-function catalogItems<T>(item: z.ZodType<T, z.ZodTypeDef, unknown>) {
+function catalogItems<T>(item: z.ZodType<T, unknown>) {
   return z
     .object({ items: each(item) })
     .catch({ items: [] })

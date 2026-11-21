@@ -13,7 +13,7 @@ const nullableNum = z.number().nullable().catch(null);
 const softEnum = <const T extends [string, ...string[]]>(values: T) => z.enum(values).nullable().catch(null);
 
 /** `{plus, locked, ready, data}` — a locked section carries no data. */
-function section<T extends z.ZodTypeAny>(data: T) {
+function section<T extends z.ZodType>(data: T) {
   return z.object({
     plus: z.boolean(),
     locked: z.boolean(),

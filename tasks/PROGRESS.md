@@ -3162,3 +3162,14 @@ Nothing needed fixing.
 - Fixed the known dark-gate failure (`.pgn-read-btn.is-read` raw `#fff` fallback → `var(--on-brand)`).
 - Screenshots: 173 routes × light/dark before/after, 327/346 pixel-identical; the 19 others are data/skeleton/redirect
   state (sampled). Lighthouse not run (needs a logged-in page; build numbers used instead).
+
+## T-M12-04b — Zod 4 and next-intl 4 migration, audit gate to high
+- zod 3.25 → 4.6.7 (frontend + admin-web, main import, no `zod/v3`), next-intl 3.22 → 4.15.3 (frontend; no code
+  change, custom routing untouched), @playwright/test 1.51 → 1.56 (last high advisory, GHSA-7mvr-c777-76hp).
+- Rewrites: `ZodType<T, ZodTypeDef, unknown>` → `ZodType<T, unknown>`, `ZodTypeAny` → `ZodType`, 1-arg `z.record`,
+  `.default({})` → `.prefault({})` on object schemas (zod 3 parsed the default through the schema),
+  `.optional()` added to `z.unknown()`(+transform) keys (zod 4 makes them required), admin-web envelope tolerates a
+  missing `data` only when the data schema accepts `undefined`.
+- Both `npm audit --omit=dev --audit-level=high` = 0; `claude-to-stage.yml` audit steps now `--audit-level=high`.
+- Open: run `npx playwright install` locally before the next e2e run; `fsd:lint` still flags the unreferenced
+  `widgets/plus-required-sheet` (pre-existing).

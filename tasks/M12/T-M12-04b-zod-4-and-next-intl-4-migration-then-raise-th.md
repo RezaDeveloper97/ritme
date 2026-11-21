@@ -3,7 +3,7 @@ id: T-M12-04b
 title: Zod 4 and next-intl 4 migration, then raise the npm audit gate to high
 milestone: M12
 type: frontend
-status: todo
+status: done
 depends_on: [T-M12-04]
 parallel_group: M12-SEC
 touches: [frontend/package.json,frontend/package-lock.json,frontend/src,admin-web/package.json,admin-web/package-lock.json,admin-web/src,.github/workflows/claude-to-stage.yml]

@@ -102,7 +102,7 @@ const configSchema = z.object({
       caption: z.boolean().default(true),
       statusBar: z.boolean().default(true),
     })
-    .default({}),
+    .prefault({}),
 
   typing: z
     .object({
@@ -111,14 +111,14 @@ const configSchema = z.object({
       /** `visual` never focuses the input, so the phone keyboard stays down; `real` focuses it. */
       focus: z.enum(['visual', 'real']).default('visual'),
     })
-    .default({}),
+    .prefault({}),
 
   /** The user touching the screen mid-run. */
   interrupt: z
     .object({
       onUserInput: z.enum(['pause', 'cancel', 'ignore']).default('pause'),
     })
-    .default({}),
+    .prefault({}),
 
   errors: z
     .object({
@@ -127,7 +127,7 @@ const configSchema = z.object({
       /** Extra attempts for a step whose target didn't show up. */
       retries: z.number().int().min(0).max(5).default(1),
     })
-    .default({}),
+    .prefault({}),
 
   timeouts: z
     .object({
@@ -136,7 +136,7 @@ const configSchema = z.object({
       /** How long a control may take to show the state we asked for. */
       verifyMs: z.number().positive().default(1200),
     })
-    .default({}),
+    .prefault({}),
 
   /** With «کاهش حرکت» on (Me → Appearance, or the OS): `instant` drops all motion, `keep` runs the preset. */
   reducedMotion: z.enum(['instant', 'keep']).default('instant'),
@@ -206,7 +206,7 @@ const configSchema = z.object({
       /** Top-level option keys a script may set in its own `options`. */
       scriptMayOverride: z.array(z.string()).default(['preset']),
     })
-    .default({}),
+    .prefault({}),
 
   /** Console trace of step kinds and target ids. Values are never logged (§11). */
   debug: z.boolean().default(false),
