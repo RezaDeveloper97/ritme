@@ -534,7 +534,6 @@
 | `med.duration-choice` | single | نوع مدت مصرف | route `/reminders/medication/new` | yes | `ongoing` `until_date` `pregnancy_end` |
 | `med.ends-on` | date | تاریخ پایان مصرف | route `/reminders/medication/new` | yes | — |
 | `med.duration-done` | action | تأیید مدت مصرف | route `/reminders/medication/new` | yes | — |
-| `appt.kind` | single | نوع نوبت | route `/reminders/appointment/new` | — | `in_person` `phone` `online` |
 | `appt.with` | text | نام دکتر | route `/reminders/appointment/new` | — | — |
 | `appt.specialty` | text | تخصص | route `/reminders/appointment/new` | — | — |
 | `appt.topic` | single | موضوع نوبت | route `/reminders/appointment/new` | — | `ultrasound` `checkup` `lab` `consult` `vaccine` `other` |
@@ -543,7 +542,6 @@
 | `appt.time` | action | ساعت نوبت | route `/reminders/appointment/new` | — | — |
 | `appt.location` | text | محل یا لینک | route `/reminders/appointment/new` | — | — |
 | `appt.remind` | single | یادآوری قبل از نوبت | route `/reminders/appointment/new` | — | `1h` `3h` `1d` `2d` |
-| `appt.calendar` | bool | افزودن به تقویم | route `/reminders/appointment/new` | — | — |
 | `appt.prep` | text | چیزهایی که باید ببرم | route `/reminders/appointment/new` | — | — |
 | `appt.save` | action | ذخیره‌ی نوبت | route `/reminders/appointment/new` | — | — |
 | `appt.date-pick` | date | روز نوبت | route `/reminders/appointment/new` | yes | — |

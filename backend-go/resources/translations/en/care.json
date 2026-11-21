@@ -175,7 +175,7 @@
     "saveChoice": "Save"
   },
   "appointmentForm": {
-    "title": "Add appointment",
+    "title": "Add doctor's appointment",
     "editTitle": "Edit appointment",
     "subtitle": "Doctor's appointment or consultation",
     "kinds": {
@@ -200,7 +200,7 @@
     "date": "Date",
     "time": "Time",
     "place": "Place",
-    "placePlaceholder": "Clinic address or meeting link",
+    "placePlaceholder": "Clinic address, phone number or meeting link",
     "remindBefore": "Remind me before",
     "remindOptions": {
       "1h": "1 hour before",

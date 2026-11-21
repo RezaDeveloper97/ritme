@@ -458,7 +458,6 @@
     "med_duration_choice": "نوع مدت مصرف",
     "med_ends_on": "تاریخ پایان مصرف",
     "med_duration_done": "تأیید مدت مصرف",
-    "appt_kind": "نوع نوبت",
     "appt_with": "نام دکتر",
     "appt_specialty": "تخصص",
     "appt_topic": "موضوع نوبت",
@@ -467,7 +466,6 @@
     "appt_time": "ساعت نوبت",
     "appt_location": "محل یا لینک",
     "appt_remind": "یادآوری قبل از نوبت",
-    "appt_calendar": "افزودن به تقویم",
     "appt_prep": "چیزهایی که باید ببرم",
     "appt_save": "ذخیره‌ی نوبت",
     "appt_date_pick": "روز نوبت",
@@ -1531,11 +1529,6 @@
       "ongoing": "بدون تاریخ پایان",
       "until_date": "تا یک تاریخ",
       "pregnancy_end": "تا پایان بارداری"
-    },
-    "appt_kind": {
-      "in_person": "حضوری",
-      "phone": "تلفنی",
-      "online": "آنلاین"
     },
     "appt_topic": {
       "ultrasound": "سونوگرافی",

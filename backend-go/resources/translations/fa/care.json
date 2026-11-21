@@ -175,7 +175,7 @@
     "saveChoice": "ذخیره"
   },
   "appointmentForm": {
-    "title": "افزودن نوبت",
+    "title": "افزودن وقت پزشک",
     "editTitle": "ویرایش نوبت",
     "subtitle": "نوبت پزشک یا مشاوره",
     "kinds": {
@@ -200,7 +200,7 @@
     "date": "تاریخ",
     "time": "ساعت",
     "place": "محل",
-    "placePlaceholder": "آدرس مطب یا لینک جلسه",
+    "placePlaceholder": "آدرس مطب، شماره تماس یا لینک جلسه",
     "remindBefore": "یادآوری قبل از نوبت",
     "remindOptions": {
       "1h": "۱ ساعت قبل",

@@ -458,7 +458,6 @@
     "med_duration_choice": "Duration type",
     "med_ends_on": "End date",
     "med_duration_done": "Confirm duration",
-    "appt_kind": "Visit type",
     "appt_with": "Doctor name",
     "appt_specialty": "Specialty",
     "appt_topic": "Visit topic",
@@ -467,7 +466,6 @@
     "appt_time": "Visit time",
     "appt_location": "Place or link",
     "appt_remind": "Remind me before",
-    "appt_calendar": "Add to calendar",
     "appt_prep": "Things to prepare",
     "appt_save": "Save appointment",
     "appt_date_pick": "Visit day",
@@ -1531,11 +1529,6 @@
       "ongoing": "No end date",
       "until_date": "Until a date",
       "pregnancy_end": "Until end of pregnancy"
-    },
-    "appt_kind": {
-      "in_person": "In person",
-      "phone": "Phone",
-      "online": "Online"
     },
     "appt_topic": {
       "ultrasound": "Ultrasound",
