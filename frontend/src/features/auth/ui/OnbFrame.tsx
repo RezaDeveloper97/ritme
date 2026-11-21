@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { clsx } from 'clsx';
 
 import { useDirection } from '@/shared/i18n';
+import type { PilotAttrs } from '@/shared/pilot';
 import { HeaderButton, Icon, PrimaryButton, ProgressSteps, SecondaryButton, SkyLayer } from '@/shared/ui';
 import '@/shared/ui/styles/onb.css';
 
@@ -15,12 +16,14 @@ interface OnbFrameProps {
   onBack?: () => void;
   /** «رد کردن» at the header end (optional steps). */
   onSkip?: () => void;
+  /** Autopilot name of «رد کردن» (frontend/CLAUDE.md §11.6). */
+  skipPilot?: PilotAttrs;
   title?: ReactNode;
   subtitle?: ReactNode;
   /** The primary CTA (54px pill) at the bottom. */
-  primary?: { label: ReactNode; onClick: () => void; disabled?: boolean; loading?: boolean };
+  primary?: { label: ReactNode; onClick: () => void; disabled?: boolean; loading?: boolean; pilot?: PilotAttrs };
   /** A text button under the CTA («الان نه», «بعداً وصل می‌شوم»). */
-  secondary?: { label: ReactNode; onClick: () => void; disabled?: boolean };
+  secondary?: { label: ReactNode; onClick: () => void; disabled?: boolean; pilot?: PilotAttrs };
   /** The «اطلاعات تو نزد ریتمی محرمانه است…» line above the CTA (default on). */
   privacyNote?: boolean;
   className?: string;
@@ -38,6 +41,7 @@ export function OnbFrame({
   progress,
   onBack,
   onSkip,
+  skipPilot,
   title,
   subtitle,
   primary,
@@ -70,7 +74,7 @@ export function OnbFrame({
             <span className="onb2-steps" />
           )}
           {onSkip ? (
-            <button type="button" className="onb2-skip" onClick={onSkip}>
+            <button type="button" className="onb2-skip" onClick={onSkip} {...skipPilot}>
               {t('skip')}
             </button>
           ) : null}
@@ -92,12 +96,12 @@ export function OnbFrame({
             </p>
           ) : null}
           {primary ? (
-            <PrimaryButton onClick={primary.onClick} disabled={primary.disabled} loading={primary.loading}>
+            <PrimaryButton onClick={primary.onClick} disabled={primary.disabled} loading={primary.loading} {...primary.pilot}>
               {primary.label}
             </PrimaryButton>
           ) : null}
           {secondary ? (
-            <SecondaryButton variant="text" onClick={secondary.onClick} disabled={secondary.disabled}>
+            <SecondaryButton variant="text" onClick={secondary.onClick} disabled={secondary.disabled} {...secondary.pilot}>
               {secondary.label}
             </SecondaryButton>
           ) : null}

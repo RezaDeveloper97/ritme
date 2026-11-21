@@ -70,15 +70,8 @@
   "appointments": {
     "title": "نوبت‌ها و مشاوره‌ها",
     "empty": "هنوز نوبتی ثبت نکرده‌ای.",
-    "rowMeta": "{time}، {kind}، {place}",
-    "rowMetaNoPlace": "{time}، {kind}",
-    "kindShort": {
-      "in_person": "حضوری",
-      "phone": "تلفنی",
-      "online": "آنلاین"
-    },
-    "add": "افزودن نوبت",
-    "rowMetaNoTime": "{kind} · {place}"
+    "rowMeta": "{time}، {place}",
+    "add": "افزودن نوبت"
   },
   "chooser": {
     "title": "چه چیزی را یادآوری کنم؟",
@@ -175,14 +168,9 @@
     "saveChoice": "ذخیره"
   },
   "appointmentForm": {
-    "title": "افزودن نوبت",
+    "title": "افزودن وقت پزشک",
     "editTitle": "ویرایش نوبت",
     "subtitle": "نوبت پزشک یا مشاوره",
-    "kinds": {
-      "in_person": "ویزیت حضوری",
-      "phone": "مشاورهٔ تلفنی",
-      "online": "مشاورهٔ آنلاین"
-    },
     "with": "با چه کسی؟",
     "withPlaceholder": "نام پزشک یا مشاور",
     "specialty": "تخصص",
@@ -200,7 +188,7 @@
     "date": "تاریخ",
     "time": "ساعت",
     "place": "محل",
-    "placePlaceholder": "آدرس مطب یا لینک جلسه",
+    "placePlaceholder": "آدرس مطب، شماره تماس یا لینک جلسه",
     "remindBefore": "یادآوری قبل از نوبت",
     "remindOptions": {
       "1h": "۱ ساعت قبل",
@@ -214,10 +202,6 @@
     "prepPlaceholder": "مثلاً جواب آزمایش قبلی، دفترچهٔ بیمه…",
     "save": "ذخیرهٔ نوبت",
     "saving": "در حال ذخیره…",
-    "placeOnline": "لینک جلسه",
-    "placePhone": "شماره تماس",
-    "placeOnlinePlaceholder": "لینک اسکای‌روم، گوگل‌میت…",
-    "placePhonePlaceholder": "شماره‌ای که با آن تماس می‌گیرند",
     "shortDescriptionPlaceholder": "مثلاً سونوگرافی NT",
     "pickDate": "انتخاب تاریخ",
     "pickTime": "انتخاب ساعت",
