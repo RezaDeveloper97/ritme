@@ -20,6 +20,9 @@ func UserKeyPatterns(userID uint64) []string {
 	id := strconv.FormatUint(userID, 10)
 	return []string{
 		"cycle-engine:" + id + ":*", // internal/cycle/cache: computed cycle views (health data), 24 h
+		"eng:in:" + id + ":*",       // internal/cycle/state: L2 engine-input snapshot (periods, logs, profile), 7 d
+		"ana:" + id + ":*",          // internal/analysis: cached analysis bodies (health data), 24 h
+		"preg-alerts:eval:" + id,    // internal/messages/pregnancyalerts: last evaluation digest
 		"idem:" + id + ":*",         // internal/platform/idempotency: stored write responses, 24 h
 		"msg:shown:" + id + ":*",    // internal/messages/events: daily marks
 		"msg:eligible:" + id + ":*",

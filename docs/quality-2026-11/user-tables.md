@@ -48,7 +48,7 @@ Rows that stayed after an account delete (no FK, no hand delete):
 | `oauth_device_codes` | Passport device codes (idem) | FK CASCADE |
 | `user_profiles_dedupe_backup` | her duplicate profile rows saved by 00096 (birthday, weight, LMP…) | FK CASCADE |
 | `otp_verifications` | OTP rows of her number (keyed by mobile, no id) | `DeleteOtpsForMobile` in `DeleteAccount` |
-| Redis | cycle-engine views (health data, 24 h), idempotent responses (24 h), message / activity marks, family read-audit marks | `PurgeUserKeys` after the commit |
+| Redis | cycle-engine views (health data, 24 h), engine-input snapshots `eng:in:` (7 d), analysis bodies `ana:` (24 h), the pregnancy-alert digest, idempotent responses (24 h), message / activity marks, family read-audit marks | `PurgeUserKeys` after the commit |
 
 The migration deletes the orphan rows of those six tables (rows of accounts deleted earlier — nobody else's data),
 then adds the FKs with `foreign_key_checks = 0` (`ALGORITHM=INPLACE, LOCK=NONE`: no table copy on `message_events`).
