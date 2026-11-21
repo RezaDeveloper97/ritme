@@ -6,13 +6,13 @@
  *   node scripts/check-bundle-size.mjs --report   print the numbers only (never fails)
  *
  * It reads the prerendered `/fa/*` pages in `.next/server/app/fa` (the `<link rel=stylesheet>` and `<script src>`
- * tags a first visit downloads) and checks three things:
+ * tags a first visit downloads) and checks four things:
  *
  *   1. global CSS   — the stylesheets EVERY route downloads (intersection over all prerendered pages), minified bytes.
  *                     This is globals.css + whatever the root layout imports. Screen CSS lives next to its screen
  *                     (`<slice>/ui/<prefix>.css`, shared ones in `shared/ui/styles/`) and must NOT creep back in here.
  *   2. heaviest route CSS — global + that route's own CSS, the worst page, minified bytes.
- *   3. first-load JS of /fa/home — gzip bytes of the scripts in the page HTML (what Next prints as "First Load JS").
+ *   3. first-load JS of /fa/home and /fa/log — gzip bytes of the scripts in the page HTML (what Next prints as "First Load JS").
  *
  * Budgets = the measured value at T-M12-27 × 1.1. Raise one only with a reason in docs/quality-2026-11/perf.md.
  */
@@ -24,11 +24,12 @@ const ROOT = resolve(new URL('..', import.meta.url).pathname);
 const NEXT = join(ROOT, '.next');
 const PAGES = join(NEXT, 'server', 'app', 'fa');
 
-/** Bytes. Measured at T-M12-27 (see docs/quality-2026-11/perf.md) × 1.1, rounded up to 1 KB. */
+/** Bytes. CSS measured at T-M12-27, JS at T-M12-28 (see docs/quality-2026-11/perf.md) × 1.1, rounded up to 1 KB. */
 const BUDGET = {
   globalCss: 243_712, //          measured 221_148
   heaviestRouteCss: 411_648, //   measured 373_777 (/fa/home)
-  homeFirstLoadJsGzip: 457_728, // measured 415_694
+  homeFirstLoadJsGzip: 423_936, // measured 385_062 at T-M12-28 (was 427_339 / budget 457_728)
+  logFirstLoadJsGzip: 410_624, //  measured 372_902 at T-M12-28 (was 407_211)
 };
 
 const REPORT = process.argv.includes('--report');
@@ -78,12 +79,19 @@ if (!home) {
   process.exit(2);
 }
 const homeJs = home.js.reduce((n, a) => n + gz(a), 0);
+const log = pages.find((p) => p.file.endsWith(join('fa', 'log.html')));
+if (!log) {
+  console.error('✖ bundle gate: /fa/log was not prerendered.');
+  process.exit(2);
+}
+const logJs = log.js.reduce((n, a) => n + gz(a), 0);
 
 const kb = (n) => `${(n / 1024).toFixed(1)} KB`;
 const rows = [
   ['global CSS (every route)', globalCss, BUDGET.globalCss],
   [`heaviest route CSS (${heaviest.file}, ${heaviest.n} files)`, heaviest.bytes, BUDGET.heaviestRouteCss],
   ['/fa/home first-load JS (gzip)', homeJs, BUDGET.homeFirstLoadJsGzip],
+  ['/fa/log first-load JS (gzip)', logJs, BUDGET.logFirstLoadJsGzip],
 ];
 for (const [name, value, budget] of rows) console.log(`${name.padEnd(58)} ${String(value).padStart(8)} B ${kb(value).padStart(10)}   budget ${kb(budget)}`);
 

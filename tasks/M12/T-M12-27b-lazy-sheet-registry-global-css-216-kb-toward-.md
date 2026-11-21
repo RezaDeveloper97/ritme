@@ -6,7 +6,7 @@ type: frontend
 status: todo
 depends_on: [T-M12-27]
 parallel_group: M12-perf
-touches: [frontend/src/app/sheets,frontend/src/app/layout.tsx,frontend/src/app/ModuleRouteGate.tsx,frontend/CLAUDE.md,.claude/skills/verify-all/SKILL.md,frontend/scripts/check-bundle-size.mjs,docs/quality-2026-11/perf.md]
+touches: [frontend/src/app/sheets, frontend/src/features/log-period, frontend/src/features/skip-period, frontend/src/widgets/voice-log-slot, frontend/src/screens/log, frontend/src/screens/home,frontend/src/app/layout.tsx,frontend/src/app/ModuleRouteGate.tsx,frontend/CLAUDE.md,.claude/skills/verify-all/SKILL.md,frontend/scripts/check-bundle-size.mjs,docs/quality-2026-11/perf.md]
 skills: []
 verify: cd frontend && npm run build && npm run check:bundle && npm run lint:styles && npm run lint:dark && npm run test
 ---
@@ -28,7 +28,11 @@ calendar pill regression T-M12-27 had to fold back: `cal-`, `osheet-`, `pad-`, `
 4. `frontend/CLAUDE.md` §10.1: classes live in `globals.css` (tokens, shell, primitives) **or** in a slice's
    `ui/<prefix>.css` / `shared/ui/styles/<prefix>.css`; CSS reachable from the root layout must win by specificity.
    Add `npm run check:bundle` to the verify-all skill.
-5. Optional: a small vitest for `check-bundle-size.mjs` (over-budget fixture exits 1).
+5. From T-M12-28: split the `features/log-period` and `features/skip-period` barrels (HomePage imports hooks from
+   them, so the `next/dynamic` wrappers for `PeriodDateEditor`/`SkipPeriodSheet` don't leave first-load), and move
+   `useVoiceLocked` out of `widgets/voice-log-slot/ui/VoiceLogGated.tsx` so screens import it without the slot.
+   Then lower the /fa/home JS budget again.
+6. Optional: a small vitest for `check-bundle-size.mjs` (over-budget fixture exits 1).
 
 ## Out of scope
 - 

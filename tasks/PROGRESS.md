@@ -3173,3 +3173,11 @@ Nothing needed fixing.
 - Both `npm audit --omit=dev --audit-level=high` = 0; `claude-to-stage.yml` audit steps now `--audit-level=high`.
 - Open: run `npx playwright install` locally before the next e2e run; `fsd:lint` still flags the unreferenced
   `widgets/plus-required-sheet` (pre-existing).
+
+## T-M12-28 — Lazy-load the autopilot catalog, voice-log stack and mode-specific home branches
+- First-load JS (gzip, script tags): /fa/home 417.3 → 376.0 KB (−9.9 %), /fa/log 397.7 → 364.2 KB (−8.4 %).
+- Autopilot engine + catalog load on `ritme:autopilot-wake` (`shared/autopilot/core/wake.ts`; `runAutopilot` waits up
+  to 8 s for the host). Voice slot is `next/dynamic` in the log sheet/page. Home: MenopauseHome, TeenHome,
+  LinkedTeenCards, HomeLabCards, QuickEditSheet, PeriodDateEditor, SkipPeriodSheet via `next/dynamic`.
+- Bundle gate: home budget 414 KB, new /fa/log row 401 KB. `wake.test.ts` (5 cases, mutation-checked).
+- Open (→ T-M12-27b): PeriodDateEditor/SkipPeriodSheet stay first-load until their feature barrels are split.

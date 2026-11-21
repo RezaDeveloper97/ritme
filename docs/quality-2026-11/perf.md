@@ -163,3 +163,24 @@ task's touches) — see the follow-up in the task report.
 
 Gate: `npm run check:bundle` (budgets = measured × 1.1: global 238 KB, heaviest route 402 KB, `/fa/home` JS 447 KB gz).
 The style and dark-mode gates now read every `.css` under `src/`.
+
+## T-M12-28 — autopilot, voice-log and mode-specific home branches lazy (findings P-02/P-03)
+
+Production build, `node frontend/scripts/check-bundle-size.mjs --report` (gzip of the `<script src>` tags in the prerendered HTML) and the Next table.
+
+| | before | after |
+|---|---:|---:|
+| `/fa/home` first-load JS (gzip, gate) | 427,339 B (417.3 KB) | 385,062 B (376.0 KB), -9.9% |
+| `/fa/log` first-load JS (gzip, gate) | 407,211 B (397.7 KB) | 372,902 B (364.2 KB), -8.4% |
+| `/fa/home` Next table (page / first load) | 57.8 kB / 299 kB | 48.1 kB / 290 kB |
+| `/fa/log` Next table | 22.5 kB / 271 kB | 21.2 kB / 259 kB |
+
+What is lazy now:
+- Autopilot: `AutopilotMount` keeps one DOM-event listener. `runAutopilot` / `useAutopilotCatalog` call `requestAutopilotRuntime()` (`shared/autopilot/core/wake.ts`), which fires `ritme:autopilot-wake`; the mount then `import()`s the engine + `PILOT_CATALOG` and mounts `AutopilotHost`. `runAutopilot` waits (8 s) for the host and then runs, so callers are unchanged. The catalog test still imports `catalog.ts` statically.
+- Voice log: `VoiceLogGated` (recorder, AI-gate wiring, manifest) is `next/dynamic` in `screens/log` (sheet + page), loaded when the voice tab renders (skeleton card meanwhile). `useVoiceLocked` shares a file with the slot, so the screens ask `useAiGate('voice_log')` themselves.
+- Home: `MenopauseHome`, `TeenHome` (backdrop fallback, the same markup the page already shows while waiting), `LinkedTeenCards`, `HomeLabCards` (render nothing while loading anyway), `QuickEditSheet`, `PeriodDateEditor`, `SkipPeriodSheet` (mounted on first open).
+
+Verified in the built HTML/chunks: the autopilot catalog/engine (`user_cancelled`, catalog ids), `logs/voice/pilot` + `MediaRecorder`, MenopauseHome, TeenHome, HomeLabCards, LinkedTeenCards and QuickEditSheet strings are absent from the /fa/home and /fa/log first-load scripts.
+NOT split yet: `PeriodDateEditor` (chunk 82343) and `SkipPeriodSheet` (in the home page chunk) are still first-load because `HomePage` also imports hooks from the same barrels (`features/log-period`, `features/skip-period`), and webpack keeps every re-exported module of a barrel with side effects. Fix needs those barrels split (outside this task's touches).
+
+Gate: budgets now home 423,936 B and log 410,624 B (measured x 1.1).

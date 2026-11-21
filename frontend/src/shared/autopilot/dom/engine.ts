@@ -6,6 +6,7 @@ import { checkScript } from '../core/safety';
 import { parseAutopilotScript } from '@/shared/pilot';
 import { EMPTY_CATALOG } from '@/shared/pilot';
 import { useAutopilotCatalogStore, useAutopilotStore } from '../core/store';
+import { requestAutopilotRuntime, setAutopilotRuntimeReady, whenAutopilotRuntimeReady } from '../core/wake';
 import { createBrowserEnv, type PilotRuntime } from './env';
 
 /** The engine's front door. One run at a time; the mounted `AutopilotHost` supplies the runtime. */
@@ -25,8 +26,10 @@ let active: { control: RunControl; config: ResolvedConfig } | null = null;
 export function mountAutopilotRuntime(next: PilotRuntime): () => void {
   runtime = next;
   useAutopilotCatalogStore.setState({ catalog: next.catalog });
+  setAutopilotRuntimeReady(true);
   return () => {
     if (runtime !== next) return;
+    setAutopilotRuntimeReady(false);
     active?.control.cancel();
     runtime = null;
     useAutopilotCatalogStore.setState({ catalog: EMPTY_CATALOG });
@@ -47,7 +50,8 @@ const refused = (code: RunCode, issues?: string[]): RunHandle => ({
  * gone through `useAiGate` to get it (frontend/CLAUDE.md §11.5) — the gate belongs to that request.
  */
 export function runAutopilot(script: unknown, options: RunOptions = {}): RunHandle {
-  if (typeof window === 'undefined' || !runtime) return refused('not_ready');
+  if (typeof window === 'undefined') return refused('not_ready');
+  if (!runtime) return startWhenReady(script, options);
   if (!AUTOPILOT_CONFIG.enabled) return refused('disabled');
   if (active) return refused('busy');
 
@@ -83,6 +87,27 @@ export function runAutopilot(script: unknown, options: RunOptions = {}): RunHand
   });
 
   return { done, pause: () => control.pause(), resume: () => control.resume(), cancel: () => control.cancel() };
+}
+
+/** The host is lazy (T-M12-28): ask for it, then start the run once it has mounted. Pause/cancel before that are honoured. */
+const RUNTIME_WAIT_MS = 8000;
+function startWhenReady(script: unknown, options: RunOptions): RunHandle {
+  requestAutopilotRuntime();
+  let inner: RunHandle | null = null;
+  let early: 'pause' | 'cancel' | null = null;
+  const done = whenAutopilotRuntimeReady(RUNTIME_WAIT_MS).then((ok): Promise<RunReport> => {
+    if (!ok) return refused('not_ready').done;
+    if (early === 'cancel') return Promise.resolve({ status: 'cancelled', code: 'user_cancelled', steps: [] });
+    inner = runAutopilot(script, options);
+    if (early === 'pause') inner.pause();
+    return inner.done;
+  });
+  return {
+    done,
+    pause: () => (inner ? inner.pause() : (early ??= 'pause')),
+    resume: () => (inner ? inner.resume() : early === 'pause' ? (early = null) : undefined),
+    cancel: () => (inner ? inner.cancel() : (early = 'cancel')),
+  };
 }
 
 export function pauseAutopilot(): void {

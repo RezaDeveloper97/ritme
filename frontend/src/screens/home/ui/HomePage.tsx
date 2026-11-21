@@ -1,6 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
+import dynamic from 'next/dynamic';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
 
@@ -61,9 +62,8 @@ import {
   writeLifeModeHint,
   type LifeMode,
 } from '@/entities/user';
-import { QuickEditSheet } from '@/features/edit-profile';
-import { PeriodDateEditor, useEndPeriod, useStartPeriod } from '@/features/log-period';
-import { canOfferSkip, SkipPeriodSheet, SkipUndo } from '@/features/skip-period';
+import { useEndPeriod, useStartPeriod } from '@/features/log-period';
+import { canOfferSkip, SkipUndo } from '@/features/skip-period';
 import { getApiErrorCode } from '@/shared/api';
 import { Link, useRouter, type Locale } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
@@ -96,7 +96,6 @@ import {
 } from '@/shared/ui';
 import { AdSlot } from '@/widgets/ad-slot';
 import { BannerSlideshow } from '@/widgets/banner-slideshow';
-import { HomeLabCards } from '@/widgets/home-lab-cards';
 import { BottomNav } from '@/widgets/bottom-nav';
 import { ForToday } from '@/widgets/for-today';
 import { HeaderActions } from '@/widgets/notification-bell';
@@ -104,7 +103,6 @@ import { QuickAccess } from '@/widgets/quick-access';
 import { CheckupsCard } from '@/widgets/checkups-card';
 import { CompanionInviteBanner } from '@/widgets/companion-invite-banner';
 import { LearnHomeCard } from '@/widgets/learn-home-card';
-import { LinkedTeenCards } from '@/widgets/linked-teen-card';
 import {
   FertilityChanceCard,
   FertilityTiles,
@@ -112,7 +110,6 @@ import {
   TtcPhasePills,
   ttcPhase,
 } from '@/widgets/fertility-tiles';
-import { TeenHome } from '@/widgets/teen-home';
 import { FeedSmartTipCard } from '@/widgets/smart-tip';
 import { TodayChallengeCard } from '@/widgets/today-challenge';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
@@ -131,7 +128,6 @@ import { PmsInsightCard, PredictionsCard, type PredictionSlot } from './Predicti
 import { PregnancyPromptCard } from './PregnancyPromptCard';
 import { FeedBanner, TodayBanner } from './TodayBanner';
 import { InAppModal, UrgentModal } from './FeedModals';
-import { MenopauseHome } from './MenopauseHome';
 import { PlusTrialOffer } from './PlusTrialOffer';
 import { TodayLogCard } from './TodayLogCard';
 import '@/shared/ui/styles/btn.css';
@@ -141,6 +137,29 @@ import '@/shared/ui/styles/page.css';
 import '@/shared/ui/styles/log.css';
 import '@/shared/ui/styles/ch.css';
 import '@/shared/ui/styles/life.css';
+
+// T-M12-28: mode-specific branches, the card widgets only some users get and the editor sheets nobody opens on
+// most visits are separate chunks. Each fallback keeps the layout: the backdrop for a whole home, nothing for a
+// card that renders nothing while its data loads, nothing for a sheet that is closed.
+const HomeBackdrop = () => (
+  <div className="view">
+    <div className="home-grad home-grad-fill" />
+  </div>
+);
+const MenopauseHome = dynamic(() => import('./MenopauseHome').then((m) => m.MenopauseHome), { loading: HomeBackdrop });
+const TeenHome = dynamic(() => import('@/widgets/teen-home').then((m) => m.TeenHome), { loading: HomeBackdrop });
+const LinkedTeenCards = dynamic(() => import('@/widgets/linked-teen-card').then((m) => m.LinkedTeenCards), { loading: () => null });
+const HomeLabCards = dynamic(() => import('@/widgets/home-lab-cards').then((m) => m.HomeLabCards), { loading: () => null });
+const QuickEditSheet = dynamic(() => import('@/features/edit-profile').then((m) => m.QuickEditSheet), { loading: () => null });
+const PeriodDateEditor = dynamic(() => import('@/features/log-period').then((m) => m.PeriodDateEditor), { loading: () => null });
+const SkipPeriodSheet = dynamic(() => import('@/features/skip-period').then((m) => m.SkipPeriodSheet), { loading: () => null });
+
+/** True from the first time `open` was true — a lazy sheet is not fetched before it is first needed, and stays mounted for its close animation. */
+function useEverOpened(open: boolean): boolean {
+  const [ever, setEver] = useState(open);
+  if (open && !ever) setEver(true);
+  return ever;
+}
 
 const FA = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
 const faNum = (n: string | number) => String(n).replace(/[0-9]/g, d => FA[Number(d)]);
@@ -653,6 +672,8 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   // The §12 sync nudge edits the profile in place, in the same bottom sheet the
   // profile screen uses for cycle length — no detour through /profile/health.
   const [cycleSheetOpen, setCycleSheetOpen] = useState(false);
+  const cycleSheetEver = useEverOpened(cycleSheetOpen);
+  const dateEditorEver = useEverOpened(dateEditorOpen);
   // The day the user tapped in the week strip (defaults to today). Only the
   // ring and the phase card reflect it; the rest of the page stays on today.
   const [selectedDate, setSelectedDate] = useState<Date>(() => today());
@@ -975,6 +996,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   const startPeriod = useStartPeriod();
   const endPeriod = useEndPeriod();
   const [skipOpen, setSkipOpen] = useState(false);
+  const skipEver = useEverOpened(skipOpen);
   const daysLate = infoView?.daysLate ?? 0;
   const lateTier = hero.tier;
 
@@ -1488,7 +1510,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
 
       {/* Seeded with what recent cycles measured, so the wheel opens on the
           value the nudge proposes and saving is a single tap. */}
-      <QuickEditSheet
+      {cycleSheetEver && <QuickEditSheet
         field={cycleSheetOpen ? 'cycleDuration' : null}
         values={{
           cycleDuration:
@@ -1497,18 +1519,18 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
             null,
         }}
         onClose={() => setCycleSheetOpen(false)}
-      />
+      />}
 
       {/* It portals to `.app-shell`, so mounting it here still covers the
           whole screen. */}
-      <PeriodDateEditor
+      {dateEditorEver && <PeriodDateEditor
         open={dateEditorOpen}
         intent={dateEditorIntent}
         onClose={() => {
           setDateEditorOpen(false);
           setDateEditorIntent(undefined);
         }}
-      />
+      />}
 
       {/* SPEC §5.4.1: the urgent message cannot be closed — only «دیدم» (POST /alerts/{id}/ack) clears it. */}
       {urgentItem && (
@@ -1527,7 +1549,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
         />
       )}
 
-      {skipExpected && <SkipPeriodSheet open={skipOpen} onClose={() => setSkipOpen(false)} expectedStart={skipExpected} />}
+      {skipExpected && skipEver && <SkipPeriodSheet open={skipOpen} onClose={() => setSkipOpen(false)} expectedStart={skipExpected} />}
 
       {/* B-N2-08: trial-offer banner + sheet — never for teen (QUESTIONS #70/#72). */}
       {!teen && <PlusTrialOffer />}

@@ -3,10 +3,10 @@ id: T-M12-28
 title: Lazy-load the autopilot catalog, voice-log stack and mode-specific home branches
 milestone: M12
 type: frontend
-status: todo
+status: done
 depends_on: [T-M12-27]
 parallel_group: M12-PERF
-touches: [frontend/src/app/autopilot/AutopilotMount.tsx, frontend/src/shared/autopilot, frontend/src/screens/home/ui/HomePage.tsx, frontend/src/screens/log, frontend/src/widgets/log-sheet, frontend/scripts/check-bundle-size.mjs]
+touches: [frontend/src/app/autopilot/AutopilotMount.tsx, docs/quality-2026-11/perf.md, frontend/src/shared/autopilot, frontend/src/screens/home/ui/HomePage.tsx, frontend/src/screens/log, frontend/src/widgets/log-sheet, frontend/scripts/check-bundle-size.mjs]
 skills: []
 verify: cd frontend && npm run typecheck && npm test && npm run build && node scripts/check-bundle-size.mjs
 ---
