@@ -1,4 +1,4 @@
-import type { MessageNamespace } from '@/shared/i18n';
+import type { MessageNamespace, MessageScope } from '@/shared/i18n';
 
 /**
  * Which message namespaces each part of the app ships to the client.
@@ -14,6 +14,12 @@ import type { MessageNamespace } from '@/shared/i18n';
  * import graph from the layout and from every `page.tsx` and fails when a list
  * and the `useTranslations('…')` calls it has to serve disagree — so adding a
  * translated component to a screen means adding its namespace here.
+ *
+ * An entry is a whole namespace (`'common'`) or a dotted subtree (`'menopause.home'`,
+ * `MessageScope`); a heavy namespace that a screen reads only in part is listed by subtree so the
+ * rest never reaches the page (T-M12-29). The test also finds every literal, template-literal and
+ * ternary key a screen's components read and fails when no entry covers one, or when an entry
+ * covers nothing or does not exist in `messages/fa`.
  */
 
 /**
@@ -58,7 +64,34 @@ const PREGNANCY = ['common', 'nav', 'pregnancy'] as const satisfies readonly Mes
 
 /** Per route: the namespaces its screen (and everything it imports) uses. */
 export const ROUTE_NAMESPACES = {
-  home: ['aiCredit', 'articles', 'banners', 'care', 'challenge', 'checkups', 'common', 'companions', 'conditions', 'fertility', 'home', 'homeLab', 'learn', 'logPeriod', 'logSheet', 'loss', 'menopause', 'nav', 'notifications', 'plus', 'profileEdit', 'teen', 'todo'], // B-N8-03 widgets/learn-home-card; CB-NAV-03 «برای امروز» to-do row (entities/todo barrel); B-N2-08 trial banner + sheet; CB-NAV-02 header search button; CB-MENO-05 menopause home; CB-TEEN-02 teen home; CB-TEEN-03 widgets/linked-teen-card (entities/companion barrel); CB-LOSS-03b care re-entry row (entities/loss)
+  // T-M12-29: home is sub-key scoped — it ships the subtrees its components read (message-scopes.test.ts finds them),
+  // not whole `home` / `menopause` / `companions` / `teen` / … namespaces. The lazily loaded MenopauseHome / TeenHome
+  // branches and the home sheets share this provider, so their subtrees (`menopause.home`, `teen.home`, …) are in the list.
+  home: [
+    'aiCredit.meter',
+    'articles',
+    'banners.adLabel', 'banners.adRegion', 'banners.goToSlide', 'banners.region',
+    'care',
+    'challenge',
+    'checkups.card', 'checkups.loading', 'checkups.separator', 'checkups.status',
+    'common.actions', 'common.calendar',
+    'companions.banner', 'companions.chip', 'companions.chipLevels', 'companions.family.title', 'companions.family.you', 'companions.list.expired', 'companions.list.expiresIn', 'companions.nothingShared', 'companions.recordFor', 'companions.sectionsShort', 'companions.status', 'companions.statusLine', 'companions.types', 'companions.unnamed',
+    'conditions.nudge',
+    'fertility.chance', 'fertility.home', 'fertility.log.intercourse', 'fertility.log.lh', 'fertility.tiles',
+    'home.articles', 'home.dateRange', 'home.days', 'home.feed', 'home.fertility', 'home.greeting', 'home.header', 'home.life.postpartum', 'home.nb', 'home.nextPeriod', 'home.phaseCard', 'home.phaseDescription', 'home.recommendations', 'home.ring', 'home.skip', 'home.smartTip', 'home.title', 'home.unavailable', 'home.updating', 'home.values',
+    'homeLab.card',
+    'learn.access', 'learn.home', 'learn.hub.watched', 'learn.kinds', 'learn.meta',
+    'logPeriod',
+    'logSheet.unknownValue',
+    'loss.return',
+    'menopause.home', 'menopause.report.homeCta', 'menopause.stages', 'menopause.treatment.home',
+    'nav',
+    'notifications.bell', 'notifications.title',
+    'plus',
+    'profileEdit',
+    'teen.home', 'teen.parent.code', 'teen.parent.linked', 'teen.parent.view',
+    'todo.categories', 'todo.check', 'todo.common', 'todo.editTask', 'todo.list', 'todo.meta', 'todo.openTask',
+  ], // B-N8-03 widgets/learn-home-card; CB-NAV-03 «برای امروز» to-do row (entities/todo barrel); B-N2-08 trial banner + sheet; CB-NAV-02 header search button; CB-MENO-05 menopause home; CB-TEEN-02 teen home; CB-TEEN-03 widgets/linked-teen-card (entities/companion barrel); CB-LOSS-03b care re-entry row (entities/loss)
   calendar: ['calendar', 'common', 'log', 'logPeriod', 'nav', 'vitals'], // vitals: the selected day's readings (DayVitals → entities/vital ReadingRow)
   log: ['aiCredit', 'aiGate', 'autopilot', 'children', 'common', 'logSheet', 'nav', 'plus', 'voiceLog'], // autopilot = features/voice-log runs the script it gets (shared/autopilot); // CB-NAV-03: children = widgets/log-later via screens/log; // B-N3-03: /log renders the log sheet v2 as a page
   logCustomize: ['common', 'logCustomize', 'logSheet'], // B-N3-04 /log/customize (the log sheet's gear; categoryLook comes via features/log-day)
@@ -215,6 +248,6 @@ export const ROUTE_NAMESPACES = {
   assistantHandoff: ['common', 'assistant', 'doctors'], // B-N7-07 /assistant/chat/[id]/handoff (own bookings use the doctors copy)
   assistantHistory: ['common', 'assistant', 'doctors'], // B-N7-07 /assistant/history
   assistantProfile: ['common', 'assistant'], // B-N7-07 /assistant/profile
-} as const satisfies Record<string, readonly MessageNamespace[]>;
+} as const satisfies Record<string, readonly MessageScope[]>;
 
 export type MessageRoute = keyof typeof ROUTE_NAMESPACES;

@@ -3187,3 +3187,13 @@ Nothing needed fixing.
   any ring day outside them adds its month (`homeMonthSet`, `entities/cycle/model/homeMonths.ts`, 7 tests,
   mutation-checked). Cold /fa/home: October month starts at ~166 ms instead of ~320 ms; critical path 3 → 2.
 - Main session: `monthNext` now `shiftMonth(base, 1)` instead of `base + 31 days` (Jan 31 skipped February).
+
+## T-M12-29 — Trim the home i18n payload
+- `ROUTE_NAMESPACES` entries may be dotted subtrees (`MessageScope`, `pickNamespaces` in `shared/i18n/scope.ts`);
+  home lists ~120 subtrees instead of 23 whole namespaces. fa home messages 146,376 → 56,333 B (−61.5 %);
+  `fa/home.html` −26.8 %, `.rsc` −28.7 %.
+- `message-scopes.test.ts` now walks each route's import graph for `t(...)` keys (template/ternary/passed-`t` widen
+  to the prefix) and fails on uncovered, dead or misspelled entries; fixed its comment stripper (a `/*` inside a line
+  comment hid ~15 KB of HomePage). Mutation-checked (5 mutants).
+- No raw keys on cycle/TTC/menopause/teen homes, light + dark.
+- Open: `care` and `plus` still whole (needs literal keys in widgets/today-reminders and plus-trial-sheet).

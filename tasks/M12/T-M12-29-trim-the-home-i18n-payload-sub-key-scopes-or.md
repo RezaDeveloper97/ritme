@@ -3,10 +3,10 @@ id: T-M12-29
 title: Trim the home i18n payload (sub-key scopes or lazy namespaces)
 milestone: M12
 type: frontend
-status: todo
+status: done
 depends_on: [T-M12-12, T-M12-28]
 parallel_group: M12-PERF
-touches: [frontend/src/app/message-scopes.ts, frontend/src/app/message-scopes.test.ts, frontend/src/shared/i18n, frontend/src/screens/home]
+touches: [frontend/src/app/message-scopes.ts, docs/quality-2026-11/perf.md, frontend/src/app/message-scopes.test.ts, frontend/src/shared/i18n, frontend/src/screens/home]
 skills: []
 verify: cd frontend && npm test && npm run build && wc -c .next/server/app/fa/home.html
 ---
