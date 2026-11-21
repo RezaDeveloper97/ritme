@@ -57,7 +57,7 @@ func (f *fakePush) send(_ context.Context, payload []byte, sub store.PushSubscri
 	delay := f.delay
 	f.mu.Unlock()
 	if delay > 0 {
-		time.Sleep(delay) // a slow push service, so concurrent ticks overlap
+		time.Sleep(delay) //nolint:sleep // a slow push service, so concurrent ticks overlap
 	}
 	switch {
 	case res != nil:
