@@ -25,7 +25,6 @@
     "children": "Children",
     "plusCredits": "Buy credits",
     "profileCredits": "Credit usage",
-    "profileAppearance": "Appearance",
     "profileNotifications": "Notifications",
     "cycle_settings": "Cycle settings",
     "cycle_symptoms": "Symptom patterns",
@@ -889,7 +888,6 @@
     "mode_contraception": "Track contraception",
     "mode_contraception_manage": "Manage contraception",
     "mode_confirm_go": "Confirm mode change",
-    "me_open_profile_appearance": "Open “Appearance”",
     "me_open_profile_account": "Open “My account”",
     "me_open_profile_credits": "Open “AI credits”",
     "me_open_companion_links": "Open “Companion code”",
@@ -914,7 +912,7 @@
     "me_open_profile_support_chat": "Open “Chat with support”",
     "me_open_profile_about": "Open “About Ritme”",
     "me_open_plus": "Open “Ritme Plus”",
-    "me_header_appearance": "Appearance (header)",
+    "me_header_theme": "Light / dark toggle (header)",
     "account_edit_name": "Edit name",
     "account_edit_birthday": "Edit birthday",
     "account_edit_cycleDuration": "Edit cycle length",
@@ -958,10 +956,6 @@
     "reminders_submit": "Save reminder",
     "notifications_history": "Alert history",
     "notifications_mark_all": "Mark all as read",
-    "appearance_theme": "App theme",
-    "appearance_follow_system": "Follow system theme",
-    "appearance_text_size": "Text size",
-    "appearance_reduce_motion": "Reduce motion",
     "notif_quiet": "Quiet hours",
     "notif_quiet_edit": "Edit quiet window",
     "notif_quiet_start": "Quiet hours start",
@@ -1854,11 +1848,6 @@
       "postpartum": "Postpartum",
       "menopause": "Menopause",
       "teen": "Teen"
-    },
-    "appearance_theme": {
-      "light": "Light",
-      "dark": "Dark",
-      "system": "System"
     },
     "companion_goals": {
       "cycle": "Understand the cycle",

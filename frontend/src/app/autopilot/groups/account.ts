@@ -33,7 +33,6 @@ export const ACCOUNT_SHEETS: readonly CatalogSheet[] = [
 ];
 
 export const ACCOUNT_TARGETS: readonly CatalogTarget[] = [
-  { id: 'me.open:profile-appearance', value: 'action', titleKey: 'targets.me_open_profile_appearance', surface: { route: '/profile' } },
   { id: 'me.open:profile-account', value: 'action', titleKey: 'targets.me_open_profile_account', surface: { route: '/profile' } },
   { id: 'me.open:profile-credits', value: 'action', titleKey: 'targets.me_open_profile_credits', surface: { route: '/profile' } },
   { id: 'me.open:companion-links', value: 'action', titleKey: 'targets.me_open_companion_links', surface: { route: '/profile' }, module: 'companion' },
@@ -58,7 +57,7 @@ export const ACCOUNT_TARGETS: readonly CatalogTarget[] = [
   { id: 'me.open:profile-support-chat', value: 'action', titleKey: 'targets.me_open_profile_support_chat', surface: { route: '/profile' } },
   { id: 'me.open:profile-about', value: 'action', titleKey: 'targets.me_open_profile_about', surface: { route: '/profile' } },
   { id: 'me.open:plus', value: 'action', titleKey: 'targets.me_open_plus', surface: { route: '/profile' } },
-  { id: 'me.header:appearance', value: 'action', titleKey: 'targets.me_header_appearance', surface: { route: '/profile' } },
+  { id: 'me.header:theme', value: 'action', titleKey: 'targets.me_header_theme', surface: { route: '/profile' } },
   { id: 'account.edit:name', value: 'action', titleKey: 'targets.account_edit_name', surface: { route: '/profile/account' } },
   { id: 'account.edit:birthday', value: 'action', titleKey: 'targets.account_edit_birthday', surface: { route: '/profile/account' } },
   { id: 'account.edit:cycleDuration', value: 'action', titleKey: 'targets.account_edit_cycleDuration', surface: { route: '/profile/account' } },
@@ -103,10 +102,6 @@ export const ACCOUNT_TARGETS: readonly CatalogTarget[] = [
   { id: 'reminders.toggle:*', value: 'bool', surface: { sheet: 'reminders' } },
   { id: 'notifications.history', value: 'action', titleKey: 'targets.notifications_history', surface: { sheet: 'notifications' } },
   { id: 'notifications.mark-all', value: 'action', titleKey: 'targets.notifications_mark_all', surface: { sheet: 'notifications' } },
-  { id: 'appearance.theme', value: 'single', titleKey: 'targets.appearance_theme', surface: { route: '/profile/appearance' }, options: [{ value: 'light', titleKey: 'options.appearance_theme.light' }, { value: 'dark', titleKey: 'options.appearance_theme.dark' }, { value: 'system', titleKey: 'options.appearance_theme.system' }] },
-  { id: 'appearance.follow-system', value: 'bool', titleKey: 'targets.appearance_follow_system', surface: { route: '/profile/appearance' } },
-  { id: 'appearance.text-size', value: 'integer', titleKey: 'targets.appearance_text_size', surface: { route: '/profile/appearance' }, min: 0, max: 4 },
-  { id: 'appearance.reduce-motion', value: 'bool', titleKey: 'targets.appearance_reduce_motion', surface: { route: '/profile/appearance' } },
   { id: 'notif.category:*', value: 'bool', surface: { route: '/profile/notifications' } },
   { id: 'notif.quiet', value: 'bool', titleKey: 'targets.notif_quiet', surface: { route: '/profile/notifications' } },
   { id: 'notif.quiet-edit', value: 'action', titleKey: 'targets.notif_quiet_edit', surface: { route: '/profile/notifications' } },

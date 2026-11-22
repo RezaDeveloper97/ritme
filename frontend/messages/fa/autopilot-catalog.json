@@ -25,7 +25,6 @@
     "children": "کودکان",
     "plusCredits": "خرید اعتبار",
     "profileCredits": "مصرف اعتبار",
-    "profileAppearance": "ظاهر برنامه",
     "profileNotifications": "اعلان‌ها",
     "cycle_settings": "تنظیمات دوره",
     "cycle_symptoms": "الگوی علائم",
@@ -889,7 +888,6 @@
     "mode_contraception": "پیگیری پیشگیری",
     "mode_contraception_manage": "مدیریت پیشگیری",
     "mode_confirm_go": "تایید تغییر حالت",
-    "me_open_profile_appearance": "باز کردن «ظاهر اپ»",
     "me_open_profile_account": "باز کردن «حساب من»",
     "me_open_profile_credits": "باز کردن «اعتبار هوش مصنوعی»",
     "me_open_companion_links": "باز کردن «کد همدم»",
@@ -914,7 +912,7 @@
     "me_open_profile_support_chat": "باز کردن «گفت‌وگو با پشتیبانی»",
     "me_open_profile_about": "باز کردن «درباره‌ی ریتمی»",
     "me_open_plus": "باز کردن «اشتراک ریتمی پلاس»",
-    "me_header_appearance": "ظاهر اپ (بالای صفحه)",
+    "me_header_theme": "تغییر حالت روز / شب (بالای صفحه)",
     "account_edit_name": "ویرایش نام",
     "account_edit_birthday": "ویرایش تاریخ تولد",
     "account_edit_cycleDuration": "ویرایش طول چرخه",
@@ -958,10 +956,6 @@
     "reminders_submit": "ذخیره‌ی یادآور",
     "notifications_history": "سابقه‌ی هشدارها",
     "notifications_mark_all": "همه خوانده شد",
-    "appearance_theme": "تم اپ",
-    "appearance_follow_system": "پیروی از تم سیستم",
-    "appearance_text_size": "اندازه‌ی نوشته",
-    "appearance_reduce_motion": "کاهش حرکت",
     "notif_quiet": "ساعت سکوت",
     "notif_quiet_edit": "ویرایش بازه‌ی سکوت",
     "notif_quiet_start": "شروع ساعت سکوت",
@@ -1854,11 +1848,6 @@
       "postpartum": "پس از زایمان",
       "menopause": "یائسگی",
       "teen": "نوجوانی"
-    },
-    "appearance_theme": {
-      "light": "روشن",
-      "dark": "تاریک",
-      "system": "مثل سیستم"
     },
     "companion_goals": {
       "cycle": "فهمیدن چرخه",

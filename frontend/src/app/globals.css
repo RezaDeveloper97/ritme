@@ -95,15 +95,6 @@
   /* The splash / launch fill: saturated violet in both themes, under white. */
   --splash-from: #6E54F0;
   --splash-to:   #4428B8;
-  /* B-N1-10: the Appearance theme previews show each theme whatever is painted
-     (nbl_/nbd_Me_Appearance) — same values in both blocks by design. */
-  --theme-pv-night:      #17112B;
-  --theme-pv-night-card: #221A3D;
-  --theme-pv-night-ink:  #F6F1FF;
-  --theme-pv-day:        #F7F3FF;
-  --theme-pv-day-card:   #FFFFFF;
-  --theme-pv-day-ink:    #231B3B;
-  --theme-pv-cta:        #B9A6FF;
 
   /* ── 2. Soft tints, the dark sky, shadows ──
      The saturated purple→pink brand gradient is retired: CTAs and the FAB are
@@ -312,14 +303,6 @@
   --hero-tint:   linear-gradient(135deg, rgba(124, 92, 255, .38), var(--surface) 72%);
   --avatar-grad: linear-gradient(135deg, color-mix(in srgb, var(--bloom) 67%, transparent), rgba(185, 166, 255, .33));
   --star: #FFFFFF;
-  /* B-N1-10: theme previews are theme-stable (see :root). */
-  --theme-pv-night:      #17112B;
-  --theme-pv-night-card: #221A3D;
-  --theme-pv-night-ink:  #F6F1FF;
-  --theme-pv-day:        #F7F3FF;
-  --theme-pv-day-card:   #FFFFFF;
-  --theme-pv-day-ink:    #231B3B;
-  --theme-pv-cta:        #B9A6FF;
 
   --shadow-cta:   0 14px 28px -14px rgba(185, 166, 255, .9);
   --shadow-fab:   0 0 0 6px rgba(185, 166, 255, .18), 0 12px 24px -10px rgba(185, 166, 255, .9);
@@ -4959,19 +4942,7 @@ body.pwa-locked { overflow: hidden; }
 .uikit-center { display: flex; justify-content: center; }
 /* ═══ end CB-CORE-02 / CB-CORE-02b ═══ */
 
-/* ═══ B-N1-10 — «من» hub, account, appearance, language & calendar ═══ */
-/* Text size (Me → ظاهر): type is sized in px tokens, so a root font-size would
-   move nothing; each screen's scroll area is zoomed instead. --text-scale is
-   written on <html> by shared/theme (display.ts) and the pre-paint script. */
-html { --text-scale: 1; }
-.view > .scroll { zoom: var(--text-scale); }
-/* Reduce motion, chosen in the app — overrides the OS (no prefers-reduced-motion needed). */
-html[data-motion="reduce"] *,
-html[data-motion="reduce"] *::before,
-html[data-motion="reduce"] *::after {
-  animation-duration: .01ms !important; animation-iteration-count: 1 !important;
-  transition-duration: .01ms !important; scroll-behavior: auto !important;
-}
+/* ═══ B-N1-10 — «من» hub, account, language & calendar ═══ */
 
 .me-page, .acct-page, .app-page { background: var(--page); }
 .me-scroll, .acct-scroll, .app-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; padding-bottom: 32px; }
@@ -4997,7 +4968,7 @@ html[data-motion="reduce"] *::after {
   border-radius: var(--r-md);
 }
 .me-id-main:focus-visible, .me-logout:focus-visible, .acct-action:focus-visible,
-.acct-logout:focus-visible, .acct-delete:focus-visible, .app-theme:focus-visible { outline: none; box-shadow: var(--ring); }
+.acct-logout:focus-visible, .acct-delete:focus-visible { outline: none; box-shadow: var(--ring); }
 .me-avatar {
   width: 56px; height: 56px; border-radius: 50%; flex-shrink: 0;
   display: inline-flex; align-items: center; justify-content: center;
@@ -5095,60 +5066,6 @@ html[data-motion="reduce"] *::after {
 .acct-skel .nb-skel.is-card { width: 100%; }
 .nb-skel.is-circle.acct-skel-avatar { width: 96px; height: 96px; }
 
-/* Appearance (nbl_Me_Appearance). */
-.app-card { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-.app-card-title { margin: 0; font-size: 15px; font-weight: 800; color: var(--text-1); }
-.app-themes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.app-theme {
-  display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0; background: none; border: 0;
-  font-family: inherit; color: var(--text-1); cursor: pointer; border-radius: 20px;
-}
-.app-pv {
-  --pv-bg: var(--theme-pv-day); --pv-card: var(--theme-pv-day-card); --pv-ink: var(--theme-pv-day-ink);
-  width: 100%; height: 150px; box-sizing: border-box; padding: 12px; border-radius: 20px;
-  display: flex; flex-direction: column; gap: 8px;
-  background: var(--pv-bg); border: 1.5px solid var(--line);
-}
-.app-pv.is-dark { --pv-bg: var(--theme-pv-night); --pv-card: var(--theme-pv-night-card); --pv-ink: var(--theme-pv-night-ink); }
-.app-theme[aria-checked="true"] .app-pv { border: 3px solid var(--brand); padding: 10.5px; }
-.app-pv-card { height: 40px; border-radius: 12px; background: var(--pv-card); }
-.app-pv-line { height: 8px; width: 60%; border-radius: 4px; background: var(--pv-ink); opacity: .7; }
-.app-pv-line.is-short { width: 40%; opacity: .4; }
-.app-pv-cta { margin-top: auto; height: 22px; border-radius: 11px; background: var(--theme-pv-cta); }
-.app-theme-label { display: inline-flex; align-items: center; gap: 8px; min-height: 32px; font-size: 13px; font-weight: 800; }
-.app-radio {
-  width: 20px; height: 20px; border-radius: 50%; box-sizing: border-box; flex-shrink: 0;
-  border: 1.5px solid var(--text-3); background: var(--surface);
-}
-.app-theme[aria-checked="true"] .app-radio { border: 2px solid var(--brand); box-shadow: inset 0 0 0 3px var(--surface); background: var(--brand-fill); }
-/* Small «الف» at the start, large at the end; the range runs in the reading
-   direction (RTL: larger to the left), so the fill grows from the start. */
-.app-size { display: flex; align-items: center; gap: 12px; }
-.app-size-a { flex-shrink: 0; font-weight: 800; color: var(--text-1); }
-.app-size-a.is-small { font-size: 12px; }
-.app-size-a.is-large { font-size: 20px; }
-.app-range {
-  --fill: 50%;
-  flex: 1; min-width: 0; height: 44px; margin: 0; background: transparent; cursor: pointer;
-  -webkit-appearance: none; appearance: none;
-}
-.app-range::-webkit-slider-runnable-track {
-  height: 6px; border-radius: 3px;
-  background: linear-gradient(to right, var(--brand-fill) var(--fill), var(--track) var(--fill));
-}
-[dir="rtl"] .app-range::-webkit-slider-runnable-track {
-  background: linear-gradient(to left, var(--brand-fill) var(--fill), var(--track) var(--fill));
-}
-.app-range::-moz-range-track { height: 6px; border-radius: 3px; background: var(--track); }
-.app-range::-moz-range-progress { height: 6px; border-radius: 3px; background: var(--brand-fill); }
-.app-range::-webkit-slider-thumb {
-  -webkit-appearance: none; appearance: none; width: 22px; height: 22px; margin-top: -8px;
-  border-radius: 50%; background: var(--text-1); border: 0;
-}
-.app-range::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--text-1); border: 0; }
-.app-range:focus-visible { outline: none; }
-.app-range:focus-visible::-webkit-slider-thumb { box-shadow: var(--ring); }
-.app-rows .nb-row { min-height: 58px; }
 
 /* Language & calendar. */
 .lngp-skel .nb-skel.is-card { height: 72px; }

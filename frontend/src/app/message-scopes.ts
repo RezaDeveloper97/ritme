@@ -66,7 +66,6 @@ export const ROUTE_NAMESPACES = {
   cycleSettings: ['common', 'me'], // B-N1-09 /cycle/settings (copy lives under me.cycleSettings)
   profile: ['account', 'aiCredit', 'auth', 'common', 'companions', 'me', 'nav', 'plus', 'profile', 'profileEdit', 'teen'], // B-N2-08: entities/plus (Me Plus card) carries the PlusFeatureGate copy; B-N4-04 entities/companion (Me row); CB-TEEN-04b entities/teen (teen's parent row)
   profileAccount: ['account', 'aiCredit', 'auth', 'common', 'companions', 'me', 'nav', 'plus', 'profile', 'profileEdit', 'teen'], // B-N1-10 /profile/account (+ plus: same Me hub slice; CB-TEEN-04b teen)
-  profileAppearance: ['common', 'me'], // B-N1-10 /profile/appearance
   profileDevices: ['common', 'me'], // B-N10-07 /profile/devices
   profileBackup: ['account', 'common', 'me'], // B-N10-07 /profile/backup (export hooks reuse me.privacy.mine copy)
   profileLanguage: ['common', 'me'], // B-N1-10 /profile/language

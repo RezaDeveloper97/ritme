@@ -13,7 +13,6 @@
 | `/log` | ثبت روزانه | — |
 | `/log/customize` | شخصی‌سازی ثبت | — |
 | `/profile` | من | — |
-| `/profile/appearance` | ظاهر برنامه | — |
 | `/profile/notifications` | اعلان‌ها | — |
 | `/profile/credits` | مصرف اعتبار | — |
 | `/plus/credits` | خرید اعتبار | — |
@@ -1011,7 +1010,6 @@
 | `mode.contraception` | bool | پیگیری پیشگیری | route `/profile/mode` | — | — |
 | `mode.contraception-manage` | action | مدیریت پیشگیری | route `/profile/mode` | — | — |
 | `mode.confirm-go` | action | تایید تغییر حالت | — | — | — |
-| `me.open:profile-appearance` | action | باز کردن «ظاهر اپ» | route `/profile` | — | — |
 | `me.open:profile-account` | action | باز کردن «حساب من» | route `/profile` | — | — |
 | `me.open:profile-credits` | action | باز کردن «اعتبار هوش مصنوعی» | route `/profile` | — | — |
 | `me.open:companion-links` | action | باز کردن «کد همدم» | route `/profile` | — | — |
@@ -1036,7 +1034,7 @@
 | `me.open:profile-support-chat` | action | باز کردن «گفت‌وگو با پشتیبانی» | route `/profile` | — | — |
 | `me.open:profile-about` | action | باز کردن «درباره‌ی ریتمی» | route `/profile` | — | — |
 | `me.open:plus` | action | باز کردن «اشتراک ریتمی پلاس» | route `/profile` | — | — |
-| `me.header:appearance` | action | ظاهر اپ (بالای صفحه) | route `/profile` | — | — |
+| `me.header:theme` | action | تغییر حالت روز / شب (بالای صفحه) | route `/profile` | — | — |
 | `account.edit:name` | action | ویرایش نام | route `/profile/account` | — | — |
 | `account.edit:birthday` | action | ویرایش تاریخ تولد | route `/profile/account` | — | — |
 | `account.edit:cycleDuration` | action | ویرایش طول چرخه | route `/profile/account` | — | — |
@@ -1081,10 +1079,6 @@
 | `reminders.toggle:*` | bool | — | sheet `reminders` | — | — |
 | `notifications.history` | action | سابقه‌ی هشدارها | sheet `notifications` | — | — |
 | `notifications.mark-all` | action | همه خوانده شد | sheet `notifications` | — | — |
-| `appearance.theme` | single | تم اپ | route `/profile/appearance` | — | `light` `dark` `system` |
-| `appearance.follow-system` | bool | پیروی از تم سیستم | route `/profile/appearance` | — | — |
-| `appearance.text-size` | integer | اندازه‌ی نوشته | route `/profile/appearance` | — | — |
-| `appearance.reduce-motion` | bool | کاهش حرکت | route `/profile/appearance` | — | — |
 | `notif.category:*` | bool | — | route `/profile/notifications` | — | — |
 | `notif.quiet` | bool | ساعت سکوت | route `/profile/notifications` | — | — |
 | `notif.quiet-edit` | action | ویرایش بازه‌ی سکوت | route `/profile/notifications` | — | — |

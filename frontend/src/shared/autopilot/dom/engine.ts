@@ -1,4 +1,4 @@
-import { reducesMotion, useDisplayStore } from '@/shared/theme';
+import { systemReducesMotion } from '@/shared/theme';
 
 import { AUTOPILOT_CONFIG, resolveConfig, type ResolvedConfig, type RunOptions } from '../config';
 import { RunControl, runScript, type RunCode, type RunReport } from '../core/runner';
@@ -57,7 +57,7 @@ export function runAutopilot(script: unknown, options: RunOptions = {}): RunHand
   const config = resolveConfig(AUTOPILOT_CONFIG, {
     scriptOptions: parsed.script.options,
     run: options,
-    reducedMotion: reducesMotion(useDisplayStore.getState().motion),
+    reducedMotion: systemReducesMotion(),
   });
   const unsafe = checkScript(parsed.script, config.safety);
   if (unsafe.length) return refused('unsafe_script', unsafe.map((i) => `${i.step}: ${i.code}`));
