@@ -3207,3 +3207,12 @@ Nothing needed fixing.
 - `frontend/CLAUDE.md` §10.1 and verify-all (`npm run build && npm run check:bundle`) updated.
 - Open: `cal-`/`osheet-`/`pad-`/`fld-`/`jcal-` stay global (rendered by shared/ui + AppSheet); ~30 KB more via
   `features/app-lock` → `LockScreen` → `entities/health-record` (lab/rec CSS) — a lazy card there would save it.
+
+## T-M12-01b — OTP caps per number+network so a stranger cannot lock a user out
+- Send caps (3/15 min, 10/24 h) and the failure lock (10 → 60 min) are keyed on (sha256(mobile), client net); the old
+  per-number keys are now the global backstop: `OTP_SEND_MAX_DAILY_GLOBAL=30`, `OTP_FAILURE_MAX_GLOBAL=50` in
+  `OTP_FAILURE_GLOBAL_WINDOW_HOURS=24`. Both Lua scripts check and count net + number atomically; a refused send
+  counts nowhere. Guess bound ≈ 73/day per number (0.73 % for a 4-digit code) whatever the number of networks.
+- 3 unit + 4 integration tests (attacker net A vs owner net B, global ceilings at cap−1/cap), mutation-checked.
+- Open: effective only where the real client IP arrives (T-M12-02 deploy; prod T-M12-09); carrier NAT shares a /32;
+  30 global sends/day is still reachable by a 3-network attacker (raise the env if it happens — guesses stay bounded).

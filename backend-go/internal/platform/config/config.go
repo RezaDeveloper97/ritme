@@ -280,19 +280,31 @@ type SMS struct {
 	OTP OTPLimits
 }
 
-// OTPLimits are the per-number OTP guards (T-M12-01): send caps, the failure budget across codes and the send lock.
+// OTPLimits are the OTP guards (T-M12-01, T-M12-01b): send caps, the failure budget across codes and the send lock.
+//
+// The send caps and the failure budget count per (number, client network) — IPv4 /32, IPv6 /64, the bucket of
+// ratelimit.ClientNet — so a stranger on another network cannot use them up for the owner (R-02). The *Global*
+// ceilings count per number across every network: the anti-bombing / distributed-guessing backstop.
 type OTPLimits struct {
-	// SendShortMax codes per SendShortWindow (OTP_SEND_MAX_SHORT 3 / OTP_SEND_SHORT_WINDOW_MINUTES 15).
+	// SendShortMax codes per SendShortWindow per (number, network) (OTP_SEND_MAX_SHORT 3 / OTP_SEND_SHORT_WINDOW_MINUTES 15).
 	SendShortMax    int
 	SendShortWindow time.Duration
-	// SendDailyMax codes per SendDailyWindow (OTP_SEND_MAX_DAILY 10 / OTP_SEND_DAILY_WINDOW_HOURS 24).
+	// SendDailyMax codes per SendDailyWindow per (number, network) (OTP_SEND_MAX_DAILY 10 / OTP_SEND_DAILY_WINDOW_HOURS 24).
 	SendDailyMax    int
 	SendDailyWindow time.Duration
-	// FailureMax wrong codes per FailureWindow lock the number for LockFor
+	// SendGlobalMax codes per SendDailyWindow per number, every network combined (OTP_SEND_MAX_DAILY_GLOBAL 30).
+	// 0 = no global send ceiling (tests only; config validation requires >= SendDailyMax).
+	SendGlobalMax int
+	// FailureMax wrong codes per FailureWindow per (number, network) lock that network out of the number for LockFor
 	// (OTP_FAILURE_MAX 10 / OTP_FAILURE_WINDOW_HOURS 24 / OTP_LOCK_MINUTES 60).
 	FailureMax    int
 	FailureWindow time.Duration
 	LockFor       time.Duration
+	// FailureGlobalMax wrong codes per FailureGlobalWindow per number, every network combined, lock the number on
+	// every network for LockFor (OTP_FAILURE_MAX_GLOBAL 50 / OTP_FAILURE_GLOBAL_WINDOW_HOURS 24). It bounds
+	// distributed guessing of the 4-digit code (D-211). 0 = no global failure ceiling (tests only).
+	FailureGlobalMax    int
+	FailureGlobalWindow time.Duration
 	// SendLock is the per-number send lock (SET NX) around delete/insert/dispatch (OTP_SEND_LOCK_SECONDS 60).
 	SendLock time.Duration
 }
@@ -725,6 +737,10 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 				FailureWindow:   time.Duration(e.integer("OTP_FAILURE_WINDOW_HOURS", 24)) * time.Hour,
 				LockFor:         time.Duration(e.integer("OTP_LOCK_MINUTES", 60)) * time.Minute,
 				SendLock:        time.Duration(e.integer("OTP_SEND_LOCK_SECONDS", 60)) * time.Second,
+				// T-M12-01b (R-02): per-number ceilings across every network.
+				SendGlobalMax:       e.integer("OTP_SEND_MAX_DAILY_GLOBAL", 30),
+				FailureGlobalMax:    e.integer("OTP_FAILURE_MAX_GLOBAL", 50),
+				FailureGlobalWindow: time.Duration(e.integer("OTP_FAILURE_GLOBAL_WINDOW_HOURS", 24)) * time.Hour,
 			},
 		},
 		Telegram: Telegram{
@@ -936,6 +952,9 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 	if o := cfg.SMS.OTP; o.SendShortMax < 1 || o.SendDailyMax < 1 || o.FailureMax < 1 || o.SendShortWindow <= 0 ||
 		o.SendDailyWindow <= 0 || o.FailureWindow <= 0 || o.LockFor <= 0 || o.SendLock <= 0 {
 		e.fail("OTP_*: every OTP send cap, failure budget, window and lock must be positive")
+	}
+	if o := cfg.SMS.OTP; o.SendGlobalMax < o.SendDailyMax || o.FailureGlobalMax < o.FailureMax || o.FailureGlobalWindow <= 0 {
+		e.fail("OTP_*_GLOBAL: the per-number global ceilings must be at least the per-network caps, with a positive window")
 	}
 	if cfg.ReminderSMS.DailyCap < 1 || cfg.ReminderSMS.DailyCap > 48 {
 		e.fail("REMINDER_SMS_DAILY_CAP: %d is not between 1 and 48", cfg.ReminderSMS.DailyCap)

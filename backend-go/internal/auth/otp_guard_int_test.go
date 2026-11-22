@@ -3,9 +3,11 @@ package auth_test
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -244,4 +246,131 @@ func TestOTPGuard_NoEnumeration(t *testing.T) {
 	assertThrottle429(t, k, "3")
 	assert.Equal(t, k.raw, u.raw)
 	assert.Equal(t, k.header.Get("Retry-After"), u.header.Get("Retry-After"))
+}
+
+// T-M12-01b (R-02): caps and the failure lock count per (number, client network). netApp serves the guarded handlers
+// behind a trusted proxy so each request names its client address in X-Forwarded-For.
+func netApp(e *env) func(t *testing.T, path, ip, body string, d time.Duration) response {
+	app := fiber.New(fiber.Config{
+		ErrorHandler:       httpx.ErrorHandler(quiet),
+		ProxyHeader:        fiber.HeaderXForwardedFor,
+		TrustProxy:         true,
+		TrustProxyConfig:   fiber.TrustProxyConfig{Proxies: []string{"0.0.0.0/0", "::/0"}},
+		EnableIPValidation: true,
+	})
+	app.Use(clock.Middleware(clock.Real{}, true))
+	app.Post("/api/v1/auth/send-otp", e.h.SendOTP)
+	app.Post("/api/v1/auth/verify-otp", e.h.VerifyOTP)
+	return func(t *testing.T, path, ip, body string, d time.Duration) response {
+		t.Helper()
+		req := httptest.NewRequest(http.MethodPost, path, strings.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set(fiber.HeaderXForwardedFor, ip)
+		req.Header.Set(clock.Header, at(d))
+		resp, err := app.Test(req)
+		require.NoError(t, err)
+		defer func() { _ = resp.Body.Close() }()
+		raw, _ := io.ReadAll(resp.Body)
+		return response{status: resp.StatusCode, raw: string(raw), header: resp.Header}
+	}
+}
+
+const attackerNet, ownerNet = "203.0.113.7", "198.51.100.9"
+
+func sendBody(mobile string) string { return `{"mobile":"` + mobile + `"}` }
+func verifyBody(mobile, code string) string {
+	return `{"mobile":"` + mobile + `","code":"` + code + `"}`
+}
+
+// A stranger on net A uses up the send caps; the owner on net B still gets and verifies a code. Net A stays capped.
+func TestOTPGuard_StrangerSendCapDoesNotBlockOwner(t *testing.T) {
+	e := guarded(t)
+	post := netApp(e)
+	const mobile = "09121230101"
+	for i := range 3 {
+		r := post(t, "/api/v1/auth/send-otp", attackerNet, sendBody(mobile), time.Duration(i)*61*time.Second)
+		require.Equal(t, 200, r.status, "stranger send %d: %s", i+1, r.raw)
+	}
+	r := post(t, "/api/v1/auth/send-otp", attackerNet, sendBody(mobile), 183*time.Second)
+	assertThrottle429(t, r, "3")
+
+	r = post(t, "/api/v1/auth/send-otp", ownerNet, sendBody(mobile), 183*time.Second)
+	require.Equal(t, 200, r.status, "the owner on another network gets a code: %s", r.raw)
+	r = post(t, "/api/v1/auth/verify-otp", ownerNet, verifyBody(mobile, e.otp(t, mobile)), 183*time.Second)
+	assert.Equal(t, 200, r.status, r.raw)
+
+	assertThrottle429(t, post(t, "/api/v1/auth/send-otp", attackerNet, sendBody(mobile), 245*time.Second), "3")
+	assert.Len(t, e.jobs.jobs, 4)
+}
+
+// A stranger on net A trips the failure lock; the owner on net B still logs in. Net A stays locked, even with the right
+// code and after the account is deleted (keys carry no user id).
+func TestOTPGuard_StrangerLockDoesNotBlockOwner(t *testing.T) {
+	e := guarded(t)
+	post := netApp(e)
+	const mobile = "09121230102"
+	for i := range 2 {
+		d := time.Duration(i) * 61 * time.Second
+		require.Equal(t, 200, post(t, "/api/v1/auth/send-otp", attackerNet, sendBody(mobile), d).status)
+		wrong := wrongOf(e.otp(t, mobile))
+		for range 5 {
+			require.Equal(t, 422, post(t, "/api/v1/auth/verify-otp", attackerNet, verifyBody(mobile, wrong), d).status)
+		}
+	}
+	d := 122 * time.Second
+	r := post(t, "/api/v1/auth/send-otp", ownerNet, sendBody(mobile), d)
+	require.Equal(t, 200, r.status, r.raw)
+	code := e.otp(t, mobile)
+	assertThrottle429(t, post(t, "/api/v1/auth/verify-otp", attackerNet, verifyBody(mobile, code), d), "10")
+	r = post(t, "/api/v1/auth/verify-otp", ownerNet, verifyBody(mobile, code), d)
+	require.Equal(t, 200, r.status, "the owner on another network logs in: %s", r.raw)
+
+	_, err := e.db.Exec("DELETE FROM users WHERE mobile=?", mobile)
+	require.NoError(t, err)
+	require.Equal(t, 200, post(t, "/api/v1/auth/send-otp", ownerNet, sendBody(mobile), d+61*time.Second).status)
+	assertThrottle429(t, post(t, "/api/v1/auth/verify-otp", attackerNet, verifyBody(mobile, e.otp(t, mobile)), d+61*time.Second), "10")
+}
+
+// 30 sends from 30 networks pass; the 31st from a fresh network is refused by the global ceiling.
+func TestOTPGuard_GlobalSendCeilingAcrossNetworks(t *testing.T) {
+	e := guarded(t)
+	post := netApp(e)
+	const mobile = "09121230103"
+	for i := range 30 {
+		r := post(t, "/api/v1/auth/send-otp", "10.1.0."+strconv.Itoa(i+1), sendBody(mobile), time.Duration(i)*61*time.Second)
+		require.Equal(t, 200, r.status, "send %d: %s", i+1, r.raw)
+	}
+	r := post(t, "/api/v1/auth/send-otp", "10.1.1.1", sendBody(mobile), 30*61*time.Second)
+	assertThrottle429(t, r, "30")
+	assert.Len(t, e.jobs.jobs, 30)
+}
+
+// 49 failures across networks (none locked on its own) leave the right code working; the 50th locks the number on
+// every network for an hour.
+func TestOTPGuard_GlobalFailureCeilingAcrossNetworks(t *testing.T) {
+	e := guarded(t)
+	post := netApp(e)
+	const mobile = "09121230104"
+	failures := 0
+	for i := 0; failures < 49; i++ {
+		d := time.Duration(i) * 61 * time.Second
+		net := "10.2.0." + strconv.Itoa(i+1)
+		require.Equal(t, 200, post(t, "/api/v1/auth/send-otp", net, sendBody(mobile), d).status)
+		wrong := wrongOf(e.otp(t, mobile))
+		for j := 0; j < 5 && failures < 49; j++ {
+			require.Equal(t, 422, post(t, "/api/v1/auth/verify-otp", net, verifyBody(mobile, wrong), d).status)
+			failures++
+		}
+	}
+	d := 10 * 61 * time.Second // 10th code (49 = 9×5 + 4): one attempt left on it
+	r := post(t, "/api/v1/auth/verify-otp", ownerNet, verifyBody(mobile, e.otp(t, mobile)), d)
+	require.Equal(t, 200, r.status, "boundary: 49 failures do not lock: %s", r.raw)
+
+	d += 61 * time.Second
+	require.Equal(t, 200, post(t, "/api/v1/auth/send-otp", "10.2.1.1", sendBody(mobile), d).status)
+	code := e.otp(t, mobile)
+	require.Equal(t, 422, post(t, "/api/v1/auth/verify-otp", "10.2.1.1", verifyBody(mobile, wrongOf(code)), d).status)
+	r = post(t, "/api/v1/auth/verify-otp", ownerNet, verifyBody(mobile, code), d)
+	assertThrottle429(t, r, "50")
+	assert.Equal(t, "3600", r.header.Get("Retry-After"))
 }

@@ -24,6 +24,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
+	"github.com/ritme/backend-go/internal/platform/ratelimit"
 	"github.com/ritme/backend-go/internal/platform/validation"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
 )
@@ -304,8 +305,9 @@ func (h *Handlers) SendOTP(c fiber.Ctx) error {
 			return httpx.Fail(fiber.StatusTooManyRequests, "Please wait before requesting a new OTP",
 				"data", jsonx.Obj("retry_after", retry))
 		}
-		// T-M12-01 (S-01): per-number send caps, the same for registered and unknown numbers.
-		refusal, err := g.CountSend(ctx, mobile, now)
+		// T-M12-01 (S-01) + T-M12-01b (R-02): send caps per (number, client network) under a per-number ceiling on
+		// every network, the same for registered and unknown numbers.
+		refusal, err := g.CountSend(ctx, mobile, ratelimit.ClientNet(c.IP()), now)
 		if err != nil {
 			g.ReleaseSend(ctx, mobile)
 			return err
@@ -459,8 +461,11 @@ func (h *Handlers) checkCode(c fiber.Ctx, mobile, code string, now time.Time) (s
 
 	// T-M12-01 (S-01): a number whose failure budget is spent is refused outright — even the right code — until the
 	// lock ends; checked before any lookup so a locked number answers the same whether or not it has an account.
+	// T-M12-01b (R-02): the budget is per (number, client network) — a stranger's lock does not reach the owner on her
+	// own network — under a per-number ceiling across every network.
+	net := ratelimit.ClientNet(c.IP())
 	if h.otpGuard != nil {
-		refusal, err := h.otpGuard.Locked(ctx, mobile, now)
+		refusal, err := h.otpGuard.Locked(ctx, mobile, net, now)
 		if err != nil {
 			return none, err
 		}
@@ -490,7 +495,7 @@ func (h *Handlers) checkCode(c fiber.Ctx, mobile, code string, now time.Time) (s
 	}
 	if subtle.ConstantTimeCompare([]byte(otp.Code), []byte(code)) != 1 {
 		if h.otpGuard != nil {
-			if err := h.otpGuard.RecordFailure(ctx, mobile, now); err != nil {
+			if err := h.otpGuard.RecordFailure(ctx, mobile, net, now); err != nil {
 				return none, err
 			}
 		}

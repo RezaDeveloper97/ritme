@@ -76,7 +76,7 @@ Closed 2026-11-21 (T-M12-40). Commits are on `stage`; "accepted" = user decision
 
 | ID | Status | Evidence |
 |---|---|---|
-| S-01 | fixed + accepted | `beee050a` per-number send caps, failure lockout, /64 limiters; code stays 4 digits (user, 2026-11-18, D-211) |
+| S-01 | fixed + accepted | `beee050a` per-number send caps, failure lockout, /64 limiters; code stays 4 digits (user, 2026-11-18, D-211); T-M12-01b keys caps + lockout per (number, network) under global per-number ceilings (see R-02) |
 | S-02 | fixed | `beee050a` atomic send lock |
 | S-03 | fixed in code, **deploy pending** | `e0d39775` Arvan real-IP + `$remote_addr` only on beta/stage, `TRUSTED_PROXIES` (T-M12-02 blocked on the user's deploy OK) |
 | S-04 | fixed in code, deploy pending | `e0d39775` stage gate exempts exact docker subnets only |
@@ -117,7 +117,7 @@ Closed 2026-11-21 (T-M12-40). Commits are on `stage`; "accepted" = user decision
 | ID | Sev | Finding | Status |
 |---|---|---|---|
 | R-01 | High | Account delete left `ana:{uid}` (analysis bodies, 24 h), `eng:in:{uid}` (engine inputs, 7 d — found while fixing) and `preg-alerts:eval:{uid}` in Redis | fixed `9229dbc7` |
-| R-02 | Medium | Per-number OTP caps let anyone who knows a number block her login codes for up to 24 h | **open — user decision** |
+| R-02 | Medium | Per-number OTP caps let anyone who knows a number block her login codes for up to 24 h | fixed T-M12-01b (user decision): send caps + failure lock per (number, IPv4 /32 or IPv6 /64); global per-number ceilings 30 sends / 24 h and 50 failures / 24 h (`OTP_SEND_MAX_DAILY_GLOBAL`, `OTP_FAILURE_MAX_GLOBAL`, `OTP_FAILURE_GLOBAL_WINDOW_HOURS`) |
 | R-03 | Medium | SMS reminder cap reopened by hopping `X-Timezone` | fixed `ce339c87` (rolling 24 h ceiling = 2 × cap) |
 | R-04 | Low | Autodeploy verified a SHA but built the ref | fixed `adf662a4` |
 | R-05 | Low | Stage SSR exemption covers every container on `ritme-edge` | open (narrow to the frontend /32 with T-M12-02 deploy) |
