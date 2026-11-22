@@ -23,11 +23,10 @@ import type { MessageNamespace } from '@/shared/i18n';
  */
 export const SHELL_NAMESPACES = [
   'aiCredit', // entities/ai-credit barrel reached from the shell (CreditMeter)
-  'aiGate', // features/ai-gate: AiGateSheet mounts in the layout beside PendingConsentsSheet
+  'aiGate', // features/ai-gate: AiGateSheet mounts in the layout
   'autopilot', // shared/autopilot: AutopilotHost (pointer + stop bar) mounts in the layout
   'alerts', // the notifications sheet shows the health alerts with their actions (`/alerts` has no screen any more)
   'articles',
-  'auth', // T-M10-23: PendingConsentsSheet (features/auth) mounts in the layout, inside the app lock
   'care',
   'checkups',
   'children', // CB-NAV-03: the log sheet's «ثبت برای <child>» row (widgets/log-later → entities/child barrel)
@@ -52,7 +51,7 @@ export const SHELL_NAMESPACES = [
 // (`profileEdit` comes with the birthday wheels of features/edit-profile; `companions` with the
 // entities/companion barrel the partner step imports for the code field, B-N4-05; `companionHome` with the
 // companion v2 partner step — its copy and features/join-companion).
-const ONBOARDING = ['auth', 'common', 'companionHome', 'companions', 'onboarding', 'profileEdit'] as const satisfies readonly MessageNamespace[];
+const ONBOARDING = ['common', 'companionHome', 'companions', 'onboarding', 'profileEdit'] as const satisfies readonly MessageNamespace[];
 const AUTH = ['auth', 'common'] as const satisfies readonly MessageNamespace[];
 const PREGNANCY = ['common', 'nav', 'pregnancy'] as const satisfies readonly MessageNamespace[];
 
@@ -64,8 +63,8 @@ export const ROUTE_NAMESPACES = {
   logCustomize: ['common', 'logCustomize', 'logSheet'], // B-N3-04 /log/customize (the log sheet's gear; categoryLook comes via features/log-day)
   cycleSymptoms: ['common', 'cycle', 'logPeriod'], // B-N1-08 /cycle/symptoms (screen slice shares the editor)
   cycleSettings: ['common', 'me'], // B-N1-09 /cycle/settings (copy lives under me.cycleSettings)
-  profile: ['account', 'aiCredit', 'auth', 'common', 'companions', 'me', 'nav', 'plus', 'profile', 'profileEdit', 'teen'], // B-N2-08: entities/plus (Me Plus card) carries the PlusFeatureGate copy; B-N4-04 entities/companion (Me row); CB-TEEN-04b entities/teen (teen's parent row)
-  profileAccount: ['account', 'aiCredit', 'auth', 'common', 'companions', 'me', 'nav', 'plus', 'profile', 'profileEdit', 'teen'], // B-N1-10 /profile/account (+ plus: same Me hub slice; CB-TEEN-04b teen)
+  profile: ['account', 'aiCredit', 'common', 'companions', 'me', 'nav', 'plus', 'profile', 'profileEdit', 'teen'], // B-N2-08: entities/plus (Me Plus card) carries the PlusFeatureGate copy; B-N4-04 entities/companion (Me row); CB-TEEN-04b entities/teen (teen's parent row)
+  profileAccount: ['account', 'aiCredit', 'common', 'companions', 'me', 'nav', 'plus', 'profile', 'profileEdit', 'teen'], // B-N1-10 /profile/account (+ plus: same Me hub slice; CB-TEEN-04b teen)
   profileAppearance: ['common', 'me'], // B-N1-10 /profile/appearance
   profileDevices: ['common', 'me'], // B-N10-07 /profile/devices
   profileBackup: ['account', 'common', 'me'], // B-N10-07 /profile/backup (export hooks reuse me.privacy.mine copy)
