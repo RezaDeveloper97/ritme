@@ -36,6 +36,8 @@ import {
 } from '@/shared/ui';
 
 import { ItemSheet } from './ItemSheet';
+import '@/shared/ui/styles/page.css';
+import './shc.css';
 
 type Filter = 'all' | 'essential' | 'first' | ChecklistGroupKey;
 type T = ReturnType<typeof useTranslations>;

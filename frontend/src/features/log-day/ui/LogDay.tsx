@@ -40,6 +40,8 @@ import { ModePreset } from './presets/ModePreset';
 import { QuickTiles } from './QuickTiles';
 import { SummaryFooter } from './SummaryFooter';
 import { VoiceTab, type VoiceLogSlot } from './VoiceTab';
+import './mlog.css';
+import '@/shared/ui/styles/lday.css';
 
 /**
  * Where the gear opens the log customisation screen (B-N3-04). `null` until that screen exists — the

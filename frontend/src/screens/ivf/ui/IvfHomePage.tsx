@@ -39,7 +39,6 @@ import {
 import { BottomNav } from '@/widgets/bottom-nav';
 import { ForToday } from '@/widgets/for-today';
 import { HeaderActions } from '@/widgets/notification-bell';
-import { QuickAccess } from '@/widgets/quick-access';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
 import {
@@ -55,6 +54,7 @@ import {
   unitKey,
   whenKey,
 } from '../model/home';
+import '@/shared/ui/styles/ivf.css';
 
 type T = ReturnType<typeof useTranslations<'ivf'>>;
 
@@ -146,9 +146,8 @@ export function IvfHomePage() {
         {home.nextAppointment ? <NextAppointment next={home.nextAppointment} t={t} /> : null}
         {home.companion.linked ? <CompanionCard companion={home.companion} t={t} /> : null}
         <QuickActions t={t} />
-        {/* CB-NAV-03b (nbd_Nav_Today / IA_Map Today): «برای امروز» + the user-picked «دسترسی سریع». */}
+        {/* CB-NAV-03b (nbd_Nav_Today / IA_Map Today): «برای امروز». */}
         <ForToday reminders={<TodayRemindersCard />} />
-        <QuickAccess />
       </div>
     </Shell>
   );

@@ -37,6 +37,7 @@ import {
 } from '@/shared/ui';
 
 import { draftFrom, draftProblem, painLocations, type PainDraft, toggleCode, toInput } from '../model/draft';
+import './pain.css';
 
 /** The board's chip order: «کمک کرد» · «کمی» · then «نه». */
 const EFFECT_ORDER = [...PAIN_ANALGESIC_EFFECTS].reverse();

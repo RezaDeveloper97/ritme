@@ -38,6 +38,8 @@ import {
 } from '@/shared/ui';
 
 import { ProductTile, usePrice, useSkinLabel } from './ProductTile';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/shp.css';
 
 /** Selected filter values; multi-valued filters are kept as arrays and comma-joined for the API / the URL. */
 type Filters = ShopListFilters;

@@ -16,6 +16,7 @@ import type { KickOverview, KickSession } from '../model/types';
 import { useKickTaps } from '../model/use-kick-taps';
 import { useNow } from '../model/use-now';
 import { useToolFormat } from './format';
+import '@/shared/ui/styles/ptl.css';
 
 const RING = 240;
 const STROKE = 14;

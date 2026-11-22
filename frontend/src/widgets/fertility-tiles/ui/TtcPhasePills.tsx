@@ -4,6 +4,8 @@ import clsx from 'clsx';
 import { useTranslations } from 'next-intl';
 
 import { TTC_PHASES, type TtcPhase } from '../model/ttc';
+import '@/shared/ui/styles/ttc.css';
+import '@/shared/ui/styles/fert.css';
 
 /** Legend tone per phase: period red (§10.2), fertile amber, luteal violet, follicular neutral. */
 const TONE: Record<TtcPhase, string> = {

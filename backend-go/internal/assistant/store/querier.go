@@ -36,6 +36,9 @@ type Querier interface {
 	ListConversations(ctx context.Context, userID uint64) ([]AssistantConversation, error)
 	ListDepartmentConversations(ctx context.Context, arg ListDepartmentConversationsParams) ([]AssistantConversation, error)
 	ListMessages(ctx context.Context, conversationID uint64) ([]AssistantMessage, error)
+	// The newest user / assistant turns of a conversation that go back to the model (newest first; the caller reverses):
+	// cards and empty assistant replies (a failed stream) never do, so they do not take a slot (T-M12-32).
+	ListRecentChatMessages(ctx context.Context, arg ListRecentChatMessagesParams) ([]AssistantMessage, error)
 	ListSafetyTerms(ctx context.Context) ([]ListSafetyTermsRow, error)
 	// Uploaded photos never attached to a message and older than the cut-off (swept, B-N7-06b M4).
 	ListStaleAssistantPhotos(ctx context.Context, arg ListStaleAssistantPhotosParams) ([]uint64, error)

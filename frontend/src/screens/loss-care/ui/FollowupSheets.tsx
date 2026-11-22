@@ -36,6 +36,7 @@ import {
   Skeleton,
   SkeletonGroup,
 } from '@/shared/ui';
+import './lsc.css';
 
 /** Max length of the private note (CB-LOSS-01 `MaxNoteLen`). */
 const MAX_NOTE = 5000;

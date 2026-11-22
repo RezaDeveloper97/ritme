@@ -38,6 +38,8 @@ import {
   TITLE_MAX,
   validateCustomForm,
 } from '../model/form';
+import '@/shared/ui/styles/btn.css';
+import '@/shared/ui/styles/rmd.css';
 
 const LIST_HREF = '/checkups';
 

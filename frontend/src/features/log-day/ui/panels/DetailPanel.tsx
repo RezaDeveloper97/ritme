@@ -8,6 +8,7 @@ import { AppSheet } from '@/shared/sheet';
 import { PrimaryButton, SearchField } from '@/shared/ui';
 
 import { logPilotId } from '../../model/pilot-targets';
+import '@/shared/ui/styles/lday.css';
 
 interface DetailPanelProps {
   open: boolean;

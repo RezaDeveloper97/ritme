@@ -24,6 +24,7 @@ import {
 
 import { durationSeconds, phaseAt, phaseCount, repBarFilled, setsDone } from '../model/session';
 import { useWakeLock } from '../model/wake-lock';
+import './pkg.css';
 
 type Status = 'ready' | 'running' | 'finished' | 'stopped';
 

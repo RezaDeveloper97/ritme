@@ -20,7 +20,7 @@ import { analysisRangeSchema, correlationSchema, moodByPhaseSchema, toWeight, we
  * `null`, an unknown correlation pair is dropped.
  */
 
-type Parser<T> = z.ZodType<T, z.ZodTypeDef, unknown>;
+type Parser<T> = z.ZodType<T, unknown>;
 
 const num = z.number();
 const nullableNum = z.number().nullable().catch(null);

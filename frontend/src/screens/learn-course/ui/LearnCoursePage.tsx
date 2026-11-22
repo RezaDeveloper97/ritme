@@ -18,6 +18,8 @@ import { pilot } from '@/shared/pilot';
 import { Link, useRouter, type Locale } from '@/shared/i18n';
 import { formatDayMonth, formatNumber } from '@/shared/lib/date';
 import { Avatar, Card, EmptyState, HeaderButton, Icon, InfoNote, PrimaryButton, Skeleton, SkeletonGroup, StatusPill } from '@/shared/ui';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/lrn.css';
 
 type Tab = 'lessons' | 'about' | 'files';
 const TABS: readonly Tab[] = ['lessons', 'about', 'files'];

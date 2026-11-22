@@ -21,6 +21,8 @@ import {
   StatusPill,
 } from '@/shared/ui';
 import { useNavMode } from '@/widgets/bottom-nav';
+import '@/shared/ui/styles/plus.css';
+import '@/shared/ui/styles/cr.css';
 
 /**
  * `/plus/credits` «خرید اعتبار»: the credit packs as choice cards (credits, price in toman, badge, the

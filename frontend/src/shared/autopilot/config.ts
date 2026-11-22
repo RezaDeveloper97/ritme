@@ -102,7 +102,7 @@ const configSchema = z.object({
       caption: z.boolean().default(true),
       statusBar: z.boolean().default(true),
     })
-    .default({}),
+    .prefault({}),
 
   typing: z
     .object({
@@ -111,14 +111,14 @@ const configSchema = z.object({
       /** `visual` never focuses the input, so the phone keyboard stays down; `real` focuses it. */
       focus: z.enum(['visual', 'real']).default('visual'),
     })
-    .default({}),
+    .prefault({}),
 
   /** The user touching the screen mid-run. */
   interrupt: z
     .object({
       onUserInput: z.enum(['pause', 'cancel', 'ignore']).default('pause'),
     })
-    .default({}),
+    .prefault({}),
 
   errors: z
     .object({
@@ -127,7 +127,7 @@ const configSchema = z.object({
       /** Extra attempts for a step whose target didn't show up. */
       retries: z.number().int().min(0).max(5).default(1),
     })
-    .default({}),
+    .prefault({}),
 
   timeouts: z
     .object({
@@ -136,9 +136,9 @@ const configSchema = z.object({
       /** How long a control may take to show the state we asked for. */
       verifyMs: z.number().positive().default(1200),
     })
-    .default({}),
+    .prefault({}),
 
-  /** With «کاهش حرکت» on (Me → Appearance, or the OS): `instant` drops all motion, `keep` runs the preset. */
+  /** With reduced motion on in the OS: `instant` drops all motion, `keep` runs the preset. */
   reducedMotion: z.enum(['instant', 'keep']).default('instant'),
 
   safety: z
@@ -161,6 +161,40 @@ const configSchema = z.object({
           'city-join.submit',
           'doctor-booked.move-confirm',
           'ins-quest.confirm',
+          // Share / invite / consent / export / send / join: health data or a request leaves the user's hands.
+          // The catalog test (`catalog.test.ts`) fails when a new id of that kind is in neither list.
+          'invite.create',
+          'invite.consent',
+          'companion.join-submit',
+          'companion.join-confirm',
+          'companion.renew-invite',
+          'teen.share:*',
+          'report.send',
+          'privacy.export',
+          'privacy.export-json',
+          'privacy.export-pdf',
+          'privacy.consent:*',
+          'assistant.export-pdf',
+          'assistant.share:*',
+          'ckh.export',
+          'vtr.share',
+          'labr.share',
+          'rec.share',
+          'doctor-book.share:*',
+          'doctor-booked.consent:*',
+          'home-lab-form.consent-share',
+          'home-lab-form.consent-import',
+          'home-lab-request.consent',
+          'city-detail.report-send',
+          'city-review.send',
+          'shop-checklist.share',
+          'programs.join:*',
+          'programs.bleeding-join',
+          'programs.pain-join',
+          'programs.pmdd-join',
+          'pelvic.program-join',
+          'city-home.join',
+          'city-detail.join',
         ]),
       /** `{ "css": … }` locators. Off: a script from a model must not be able to click arbitrary DOM. */
       allowRawSelectors: z.boolean().default(false),
@@ -172,7 +206,7 @@ const configSchema = z.object({
       /** Top-level option keys a script may set in its own `options`. */
       scriptMayOverride: z.array(z.string()).default(['preset']),
     })
-    .default({}),
+    .prefault({}),
 
   /** Console trace of step kinds and target ids. Values are never logged (§11). */
   debug: z.boolean().default(false),

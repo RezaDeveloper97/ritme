@@ -9,6 +9,7 @@ import { Icon, InfoNote, PrimaryButton } from '@/shared/ui';
 
 import type { RecordSection, RecordTarget } from '../lib/record-for';
 import { PersonBubble } from './FamilyStrip';
+import './rcf.css';
 
 /*
  * «برای چه کسی ثبت می‌کنی؟» (B-N4-06, nbl_/nbd_Hamdam_RecordFor): the viewer

@@ -1,0 +1,75 @@
+/* `rsh-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.rsh-page { background: var(--page); }
+
+.rsh-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 14px; padding-block-end: 28px; }
+
+.rsh-scroll > :not(.nb-hdr) { margin-inline: var(--gutter); }
+
+.rsh-skel { display: flex; flex-direction: column; gap: 12px; }
+
+.rsh-skel-card { block-size: 150px; border-radius: var(--r-card); }
+
+.rsh-scroll > .nb-sect { margin-block-start: 6px; }
+
+.rsh-doctor { display: flex; flex-direction: column; gap: 14px; padding: 16px; }
+
+.rsh-doctor-head { display: flex; align-items: center; gap: 12px; }
+
+.rsh-doctor-text { display: flex; flex-direction: column; gap: 4px; min-inline-size: 0; }
+
+.rsh-doctor-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+
+.rsh-doctor-body { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+
+.rsh-hint { margin: 0; font-size: var(--fs-sm); font-weight: 600; line-height: var(--lh-body); color: var(--text-3); }
+
+.rsh-error { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--danger-deep); }
+
+.rsh-codes { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+
+.rsh-code { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 12px; border-top: 1px solid var(--line); }
+
+.rsh-code-text { display: flex; flex-direction: column; gap: 2px; min-inline-size: 0; }
+
+.rsh-code-title { margin: 0; font-size: var(--fs-md); font-weight: 800; color: var(--text-1); }
+
+.rsh-code-meta { margin: 0; font-size: var(--fs-sm); font-weight: 600; color: var(--text-3); }
+
+.rsh-revoke {
+  min-block-size: 36px; padding: 0 14px; border: 1px solid var(--danger-line); border-radius: 999px;
+  background: var(--danger-soft); font: inherit; font-size: var(--fs-sm); font-weight: 800; color: var(--danger-deep); cursor: pointer;
+}
+
+.rsh-revoke:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.rsh-revoke:disabled { opacity: .55; cursor: default; }
+
+.rsh-list .nb-row-desc { line-height: var(--lh-body); }
+
+.rsh-sheet-btns { display: flex; flex-direction: column; gap: 6px; }
+
+.rsh-form { display: flex; flex-direction: column; gap: 18px; }
+
+.rsh-field { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; border: 0; min-inline-size: 0; }
+
+.rsh-label { padding: 0; font-size: var(--fs-md); font-weight: 800; color: var(--text-1); }
+
+.rsh-docs { display: flex; flex-direction: column; gap: 4px; }
+
+.rsh-result { display: flex; flex-direction: column; gap: 16px; align-items: stretch; }
+
+.rsh-result-body { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+
+.rsh-code-box {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px;
+  border: 1.5px dashed var(--line-strong); border-radius: var(--r-card); background: var(--surface-2);
+}
+
+.rsh-code-label { font-size: var(--fs-sm); font-weight: 700; color: var(--text-3); }
+
+.rsh-code-value { font-size: 30px; font-weight: 800; letter-spacing: .12em; color: var(--brand); }
+
+.rsh-qr { inline-size: 196px; block-size: 196px; }
+
+.rsh-enter-at { margin: 0; text-align: center; font-size: var(--fs-sm); font-weight: 600; color: var(--text-3); overflow-wrap: anywhere; }

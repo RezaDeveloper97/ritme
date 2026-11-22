@@ -1,0 +1,9 @@
+/* `bs-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.bs-slide { flex: 0 0 100%; min-width: 0; }
+
+.bs-link { display: block; }
+
+.bs-img { display: block; width: 100%; aspect-ratio: 2 / 1; object-fit: cover; border-radius: 12px; background: var(--surface-3); }
+
+.bs-dots { display: flex; justify-content: center; gap: 6px; margin-top: 10px; }

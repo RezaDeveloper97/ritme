@@ -6,6 +6,8 @@ import { type InfoGroup, isInfoGroup, useInfoSections } from '@/entities/info';
 import { APP_VERSION } from '@/shared/config';
 import { formatNumber } from '@/shared/lib/date';
 import type { SheetContentProps } from '@/shared/sheet';
+import '@/shared/ui/styles/skeleton.css';
+import './pd.css';
 
 interface StaticSection {
   heading: string;

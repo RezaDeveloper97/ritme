@@ -75,7 +75,7 @@ const growthSchema = z
   );
 
 /** A malformed item is dropped, never the list. */
-function listOf<T>(schema: z.ZodType<T, z.ZodTypeDef, unknown>) {
+function listOf<T>(schema: z.ZodType<T, unknown>) {
   return z
     .array(z.unknown())
     .catch([])

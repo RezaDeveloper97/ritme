@@ -7,6 +7,7 @@ import { taskProgress, toggleDoneKey, type WeekTask } from '@/entities/pregnancy
 import { useUpdateWeekState } from '@/features/track-pregnancy';
 import { pilot } from '@/shared/pilot';
 import { Card, CheckTick, Icon } from '@/shared/ui';
+import '@/shared/ui/styles/pgn.css';
 
 interface Props {
   week: number;

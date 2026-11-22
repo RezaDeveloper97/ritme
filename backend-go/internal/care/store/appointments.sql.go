@@ -154,6 +154,7 @@ const listAppointmentsFrom = `-- name: ListAppointmentsFrom :many
 SELECT id, user_id, type, title, subtitle, notes, scheduled_at, recurrence, recurrence_time, starts_on, ends_on, is_active, meta, created_at, updated_at FROM ` + "`" + `reminders` + "`" + `
 WHERE user_id = ? AND ` + "`" + `type` + "`" + ` = 'appointment' AND scheduled_at >= ?
 ORDER BY scheduled_at ASC, id ASC
+LIMIT 1000
 `
 
 type ListAppointmentsFromParams struct {
@@ -161,10 +162,65 @@ type ListAppointmentsFromParams struct {
 	ScheduledAt sql.NullTime
 }
 
-// Appointments at or after a moment, soonest first (GET /care/today's next_appointment);
-// cancelled ones are skipped by internal/care.
+// Appointments at or after a moment, soonest first, cancelled ones included (the family projection lists both).
+// Bounded by care.MaxAppointments (1000), the hard ceiling on a user's appointment rows, so it never truncates.
 func (q *Queries) ListAppointmentsFrom(ctx context.Context, arg ListAppointmentsFromParams) ([]Reminder, error) {
 	rows, err := q.db.QueryContext(ctx, listAppointmentsFrom, arg.UserID, arg.ScheduledAt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Reminder{}
+	for rows.Next() {
+		var i Reminder
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Type,
+			&i.Title,
+			&i.Subtitle,
+			&i.Notes,
+			&i.ScheduledAt,
+			&i.Recurrence,
+			&i.RecurrenceTime,
+			&i.StartsOn,
+			&i.EndsOn,
+			&i.IsActive,
+			&i.Meta,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const nextAppointmentFrom = `-- name: NextAppointmentFrom :many
+SELECT id, user_id, type, title, subtitle, notes, scheduled_at, recurrence, recurrence_time, starts_on, ends_on, is_active, meta, created_at, updated_at FROM ` + "`" + `reminders` + "`" + `
+WHERE user_id = ? AND ` + "`" + `type` + "`" + ` = 'appointment' AND scheduled_at >= ?
+  AND COALESCE(JSON_UNQUOTE(JSON_EXTRACT(meta, '$.status')), '') <> 'cancelled'
+ORDER BY scheduled_at ASC, id ASC
+LIMIT 1
+`
+
+type NextAppointmentFromParams struct {
+	UserID      uint64
+	ScheduledAt sql.NullTime
+}
+
+// GET /care/today's next_appointment: the earliest not-cancelled appointment at or after a moment (zero or one row).
+// meta.status is scheduled | cancelled; anything else reads as scheduled (care.ParseAppointment), so only an exact
+// 'cancelled' is skipped here.
+func (q *Queries) NextAppointmentFrom(ctx context.Context, arg NextAppointmentFromParams) ([]Reminder, error) {
+	rows, err := q.db.QueryContext(ctx, nextAppointmentFrom, arg.UserID, arg.ScheduledAt)
 	if err != nil {
 		return nil, err
 	}

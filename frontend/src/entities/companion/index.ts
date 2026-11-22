@@ -101,3 +101,6 @@ export {
 } from './lib/record-for';
 export { RecordedFor, RecordForRow, RecordForSheet } from './ui/RecordForSheet';
 export { type RecordForState, useRecordFor } from './api/record-for';
+// The companion calendar overlay: her likely period days, with her consent.
+export { companionCalendarKeys, companionCalendarSchema, fetchCompanionCalendar, useCompanionCalendar } from './api/calendar';
+export type { CompanionCalendar, CompanionCalendarPartner } from './model/calendar';

@@ -28,6 +28,7 @@ import {
 } from '@/shared/ui';
 
 import { canStepForward, type PickedMonth, stepMonth } from '../model/month';
+import './mst.css';
 
 const LOOK: Record<MenopauseStageAnswer, Pick<RadioCardOption<MenopauseStageAnswer>, 'icon' | 'iconTone'>> = {
   peri: { icon: 'clock', iconTone: 'period' },

@@ -1,0 +1,9 @@
+/* `page-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.page-scroll { position: relative; z-index: 1; }
+
+.page-updating { text-align: center; font-size: 11px; color: var(--muted); padding: 0 16px 4px; }
+
+.page-tail { height: 26px; }
+
+.cal-page .page-scroll { overflow-anchor: none; }

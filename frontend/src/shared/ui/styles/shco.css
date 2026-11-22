@@ -1,0 +1,53 @@
+/* `shco-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.shco-body { padding-block-end: 96px; }
+
+.shco-steps { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+.shco-step { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--text-3); }
+
+.shco-step.is-current { color: var(--brand); }
+
+.shco-step.is-done { color: var(--data-deep); }
+
+.shco-step-dot { display: inline-flex; align-items: center; justify-content: center; inline-size: 18px; block-size: 18px; border-radius: 50%; border: 2px solid currentColor; }
+
+.shco-step.is-current .shco-step-dot { background: var(--brand-fill); border-color: var(--brand-fill); }
+
+.shco-step.is-done .shco-step-dot { background: var(--data-soft); }
+
+.shco-sec { display: flex; flex-direction: column; gap: 8px; }
+
+.shco-card { display: flex; flex-direction: column; gap: 6px; padding: 14px; }
+
+.shco-row { flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; }
+
+.shco-row-main { flex: 1; min-inline-size: 0; }
+
+.shco-cod { flex-direction: row; align-items: flex-start; gap: 12px; color: var(--brand); border-color: var(--brand); }
+
+.shco-line-main { margin: 0; font-size: 14px; font-weight: 800; color: var(--text-1); }
+
+.shco-line-sub { margin: 0; font-size: 12.5px; font-weight: 600; line-height: 1.8; color: var(--text-2); }
+
+.shco-error { margin: 0; font-size: 12.5px; font-weight: 700; color: var(--danger-deep); }
+
+.shco-note { margin: 0; font-size: 12.5px; font-weight: 600; line-height: 1.9; color: var(--text-2); }
+
+.shco-sheet { display: flex; flex-direction: column; gap: 12px; }
+
+.shco-sheet-actions { display: flex; flex-direction: column; gap: 4px; }
+
+.shco-addr-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+
+.shco-addr { display: flex; align-items: center; gap: 8px; padding-block: 4px; padding-inline: 12px 4px; border: 1px solid var(--line); border-radius: var(--r-md); }
+
+.shco-addr.is-on { border-color: var(--brand); background: var(--brand-soft); }
+
+.shco-addr-main { flex: 1; min-inline-size: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-block-size: 44px; border: 0; background: none; font: inherit; text-align: start; cursor: pointer; color: var(--text-1); }
+
+.shco-addr-label { font-size: 13.5px; font-weight: 800; }
+
+.shco-addr-line { font-size: 12px; font-weight: 600; color: var(--text-2); }
+
+.shco-addr-edit { min-block-size: 44px; padding: 0 10px; border: 0; background: none; font: inherit; font-size: 12.5px; font-weight: 800; color: var(--brand); cursor: pointer; }

@@ -1,0 +1,101 @@
+/* `cvx-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.cvx-summary { display: flex; align-items: center; gap: 14px; padding: 16px; }
+
+.cvx-ring { flex-shrink: 0; }
+
+.cvx-ring-num { font-family: var(--font-display); font-size: 16px; line-height: 1; color: var(--text-1); direction: ltr; unicode-bidi: isolate; }
+
+.cvx-summary-text { flex: 1; min-inline-size: 0; display: flex; flex-direction: column; gap: 4px; }
+
+.cvx-summary-title { font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+
+.cvx-summary-sub { font-size: 12px; font-weight: 600; line-height: 1.7; color: var(--text-3); }
+
+.cvx-pill { flex-shrink: 0; align-self: flex-start; }
+
+.cvx-visits { padding: 4px 16px; }
+
+.cvx-visit-list { list-style: none; margin: 0; padding: 0; }
+
+.cvx-visit { display: flex; flex-direction: column; gap: 6px; padding: 14px 0; }
+
+.cvx-visit + .cvx-visit { border-block-start: 1px solid var(--line); }
+
+.cvx-visit-head { display: flex; align-items: center; gap: 10px; }
+
+.cvx-visit-titles { flex: 1; min-inline-size: 0; display: flex; flex-direction: column; gap: 1px; }
+
+.cvx-visit-label { font-size: 14.5px; font-weight: 800; color: var(--text-1); }
+
+.cvx-visit-sub { font-size: var(--fs-sm); font-weight: 600; color: var(--text-3); }
+
+.cvx-doses { display: flex; flex-direction: column; padding-inline-start: 42px; }
+
+.cvx-dose { padding-block: 8px; }
+
+.cvx-dose .nb-check-label { font-size: 13px; font-weight: 600; }
+
+.cvx-dose .nb-check-input:checked ~ .nb-check-text .nb-check-label { color: var(--text-2); }
+
+.cvx-dose .nb-check-desc { font-size: var(--fs-sm); color: var(--text-3); }
+
+.cvx-dose.is-readonly { opacity: 1; }
+
+.cvx-actions { display: flex; gap: 8px; padding-inline-start: 42px; padding-block-start: 4px; }
+
+.cvx-btn {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-block-size: 44px; padding: 0 12px;
+  border: none; border-radius: var(--r-sm); background: var(--brand-soft); color: var(--brand-ink);
+  font-family: inherit; font-size: 12.5px; font-weight: 800; cursor: pointer;
+}
+
+.cvx-btn.is-solid { background: var(--brand-fill); color: var(--on-brand); }
+
+.cvx-btn:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.cvx-card { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+
+.cvx-empty { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-3); }
+
+.cvx-card-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+
+.cvx-card-row { display: flex; align-items: center; gap: 10px; min-block-size: 56px; padding-block: 8px; }
+
+.cvx-card-row + .cvx-card-row,
+.cvx-note-row + .cvx-note-row { border-block-start: 1px solid var(--line); }
+
+.cvx-card-text { flex: 1; min-inline-size: 0; display: flex; flex-direction: column; gap: 1px; }
+
+.cvx-card-name { font-size: var(--fs-base); font-weight: 800; color: var(--text-1); }
+
+.cvx-card-sub { font-size: var(--fs-sm); font-weight: 600; color: var(--text-3); }
+
+.cvx-card-date { flex-shrink: 0; font-size: 12px; font-weight: 700; color: var(--success); }
+
+.cvx-reminder { display: flex; align-items: center; gap: 8px; margin: 0; font-size: var(--fs-md); font-weight: 700; color: var(--brand-strong); }
+
+.cvx-note-row { display: flex; flex-direction: column; gap: 4px; padding-block: 10px; }
+
+.cvx-note-text { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); white-space: pre-line; }
+
+.cvx-form { display: flex; flex-direction: column; gap: 16px; padding-block-end: 8px; }
+
+.cvx-form-doses { display: flex; flex-direction: column; gap: 6px; }
+
+.cvx-form-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+
+.cvx-form-list li {
+  display: inline-flex; align-items: center; gap: 5px; min-block-size: 30px; padding: 0 10px; border-radius: var(--r-pill);
+  background: var(--surface-3); font-size: 12px; font-weight: 700; color: var(--text-2);
+}
+
+.cvx-textarea {
+  inline-size: 100%; box-sizing: border-box; min-block-size: 88px; padding: 12px 14px; resize: vertical;
+  border: 1.5px solid transparent; border-radius: var(--r-lg); background: var(--surface-3); color: var(--text-1);
+  font-family: inherit; font-size: 14px; font-weight: 600; line-height: 1.8;
+}
+
+.cvx-textarea:focus { outline: none; border-color: var(--brand); }
+
+.cvx-textarea::placeholder { color: var(--text-4); }

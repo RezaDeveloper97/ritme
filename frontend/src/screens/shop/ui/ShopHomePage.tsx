@@ -13,6 +13,8 @@ import { CartButton } from './CartButton';
 import { ProductTile } from './ProductTile';
 import { ShopPage as ShopLinkOutPage } from './ShopPage';
 import { ChecklistCard, SupplyReminderCard } from './ShopHomeCards';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/shp.css';
 
 /**
  * `/shop` home (CB-SHOP-06, nbd_Shop_Home + nbd_Shop_Beauty): root tabs (baby / beauty), sub-category chips, best

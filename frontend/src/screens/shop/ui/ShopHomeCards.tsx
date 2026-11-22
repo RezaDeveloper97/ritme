@@ -8,6 +8,7 @@ import { Link, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { pilot } from '@/shared/pilot';
 import { Card, Icon, ProgressBar, Switch } from '@/shared/ui';
+import '@/shared/ui/styles/shp.css';
 
 /**
  * CB-SHOP-09: the layette-checklist card of the baby home — progress bar + «X از Y آماده», links to

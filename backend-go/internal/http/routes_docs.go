@@ -3,21 +3,30 @@ package http
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
+	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
+	"fmt"
 	"html/template"
 	"io"
 	"io/fs"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
+	"github.com/redis/go-redis/v9"
 	swaggerui "github.com/swaggest/swgui/v5/static"
 
 	"github.com/ritme/backend-go/api"
+	"github.com/ritme/backend-go/internal/platform/cache"
+	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/config"
 	"github.com/ritme/backend-go/internal/platform/httpx"
+	"github.com/ritme/backend-go/internal/platform/ratelimit"
 )
 
 // docsPrefix is where the API reference lives (Laravel: l5-swagger behind swagger.auth).
@@ -27,11 +36,11 @@ const docsPrefix = "/docs"
 // hand-maintained api/openapi.yaml, behind the same Basic auth as Laravel's
 // SwaggerBasicAuth middleware.
 func init() {
-	Register("docs", func(r fiber.Router, d *Deps) { mountDocs(r, d.Config) })
+	Register("docs", func(r fiber.Router, d *Deps) { mountDocs(r, d.Config, d.Cache) })
 }
 
-func mountDocs(r fiber.Router, cfg *config.Config) {
-	gate := docsBasicAuth(cfg)
+func mountDocs(r fiber.Router, cfg *config.Config, c *cache.Client) {
+	gate := docsBasicAuth(cfg, newDocsFailures(c))
 	r.Get(docsPrefix, gate, serveDocsIndex)
 	r.Get(docsPrefix+"/openapi.yaml", gate, func(c fiber.Ctx) error {
 		c.Set(fiber.HeaderContentType, "application/yaml; charset=utf-8")
@@ -43,8 +52,10 @@ func mountDocs(r fiber.Router, cfg *config.Config) {
 
 // docsBasicAuth ports backend/app/Http/Middleware/SwaggerBasicAuth.php: with no
 // SWAGGER_PASSWORD the docs are open only in local/testing and closed (401) everywhere
-// else; otherwise SWAGGER_USER / SWAGGER_PASSWORD must match (constant time).
-func docsBasicAuth(cfg *config.Config) fiber.Handler {
+// else; otherwise SWAGGER_USER / SWAGGER_PASSWORD must match (constant time). T-M12-06 (S-11): a client network
+// (IPv6 /64) with DocsFailuresPerMinute wrong passwords in a minute gets 429 on every attempt — the right password
+// too, so the lock is no oracle — until the window ends (fails is nil without Redis: no limit).
+func docsBasicAuth(cfg *config.Config, fails *docsFailures) fiber.Handler {
 	var env, wantUser, wantPass string
 	if cfg != nil {
 		env, wantUser, wantPass = cfg.App.Env, cfg.Swagger.User, cfg.Swagger.Password
@@ -56,14 +67,91 @@ func docsBasicAuth(cfg *config.Config) fiber.Handler {
 			}
 			return denyDocs(c)
 		}
+		now := clock.FromContext(c, clock.Real{}).Now()
+		ip := ratelimit.ClientNet(c.IP())
+		if retry, err := fails.locked(c.Context(), ip, now); err != nil {
+			return err
+		} else if retry > 0 {
+			return httpx.TooManyRequests(retry, DocsFailuresPerMinute, 0, now.Unix()+int64(retry))
+		}
 		user, pass, _ := parseBasicAuth(c.Get(fiber.HeaderAuthorization))
 		okUser := subtle.ConstantTimeCompare([]byte(wantUser), []byte(user))
 		okPass := subtle.ConstantTimeCompare([]byte(wantPass), []byte(pass))
 		if okUser&okPass != 1 {
+			if err := fails.record(c.Context(), ip, now); err != nil {
+				return err
+			}
 			return denyDocs(c)
 		}
 		return c.Next()
 	}
+}
+
+// DocsFailuresPerMinute is the /docs wrong-password budget per client network and minute (T-M12-06).
+const DocsFailuresPerMinute = 10
+
+// docsFailures counts wrong /docs passwords per client network in a fixed one-minute window that starts at the first
+// failure. Only failures count; the window end is compared against the request clock (the key TTL only collects
+// garbage). Keys hold sha256(network), never the address.
+type docsFailures struct{ cache *cache.Client }
+
+func newDocsFailures(c *cache.Client) *docsFailures {
+	if c == nil {
+		return nil
+	}
+	return &docsFailures{cache: c}
+}
+
+func (f *docsFailures) key(ip string) string {
+	sum := sha256.Sum256([]byte(ip))
+	return f.cache.Key("docs_auth_fail:" + hex.EncodeToString(sum[:]))
+}
+
+// docsLockedScript: KEYS[1] hash {n, end}; ARGV now ms, max → ms until the window ends when it holds max failures, else 0.
+var docsLockedScript = redis.NewScript(`
+local n = tonumber(redis.call('HGET', KEYS[1], 'n') or '0')
+local e = tonumber(redis.call('HGET', KEYS[1], 'end') or '0')
+local now = tonumber(ARGV[1])
+if n >= tonumber(ARGV[2]) and e > now then return e - now end
+return 0
+`)
+
+// docsFailScript: KEYS[1] hash {n, end}; ARGV now ms, window ms → records one failure (a new window when none is open).
+var docsFailScript = redis.NewScript(`
+local now, win = tonumber(ARGV[1]), tonumber(ARGV[2])
+local e = tonumber(redis.call('HGET', KEYS[1], 'end') or '0')
+if e <= now then
+  redis.call('HSET', KEYS[1], 'n', 1, 'end', now + win)
+else
+  redis.call('HINCRBY', KEYS[1], 'n', 1)
+end
+redis.call('PEXPIRE', KEYS[1], win)
+return 1
+`)
+
+// locked returns the seconds until the network may try again (0 = it may).
+func (f *docsFailures) locked(ctx context.Context, ip string, now time.Time) (int, error) {
+	if f == nil {
+		return 0, nil
+	}
+	left, err := docsLockedScript.Run(ctx, f.cache.Redis(), []string{f.key(ip)}, now.UnixMilli(), DocsFailuresPerMinute).Int64()
+	if err != nil {
+		return 0, fmt.Errorf("docs: failure budget: %w", err)
+	}
+	if left <= 0 {
+		return 0, nil
+	}
+	return int((left + 999) / 1000), nil
+}
+
+func (f *docsFailures) record(ctx context.Context, ip string, now time.Time) error {
+	if f == nil {
+		return nil
+	}
+	if err := docsFailScript.Run(ctx, f.cache.Redis(), []string{f.key(ip)}, now.UnixMilli(), time.Minute.Milliseconds()).Err(); err != nil {
+		return fmt.Errorf("docs: failure budget: %w", err)
+	}
+	return nil
 }
 
 func denyDocs(c fiber.Ctx) error {

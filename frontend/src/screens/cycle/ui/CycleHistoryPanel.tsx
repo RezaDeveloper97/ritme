@@ -25,6 +25,8 @@ import { useCycleHistory } from '../api/queries';
 import { barGeometry, barScale } from '../model/bars';
 import { flagHintKind } from '../model/flag-hint';
 import type { CycleHistory, CycleHistoryRow } from '../model/schema';
+import './cyh.css';
+import '@/shared/ui/styles/an.css';
 
 /**
  * «سیکل‌های من» (B-N1-08, `nbl_/nbd_Cycle_History`): the median cycle and

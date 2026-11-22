@@ -8,6 +8,7 @@ import { type CatalogMarker, type LabMarker, type MarkerInput, parseLabNumber, t
 import { AppSheet } from '@/shared/sheet';
 import { PrimaryButton, SecondaryButton } from '@/shared/ui';
 import { pilot } from '@/shared/pilot';
+import '@/shared/ui/styles/lab.css';
 
 interface MarkerSheetProps {
   /** The row being corrected, or null for «افزودن شاخص جاافتاده». */

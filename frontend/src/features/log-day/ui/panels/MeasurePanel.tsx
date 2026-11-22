@@ -14,6 +14,7 @@ import { asNumber, asString, normalizeNumber, pickableOptions } from '../../mode
 import { logPilotId } from '../../model/pilot-targets';
 import { ParamField } from '../ParamField';
 import { PanelCard } from './PanelCard';
+import '@/shared/ui/styles/lday.css';
 
 interface MeasurePanelProps {
   category: LogCategory;

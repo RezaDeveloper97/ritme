@@ -35,4 +35,6 @@ jobs:
       - name: Urgent scenarios
         run: go test -count=1 -run 'TestUrgentScenarios|TestReducedKicks' ./internal/safety/...
       - name: Classifier suites
+        env:
+          TESTDB_OPTIONAL: "1" # pure classifier tests; integration tests skip here (T-M12-11)
         run: go test -count=1 ./internal/vitals/ ./internal/postpartum/ ./internal/pregnancy/labor/

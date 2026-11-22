@@ -27,6 +27,7 @@ func securityPair(t *testing.T, e *companionEnv) (sara, ali string, linkID uint6
 		"cycle": "view", "symptoms": "view", "meds": "edit", "appointments": "edit"}})
 	r := e.do(fiber.MethodPost, "/api/v1/companions/accept", ali, map[string]any{"code": code})
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
+	e.confirm(sara, linkID)
 	return sara, ali, linkID
 }
 

@@ -24,6 +24,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
+	"github.com/ritme/backend-go/internal/platform/ratelimit"
 	"github.com/ritme/backend-go/internal/platform/validation"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
 )
@@ -78,6 +79,20 @@ type Handlers struct {
 	logger            *slog.Logger
 	signupHooks       []SignupHook
 	consents          SignupConsents // nil = verify-otp asks no signup consents (Laravel behaviour)
+	otpGuard          *OTPGuard      // nil = no per-number caps / failure budget / send lock (tests without Redis)
+	stepUpAuth        *Guard         // purpose=step_up: the bearer guard (nil = step-up off, refused with 403)
+	stepUp            *StepUp        // purpose=step_up: where step-up tokens are issued
+}
+
+// UseStepUp turns on `purpose: step_up` on send-otp / verify-otp (T-M12-06, D-213). Call it while wiring routes.
+func (h *Handlers) UseStepUp(g *Guard, s *StepUp) { h.stepUpAuth, h.stepUp = g, s }
+
+// UseOTPGuard turns on the per-number OTP guard (T-M12-01). Call it while wiring routes.
+func (h *Handlers) UseOTPGuard(g *OTPGuard) { h.otpGuard = g }
+
+// refused is the framework throttle 429 ("Too Many Attempts." + Retry-After, X-RateLimit-*) of a per-number refusal.
+func refused(r *OTPRefusal, now time.Time) error {
+	return httpx.TooManyRequests(r.RetryAfter, r.Limit, 0, now.Unix()+int64(r.RetryAfter))
 }
 
 // SignupConsents are the mandatory signup consents (internal/consent.Signup; injected because consent imports auth).
@@ -201,7 +216,33 @@ var (
 		validation.F("mobile", "required", "string", "regex:/^09[0-9]{9}$/"),
 		validation.F("code", "required|string|size:4"),
 	}
+
+	// stepUpVerifyRules: a step-up verify carries only the code; the number is the signed-in user's.
+	stepUpVerifyRules = validation.Rules{validation.F("code", "required|string|size:4")}
 )
+
+// isStepUp reports whether the body asks for a step-up (`purpose: "step_up"`); any other purpose is a login, as in
+// Laravel, which ignores the field.
+func isStepUp(c fiber.Ctx) bool {
+	return str(validation.Input(c), "purpose") == StepUpPurpose
+}
+
+// stepUpMobile authenticates a step-up request and returns the signed-in user and the number on the account. The body's
+// `mobile` is never read: a stolen token cannot route the code to another phone. A bad or missing bearer token is the
+// usual 401 (it is an authentication failure); an account without a number is 422.
+func (h *Handlers) stepUpMobile(c fiber.Ctx) (*User, string, error) {
+	if h.stepUpAuth == nil || h.stepUp == nil {
+		return nil, "", httpx.Fail(fiber.StatusForbidden, StepUpMessage("required", i18n.Locale(c)), "error_code", CodeStepUpRequired)
+	}
+	u, _, err := h.stepUpAuth.Authenticate(c.Context(), c.Get(fiber.HeaderAuthorization))
+	if err != nil {
+		return nil, "", err
+	}
+	if !u.Mobile.Valid || u.Mobile.String == "" {
+		return nil, "", httpx.Fail(fiber.StatusUnprocessableEntity, StepUpMessage("no_mobile", i18n.Locale(c)))
+	}
+	return u, u.Mobile.String, nil
+}
 
 // validate runs Validator::make and returns the controller's 422 body on failure.
 func validate(c fiber.Ctx, now time.Time, rules validation.Rules, opts ...validation.Option) (phpval.Map, error) {
@@ -219,15 +260,25 @@ func str(m phpval.Map, key string) string {
 	return s
 }
 
-// SendOTP is POST /auth/send-otp (sendOtp). It never reveals whether the mobile is a user.
+// SendOTP is POST /auth/send-otp (sendOtp). It never reveals whether the mobile is a user. With `purpose: step_up`
+// (Go only, T-M12-06) it sends the code to the signed-in user's own number; every T-M12-01 guard applies the same.
 func (h *Handlers) SendOTP(c fiber.Ctx) error {
 	ctx := c.Context()
 	now := h.now(c)
-	data, err := validate(c, now, sendRules, sendMsgs)
-	if err != nil {
-		return err
+	var mobile string
+	if isStepUp(c) {
+		_, m, err := h.stepUpMobile(c)
+		if err != nil {
+			return err
+		}
+		mobile = m
+	} else {
+		data, err := validate(c, now, sendRules, sendMsgs)
+		if err != nil {
+			return err
+		}
+		mobile = str(data, "mobile")
 	}
-	mobile := str(data, "mobile")
 
 	recent, err := h.q.GetRecentOtp(ctx, store.GetRecentOtpParams{Mobile: mobile, CreatedAt: dbTime(now.Add(-OTPResendAfter))})
 	switch {
@@ -243,6 +294,41 @@ func (h *Handlers) SendOTP(c fiber.Ctx) error {
 		return fmt.Errorf("auth: recent otp: %w", err)
 	}
 
+	// T-M12-01 (S-02): one send per number at a time — parallel sends that all passed the check above get the
+	// resend answer instead of each dispatching an SMS. The lock is kept after a send (it ends with the resend window).
+	if g := h.otpGuard; g != nil {
+		ok, retry, err := g.AcquireSend(ctx, mobile, now)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return httpx.Fail(fiber.StatusTooManyRequests, "Please wait before requesting a new OTP",
+				"data", jsonx.Obj("retry_after", retry))
+		}
+		// T-M12-01 (S-01) + T-M12-01b (R-02): send caps per (number, client network) under a per-number ceiling on
+		// every network, the same for registered and unknown numbers.
+		refusal, err := g.CountSend(ctx, mobile, ratelimit.ClientNet(c.IP()), now)
+		if err != nil {
+			g.ReleaseSend(ctx, mobile)
+			return err
+		}
+		if refusal != nil {
+			g.ReleaseSend(ctx, mobile)
+			return refused(refusal, now)
+		}
+	}
+
+	if err := h.writeOtp(ctx, mobile, now); err != nil {
+		if h.otpGuard != nil {
+			h.otpGuard.ReleaseSend(ctx, mobile)
+		}
+		return err
+	}
+	return httpx.OK(c, jsonx.Obj("expires_in", int(OTPExpiresIn/time.Second)), "OTP sent successfully")
+}
+
+// writeOtp replaces the number's codes with a new one and queues its SMS.
+func (h *Handlers) writeOtp(ctx context.Context, mobile string, now time.Time) error {
 	code, err := GenerateOTP(OTPLength)
 	if err != nil {
 		return err
@@ -266,8 +352,7 @@ func (h *Handlers) SendOTP(c fiber.Ctx) error {
 		h.logger.ErrorContext(ctx, "OTP SMS dispatch failed inline",
 			slog.String("mobile", sms.MaskMobile(mobile)), slog.String("error", err.Error()))
 	}
-
-	return httpx.OK(c, jsonx.Obj("expires_in", int(OTPExpiresIn/time.Second)), "OTP sent successfully")
+	return nil
 }
 
 // GenerateOTP is SmsService::generateOtp: random_int(10^(n-1), 10^n - 1) from crypto/rand.
@@ -281,8 +366,11 @@ func GenerateOTP(length int) (string, error) {
 	return n.Add(n, lo).String(), nil
 }
 
-// VerifyOTP is POST /auth/verify-otp (verifyOtp).
+// VerifyOTP is POST /auth/verify-otp (verifyOtp). `purpose: step_up` → verifyStepUp.
 func (h *Handlers) VerifyOTP(c fiber.Ctx) error {
+	if isStepUp(c) {
+		return h.verifyStepUp(c)
+	}
 	ctx := c.Context()
 	now := h.now(c)
 	data, err := validate(c, now, verifyRules)
@@ -290,28 +378,9 @@ func (h *Handlers) VerifyOTP(c fiber.Ctx) error {
 		return err
 	}
 	mobile, code := str(data, "mobile"), str(data, "code")
-
-	otp, err := h.q.GetLatestUnverifiedOtp(ctx, mobile)
-	if errors.Is(err, sql.ErrNoRows) {
-		return httpx.Fail(fiber.StatusBadRequest, "No OTP found. Please request a new one.")
-	}
+	otp, err := h.checkCode(c, mobile, code, now)
 	if err != nil {
-		return fmt.Errorf("auth: load otp: %w", err)
-	}
-	if otp.ExpiresAt.Before(now) { // $otp->expires_at->isPast()
-		return httpx.Fail(fiber.StatusBadRequest, "OTP has expired. Please request a new one.")
-	}
-
-	// Atomic attempt claim: concurrent guesses cannot all pass a read-then-check.
-	claimed, err := h.q.ClaimOtpAttempt(ctx, store.ClaimOtpAttemptParams{UpdatedAt: dbTime(now), ID: otp.ID, Attempts: OTPMaxAttempts})
-	if err != nil {
-		return fmt.Errorf("auth: claim otp attempt: %w", err)
-	}
-	if claimed == 0 {
-		return httpx.Fail(fiber.StatusTooManyRequests, "Too many attempts. Please request a new OTP.")
-	}
-	if subtle.ConstantTimeCompare([]byte(otp.Code), []byte(code)) != 1 {
-		return httpx.Fail(fiber.StatusUnprocessableEntity, "Invalid OTP code")
+		return err
 	}
 	// T-M10-23: only after the code matched (no account probing), and before the OTP is spent, so the same code can
 	// be sent again with the consents. Existing accounts are never refused here (H-18: the pending sheet asks them).
@@ -382,6 +451,85 @@ func (h *Handlers) VerifyOTP(c fiber.Ctx) error {
 		"access_token", issued.AccessToken,
 		"token_type", "Bearer",
 	), msg)
+}
+
+// checkCode is the code check verify-otp shares between login and step-up: the failure-budget lock, the latest unverified
+// code, its expiry, the atomic attempt claim and the constant-time compare (a wrong code counts against the budget).
+func (h *Handlers) checkCode(c fiber.Ctx, mobile, code string, now time.Time) (store.GetLatestUnverifiedOtpRow, error) {
+	ctx := c.Context()
+	var none store.GetLatestUnverifiedOtpRow
+
+	// T-M12-01 (S-01): a number whose failure budget is spent is refused outright — even the right code — until the
+	// lock ends; checked before any lookup so a locked number answers the same whether or not it has an account.
+	// T-M12-01b (R-02): the budget is per (number, client network) — a stranger's lock does not reach the owner on her
+	// own network — under a per-number ceiling across every network.
+	net := ratelimit.ClientNet(c.IP())
+	if h.otpGuard != nil {
+		refusal, err := h.otpGuard.Locked(ctx, mobile, net, now)
+		if err != nil {
+			return none, err
+		}
+		if refusal != nil {
+			return none, refused(refusal, now)
+		}
+	}
+
+	otp, err := h.q.GetLatestUnverifiedOtp(ctx, mobile)
+	if errors.Is(err, sql.ErrNoRows) {
+		return none, httpx.Fail(fiber.StatusBadRequest, "No OTP found. Please request a new one.")
+	}
+	if err != nil {
+		return none, fmt.Errorf("auth: load otp: %w", err)
+	}
+	if otp.ExpiresAt.Before(now) { // $otp->expires_at->isPast()
+		return none, httpx.Fail(fiber.StatusBadRequest, "OTP has expired. Please request a new one.")
+	}
+
+	// Atomic attempt claim: concurrent guesses cannot all pass a read-then-check.
+	claimed, err := h.q.ClaimOtpAttempt(ctx, store.ClaimOtpAttemptParams{UpdatedAt: dbTime(now), ID: otp.ID, Attempts: OTPMaxAttempts})
+	if err != nil {
+		return none, fmt.Errorf("auth: claim otp attempt: %w", err)
+	}
+	if claimed == 0 {
+		return none, httpx.Fail(fiber.StatusTooManyRequests, "Too many attempts. Please request a new OTP.")
+	}
+	if subtle.ConstantTimeCompare([]byte(otp.Code), []byte(code)) != 1 {
+		if h.otpGuard != nil {
+			if err := h.otpGuard.RecordFailure(ctx, mobile, net, now); err != nil {
+				return none, err
+			}
+		}
+		return none, httpx.Fail(fiber.StatusUnprocessableEntity, "Invalid OTP code")
+	}
+	return otp, nil
+}
+
+// verifyStepUp is verify-otp with `purpose: step_up` (T-M12-06, D-213): the signed-in user's code against her own
+// number, then — instead of a login — a single-use step-up token for GET /profile/export and DELETE /account
+// ({data: {step_up_token, expires_in}}). The code is spent like a login code.
+func (h *Handlers) verifyStepUp(c fiber.Ctx) error {
+	ctx := c.Context()
+	now := h.now(c)
+	u, mobile, err := h.stepUpMobile(c)
+	if err != nil {
+		return err
+	}
+	data, err := validate(c, now, stepUpVerifyRules)
+	if err != nil {
+		return err
+	}
+	otp, err := h.checkCode(c, mobile, str(data, "code"), now)
+	if err != nil {
+		return err
+	}
+	if err := h.q.MarkOtpVerified(ctx, store.MarkOtpVerifiedParams{VerifiedAt: dbTime(now), UpdatedAt: dbTime(now), ID: otp.ID}); err != nil {
+		return fmt.Errorf("auth: mark otp verified: %w", err)
+	}
+	tok, err := h.stepUp.Issue(ctx, u.ID, now)
+	if err != nil {
+		return err
+	}
+	return httpx.OK(c, jsonx.Obj("step_up_token", tok, "expires_in", int(StepUpTTL/time.Second)), StepUpMessage("verified", i18n.Locale(c)))
 }
 
 // firstOrCreateUser finds the user by mobile or creates it (User::create(['mobile' => …])).

@@ -38,6 +38,7 @@ import {
 } from '@/shared/ui';
 
 import { BetaSheet, BleedingSheet, NoteSheet, VisitSheet } from './FollowupSheets';
+import './lsc.css';
 
 type SheetId = 'bleeding' | 'beta' | 'visit' | 'note';
 

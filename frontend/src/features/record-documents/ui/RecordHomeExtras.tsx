@@ -20,6 +20,8 @@ import { pilot } from '@/shared/pilot';
 import { useRecordHomeSheet } from '../model/sheet-store';
 import { ExtrasSheet } from './ExtrasSheet';
 import { UploadDocumentSheet } from './UploadDocumentSheet';
+import '@/shared/ui/styles/hrec.css';
+import '@/shared/ui/styles/rec.css';
 
 /** Grid tiles in board order: the API categories (documents per kind, surgeries, family history) + «همه اسناد». */
 const TILES: readonly (CategoryKey | 'all')[] = [

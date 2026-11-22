@@ -2,6 +2,7 @@ package etag_test
 
 import (
 	"io"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -159,4 +160,117 @@ func TestBuild_Stable(t *testing.T) {
 	b := etag.Build()
 	assert.NotEmpty(t, b)
 	assert.Equal(t, b, etag.Build())
+}
+
+// bodyApp serves GET /b with the body of the current ?who= (stands for a per-user / per-locale body) through ByBody.
+func bodyApp(hits *int, status int, cc string) *fiber.App {
+	app := fiber.New()
+	app.Get("/b", etag.ByBody(), func(c fiber.Ctx) error {
+		*hits++
+		if cc != "" {
+			c.Set(fiber.HeaderCacheControl, cc)
+		}
+		return c.Status(status).JSON(fiber.Map{"data": c.Query("who")})
+	})
+	return app
+}
+
+func getB(t *testing.T, app *fiber.App, who, inm string) (int, string, http.Header) {
+	t.Helper()
+	req := httptest.NewRequest(fiber.MethodGet, "/b?who="+who, nil)
+	if inm != "" {
+		req.Header.Set(fiber.HeaderIfNoneMatch, inm)
+	}
+	res, err := app.Test(req)
+	require.NoError(t, err)
+	body, err := io.ReadAll(res.Body)
+	require.NoError(t, err)
+	return res.StatusCode, string(body), res.Header
+}
+
+func TestBodyTag(t *testing.T) {
+	a := etag.BodyTag([]byte(`{"data":"a"}`))
+	assert.Regexp(t, `^W/"b[0-9a-f]{32}"$`, a)
+	assert.Equal(t, a, etag.BodyTag([]byte(`{"data":"a"}`)))
+	assert.NotEqual(t, a, etag.BodyTag([]byte(`{"data":"b"}`)))
+	assert.NotEqual(t, a, etag.BodyTag([]byte(`{"data":"a"} `)), "one byte more is another tag")
+}
+
+// The handler always runs; the tag is the hash of this request's body, so a tag of another body never matches.
+func TestByBody_304OnlyForTheSameBody(t *testing.T) {
+	hits := 0
+	app := bodyApp(&hits, fiber.StatusOK, "")
+	code, body, h := getB(t, app, "a", "")
+	require.Equal(t, fiber.StatusOK, code)
+	assert.JSONEq(t, `{"data":"a"}`, body)
+	tagA := h.Get(fiber.HeaderETag)
+	assert.Equal(t, etag.BodyTag([]byte(body)), tagA)
+	assert.Equal(t, etag.CacheControl, h.Get(fiber.HeaderCacheControl))
+	assert.Equal(t, "Authorization, Accept-Language", h.Get(fiber.HeaderVary))
+
+	for _, inm := range []string{tagA, tagA[2:], `"x", ` + tagA, "*"} { // weak, strong form, list, wildcard
+		code, body, h = getB(t, app, "a", inm)
+		assert.Equal(t, fiber.StatusNotModified, code, inm)
+		assert.Empty(t, body, inm)
+		assert.Equal(t, tagA, h.Get(fiber.HeaderETag), inm)
+	}
+	assert.Equal(t, 5, hits, "the handler runs on every request (bandwidth, not server work)")
+
+	// Another body (another user / locale / query): A's tag → 200 with B's own body and tag.
+	code, body, h = getB(t, app, "b", tagA)
+	assert.Equal(t, fiber.StatusOK, code)
+	assert.JSONEq(t, `{"data":"b"}`, body)
+	assert.NotEqual(t, tagA, h.Get(fiber.HeaderETag))
+
+	// Boundaries: a truncated tag, garbage, an empty list member.
+	for _, inm := range []string{tagA[:len(tagA)-1], "garbage", `W/""`, ","} {
+		code, _, _ = getB(t, app, "a", inm)
+		assert.Equal(t, fiber.StatusOK, code, inm)
+	}
+}
+
+func TestByBody_KeepsHandlerCacheControl(t *testing.T) {
+	hits := 0
+	app := bodyApp(&hits, fiber.StatusOK, "public, max-age=60")
+	_, _, h := getB(t, app, "a", "")
+	tag := h.Get(fiber.HeaderETag)
+	assert.Equal(t, "public, max-age=60", h.Get(fiber.HeaderCacheControl))
+	code, _, h := getB(t, app, "a", tag)
+	assert.Equal(t, fiber.StatusNotModified, code)
+	assert.Equal(t, "public, max-age=60", h.Get(fiber.HeaderCacheControl))
+}
+
+// Non-200 answers are never tagged nor turned into a 304, even for "*".
+func TestByBody_NeverTagsNon200(t *testing.T) {
+	for _, st := range []int{fiber.StatusCreated, fiber.StatusForbidden, fiber.StatusUnprocessableEntity} {
+		hits := 0
+		app := bodyApp(&hits, st, "")
+		code, body, h := getB(t, app, "a", "*")
+		assert.Equal(t, st, code)
+		assert.NotEmpty(t, body)
+		assert.Empty(t, h.Get(fiber.HeaderETag))
+	}
+	app := fiber.New()
+	app.Get("/b", etag.ByBody(), func(fiber.Ctx) error { return fiber.ErrInternalServerError })
+	req := httptest.NewRequest(fiber.MethodGet, "/b", nil)
+	req.Header.Set(fiber.HeaderIfNoneMatch, "*")
+	res, err := app.Test(req)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusInternalServerError, res.StatusCode)
+	assert.Empty(t, res.Header.Get(fiber.HeaderETag))
+}
+
+// A handler's own tag (an engine tag) wins; ByBody never overwrites it.
+func TestByBody_KeepsAnExistingTag(t *testing.T) {
+	app := fiber.New()
+	app.Get("/b", etag.ByBody(), func(c fiber.Ctx) error {
+		c.Set(fiber.HeaderETag, `W/"own"`)
+		return c.SendString("x")
+	})
+	req := httptest.NewRequest(fiber.MethodGet, "/b", nil)
+	req.Header.Set(fiber.HeaderIfNoneMatch, "*")
+	res, err := app.Test(req)
+	require.NoError(t, err)
+	assert.Equal(t, fiber.StatusOK, res.StatusCode)
+	assert.Equal(t, `W/"own"`, res.Header.Get(fiber.HeaderETag))
 }

@@ -99,3 +99,10 @@ onSessionEnd(clearAllLocalFiles);
 
 /* A pending one-time navigation prefill (`shared/lib/handoff`) belongs to this session too. */
 onSessionEnd(clearHandoff);
+
+/*
+ * Offline lesson downloads (`shared/pwa/offline`) and the cached downloads page
+ * are the ended user's health data (course titles). Loaded lazily: it avoids an
+ * import cycle with `token.ts` and the wipe works even if nothing loaded the slice.
+ */
+onSessionEnd(() => import('@/shared/pwa/offline/offline-media').then((m) => m.wipeOffline()));

@@ -7,6 +7,7 @@ import { formatLongDate } from '@/shared/lib/date';
 import { ListGroup, ListRow, SecondaryButton, Skeleton, SkeletonGroup } from '@/shared/ui';
 
 import { useConsentHistory } from '../api/history';
+import './prv.css';
 
 /**
  * «سابقهٔ رضایت‌ها» (T-M10-23, D-174): the user's own consent ledger, newest

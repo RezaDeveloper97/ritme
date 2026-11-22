@@ -64,7 +64,7 @@ const param = z
   );
 
 // An empty PHP-style object may arrive as `[]`; both mean "none".
-const emptyAsRecord = <T extends z.ZodTypeAny>(inner: T) =>
+const emptyAsRecord = <T extends z.ZodType>(inner: T) =>
   z.union([z.record(z.string(), inner), z.array(z.never()).transform(() => ({}) as Record<string, z.infer<T>>)]);
 
 const category = z
@@ -73,7 +73,7 @@ const category = z
     label: z.string(),
     group: labeled,
     modes: z.array(z.string()).default([]),
-    conditions: emptyAsRecord(labeled).default({}),
+    conditions: emptyAsRecord(labeled).prefault({}),
     params: z.array(param).default([]),
   })
   .transform((c): LogCategory => c);

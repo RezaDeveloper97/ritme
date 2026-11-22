@@ -39,6 +39,7 @@ import {
 } from '@/shared/ui';
 import { pilot, pilotOption } from '@/shared/pilot';
 import { BottomNav } from '@/widgets/bottom-nav';
+import '@/shared/ui/styles/td.css';
 
 const FILTERS: readonly TodoFilter[] = ['all', ...TODO_CATEGORIES];
 

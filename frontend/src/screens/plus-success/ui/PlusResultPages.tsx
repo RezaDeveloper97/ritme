@@ -12,6 +12,7 @@ import { EmptyState, Icon, PrimaryButton, SecondaryButton, Skeleton, SkeletonGro
 
 import { CreditPackSuccess } from './CreditPackSuccess';
 import { SuccessView } from './SuccessView';
+import '@/shared/ui/styles/plus.css';
 
 /** Error codes after which re-trying verify cannot help: the payment itself did not happen. */
 const FINAL_FAILURES = new Set(['payment_failed', 'invoice_closed', 'invoice_not_found', 'authority_mismatch', 'amount_mismatch']);

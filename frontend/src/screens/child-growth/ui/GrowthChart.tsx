@@ -18,6 +18,8 @@ import {
   visibleToMonth,
 } from '../model/chart';
 import type { GrowthSeries } from '../model/types';
+import '@/shared/ui/styles/axc.css';
+import '@/shared/ui/styles/cgr.css';
 
 interface Props {
   series: GrowthSeries;

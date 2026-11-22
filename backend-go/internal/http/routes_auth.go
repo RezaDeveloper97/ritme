@@ -37,8 +37,9 @@ func init() {
 		// T-M10-23 (D-174): a new account must accept the mandatory signup consents (verify-otp `consents`).
 		h.RequireSignupConsents(consent.NewSignup(consent.NewService(d.DB)))
 
-		r.Post("/api/v1/auth/send-otp", locale, m.Throttle(5), h.SendOTP)
-		r.Post("/api/v1/auth/verify-otp", locale, m.Throttle(10), h.VerifyOTP)
+		// T-M12-01: named per-IP limiters (IPv6 on its /64); per-number caps live in the handlers (OTPGuard).
+		r.Post("/api/v1/auth/send-otp", locale, m.ThrottleOTPSend(), h.SendOTP)
+		r.Post("/api/v1/auth/verify-otp", locale, m.ThrottleOTPVerify(), h.VerifyOTP)
 
 		r.Post("/api/v1/auth/logout", locale, guard, h.Logout)
 		r.Get("/api/v1/auth/user", locale, guard, h.User)

@@ -1,0 +1,11 @@
+/* `dfc-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.dfc-verified { display: inline-flex; align-items: center; gap: 4px; align-self: flex-start; font-size: 11px; font-weight: 800; color: var(--success); }
+
+.dfc-title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+
+.dfc-count { margin-inline-start: 3px; font-weight: 600; color: var(--text-2); }
+
+.dfc-foot { justify-content: space-between; }
+
+.dfc-slot { font-weight: 800; color: var(--data-deep); }

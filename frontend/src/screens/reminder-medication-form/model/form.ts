@@ -392,10 +392,14 @@ export function mapServerErrors(body: unknown): {
 // ── Navigation ───────────────────────────────────────────────────
 
 /** Where save/delete return to: the home card or the reminders hub (default). */
-export function returnHref(from: string | undefined): '/home' | '/reminders' | '/companion' {
+export function returnHref(
+  from: string | undefined,
+): '/home' | '/reminders' | '/companion' | '/companion/calendar' {
   if (from === 'home') return '/home';
   // B-N4-06: «افزودن برای …» on the companion panel home.
   if (from === 'companion') return '/companion';
+  // The companion's calendar «+ یادآور دارو».
+  if (from === 'companion-calendar') return '/companion/calendar';
   return '/reminders';
 }
 

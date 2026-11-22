@@ -20,6 +20,7 @@ import {
 } from '@/shared/ui';
 
 import { openKickAlerts, useAckKickAlert } from '../model/kick-alerts';
+import '@/shared/ui/styles/ptl.css';
 
 /**
  * `/pregnancy/kicks` — «شمارش حرکات جنین» (B-N5-08, nbl_/nbd_Log_Kick). A flow

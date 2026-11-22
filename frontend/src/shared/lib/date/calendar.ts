@@ -1,7 +1,8 @@
 import dayjs from 'dayjs';
-import jalaliday from 'jalaliday';
 
 import type { Locale } from '@/shared/i18n';
+
+import { jalaaliMonthLength, toGregorian, toJalaali } from './jalaali';
 
 // This module is the ONLY place allowed to touch the date library directly
 // (CLAUDE.md §7). Everything else imports the helpers below from
@@ -12,7 +13,12 @@ import type { Locale } from '@/shared/i18n';
 // that produces or consumes calendar parts therefore takes the locale — there
 // is no ambient "current calendar", so a component can never render a month
 // grid in one calendar while labelling it with the other.
-dayjs.extend(jalaliday);
+//
+// Jalali conversion is NOT done by a dayjs plugin: `./jalaali` ports the exact
+// algorithm the backend uses (jalaali-js), so a Jalali day or month boundary is
+// identical on both sides. jalaliday 2.3.0 put the leap year on 1404 instead of
+// 1403 and shifted all of 1404 by a day (T-M12-21b). dayjs only does Gregorian
+// day arithmetic here.
 
 /** Which calendar a locale reads dates in. */
 export type CalendarSystem = 'jalali' | 'gregorian';
@@ -93,20 +99,16 @@ export interface DateParts {
   day: number;
 }
 
-/** dayjs instance in the calendar the locale uses. */
-function inCalendar(date: Date, locale: Locale) {
-  const d = dayjs(date);
-  return calendarSystem(locale) === 'jalali' ? d.calendar('jalali') : d;
-}
-
-/** Break a date down into its year/month/day parts in the locale's calendar. */
+/**
+ * Break a date down into its year/month/day parts in the locale's calendar.
+ * The device-local calendar day of `date` is what gets converted.
+ */
 export function toParts(date: Date, locale: Locale): DateParts {
-  const d = inCalendar(date, locale);
-  return {
-    year: Number(d.format('YYYY')),
-    month: Number(d.format('M')),
-    day: Number(d.format('D')),
-  };
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  if (calendarSystem(locale) === 'jalali') return toJalaali(year, month, day);
+  return { year, month, day };
 }
 
 /**
@@ -191,25 +193,25 @@ export interface MonthCell {
 }
 
 /**
- * The first day of a (year, month) in the locale's calendar, as a dayjs.
- *
- * Jalali dates are built by *parsing* rather than with `.year()/.month()/
- * .date()`: the plugin's setters write the Gregorian fields even in jalali
- * mode, so chaining them lands in a different month. The `{ jalali: true }`
- * parse option is real but missing from the plugin's type declarations, hence
- * the cast.
+ * The first day of a (year, month) in the locale's calendar — a local
+ * start-of-day dayjs — and the month's length. Everything that walks a month
+ * starts here and then steps whole days, so no calendar setter is ever used.
  */
 function firstOfMonth(year: number, month: number, locale: Locale) {
   if (calendarSystem(locale) === 'jalali') {
-    const option = { jalali: true } as unknown as Parameters<typeof dayjs>[1];
-    return dayjs(`${year}/${month}/1`, option).calendar('jalali').startOf('day');
+    const g = toGregorian(year, month, 1);
+    return {
+      first: dayjs(new Date(g.year, g.month - 1, g.day)).startOf('day'),
+      total: jalaaliMonthLength(year, month),
+    };
   }
-  return dayjs(new Date(year, month - 1, 1)).startOf('day');
+  const first = dayjs(new Date(year, month - 1, 1)).startOf('day');
+  return { first, total: first.daysInMonth() };
 }
 
 /** Number of days in a month (Esfand is 29 or 30; February 28 or 29). */
 export function daysInCalendarMonth(year: number, month: number, locale: Locale): number {
-  return firstOfMonth(year, month, locale).daysInMonth();
+  return firstOfMonth(year, month, locale).total;
 }
 
 /**
@@ -318,13 +320,9 @@ export function monthMatrix(
   month: number,
   locale: Locale,
 ): (MonthCell | null)[][] {
-  // Build the month from a *parsed* first-of-month and then step whole days.
-  // The jalaliday `.year()/.month()/.date()` setters operate on the Gregorian
-  // fields even in jalali mode, so chaining them silently lands in the wrong
-  // month (Esfand 1404 resolved to Farvardin 1405, rendering two identical
-  // grids). Stepping days is the only setter-free way to walk a month.
-  const first = firstOfMonth(year, month, locale);
-  const total = first.daysInMonth();
+  // Build the month from its first day and then step whole days (never chain
+  // calendar setters — that once rendered Esfand 1404 as Farvardin 1405).
+  const { first, total } = firstOfMonth(year, month, locale);
   const offset = weekdayColumn(first.day(), locale);
 
   const cells: (MonthCell | null)[] = [];
@@ -361,8 +359,8 @@ export function partsToDate({ year, month, day }: DateParts, locale: Locale): Da
   // library parse a nonsense string and quietly return a wrong date rather than
   // fail (that is how 0-based wheel indexes went unnoticed).
   const safeMonth = Math.min(12, Math.max(1, month));
-  const first = firstOfMonth(year, safeMonth, locale);
-  const safeDay = Math.min(Math.max(1, day), first.daysInMonth());
+  const { first, total } = firstOfMonth(year, safeMonth, locale);
+  const safeDay = Math.min(Math.max(1, day), total);
   return first.add(safeDay - 1, 'day').startOf('day').toDate();
 }
 

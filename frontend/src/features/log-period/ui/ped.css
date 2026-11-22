@@ -1,0 +1,39 @@
+/* `ped-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.ped-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+
+.ped-head-t { font-size: 17px; font-weight: 800; color: var(--ink); }
+
+.ped-head-s { margin: 4px 0 0; }
+
+.ped-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+
+.ped-month { font-size: 15px; font-weight: 800; color: var(--ink); }
+
+.ped-weekdays { margin-bottom: 6px; }
+
+.ped-weekday { font-size: 11px; color: var(--muted); font-weight: 700; text-align: center; }
+
+.ped-weeks { display: flex; flex-direction: column; gap: 4px; touch-action: none; }
+
+.ped-summary { margin: 16px 2px 0; font-size: 13px; font-weight: 700; color: var(--ink); text-align: start; }
+
+.ped-actions { display: flex; gap: 8px; margin-top: 10px; }
+
+.ped-delete { flex: 1; border-radius: 14px; background: var(--line); color: var(--danger); }
+
+.ped-note { margin: 8px 2px 0; font-size: 12px; font-weight: 600; color: var(--muted); text-align: start; }
+
+.ped-save { border-radius: 14px; margin-top: 12px; }
+
+.ped-save:disabled { opacity: .6; }
+
+.ped-del-link { background: none; border: none; color: var(--brand); font-family: inherit; font-size: 13.5px; font-weight: 800; padding: 12px 0 2px; cursor: pointer; border-radius: 6px; }
+
+.ped-del-link:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.ped-confirm { flex: 1; border-radius: 14px; background: var(--pink-bg); color: var(--brand); font-weight: 800; }
+
+.ped-cancel { flex: 1; border-radius: 14px; background: var(--line); color: var(--ink); font-weight: 800; }
+
+.ped-note.is-error { color: var(--brand); }

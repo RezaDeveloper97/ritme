@@ -1,0 +1,47 @@
+/* `dt-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.dt-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+
+.dt-title { font-size: 14px; font-weight: 800; color: var(--ink); }
+
+.dt-progress { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--steel); }
+
+.dt-types { display: flex; gap: 6px; margin-bottom: 8px; }
+
+.dt-type {
+  display: flex; align-items: center; gap: 5px; cursor: pointer;
+  border-radius: 10px; padding: 6px 10px; font-family: inherit; font-size: 12px; font-weight: 700;
+  border: 1px solid var(--line); background: var(--surface); color: var(--steel);
+}
+
+.dt-type[aria-pressed="true"] { border-color: var(--brand); background: var(--surface-2); color: var(--brand); }
+
+.dt-type:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.dt-add-row { display: flex; gap: 8px; margin-bottom: 4px; }
+
+.dt-add-row.has-items { margin-bottom: 14px; }
+
+.dt-add-field { flex: 1; height: 42px; }
+
+.dt-add-btn { width: auto; padding: 0 16px; height: 42px; }
+
+.dt-add-btn:disabled { opacity: .5; }
+
+.dt-empty { text-align: center; font-size: 12.5px; color: var(--muted); padding: 8px 0 2px; }
+
+.dt-row { display: flex; align-items: center; gap: 10px; padding: 9px 2px; }
+
+.dt-row-dot { width: 32px; height: 32px; flex: 0 0 auto; background: var(--pink-bg); color: var(--brand); }
+
+.dt-row-body { flex: 1; text-align: start; min-width: 0; }
+
+.dt-row-t { font-size: 14px; font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.dt-row-t.is-done { color: var(--muted-soft); text-decoration: line-through; }
+
+.dt-row-s { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+.dt-check { appearance: none; -webkit-appearance: none; padding: 0; flex: 0 0 auto; }
+
+.dt-del { color: var(--muted); flex: 0 0 auto; }

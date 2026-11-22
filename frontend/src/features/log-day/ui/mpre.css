@@ -1,0 +1,73 @@
+/* `mpre-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.mpre-sec { display: flex; flex-direction: column; gap: 6px; }
+
+.mpre-sec-title { margin: 0; padding: 0 4px; font-size: 11.5px; font-weight: 800; letter-spacing: .08em; color: var(--text-2); }
+
+.mpre-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); padding: 0 14px; }
+
+.mpre-card > * + * { border-block-start: 1px solid var(--line); }
+
+.mpre-row,
+.mpre-daily,
+.mpre-alert {
+  width: 100%; display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 0;
+  background: none; border: 0; color: var(--text-1); font-family: inherit; text-align: start; text-decoration: none; cursor: pointer;
+}
+
+.mpre-row.is-soon { cursor: default; }
+
+.mpre-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+.mpre-row-title { font-size: 13.5px; font-weight: 800; color: var(--text-1); }
+
+.mpre-row-desc { font-size: 11px; font-weight: 600; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.mpre-row-desc.is-logged { color: var(--brand-strong); font-weight: 700; }
+
+.mpre-plus,
+.mpre-chev { flex: none; color: var(--text-2); }
+
+.mpre-count {
+  flex: none; min-width: 22px; height: 22px; padding: 0 6px; border-radius: var(--r-pill); display: inline-flex; align-items: center;
+  justify-content: center; background: var(--brand-soft); color: var(--brand-ink); font-size: var(--fs-xs); font-weight: 800;
+}
+
+.mpre-group-body { display: flex; flex-direction: column; gap: 12px; padding: 4px 0 14px; }
+
+.mpre-sev .nb-scale-label { margin-block-end: 8px; font-size: 13px; }
+
+.mpre-sev + .mpre-sev { padding-block-start: 12px; border-block-start: 1px solid var(--line); }
+
+.mpre-more {
+  align-self: flex-start; display: inline-flex; align-items: center; min-height: 44px; padding: 0 2px; background: none; border: 0;
+  color: var(--brand-strong); font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer;
+}
+
+.mpre-alert {
+  padding: 12px 14px; border-radius: var(--r-card); border: 1px solid var(--period-line);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--period) 15%, transparent), var(--surface) 70%);
+}
+
+.mpre-alert-icon,
+.mpre-alert-plus { flex: none; color: var(--period); }
+
+.mpre-daily { padding: 10px 14px; border-radius: var(--r-card); border: 1px solid var(--line); background: var(--surface); }
+
+.mpre-row:focus-visible,
+.mpre-daily:focus-visible,
+.mpre-alert:focus-visible,
+.mpre-more:focus-visible {
+  outline: none; box-shadow: var(--ring); border-radius: 14px;
+}
+
+.mpre-row.has-links { cursor: default; }
+
+.mpre-links { display: inline-flex; gap: 6px; flex-shrink: 0; }
+
+.mpre-link {
+  display: inline-flex; align-items: center; gap: 4px; min-block-size: 44px; padding: 0 12px; border-radius: 22px;
+  background: var(--brand-soft); color: var(--brand-ink); font-size: 12px; font-weight: 800; text-decoration: none;
+}
+
+.mpre-link:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }

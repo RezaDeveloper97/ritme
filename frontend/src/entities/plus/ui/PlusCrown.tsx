@@ -1,6 +1,7 @@
 import { clsx } from 'clsx';
 
 import { Icon } from '@/shared/ui';
+import '@/shared/ui/styles/plus.css';
 
 /** The amber crown disc of the Plus screens (84px paywall, 120px success). Decorative. */
 export function PlusCrown({ size = 'md', className }: { size?: 'md' | 'lg'; className?: string }) {

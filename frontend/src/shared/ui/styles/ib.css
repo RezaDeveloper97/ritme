@@ -1,0 +1,196 @@
+/* `ib-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+@keyframes ib-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(.6); } }
+
+.ib-page,
+.ib-splash { position: relative; overflow: hidden; background: var(--page); color: var(--text-1); }
+
+.ib-glow {
+  position: absolute; top: -120px; inset-inline-start: -80px; width: 300px; height: 300px; border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--brand) 20%, transparent), transparent 65%);
+  pointer-events: none;
+}
+
+.ib-sr {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+.ib-hdr {
+  position: relative; display: flex; align-items: center; justify-content: space-between;
+  min-height: 56px; padding: calc(env(safe-area-inset-top, 0px) + 6px) 20px 0;
+}
+
+.ib-dots { display: flex; gap: 6px; }
+
+.ib-dot-pg { width: 8px; height: 8px; border-radius: 4px; background: var(--line); transition: width .25s ease, background-color .25s ease; }
+
+.ib-dot-pg.is-on { width: 22px; background: var(--brand-fill); }
+
+.ib-skip {
+  min-height: 44px; min-width: 44px; padding: 0 4px; border: 0; background: transparent; cursor: pointer;
+  font: inherit; font-size: 13px; font-weight: 700; color: var(--text-2); border-radius: 12px;
+}
+
+.ib-skip:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.ib-viewport { position: relative; flex: 1; min-height: 0; overflow: hidden; touch-action: pan-y; user-select: none; }
+
+.ib-track { display: flex; height: 100%; transition: transform .38s cubic-bezier(.22, .61, .36, 1); }
+
+.ib-viewport.is-dragging .ib-track { transition: none; }
+
+.ib-slide {
+  flex: 0 0 100%; min-width: 0; height: 100%; overflow-y: auto; overflow-x: hidden;
+  display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 10px 24px 16px; text-align: center;
+}
+
+.ib-slide::-webkit-scrollbar { width: 0; }
+
+.ib-title { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 34px; line-height: 1.15; color: var(--text-1); }
+
+.ib-body { margin: 10px 0 0; font-size: 14px; line-height: 2; color: var(--text-2); }
+
+.ib-foot { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 8px 20px calc(env(safe-area-inset-bottom, 0px) + 26px); }
+
+.ib-foot.is-welcome { gap: 6px; padding-inline: 16px; }
+
+.nb-btn.is-text.ib-login { color: var(--text-2); font-size: 13px; font-weight: 700; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ib-track,
+  .ib-dot-pg { transition: none; }
+}
+
+.ib-ring { position: relative; flex: 0 0 auto; width: 300px; max-width: 100%; aspect-ratio: 1; }
+
+.ib-ring-svg { display: block; width: 100%; height: 100%; overflow: visible; }
+
+.ib-ring-track { fill: none; stroke: var(--line); stroke-width: 1; stroke-dasharray: 2 6; }
+
+.ib-dot { --ib-c: var(--line-strong); fill: var(--ib-c); }
+
+.ib-dot.is-outline { fill: none; stroke: var(--ib-c); stroke-width: 1.6; opacity: .9; }
+
+.ib-ring .is-period { --ib-c: var(--period); }
+
+.ib-ring .is-neutral { --ib-c: var(--line-strong); }
+
+.ib-ring .is-fertile { --ib-c: var(--warm); }
+
+.ib-ring .is-ovulation { --ib-c: var(--data); }
+
+.ib-ring .is-pms { --ib-c: var(--brand); }
+
+.ib-ring .is-tri1 { --ib-c: var(--bloom); }
+
+.ib-ring .is-tri2 { --ib-c: color-mix(in srgb, var(--bloom), var(--period)); }
+
+.ib-ring .is-tri3 { --ib-c: var(--period); }
+
+.ib-dot.is-future { fill: none; stroke: var(--period); stroke-width: 1.3; opacity: .7; }
+
+.ib-marker-halo { fill: var(--ib-c); opacity: .35; }
+
+.ib-marker-dot { fill: var(--ib-c); stroke: var(--on-accent); stroke-width: 2.5; }
+
+.ib-ring.is-pregnancy .ib-marker-halo { opacity: .4; }
+
+.ib-ring-center {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+}
+
+.ib-ring.is-pregnancy .ib-ring-center {
+  inset: 50px; border-radius: 50%; gap: 0;
+  background: radial-gradient(circle, color-mix(in srgb, var(--bloom) 33%, transparent), transparent 70%);
+}
+
+.ib-ring-kicker { font-size: 11px; font-weight: 800; color: var(--period-deep); letter-spacing: .12em; }
+
+.ib-ring-num { font-family: var(--font-display); font-size: var(--fs-num-xl); line-height: 1; color: var(--text-1); }
+
+.ib-ring-unit { font-size: 14px; font-weight: 800; color: var(--text-1); }
+
+.ib-ring-week { font-family: var(--font-display); font-size: 40px; line-height: 1.1; color: var(--text-1); }
+
+.ib-ring-size { font-size: 12px; font-weight: 700; color: var(--text-2); }
+
+.ib-disc {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 50%;
+  background: color-mix(in srgb, var(--nb-tone) 13%, transparent); color: var(--nb-tone-ink);
+}
+
+.ib-disc.is-md { width: 44px; height: 44px; }
+
+.ib-disc.is-lg { width: 48px; height: 48px; }
+
+.ib-disc-ic { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+.ib-disc.is-lg .ib-disc-ic { width: 22px; height: 22px; }
+
+.ib-tiles { list-style: none; margin: 0; padding: 0; width: 300px; max-width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.ib-tile {
+  display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card);
+}
+
+.ib-tile-t { font-size: 12.5px; font-weight: 800; color: var(--text-1); }
+
+.ib-list { list-style: none; margin: 0; padding: 0; width: 300px; max-width: 100%; display: flex; flex-direction: column; gap: 12px; text-align: start; }
+
+.ib-row { display: flex; gap: 12px; align-items: flex-start; }
+
+.ib-row-t { display: flex; flex-direction: column; min-width: 0; }
+
+.ib-row-title { font-size: 14px; font-weight: 800; color: var(--text-1); line-height: 1.6; }
+
+.ib-row-sub { font-size: 12px; font-weight: 600; line-height: 1.7; color: var(--text-2); }
+
+.ib-free { width: 300px; max-width: 100%; display: flex; flex-direction: column; gap: 12px; text-align: start; }
+
+.ib-free-card {
+  display: flex; flex-direction: column; gap: 8px; padding: 16px; border: 1px solid var(--line); border-radius: var(--r-card);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--bloom) 19%, var(--surface)), var(--surface) 70%);
+}
+
+.ib-free-title { font-size: 14px; font-weight: 800; color: var(--text-1); }
+
+.ib-free-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+
+.ib-free-chip {
+  display: inline-flex; align-items: center; height: 28px; padding: 0 11px; border-radius: 14px; white-space: nowrap;
+  background: var(--surface-2); border: 1px solid var(--nb-tone); color: var(--nb-tone-ink); font-size: 11.5px; font-weight: 800;
+}
+
+.ib-splash { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; cursor: pointer; }
+
+.ib-splash-glow {
+  position: absolute; top: calc(50% - 196px); inset-inline: 0; margin-inline: auto; width: 320px; height: 320px; border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--brand) 25%, transparent), transparent 65%);
+  pointer-events: none;
+}
+
+.ib-brand { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 56px; line-height: 1; color: var(--text-1); }
+
+.ib-brand.is-xl { font-size: 64px; }
+
+.ib-brand-tag { margin-top: 6px; font-size: 12px; font-weight: 700; color: var(--text-2); }
+
+.ib-splash-tag { position: relative; margin: 0; font-size: 13px; font-weight: 700; letter-spacing: .1em; color: var(--text-2); }
+
+.ib-loading { position: absolute; bottom: calc(env(safe-area-inset-bottom, 0px) + 60px); display: flex; gap: 6px; }
+
+.ib-loading > span { width: 8px; height: 8px; border-radius: 4px; background: var(--brand-fill); animation: ib-pulse 1.2s ease-in-out infinite; }
+
+.ib-loading > span:nth-child(2) { opacity: .6; animation-delay: .2s; }
+
+.ib-loading > span:nth-child(3) { opacity: .3; animation-delay: .4s; }
+
+.ib-welcome { position: relative; flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 18px; padding: calc(env(safe-area-inset-top, 0px) + 60px) 24px 16px; text-align: center; }
+
+.ib-welcome-body { margin: 0; max-width: 300px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ib-loading > span { animation: none; }
+}

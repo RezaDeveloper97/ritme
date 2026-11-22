@@ -35,6 +35,7 @@ import {
 } from '@/shared/ui';
 
 import { MODE_CARDS, needsConfirm, planSwitch, type ModeCardDef, type SwitchPlan } from '../model/modes';
+import './mode.css';
 
 type Confirmable = Extract<SwitchPlan, { kind: 'enterPregnancy' | 'leavePregnancy' }>;
 

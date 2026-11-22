@@ -1,4 +1,5 @@
 'use client';
+import './cvc.css';
 
 /**
  * A non-destructive suggestion to sync the profile with what recent cycles show

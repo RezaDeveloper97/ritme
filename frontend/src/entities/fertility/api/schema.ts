@@ -44,7 +44,7 @@ const enumOrNull = <T extends readonly [string, ...string[]]>(values: T) =>
   z.enum(values).nullable().catch(null);
 
 /** A number (or numeric string) → number; anything else → null. */
-const numberOrNull = z.unknown().transform((v): number | null => {
+const numberOrNull = z.unknown().optional().transform((v): number | null => {
   if (v === null || v === undefined || v === '') return null;
   const n = typeof v === 'number' ? v : typeof v === 'string' ? Number(v) : Number.NaN;
   return Number.isFinite(n) ? n : null;
@@ -57,7 +57,7 @@ const countSchema = intOrNull.transform((n) => (n === null || n < 0 ? 0 : n));
 const bbtValue = numberOrNull.transform((n) => (n === null ? null : roundBbt(n)));
 
 const textOrNull = z
-  .unknown()
+  .unknown().optional()
   .transform((v) => (typeof v === 'string' && v.trim() !== '' ? v : null));
 
 const dateSchema = z.string().transform((v) => v.slice(0, 10));
@@ -75,7 +75,7 @@ function unwrapValue(raw: unknown): unknown {
 
 function labeled<T extends readonly [string, ...string[]]>(values: T) {
   const valueSchema = enumOrNull(values);
-  return z.unknown().transform((raw): LabeledValue<T[number]> => {
+  return z.unknown().optional().transform((raw): LabeledValue<T[number]> => {
     const label =
       typeof raw === 'object' && raw !== null && 'label' in raw
         ? textOrNull.parse((raw as { label: unknown }).label)
@@ -85,10 +85,10 @@ function labeled<T extends readonly [string, ...string[]]>(values: T) {
 }
 
 const bareEnum = <T extends readonly [string, ...string[]]>(values: T) =>
-  z.unknown().transform((raw): T[number] | null => enumOrNull(values).parse(unwrapValue(raw) ?? null));
+  z.unknown().optional().transform((raw): T[number] | null => enumOrNull(values).parse(unwrapValue(raw) ?? null));
 
 const symptomsSchema = z
-  .unknown()
+  .unknown().optional()
   .transform((raw): FertilitySymptom[] => {
     if (!Array.isArray(raw)) return [];
     const got = new Set(raw.map(unwrapValue));
@@ -110,7 +110,7 @@ const chanceSchema = z
   );
 
 const chanceOrNull = z
-  .unknown()
+  .unknown().optional()
   .transform((raw): FertilityChance | null => {
     const parsed = chanceSchema.safeParse(raw);
     return parsed.success ? parsed.data : null;
@@ -178,7 +178,7 @@ const bbtPointSchema = z.object({
 
 /** Drops points without a day or a reading; sorted by cycle day. */
 const bbtPointsSchema = z
-  .unknown()
+  .unknown().optional()
   .transform((raw) => {
     if (!Array.isArray(raw)) return [];
     const points = [];
@@ -193,7 +193,7 @@ const bbtPointsSchema = z
   });
 
 const windowDaysSchema = z
-  .unknown()
+  .unknown().optional()
   .transform((raw): BbtCycle['fertileWindow'] => {
     if (typeof raw !== 'object' || raw === null) return null;
     const r = raw as Record<string, unknown>;
@@ -242,7 +242,7 @@ const EMPTY_STATS: BbtStats = { preOvulationAvg: null, loggedDays: 0, cycleDaysS
 
 /** `"…"` or `{title, body}` → tip; anything else → null. */
 const tipSchema = z
-  .unknown()
+  .unknown().optional()
   .transform((raw): FertilityTip | null => {
     if (typeof raw === 'string') return raw.trim() ? { title: null, body: raw } : null;
     if (typeof raw !== 'object' || raw === null) return null;
@@ -254,7 +254,7 @@ const tipSchema = z
   });
 
 const intList = z
-  .unknown()
+  .unknown().optional()
   .transform((raw): number[] =>
     Array.isArray(raw)
       ? raw.map((v) => intOrNull.parse(v)).filter((n): n is number => n !== null)
@@ -262,7 +262,7 @@ const intList = z
   );
 
 const rangeSchema = z
-  .unknown()
+  .unknown().optional()
   .transform((raw): BbtRange => {
     const n = intOrNull.parse(raw ?? null);
     return (BBT_RANGES as readonly number[]).includes(n ?? -1) ? (n as BbtRange) : 1;
@@ -279,7 +279,7 @@ function asRecord(raw: unknown): Record<string, unknown> {
  * top level first, then from the current cycle.
  */
 export const fertilityBbtSchema = z
-  .unknown()
+  .unknown().optional()
   .transform((raw): FertilityBbt => {
     const top = asRecord(raw);
     const rawCycles: unknown[] = Array.isArray(top.cycles) ? top.cycles : 'points' in top ? [top] : [];
@@ -334,8 +334,8 @@ const historyRowSchema = z
   );
 
 /** Parse each row on its own and drop the ones that fail. */
-const listOf = <T>(schema: z.ZodType<T, z.ZodTypeDef, unknown>) =>
-  z.unknown().transform((raw): T[] => {
+const listOf = <T>(schema: z.ZodType<T, unknown>) =>
+  z.unknown().optional().transform((raw): T[] => {
     if (!Array.isArray(raw)) return [];
     const out: T[] = [];
     for (const item of raw) {
@@ -346,7 +346,7 @@ const listOf = <T>(schema: z.ZodType<T, z.ZodTypeDef, unknown>) =>
   });
 
 const insightWindowSchema = z
-  .unknown()
+  .unknown().optional()
   .transform((raw): FertilityInsights['window'] => {
     const r = asRecord(raw);
     const start = textOrNull.parse(r.start ?? null);
@@ -357,7 +357,7 @@ const insightWindowSchema = z
   });
 
 const tipTextList = z
-  .unknown()
+  .unknown().optional()
   .transform((raw): string[] =>
     Array.isArray(raw)
       ? raw

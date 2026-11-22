@@ -69,10 +69,10 @@ export const cycleSettingsSchema = z
         period_length: z.number().int().default(5),
         calculated: z
           .object({ cycle_length: nullableInt, period_length: nullableInt, based_on_cycles: nullableInt })
-          .default({}),
-        manual: z.object({ cycle_length: nullableInt, period_length: nullableInt }).default({}),
+          .prefault({}),
+        manual: z.object({ cycle_length: nullableInt, period_length: nullableInt }).prefault({}),
       })
-      .default({}),
+      .prefault({}),
     reminders: z
       .array(
         z.object({

@@ -1,0 +1,98 @@
+/* `nbnav-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.nbnav-tab {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+  text-decoration: none;
+  border-radius: 20px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nbnav-tab.is-on { color: var(--text-1); font-weight: 800; }
+
+.nbnav-tab.is-on::after {
+  content: "";
+  position: absolute;
+  bottom: 2px;
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--brand);
+}
+
+.nbnav-tab:focus-visible,
+.nbnav-fab:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.nbnav-ic-wrap { position: relative; display: inline-flex; }
+
+.nbnav-ic { display: block; }
+
+.nbnav-tab:not(.is-on) .nbnav-ic { opacity: .55; filter: saturate(.6); }
+
+.nbnav-label { line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+.nbnav-badge {
+  position: absolute;
+  top: -5px;
+  inset-inline-end: -9px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  background: var(--period);
+  /* white by day, night ink on the light night rose (like the artboard pill) */
+  color: var(--on-brand);
+  border: 2px solid var(--surface);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 12px;
+  text-align: center;
+}
+
+.nbnav-badge.is-dot { min-width: 10px; width: 10px; height: 10px; padding: 0; top: -2px; inset-inline-end: -3px; }
+
+.nbnav-fab {
+  flex-shrink: 0;
+  width: var(--size-fab);
+  height: var(--size-fab);
+  margin: 0 4px;
+  border: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  color: var(--on-brand);
+  /* soft violet halo under the orb render (the disc itself is the image) */
+  box-shadow: 0 10px 22px -8px color-mix(in srgb, var(--brand-fill) 75%, transparent);
+  cursor: pointer;
+  transition: transform .16s cubic-bezier(.22, 1, .36, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nbnav-fab-art { width: 64px; height: 64px; max-width: none; pointer-events: none; }
+
+.nbnav-fab:active { transform: scale(.94); }
+
+.nbnav-tab.is-placeholder { gap: 6px; }
+
+.nbnav-ph-ic { width: 22px; height: 22px; border-radius: 7px; background: var(--surface-3); }
+
+.nbnav-ph-label { width: 28px; height: 8px; border-radius: 4px; background: var(--surface-3); }
+
+@media (prefers-reduced-motion: reduce) {
+  .nbnav-fab { transition: none; }
+  .nbnav-fab:active { transform: none; }
+}

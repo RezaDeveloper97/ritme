@@ -24,6 +24,7 @@ import {
 } from '@/shared/ui';
 
 import { defaultChildId } from '../model/pick';
+import '@/shared/ui/styles/bfl.css';
 
 type T = ReturnType<typeof useTranslations<'babyLog'>>;
 

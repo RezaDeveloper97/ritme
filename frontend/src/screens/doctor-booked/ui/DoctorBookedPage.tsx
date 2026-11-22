@@ -26,6 +26,8 @@ import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { pilot } from '@/shared/pilot';
 import { Card, EmptyState, Icon, InfoNote, ListGroup, ListRow, PrimaryButton, ScreenHeader, SecondaryButton, SkyLayer, StatusPill, Switch } from '@/shared/ui';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/dr.css';
 
 /**
  * `/services/bookings/[id]` — booked (nbl_/nbd_v17_Booked) and the booking's detail: confirmation hero, next steps

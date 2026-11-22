@@ -23,6 +23,7 @@ import {
   StatusPill,
 } from '@/shared/ui';
 import { isMapEnabled, type MapPin, NeshanMap } from '@/shared/ui/map';
+import '@/shared/ui/styles/ins.css';
 
 const TYPE_ICON: Record<string, IconName> = {
   gyn: 'female',

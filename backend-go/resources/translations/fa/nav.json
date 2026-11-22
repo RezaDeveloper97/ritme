@@ -48,34 +48,6 @@
     "todoNone": "کاری برای امروز نداری",
     "todoSub": "لیست کارها"
   },
-  "quickAccess": {
-    "title": "دسترسی سریع",
-    "subtitle": "میانبرهای خودت را انتخاب کن",
-    "edit": "ویرایش",
-    "editTitle": "ویرایش دسترسی سریع",
-    "editLead": "تا {max} میانبر انتخاب کن؛ فقط روی همین گوشی ذخیره می‌شود.",
-    "count": "{count} از {max}",
-    "save": "ذخیره",
-    "reset": "بازگشت به پیش‌فرض",
-    "items": {
-      "record": "پرونده",
-      "doctor": "پزشک",
-      "painDiary": "دفترچهٔ درد",
-      "courses": "دوره‌ها",
-      "checkups": "چکاپ‌ها",
-      "reminders": "یادآورها",
-      "vitals": "علائم حیاتی",
-      "labs": "آزمایش",
-      "analysis": "تحلیل",
-      "todo": "لیست کارها",
-      "contraception": "پیشگیری",
-      "children": "فرزندان",
-      "search": "جست‌وجو",
-      "hotFlash": "گرگرفتگی",
-      "ivfMeds": "تزریق‌ها",
-      "kicks": "حرکات جنین"
-    }
-  },
   "later": {
     "title": "برای بعد",
     "appointment": "نوبت یا ویزیت",

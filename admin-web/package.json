@@ -18,11 +18,11 @@
     "@tiptap/react": "^3.6.0",
     "@tiptap/starter-kit": "^3.6.0",
     "clsx": "^2.1.0",
-    "next": "^15.5.4",
+    "next": "^15.5.29",
     "next-intl": "^4.3.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "zod": "^3.25.0",
+    "zod": "^4.6.7",
     "zustand": "^5.0.0"
   },
   "devDependencies": {
@@ -32,11 +32,15 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@vitest/coverage-v8": "^3.2.7",
     "eslint": "^9.0.0",
-    "eslint-config-next": "^15.5.4",
+    "eslint-config-next": "^15.5.29",
     "steiger": "^0.5.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.6.0",
     "vitest": "^3.0.0"
+  },
+  "overrides": {
+    "postcss": "^8.5.33"
   }
 }

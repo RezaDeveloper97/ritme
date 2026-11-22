@@ -41,8 +41,8 @@ describe('appointment form model', () => {
     ]);
   });
 
-  it('defaults add-to-calendar on, as in the artboard', () => {
-    expect(emptyForm('in_person').addToCalendar).toBe(true);
+  it('leaves add-to-calendar off (the form has no switch for it)', () => {
+    expect(emptyForm('in_person').addToCalendar).toBe(false);
   });
 
   it('validates the required fields', () => {

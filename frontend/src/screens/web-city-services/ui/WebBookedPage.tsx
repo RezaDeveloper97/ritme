@@ -12,6 +12,12 @@ import { Card, EmptyState, Icon, InfoNote, Skeleton, SkeletonGroup, StatusPill }
 import { APP_DIRECTORY, neshanHref, PLACES_HOME, slotParts, telHref } from '../model/place';
 import { DirectoryWebShell } from './DirectoryWebShell';
 import { usePrice } from './PlaceBody';
+import '@/shared/ui/styles/csv.css';
+import '@/shared/ui/styles/cdp.css';
+import '@/shared/ui/styles/cdb.css';
+import './wcs.css';
+import './wcp.css';
+import './wcb.css';
 
 /** The booking's day/time from the API stamps (preferred day, or the chosen slot's start). */
 function whenOf(b: { slot: { starts_at: string | null } | null; preferred_date: string }): { day: string; time: string | null } {

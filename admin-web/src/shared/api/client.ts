@@ -19,7 +19,7 @@ import { ApiError } from './errors';
 export type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 export type QueryValue = string | number | boolean | null | undefined;
 
-export interface RequestOptions<S extends z.ZodTypeAny> {
+export interface RequestOptions<S extends z.ZodType> {
   query?: Record<string, QueryValue>;
   /** JSON-serialised, or sent as-is when FormData (multipart uploads). */
   body?: unknown;
@@ -92,7 +92,7 @@ async function refreshCsrf(): Promise<boolean> {
   }
 }
 
-export async function request<S extends z.ZodTypeAny = z.ZodUnknown>(
+export async function request<S extends z.ZodType = z.ZodUnknown>(
   method: Method,
   path: string,
   options: RequestOptions<S> = {},
@@ -148,18 +148,18 @@ export async function request<S extends z.ZodTypeAny = z.ZodUnknown>(
   if (!parsed.success) {
     throw new ApiError({ status: res.status, code: 'invalid_response', message: parsed.error.message });
   }
-  return parsed.data.data as z.output<S>;
+  return (parsed.data as { data: unknown }).data as z.output<S>;
 }
 
-type Opts<S extends z.ZodTypeAny> = Omit<RequestOptions<S>, 'body'>;
+type Opts<S extends z.ZodType> = Omit<RequestOptions<S>, 'body'>;
 
 export const api = {
-  get: <S extends z.ZodTypeAny = z.ZodUnknown>(path: string, opts?: Opts<S>) => request('GET', path, opts),
-  post: <S extends z.ZodTypeAny = z.ZodUnknown>(path: string, body?: unknown, opts?: Opts<S>) =>
+  get: <S extends z.ZodType = z.ZodUnknown>(path: string, opts?: Opts<S>) => request('GET', path, opts),
+  post: <S extends z.ZodType = z.ZodUnknown>(path: string, body?: unknown, opts?: Opts<S>) =>
     request('POST', path, { ...opts, body }),
-  put: <S extends z.ZodTypeAny = z.ZodUnknown>(path: string, body?: unknown, opts?: Opts<S>) =>
+  put: <S extends z.ZodType = z.ZodUnknown>(path: string, body?: unknown, opts?: Opts<S>) =>
     request('PUT', path, { ...opts, body }),
-  patch: <S extends z.ZodTypeAny = z.ZodUnknown>(path: string, body?: unknown, opts?: Opts<S>) =>
+  patch: <S extends z.ZodType = z.ZodUnknown>(path: string, body?: unknown, opts?: Opts<S>) =>
     request('PATCH', path, { ...opts, body }),
-  delete: <S extends z.ZodTypeAny = z.ZodUnknown>(path: string, opts?: Opts<S>) => request('DELETE', path, opts),
+  delete: <S extends z.ZodType = z.ZodUnknown>(path: string, opts?: Opts<S>) => request('DELETE', path, opts),
 };

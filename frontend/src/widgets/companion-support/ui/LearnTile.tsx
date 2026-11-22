@@ -7,6 +7,7 @@ import { Link } from '@/shared/i18n';
 import { Icon } from '@/shared/ui';
 
 import type { LearnTopic } from '../model/learn';
+import '@/shared/ui/styles/cmh.css';
 
 interface LearnTileProps {
   topic: LearnTopic;

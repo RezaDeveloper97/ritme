@@ -48,6 +48,7 @@ import {
   weekDates,
 } from '../model/treatment';
 import { ItemSheet, MinutesSheet } from './ItemSheet';
+import './mtr.css';
 
 /** What the add / edit sheet is showing. */
 type SheetState =

@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { appInviteUrl, shareAppInvite } from '@/entities/companion';
 import { useDirection } from '@/shared/i18n';
 import { Icon, IconCircle } from '@/shared/ui';
+import '@/shared/ui/styles/cmh.css';
 
 /** «شریکم هنوز ریتمی ندارد» — share the app link (moved here from the old companion code entry). */
 export function InviteAppLink() {

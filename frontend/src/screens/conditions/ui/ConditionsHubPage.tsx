@@ -31,6 +31,7 @@ import { BottomNav } from '@/widgets/bottom-nav';
 
 import { notADiagnosis, programCards, type ProgramCard } from '../model/cards';
 import { ProgramSheet } from './ProgramSheet';
+import '@/shared/ui/styles/cnd.css';
 
 /**
  * «برنامه‌های مراقبت» (`/programs`, CB-COND-02, nbl_Cond_Hub): the condition programs with what each one logs and

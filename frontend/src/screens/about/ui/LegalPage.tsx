@@ -20,6 +20,7 @@ import {
 
 import { useInfoPage } from '../api/info-page';
 import { splitLegal } from '../model/info-page';
+import './lgl.css';
 
 type Tab = 'terms' | 'privacy';
 

@@ -1,0 +1,79 @@
+/* `ck-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.ck-status-up_to_date { --ck-ink: var(--success);        --ck-soft: var(--success-soft);   --ck-bar: var(--success); }
+
+.ck-status-soon { --ck-ink: var(--teal-deep);      --ck-soft: var(--data-soft);      --ck-bar: var(--teal-deep); }
+
+.ck-status-due { --ck-ink: var(--amber-tile-ink); --ck-soft: var(--amber-tile);     --ck-bar: var(--checkup-due); }
+
+.ck-status-overdue { --ck-ink: var(--care-rose);      --ck-soft: var(--care-rose-soft); --ck-bar: var(--care-rose); }
+
+.ck-status-not_yet { --ck-ink: var(--ink-3);          --ck-soft: var(--surface-2);      --ck-bar: var(--track); }
+
+.ck-status-disabled { --ck-ink: var(--ink-3);          --ck-soft: var(--surface-2);      --ck-bar: var(--track); }
+
+.ck-tone-rose { --ck-ink: var(--care-rose);      --ck-soft: var(--care-rose-soft); }
+
+.ck-tone-violet { --ck-ink: var(--brand-strong);   --ck-soft: var(--pink-bg); }
+
+.ck-tone-amber { --ck-ink: var(--amber-tile-ink); --ck-soft: var(--amber-tile); }
+
+.ck-tone-teal { --ck-ink: var(--teal-deep);      --ck-soft: var(--data-soft); }
+
+.ck-tone-green { --ck-ink: var(--success);        --ck-soft: var(--success-soft); }
+
+.ck-tone-neutral { --ck-ink: var(--ink-3);          --ck-soft: var(--surface-2); }
+
+.ck-result-normal { --ck-ink: var(--success);        --ck-soft: var(--success-soft); }
+
+.ck-result-follow_up { --ck-ink: var(--amber-tile-ink); --ck-soft: var(--amber-tile); }
+
+.ck-result-pending { --ck-ink: var(--ink-3);          --ck-soft: var(--surface-2); }
+
+.ck-pill {
+  display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; white-space: nowrap;
+  padding: 3px 10px; border-radius: 999px; border: 1.5px solid var(--ck-ink);
+  background: transparent; color: var(--ck-ink); font-size: 11px; font-weight: 800; line-height: 1.5;
+}
+
+.ck-pill.is-solid { background: var(--surface); }
+
+.ck-hero {
+  display: flex; flex-direction: column; gap: 14px; padding: 16px; border-radius: 26px;
+  background: linear-gradient(160deg, var(--pink-bg), var(--surface-2) 80%);
+  border: 1px solid var(--line); color: var(--ink); text-align: start;
+}
+
+.ck-hero-chip {
+  display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px; border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 70%, transparent); border: 1px solid var(--brand-line-soft);
+  color: var(--ink-2); font-size: 11.5px; font-weight: 800;
+}
+
+.ck-hero-disc {
+  display: grid; place-items: center; flex-shrink: 0; width: 56px; height: 56px; border-radius: 50%;
+  background: var(--pink-bg); border: 1px solid var(--brand-line-soft); color: var(--ck-ink, var(--brand-strong));
+}
+
+.ck-hero-alt {
+  background: var(--pink-bg); border: 1.5px solid var(--brand-line-soft); color: var(--ink);
+}
+
+.ck-note {
+  display: flex; align-items: flex-start; gap: 10px; padding: 14px; border-radius: 18px;
+  background: var(--surface-2); border: 1.5px solid transparent; color: var(--muted);
+}
+
+.ck-note:focus-within { border-color: var(--brand); }
+
+.ck-note textarea {
+  flex: 1; min-width: 0; min-height: 24px; resize: none; border: 0; outline: 0; padding: 0;
+  background: transparent; field-sizing: content; font-family: inherit;
+  font-size: 13.5px; font-weight: 600; line-height: 1.7; color: var(--ink); text-align: start;
+}
+
+.ck-note textarea::placeholder { color: var(--muted-soft); }
+
+.btn-ghost.ck-neutral { color: var(--ink); border-color: var(--line); }
+
+.ck-tl-line { flex: 1; width: 2px; margin-block: 4px; border-radius: 1px; background: var(--line); }

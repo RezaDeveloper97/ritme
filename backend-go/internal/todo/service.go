@@ -38,12 +38,11 @@ type Service struct {
 	q      *store.Queries
 	cycle  *cycleservice.Service
 	states CycleStates
-	prefs  notifications.Getter
 }
 
 // NewService wires the service on db.
 func NewService(db *sql.DB) *Service {
-	return &Service{db: db, q: store.New(db), cycle: cycleservice.New(db, nil), prefs: profilestore.New(db)}
+	return &Service{db: db, q: store.New(db), cycle: cycleservice.New(db, nil)}
 }
 
 // WithEngine makes the cycle suggestion read the v6 engine (CYCLE_ENGINE shadow / v6, T-M9-37); nil keeps v1.
@@ -89,23 +88,31 @@ func itemOf(r store.TodoItem) Item {
 	return Item{ID: r.ID, TaskID: r.TaskID, Title: r.Title, DueDate: due, DoneAt: timeOf(r.DoneAt)}
 }
 
-// Board reads the open tasks and the ones ticked in the last DoneDays.
-func (s *Service) Board(ctx context.Context, userID uint64, today civildate.Date) ([]Task, error) {
-	rows, err := s.q.ListBoardTasks(ctx, store.ListBoardTasksParams{
+// Board reads the open tasks and the ones ticked in the last DoneDays, and the user's notification preferences (the
+// board's reminder switch), in one query (T-M12-30b). Only the categories are read: the board shows Enabled(category).
+func (s *Service) Board(ctx context.Context, userID uint64, today civildate.Date) ([]Task, notifications.Preferences, error) {
+	rows, err := s.q.ListBoard(ctx, store.ListBoardParams{
 		UserID: userID, DoneSince: nullTime(today.AddDays(-DoneDays).TehranMidnight()), Limit: MaxBoardTasks,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("todo: board: %w", err)
+		return nil, notifications.Preferences{}, fmt.Errorf("todo: board: %w", err)
 	}
+	prefs := notifications.Defaults()
 	out := make([]Task, 0, len(rows))
-	for _, r := range rows {
+	for i, r := range rows {
+		if i == 0 {
+			prefs = notifications.FromRow(profilestore.NotificationPreference{Categories: r.NotificationCategories})
+		}
+		if !r.TaskID.Valid {
+			continue // the empty board's one row
+		}
 		out = append(out, taskOf(store.TodoTask{
-			ID: r.ID, UserID: r.UserID, Title: r.Title, Note: r.Note, Category: r.Category, DueDate: r.DueDate,
-			DueTime: r.DueTime, Remind: r.Remind, DoneAt: r.DoneAt, SuggestionKey: r.SuggestionKey,
-			CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt,
+			ID: uint64(r.TaskID.Int64), UserID: userID, Title: r.Title.String, Note: r.Note, //nolint:gosec // auto-increment id
+			Category: r.Category.String, DueDate: r.DueDate, DueTime: r.DueTime, Remind: r.Remind.Bool, DoneAt: r.DoneAt,
+			SuggestionKey: r.SuggestionKey, CreatedAt: r.CreatedAt,
 		}, r.ItemsTotal, r.ItemsOpen))
 	}
-	return out, nil
+	return out, prefs, nil
 }
 
 // Task reads one task of the user with its item counts.
@@ -385,9 +392,4 @@ func (s *Service) Dismiss(ctx context.Context, userID uint64, sg Suggestion, now
 		return fmt.Errorf("todo: record suggestion: %w", err)
 	}
 	return nil
-}
-
-// Notifications reads the user's notification preferences (reminder category state).
-func (s *Service) Notifications(ctx context.Context, userID uint64) (notifications.Preferences, error) {
-	return notifications.Load(ctx, s.prefs, userID)
 }

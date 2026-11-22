@@ -12,6 +12,7 @@ import {
 } from '@/entities/companion';
 import { teenKeys } from '@/entities/teen';
 import { PrimaryButton } from '@/shared/ui';
+import './ltc.css';
 
 /**
  * «کد همراهی از فرزندت داری؟» — where a mother (any non-companion account)

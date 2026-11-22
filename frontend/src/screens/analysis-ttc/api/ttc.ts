@@ -30,7 +30,7 @@ import type {
  * null instead of failing the screen. Never log what these return (§11).
  */
 
-type Parser<T> = z.ZodType<T, z.ZodTypeDef, unknown>;
+type Parser<T> = z.ZodType<T, unknown>;
 
 const nullableNum = z.number().nullable().catch(null);
 const softEnum = <const T extends [string, ...string[]]>(values: T) => z.enum(values).nullable().catch(null);

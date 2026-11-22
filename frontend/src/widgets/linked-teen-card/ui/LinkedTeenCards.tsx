@@ -4,6 +4,8 @@ import { useTranslations } from 'next-intl';
 
 import { ParentViewCard, useTeenLinked } from '@/entities/teen';
 import { SectionTitle, StatusPill } from '@/shared/ui';
+import '@/shared/ui/styles/tnp.css';
+import './ltc.css';
 
 /**
  * The parent's side of mother sharing (CB-TEEN-03, nbl_Teen_Parent «مادرت این

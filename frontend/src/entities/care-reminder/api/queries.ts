@@ -92,7 +92,7 @@ export function useAppointment(id: number | null) {
   });
 }
 
-/** GET /care/today (`?date=Y-m-d`; omitted = today in Tehran, server-side). */
+/** GET /care/today (`?date=Y-m-d`; omitted = today on the user's zone, server-side). */
 export async function fetchCareToday(date?: string): Promise<CareToday> {
   const { data } = await apiClient.get<ApiEnvelope<unknown>>('/care/today', {
     params: date ? { date } : undefined,
