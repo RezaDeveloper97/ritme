@@ -9,6 +9,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"strings"
 	"time"
 
 	"github.com/ritme/backend-go/db"
@@ -46,7 +47,7 @@ type ClaimReminderPushParams struct {
 	SentAt     time.Time
 }
 
-// 1 = this process pushes the dose; 0 = another one already did.
+// 1 = this process pushes the dose; 0 = another one already did (or released it: ReclaimReminderPush).
 func (q *Queries) ClaimReminderPush(ctx context.Context, arg ClaimReminderPushParams) (int64, error) {
 	result, err := q.db.ExecContext(ctx, claimReminderPush,
 		arg.UserID,
@@ -233,17 +234,82 @@ func (q *Queries) ListPushableMedications(ctx context.Context) ([]Reminder, erro
 	return items, nil
 }
 
+const listReleasedReminderPushes = `-- name: ListReleasedReminderPushes :many
+
+SELECT reminder_id, intake_date, slot, sent_at FROM ` + "`" + `reminder_pushes` + "`" + `
+WHERE reminder_id IN (/*SLICE:reminder_ids*/?) AND intake_date >= ?
+  AND sent_at < ?
+`
+
+type ListReleasedReminderPushesParams struct {
+	ReminderIds    []uint64
+	FromDate       civildate.Date
+	ReleasedBefore time.Time
+}
+
+type ListReleasedReminderPushesRow struct {
+	ReminderID uint64
+	IntakeDate civildate.Date
+	Slot       string
+	SentAt     time.Time
+}
+
+// Durable retry (T-M12-22b, internal/care/push_retry.go): a dose no browser accepted because of a passing failure
+// is released — its sent_at becomes the marker releaseEpoch + <failed tries> seconds (year 2000, before any real
+// claim) — so any process takes it again on a later tick with a compare-and-set on that exact marker.
+// The released doses among the reminders due in this tick (the unique key's reminder_id prefix).
+func (q *Queries) ListReleasedReminderPushes(ctx context.Context, arg ListReleasedReminderPushesParams) ([]ListReleasedReminderPushesRow, error) {
+	query := listReleasedReminderPushes
+	var queryParams []interface{}
+	if len(arg.ReminderIds) > 0 {
+		for _, v := range arg.ReminderIds {
+			queryParams = append(queryParams, v)
+		}
+		query = strings.Replace(query, "/*SLICE:reminder_ids*/?", strings.Repeat(",?", len(arg.ReminderIds))[1:], 1)
+	} else {
+		query = strings.Replace(query, "/*SLICE:reminder_ids*/?", "NULL", 1)
+	}
+	queryParams = append(queryParams, arg.FromDate)
+	queryParams = append(queryParams, arg.ReleasedBefore)
+	rows, err := q.db.QueryContext(ctx, query, queryParams...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListReleasedReminderPushesRow{}
+	for rows.Next() {
+		var i ListReleasedReminderPushesRow
+		if err := rows.Scan(
+			&i.ReminderID,
+			&i.IntakeDate,
+			&i.Slot,
+			&i.SentAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUnpushedNotifications = `-- name: ListUnpushedNotifications :many
-SELECT id, user_id, ` + "`" + `type` + "`" + `, title, body, action_url, read_at, created_at
+SELECT id, user_id, ` + "`" + `type` + "`" + `, title, body, action_url, read_at, created_at, pushed_at
 FROM ` + "`" + `user_notifications` + "`" + `
-WHERE pushed_at IS NULL AND id > ?
+WHERE (pushed_at IS NULL OR pushed_at < ?) AND id > ?
 ORDER BY id
 LIMIT ?
 `
 
 type ListUnpushedNotificationsParams struct {
-	AfterID uint64
-	Limit   int32
+	ReleasedBefore sql.NullTime
+	AfterID        uint64
+	Limit          int32
 }
 
 type ListUnpushedNotificationsRow struct {
@@ -255,11 +321,13 @@ type ListUnpushedNotificationsRow struct {
 	ActionUrl sql.NullString
 	ReadAt    sql.NullTime
 	CreatedAt sql.NullTime
+	PushedAt  sql.NullTime
 }
 
-// Inbox rows the push sender has not handled yet (goose 00123), oldest first, after the cursor.
+// Inbox rows the push sender has not handled yet (goose 00123) or released after a passing failure (pushed_at =
+// the year-2000 marker, T-M12-22b), oldest first, after the cursor.
 func (q *Queries) ListUnpushedNotifications(ctx context.Context, arg ListUnpushedNotificationsParams) ([]ListUnpushedNotificationsRow, error) {
-	rows, err := q.db.QueryContext(ctx, listUnpushedNotifications, arg.AfterID, arg.Limit)
+	rows, err := q.db.QueryContext(ctx, listUnpushedNotifications, arg.ReleasedBefore, arg.AfterID, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -276,6 +344,7 @@ func (q *Queries) ListUnpushedNotifications(ctx context.Context, arg ListUnpushe
 			&i.ActionUrl,
 			&i.ReadAt,
 			&i.CreatedAt,
+			&i.PushedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -291,11 +360,103 @@ func (q *Queries) ListUnpushedNotifications(ctx context.Context, arg ListUnpushe
 }
 
 const pruneReminderPushes = `-- name: PruneReminderPushes :exec
-DELETE FROM ` + "`" + `reminder_pushes` + "`" + ` WHERE sent_at < ?
+DELETE FROM ` + "`" + `reminder_pushes` + "`" + ` WHERE sent_at < ? AND intake_date < ?
 `
 
-func (q *Queries) PruneReminderPushes(ctx context.Context, sentAt time.Time) error {
-	_, err := q.db.ExecContext(ctx, pruneReminderPushes, sentAt)
+type PruneReminderPushesParams struct {
+	SentBefore time.Time
+	DayBefore  civildate.Date
+}
+
+// Old claims; a released marker is old by construction, so it waits until its dose day is past every lookback.
+func (q *Queries) PruneReminderPushes(ctx context.Context, arg PruneReminderPushesParams) error {
+	_, err := q.db.ExecContext(ctx, pruneReminderPushes, arg.SentBefore, arg.DayBefore)
+	return err
+}
+
+const reclaimNotificationPush = `-- name: ReclaimNotificationPush :execrows
+UPDATE ` + "`" + `user_notifications` + "`" + ` SET pushed_at = ? WHERE id = ? AND pushed_at = ?
+`
+
+type ReclaimNotificationPushParams struct {
+	Now        sql.NullTime
+	ID         uint64
+	ReleasedAt sql.NullTime
+}
+
+// 1 = this process handles the released row again; 0 = another one took it first.
+func (q *Queries) ReclaimNotificationPush(ctx context.Context, arg ReclaimNotificationPushParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, reclaimNotificationPush, arg.Now, arg.ID, arg.ReleasedAt)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const reclaimReminderPush = `-- name: ReclaimReminderPush :execrows
+UPDATE ` + "`" + `reminder_pushes` + "`" + ` SET sent_at = ?
+WHERE reminder_id = ? AND intake_date = ? AND slot = ?
+  AND sent_at = ?
+`
+
+type ReclaimReminderPushParams struct {
+	Now        time.Time
+	ReminderID uint64
+	IntakeDate civildate.Date
+	Slot       string
+	ReleasedAt time.Time
+}
+
+// 1 = this process tries the released dose again; 0 = another one took it first.
+func (q *Queries) ReclaimReminderPush(ctx context.Context, arg ReclaimReminderPushParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, reclaimReminderPush,
+		arg.Now,
+		arg.ReminderID,
+		arg.IntakeDate,
+		arg.Slot,
+		arg.ReleasedAt,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const releaseNotificationPush = `-- name: ReleaseNotificationPush :exec
+UPDATE ` + "`" + `user_notifications` + "`" + ` SET pushed_at = ? WHERE id = ?
+`
+
+type ReleaseNotificationPushParams struct {
+	ReleasedAt sql.NullTime
+	ID         uint64
+}
+
+// The claiming process gives the row back after a passing failure (released_at = the marker of its tries).
+func (q *Queries) ReleaseNotificationPush(ctx context.Context, arg ReleaseNotificationPushParams) error {
+	_, err := q.db.ExecContext(ctx, releaseNotificationPush, arg.ReleasedAt, arg.ID)
+	return err
+}
+
+const releaseReminderPush = `-- name: ReleaseReminderPush :exec
+UPDATE ` + "`" + `reminder_pushes` + "`" + ` SET sent_at = ?
+WHERE reminder_id = ? AND intake_date = ? AND slot = ?
+`
+
+type ReleaseReminderPushParams struct {
+	ReleasedAt time.Time
+	ReminderID uint64
+	IntakeDate civildate.Date
+	Slot       string
+}
+
+// The claiming process gives the dose back after a passing failure (released_at = the marker of its tries).
+func (q *Queries) ReleaseReminderPush(ctx context.Context, arg ReleaseReminderPushParams) error {
+	_, err := q.db.ExecContext(ctx, releaseReminderPush,
+		arg.ReleasedAt,
+		arg.ReminderID,
+		arg.IntakeDate,
+		arg.Slot,
+	)
 	return err
 }
 

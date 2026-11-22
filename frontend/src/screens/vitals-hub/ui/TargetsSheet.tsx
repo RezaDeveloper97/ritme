@@ -9,6 +9,7 @@ import { AppSheet } from '@/shared/sheet';
 import { Card, ChipGroup, EmptyState, Icon, PillChip, PrimaryButton, SecondaryButton, Skeleton, SkeletonGroup } from '@/shared/ui';
 
 import { parseTarget, targetIssues, targetRows } from '../model/targets';
+import '@/shared/ui/styles/vt.css';
 
 type T = ReturnType<typeof useTranslations<'vitals'>>;
 type Fmt = ReturnType<typeof useVitalFormat>;

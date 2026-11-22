@@ -40,6 +40,7 @@ import {
 import { BottomNav } from '@/widgets/bottom-nav';
 
 import { nextLeak, sessionMinutes, toggleSymptom, weekDotStates } from '../model/plan';
+import './pv.css';
 
 /**
  * «کف لگن و مثانه» (`/programs/pelvic`, CB-PELV-02, nbl_Pelvic_Plan): the 8-week plan card (week · level, streak,

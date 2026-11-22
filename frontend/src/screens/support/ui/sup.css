@@ -1,0 +1,62 @@
+/* `sup-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.sup-page { background: var(--page); }
+
+.sup-scroll {
+  position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; padding-bottom: 40px;
+}
+
+.sup-scroll > :not(.nb-hdr) { margin-inline: var(--gutter-form); }
+
+.sup-sec { display: flex; flex-direction: column; gap: 6px; }
+
+.sup-label { margin: 0; padding-inline: 4px; font-size: var(--fs-sm); font-weight: 800; color: var(--text-2); }
+
+.sup-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.sup-tile {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-height: 120px; padding: 16px;
+  border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface);
+  color: var(--text-1); font: inherit; text-align: start; text-decoration: none; cursor: pointer;
+}
+
+.sup-tile.is-disabled { cursor: default; opacity: .7; }
+
+.sup-tile:focus-visible,
+.sup-a-link:focus-visible,
+.sup-phone-num:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.sup-tile-disc { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 4px; }
+
+.sup-tile-disc.tone-data { background: var(--data-soft); color: var(--data-deep); }
+
+.sup-tile-disc.tone-warm { background: var(--warm-soft); color: var(--warm-deep); }
+
+.sup-tile-title { font-size: 14px; font-weight: 800; }
+
+.sup-tile-sub { font-size: 12px; font-weight: 600; color: var(--text-2); line-height: 1.6; }
+
+.sup-faq {
+  display: flex; flex-direction: column; padding: 0 16px;
+  border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface);
+}
+
+.sup-q.nb-acc { padding: 4px 0; border: 0; border-radius: 0; background: transparent; }
+
+.sup-q.nb-acc + .sup-q.nb-acc { border-top: 1px solid var(--line); }
+
+.sup-q .nb-acc-btn { min-height: 56px; }
+
+.sup-a { margin: 0; font-size: 13px; font-weight: 600; line-height: 1.9; color: var(--text-2); }
+
+.sup-a-link { display: inline-flex; align-items: center; min-height: 44px; font-size: 13px; font-weight: 800; color: var(--brand); }
+
+.sup-empty { margin: 0; padding: 16px 4px; font-size: 13px; font-weight: 600; color: var(--text-3); text-align: center; }
+
+.sup-skel { gap: 8px; }
+
+.nb-skel.is-block.sup-skel-row { height: 58px; border-radius: var(--r-card); }
+
+.sup-phone { margin: 0; font-size: 12.5px; font-weight: 600; line-height: 1.9; color: var(--text-2); text-align: center; }
+
+.sup-phone-num { font-weight: 800; color: var(--text-1); text-decoration: none; }

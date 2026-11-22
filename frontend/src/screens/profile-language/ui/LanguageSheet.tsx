@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useSwitchLocale } from '@/features/switch-locale';
 import { pilot, pilotOption } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
+import '@/shared/ui/styles/lang.css';
 
 /**
  * The app's language picker, opened as a sheet from the profile screen.

@@ -13,6 +13,8 @@ import { Checkbox, Icon, PrimaryButton } from '@/shared/ui';
 import { availableShortcuts, QUICK_ACCESS_MAX } from '../model/shortcuts';
 import { useQuickAccessStore } from '../model/store';
 import { useQuickAccess } from '../model/use-quick-access';
+import './qac.css';
+import './qas.css';
 
 export function QuickAccessSheetTitle() {
   return <>{useTranslations('nav.quickAccess')('editTitle')}</>;

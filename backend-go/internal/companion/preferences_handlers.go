@@ -24,6 +24,7 @@ func preferenceRules() validation.Rules {
 		validation.F("signals.mood", "nullable", "boolean"),
 		validation.F("signals.energy", "nullable", "boolean"),
 		validation.F("signals.sleep", "nullable", "boolean"),
+		validation.F("period_days", "nullable", "boolean"),
 		validation.F("action_prefs", "nullable", "array", "max:"+strconv.Itoa(MaxActionPrefs)),
 		validation.F("action_prefs.*", "string", validation.In(actionStrings()...)),
 	}
@@ -68,6 +69,10 @@ func parsePreferences(locale string, body phpval.Map) (PreferencesPatch, error) 
 			p.Signals[s] = phpval.Truthy(vals[i])
 		}
 	}
+	if raw, ok := body.Get("period_days"); ok && raw != nil {
+		on := phpval.Truthy(raw)
+		p.PeriodDays = &on
+	}
 	if raw, ok := body.Get("action_prefs"); ok && raw != nil {
 		_, vals := phpval.Entries(raw)
 		acts := make([]ActionPref, 0, len(vals))
@@ -83,7 +88,7 @@ func parsePreferences(locale string, body phpval.Map) (PreferencesPatch, error) 
 	return p, nil
 }
 
-// UpdatePreferences is PUT /companions/{id}/preferences {goals?, goal?, signals?, action_prefs?}: a partial update of the
+// UpdatePreferences is PUT /companions/{id}/preferences {goals?, goal?, signals?, period_days?, action_prefs?}: a partial update of the
 // owner's «ریتمی همراه» v2 settings of one of her links (only the sent keys change). 404 for anyone else's link.
 func (h *Handlers) UpdatePreferences(c fiber.Ctx) error {
 	ownerID, err := currentUser(c)

@@ -7,6 +7,7 @@ import { useDirection } from '@/shared/i18n';
 import { Card, Skeleton } from '@/shared/ui';
 
 import { chartGeometry, pmddNotes } from '../model/chart';
+import './cpm.css';
 
 const W = 300;
 const H = 100;

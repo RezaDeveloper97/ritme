@@ -90,6 +90,13 @@ SELECT * FROM `challenge_enrollments` WHERE user_id = ? AND challenge_id = ? LIM
 -- Serialises the completion check of one enrollment (the reward is granted under this lock).
 SELECT * FROM `challenge_enrollments` WHERE user_id = ? AND challenge_id = ? LIMIT 1 FOR UPDATE;
 
+-- name: LockUser :one
+-- Serialises the Plus-period writes of one user (T-M12-19b), taken right after LockUserEnrollment and before any
+-- insert: an insert's foreign-key check takes a shared lock on the users row, and two runs of one user both holding
+-- it while plus.GrantDays asks for the exclusive one deadlock (1213). Lock order: enrollment row, then this one
+-- (the same as plus: invoice / store purchase row, then the user).
+SELECT id FROM users WHERE id = ? FOR UPDATE;
+
 -- name: InsertEnrollment :execlastid
 INSERT INTO `challenge_enrollments` (user_id, challenge_id, started_on, status, created_at, updated_at)
 VALUES (?, ?, ?, 'active', ?, ?);

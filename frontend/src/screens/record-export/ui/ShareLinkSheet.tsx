@@ -13,6 +13,7 @@ import { EmptyState, InfoNote, PrimaryButton, SecondaryButton, Skeleton } from '
 import { plusDenialOf } from '@/shared/ui/plus-gate';
 
 import { sharedReportUrl } from '../model/selection';
+import './rx.css';
 
 interface ShareLinkSheetProps {
   open: boolean;

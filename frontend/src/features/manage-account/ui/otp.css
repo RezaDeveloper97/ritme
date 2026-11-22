@@ -1,0 +1,28 @@
+/* `otp-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.otp-box {
+  width: 60px; height: 56px; border: 1.5px solid var(--field-border); border-radius: 16px;
+  text-align: center; font-size: 24px; font-weight: 800;
+  font-family: var(--font-sans, "Vazirmatn", inherit); color: var(--ink);
+  outline: none; background: var(--surface);
+}
+
+.otp-box:focus { border-color: var(--brand); box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 16%, transparent); }
+
+.otp-box.filled { border-color: var(--brand); background: var(--surface-2); }
+
+.otp-head { width: 100%; text-align: start; }
+
+.otp-sub { margin: 12px 0 0; }
+
+.otp-edit { width: auto; padding: 0 14px; margin: 16px 0 30px; display: flex; align-items: center; gap: 6px; }
+
+.otp-row { display: flex; gap: 10px; justify-content: center; }
+
+.otp-error { color: var(--danger); margin-top: 18px; }
+
+.otp-resend { margin-top: 26px; display: flex; align-items: center; gap: 6px; }
+
+.otp-resend-b { color: var(--brand); cursor: pointer; }
+
+.otp-box.stepup-code { width: 100%; letter-spacing: .5em; text-align: center; }

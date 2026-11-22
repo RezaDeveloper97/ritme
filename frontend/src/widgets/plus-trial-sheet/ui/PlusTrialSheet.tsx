@@ -29,6 +29,7 @@ import {
   type IconName,
   type Tone,
 } from '@/shared/ui';
+import '@/shared/ui/styles/plus.css';
 
 type T = ReturnType<typeof useTranslations<'plus'>>;
 

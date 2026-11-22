@@ -28,7 +28,7 @@ const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const text = z.string().trim().min(1).nullable().catch(null);
 const score = z.number().int().min(PMDD_MIN).max(PMDD_MAX);
 
-function rows<S extends z.ZodTypeAny>(list: unknown[], schema: S): z.output<S>[] {
+function rows<S extends z.ZodType>(list: unknown[], schema: S): z.output<S>[] {
   return list.flatMap((raw) => {
     const parsed = schema.safeParse(raw);
     return parsed.success ? [parsed.data] : [];

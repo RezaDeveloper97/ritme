@@ -11,6 +11,7 @@ import { formatNumber } from '@/shared/lib/date';
 import { CheckTick, Icon, Skeleton, SkeletonGroup } from '@/shared/ui';
 
 import { type DoseCardState, doseCardState } from '../model/view';
+import '@/shared/ui/styles/rmd.css';
 
 type T = ReturnType<typeof useTranslations<'care'>>;
 

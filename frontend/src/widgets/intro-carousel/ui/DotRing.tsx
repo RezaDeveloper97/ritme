@@ -11,6 +11,7 @@ import {
   ringPoint,
   trimesterOf,
 } from '../lib/ring';
+import '@/shared/ui/styles/ib.css';
 
 interface RingFrameProps {
   /** Accessible name of the illustration; omit when the ring is decorative. */

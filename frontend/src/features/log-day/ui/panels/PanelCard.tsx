@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import { IconCircle, type IconName, type Tone } from '@/shared/ui';
+import '@/shared/ui/styles/lday.css';
 
 /** A titled card of a log detail panel: tone disc + 16/800 title, then the controls. */
 export function PanelCard({

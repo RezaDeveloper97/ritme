@@ -13,6 +13,7 @@ import { selectionOf, useReportDraft } from '../model/selection';
 import { ReportPaper } from './ReportPaper';
 import { ShareLinkSheet } from './ShareLinkSheet';
 import { estimatePages, usePaperModel, usePdfDownload } from './usePaper';
+import './rx.css';
 
 /** «پیش‌نمایش» (bloom B-N6-04, nbl_Record_Preview): the report as it will print, with download and share. */
 export function RecordPreviewPage() {

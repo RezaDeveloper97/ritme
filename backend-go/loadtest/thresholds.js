@@ -12,6 +12,8 @@ export const BUDGET = {
   banners: ms(20, 60),
   fertility_insights: ms(25, 80),
   analysis_summary: ms(20, 150),
+  // every request of the web-home fan-out (web_home.js); the heaviest single read is /cycle/today + /home/cycle-overview
+  web_home: ms(60, 200),
 };
 
 export function endpointThresholds(names) {
@@ -42,6 +44,15 @@ export const thresholds = {
   },
   analysis_tab: Object.assign({ http_req_failed: ['rate<0.001'] }, endpointThresholds(['analysis_summary'])),
   fertility_tab: Object.assign({ http_req_failed: ['rate<0.001'] }, endpointThresholds(['fertility_insights'])),
+  // web_home (T-M12-30): per request p95 (warm / cold) and the whole two-wave open as the browser sees it
+  web_home: Object.assign(
+    {
+      http_req_failed: ['rate<0.001'],
+      'web_home_open{phase:warm}': ['p(95)<400'],
+      'web_home_open{phase:cold}': ['p(95)<1200'],
+    },
+    endpointThresholds(['web_home']),
+  ),
   soak: {
     'http_req_duration{phase:warm}': ['p(95)<100'],
     http_req_failed: ['rate<0.001'],

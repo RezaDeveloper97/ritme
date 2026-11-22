@@ -14,6 +14,7 @@ import (
 	"net/url"
 	"slices"
 	"strings"
+	"sync"
 	"time"
 
 	webpush "github.com/SherClockHolmes/webpush-go"
@@ -27,6 +28,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/config"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
+	"github.com/ritme/backend-go/internal/platform/usertz"
 	"github.com/ritme/backend-go/internal/platform/validation"
 	"github.com/ritme/backend-go/internal/platform/validation/phpval"
 )
@@ -43,6 +45,11 @@ const (
 	PushEvery = 30 * time.Second
 	// PushLookback is how late a dose may still be pushed (a restart, a slow tick); older ones are dropped.
 	PushLookback = 10 * time.Minute
+	// PushAttempts is how many times a dose or an inbox row that no browser accepted because of a passing failure
+	// (timeout, 429, 5xx) is tried in all, by any process, on later ticks inside PushLookback / NoticeLookback (the
+	// claim is released in the database, push_retry.go). After that it stays claimed and silent. A refusal for good
+	// (404 / 410 → the subscription is dropped; any other 4xx) is never retried.
+	PushAttempts = 3
 	// PushTTL is how long a push service keeps an undelivered reminder (seconds).
 	PushTTL = 3600
 	// PushLogKeep is how long reminder_pushes rows are kept.
@@ -98,9 +105,9 @@ func endpointHash(endpoint string) string {
 // Occurrence is one dose at its wall-clock time.
 type Occurrence struct {
 	Med  Medication
-	Day  civildate.Date
+	Day  civildate.Date // the dose day on the user's clock
 	Slot string
-	At   time.Time // Tehran
+	At   time.Time // the slot on Day in the user's zone (OccurrencesIn)
 }
 
 // ID is the stable key of the dose: "<reminder>:<Y-m-d>:<HH:MM>".
@@ -108,10 +115,23 @@ func (o Occurrence) ID() string {
 	return fmt.Sprintf("%d:%s:%s", o.Med.Row.ID, o.Day.String(), o.Slot)
 }
 
-// Occurrences are the doses of the active, notifying medications in rows with from ≤ At < to, sorted by time.
+// Occurrences is OccurrencesIn on the Asia/Tehran clock (a user without a stored zone; senders that do not resolve
+// one yet, e.g. internal/remindersms).
 func Occurrences(rows []store.Reminder, from, to time.Time) []Occurrence {
+	return OccurrencesIn(rows, from, to, civildate.Tehran)
+}
+
+// OccurrencesIn are the doses of the active, notifying medications in rows with from ≤ At < to, sorted by time. The
+// stored slots are wall-clock times of the user's zone loc (T-M12-21c, like M-08): «۸ صبح» is 08:00 where she is,
+// across daylight-saving changes too. Each (day, slot) is one instant (notifications.WallTime): a slot inside the
+// hour skipped when clocks go forward fires once at the transition (02:30 → 03:00 local), a slot in the hour
+// repeated when they go back fires once, at its first occurrence — never skipped, never doubled.
+func OccurrencesIn(rows []store.Reminder, from, to time.Time, loc *time.Location) []Occurrence {
+	if loc == nil {
+		loc = civildate.Tehran
+	}
 	out := []Occurrence{}
-	first, last := civildate.InTehran(from), civildate.InTehran(to)
+	first, last := civildate.FromTime(from.In(loc)), civildate.FromTime(to.In(loc))
 	for _, r := range rows {
 		if !r.IsActive {
 			continue
@@ -126,7 +146,7 @@ func Occurrences(rows []store.Reminder, from, to time.Time) []Occurrence {
 				if !ok {
 					continue
 				}
-				at := day.TehranMidnight().Add(time.Duration(minute) * time.Minute)
+				at := notifications.WallTime(day, minute, loc)
 				if !at.Before(from) && at.Before(to) {
 					out = append(out, Occurrence{Med: m, Day: day, Slot: slot, At: at})
 				}
@@ -218,8 +238,11 @@ func (d AppointmentDue) Message(locale string) notifications.Message {
 	}
 }
 
-// PrefsGetter loads a user's notification settings (the profile store).
-type PrefsGetter = notifications.Getter
+// PrefsGetter loads a user's notification settings and stored time zone (the profile store).
+type PrefsGetter interface {
+	notifications.Getter
+	usertz.Reader
+}
 
 // SetPush gives the handlers what the push endpoints need: the VAPID settings and the settings reader.
 func (h *Handlers) SetPush(cfg config.Push, prefs PrefsGetter) {
@@ -321,7 +344,9 @@ func (h *Handlers) Unsubscribe(c fiber.Ctx) error {
 // Upcoming is GET /care/upcoming?hours=N (default 48, max 168): the reminders that will fire from now on, already
 // rendered for the lock screen — what the Android shell arms as local alarms: medication doses and the reminders
 // of scheduled appointments (the visit − remind_before). Ticked doses, reminders in quiet hours and a kind whose
-// category («داروها» / «نوبت پزشک») is off are left out; at most UpcomingMaxItems, soonest first.
+// category («داروها» / «نوبت پزشک») is off are left out; at most UpcomingMaxItems, soonest first. Doses, quiet hours
+// and the wall-clock strings are on the user's clock (the request's zone: X-Timezone → stored → Asia/Tehran,
+// T-M12-21c); appointment visits stay the stored Tehran wall-clock instant.
 func (h *Handlers) Upcoming(c fiber.Ctx) error {
 	userID, err := h.user(c)
 	if err != nil {
@@ -338,6 +363,7 @@ func (h *Handlers) Upcoming(c fiber.Ctx) error {
 	if raw, _ := v.Validated().Get("hours"); raw != nil && phpval.ToString(raw) != "" {
 		hours = int(phpval.ToFloat(raw))
 	}
+	loc := civildate.Zone(c)
 	type entry struct {
 		at   time.Time
 		item *jsonx.OrderedMap
@@ -349,7 +375,7 @@ func (h *Handlers) Upcoming(c fiber.Ctx) error {
 		for _, e := range list[:min(len(list), UpcomingMaxItems)] {
 			items = append(items, e.item)
 		}
-		return httpx.OK(c, jsonx.Obj("generated_at", now.Format(wallClock), "items", items))
+		return httpx.OK(c, jsonx.Obj("generated_at", now.In(loc).Format(wallClock), "items", items))
 	}
 	if h.prefs == nil {
 		return out()
@@ -358,6 +384,7 @@ func (h *Handlers) Upcoming(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
+	prefs = prefs.InZone(loc)
 	from, to := now.Add(time.Second), now.Add(time.Duration(hours)*time.Hour)
 	add := func(kind, id string, reminderID uint64, day civildate.Date, slot string, at time.Time, m notifications.Message) {
 		p := notifications.Render(prefs, m, locale)
@@ -367,7 +394,7 @@ func (h *Handlers) Upcoming(c fiber.Ctx) error {
 			"reminder_id", reminderID,
 			"date", day.String(),
 			"slot", slot,
-			"at", at.Format(wallClock),
+			"at", at.In(loc).Format(wallClock),
 			"at_ms", at.UnixMilli(),
 			"title", p.Title,
 			"body", p.Body,
@@ -380,13 +407,13 @@ func (h *Handlers) Upcoming(c fiber.Ctx) error {
 			return fmt.Errorf("care: upcoming medications: %w", err)
 		}
 		taken, err := h.q.ListIntakesBetween(c, store.ListIntakesBetweenParams{
-			UserID: userID, FromDate: civildate.InTehran(now), ToDate: civildate.InTehran(to),
+			UserID: userID, FromDate: civildate.FromTime(now.In(loc)), ToDate: civildate.FromTime(to.In(loc)),
 		})
 		if err != nil {
 			return fmt.Errorf("care: upcoming intakes: %w", err)
 		}
 		n := 0
-		for _, o := range Occurrences(meds, from, to) {
+		for _, o := range OccurrencesIn(meds, from, to, loc) {
 			if n >= UpcomingMaxItems {
 				break
 			}
@@ -430,8 +457,11 @@ type PushSender func(ctx context.Context, payload []byte, sub store.PushSubscrip
 type Pusher struct {
 	q      *store.Queries
 	prefs  PrefsGetter
+	zones  *usertz.Zones // each user's stored zone: doses and quiet hours are on her clock (T-M12-21c)
 	logger *slog.Logger
 	send   PushSender
+
+	mu     sync.Mutex // guards pruned: one Pusher may tick from several goroutines
 	pruned time.Time
 }
 
@@ -455,7 +485,7 @@ func NewPusher(db store.DBTX, prefs PrefsGetter, cfg config.Push, logger *slog.L
 		_ = resp.Body.Close()
 		return resp.StatusCode, nil
 	}
-	return &Pusher{q: store.New(db), prefs: prefs, logger: logger, send: send}
+	return &Pusher{q: store.New(db), prefs: prefs, zones: usertz.NewZones(prefs), logger: logger, send: send}
 }
 
 // WithSender replaces the delivery (tests).
@@ -482,100 +512,209 @@ func (p *Pusher) Loop(ctx context.Context, now func() time.Time) {
 
 // Tick pushes the doses that came due in the last PushLookback and returns how many reminders went out. Each dose
 // is claimed in reminder_pushes first, so several processes (API + worker) never announce it twice; a dose that is
-// already ticked, switched off or inside quiet hours stays claimed and silent.
+// already ticked, switched off or inside quiet hours stays claimed and silent. A dose no browser accepted because of
+// a passing failure is released in reminder_pushes, so any process (after a restart too) tries it again on a later
+// tick: at most PushAttempts tries inside PushLookback (push_retry.go). Doses and quiet hours are on each user's stored zone (usertz.Zones; none =
+// Asia/Tehran), so «۸ صبح» reaches a user in Berlin at 08:00 Berlin. Safe for concurrent use.
 func (p *Pusher) Tick(ctx context.Context, now time.Time) (int, error) {
 	now = now.In(civildate.Tehran)
-	if now.Sub(p.pruned) > time.Hour {
-		if err := p.q.PruneReminderPushes(ctx, now.Add(-PushLogKeep)); err != nil {
+	if p.prunePushes(now) {
+		if err := p.q.PruneReminderPushes(ctx, store.PruneReminderPushesParams{
+			SentBefore: now.Add(-PushLogKeep), DayBefore: civildate.FromTime(now).AddDays(-2),
+		}); err != nil {
 			return 0, fmt.Errorf("care: prune pushes: %w", err)
 		}
-		p.pruned = now
 	}
+	users := map[uint64]*doseUser{}
+	sent := 0
 	meds, err := p.q.ListPushableMedications(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("care: pushable medications: %w", err)
+		return sent, fmt.Errorf("care: pushable medications: %w", err)
 	}
-	type userState struct {
-		prefs notifications.Preferences
-		subs  []store.PushSubscription
-		taken map[civildate.Date][]store.ListIntakesOnDateRow
+	byUser := map[uint64][]store.Reminder{}
+	for _, r := range meds {
+		byUser[r.UserID] = append(byUser[r.UserID], r)
 	}
-	users := map[uint64]*userState{}
-	sent := 0
-	for _, o := range Occurrences(meds, now.Add(-PushLookback), now.Add(time.Second)) {
-		userID := o.Med.Row.UserID
-		n, err := p.q.ClaimReminderPush(ctx, store.ClaimReminderPushParams{
-			UserID: userID, ReminderID: o.Med.Row.ID, IntakeDate: o.Day, Slot: o.Slot, SentAt: now,
-		})
+	var due []Occurrence
+	for userID, rows := range byUser {
+		loc, err := p.zones.For(ctx, userID)
+		if err != nil {
+			return sent, fmt.Errorf("care: push zone: %w", err)
+		}
+		due = append(due, OccurrencesIn(rows, now.Add(-PushLookback), now.Add(time.Second), loc)...)
+	}
+	slices.SortStableFunc(due, func(a, b Occurrence) int {
+		return cmp.Or(a.At.Compare(b.At), cmp.Compare(a.Med.Row.ID, b.Med.Row.ID))
+	})
+	released, err := p.releasedDoses(ctx, due)
+	if err != nil {
+		return sent, err
+	}
+	for _, o := range due {
+		tries, n := 0, int64(0)
+		if at, ok := released[o.ID()]; ok { // released after a passing failure: take it again (compare-and-set)
+			if tries, ok = releasedTries(at); !ok {
+				continue
+			}
+			n, err = p.q.ReclaimReminderPush(ctx, store.ReclaimReminderPushParams{
+				Now: now, ReminderID: o.Med.Row.ID, IntakeDate: o.Day, Slot: o.Slot, ReleasedAt: at,
+			})
+		} else {
+			n, err = p.q.ClaimReminderPush(ctx, store.ClaimReminderPushParams{
+				UserID: o.Med.Row.UserID, ReminderID: o.Med.Row.ID, IntakeDate: o.Day, Slot: o.Slot, SentAt: now,
+			})
+		}
 		if err != nil {
 			return sent, fmt.Errorf("care: claim push: %w", err)
 		}
 		if n == 0 {
 			continue
 		}
-		u := users[userID]
-		if u == nil {
-			u = &userState{taken: map[civildate.Date][]store.ListIntakesOnDateRow{}}
-			if u.prefs, err = notifications.Load(ctx, p.prefs, userID); err != nil {
-				return sent, err
-			}
-			if u.subs, err = p.q.ListPushSubscriptions(ctx, userID); err != nil {
-				return sent, fmt.Errorf("care: push subscriptions: %w", err)
-			}
-			users[userID] = u
-		}
-		if !notifications.Decide(u.prefs, notifications.Medications, o.At, time.Time{}).Send {
-			continue
-		}
-		taken, ok := u.taken[o.Day]
-		if !ok {
-			if taken, err = p.q.ListIntakesOnDate(ctx, store.ListIntakesOnDateParams{UserID: userID, IntakeDate: o.Day}); err != nil {
-				return sent, fmt.Errorf("care: push intakes: %w", err)
-			}
-			u.taken[o.Day] = taken
-		}
-		if slices.ContainsFunc(taken, func(t store.ListIntakesOnDateRow) bool {
-			return t.ReminderID == o.Med.Row.ID && t.Slot == o.Slot
-		}) {
-			continue
-		}
-		delivered, err := p.deliver(ctx, u.subs, o.ID(), func(locale string) notifications.Push {
-			return notifications.Render(u.prefs, o.Message(locale), locale)
-		})
+		ok, err := p.pushDose(ctx, users, o, tries)
 		if err != nil {
 			return sent, err
 		}
-		if delivered {
+		if ok {
 			sent++
 		}
 	}
 	return sent, nil
 }
 
-// deliver sends one message to every subscription, rendered in the subscription's language, and reports whether at
-// least one push service accepted it. A subscription the push service calls gone (404 / 410) is deleted; other
-// refusals are logged without the text.
-func (p *Pusher) deliver(ctx context.Context, subs []store.PushSubscription, tag string, render func(locale string) notifications.Push) (bool, error) {
-	delivered := false
+// releasedDoses maps the released doses among due (Occurrence.ID) to their stored marker (push_retry.go).
+func (p *Pusher) releasedDoses(ctx context.Context, due []Occurrence) (map[string]time.Time, error) {
+	out := map[string]time.Time{}
+	if len(due) == 0 {
+		return out, nil
+	}
+	ids, from := []uint64{}, due[0].Day
+	for _, o := range due {
+		if !slices.Contains(ids, o.Med.Row.ID) {
+			ids = append(ids, o.Med.Row.ID)
+		}
+		if o.Day.Before(from) {
+			from = o.Day
+		}
+	}
+	rows, err := p.q.ListReleasedReminderPushes(ctx, store.ListReleasedReminderPushesParams{
+		ReminderIds: ids, FromDate: from, ReleasedBefore: releasedBefore(),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("care: released pushes: %w", err)
+	}
+	for _, r := range rows {
+		out[fmt.Sprintf("%d:%s:%s", r.ReminderID, r.IntakeDate.String(), r.Slot)] = r.SentAt
+	}
+	return out, nil
+}
+
+// doseUser is what one Tick reads once per user: her settings on her zone, her browsers, the doses she ticked.
+type doseUser struct {
+	prefs notifications.Preferences
+	subs  []store.PushSubscription
+	taken map[civildate.Date][]store.ListIntakesOnDateRow
+}
+
+// pushDose announces the claimed dose o (tries = its earlier failed tries, by any process) unless it is switched off, in
+// quiet hours or already ticked, and reports whether a browser accepted it.
+func (p *Pusher) pushDose(ctx context.Context, users map[uint64]*doseUser, o Occurrence, tries int) (bool, error) {
+	userID := o.Med.Row.UserID
+	u := users[userID]
+	if u == nil {
+		u = &doseUser{taken: map[civildate.Date][]store.ListIntakesOnDateRow{}}
+		var err error
+		if u.prefs, err = notifications.Load(ctx, p.prefs, userID); err != nil {
+			return false, err
+		}
+		loc, err := p.zones.For(ctx, userID)
+		if err != nil {
+			return false, fmt.Errorf("care: push zone: %w", err)
+		}
+		u.prefs = u.prefs.InZone(loc)
+		if u.subs, err = p.q.ListPushSubscriptions(ctx, userID); err != nil {
+			return false, fmt.Errorf("care: push subscriptions: %w", err)
+		}
+		users[userID] = u
+	}
+	if !notifications.Decide(u.prefs, notifications.Medications, o.At, time.Time{}).Send {
+		return false, nil
+	}
+	taken, ok := u.taken[o.Day]
+	if !ok {
+		var err error
+		if taken, err = p.q.ListIntakesOnDate(ctx, store.ListIntakesOnDateParams{UserID: userID, IntakeDate: o.Day}); err != nil {
+			return false, fmt.Errorf("care: push intakes: %w", err)
+		}
+		u.taken[o.Day] = taken
+	}
+	if slices.ContainsFunc(taken, func(t store.ListIntakesOnDateRow) bool {
+		return t.ReminderID == o.Med.Row.ID && t.Slot == o.Slot
+	}) {
+		return false, nil
+	}
+	res, err := p.deliver(ctx, u.subs, o.ID(), func(locale string) notifications.Push {
+		return notifications.Render(u.prefs, o.Message(locale), locale)
+	})
+	if err != nil {
+		return false, err
+	}
+	if res == retryLater && tries+1 < PushAttempts { // a passing failure: give it back for a later tick
+		if err := p.q.ReleaseReminderPush(ctx, store.ReleaseReminderPushParams{
+			ReleasedAt: releasedAt(tries + 1), ReminderID: o.Med.Row.ID, IntakeDate: o.Day, Slot: o.Slot,
+		}); err != nil {
+			return false, fmt.Errorf("care: release push: %w", err)
+		}
+	}
+	return res == delivered, nil
+}
+
+// deliveryResult is how one deliver went.
+type deliveryResult int
+
+const (
+	// notDelivered: no browser accepted it for good (gone, refused, or no browser at all) — never retried.
+	notDelivered deliveryResult = iota
+	// delivered: at least one push service accepted it.
+	delivered
+	// retryLater: none accepted it and at least one failed for a passing reason (timeout, 429, 5xx).
+	retryLater
+)
+
+// deliver sends one message to every subscription, rendered in the subscription's language. At least one push
+// service accepting it is delivered (the others are not tried again: the browser that has it must not get it
+// twice). A subscription the push service calls gone (404 / 410) is deleted; other refusals are logged without the
+// text.
+func (p *Pusher) deliver(ctx context.Context, subs []store.PushSubscription, tag string, render func(locale string) notifications.Push) (deliveryResult, error) {
+	accepted, passing := false, false
 	for _, sub := range subs {
 		msg := render(sub.Locale)
 		payload, err := json.Marshal(map[string]string{"title": msg.Title, "body": msg.Body, "url": msg.URL, "tag": tag})
 		if err != nil {
-			return delivered, fmt.Errorf("care: push payload: %w", err)
+			return notDelivered, fmt.Errorf("care: push payload: %w", err)
 		}
 		status, err := p.send(ctx, payload, sub)
 		switch {
 		case err != nil:
+			passing = true
 			p.logger.WarnContext(ctx, "care: push not delivered", slog.Uint64("subscription", sub.ID), slog.String("error", err.Error()))
 		case status == nethttp.StatusNotFound || status == nethttp.StatusGone:
 			if err := p.q.DeletePushSubscriptionByID(ctx, sub.ID); err != nil {
-				return delivered, fmt.Errorf("care: drop push subscription: %w", err)
+				return notDelivered, fmt.Errorf("care: drop push subscription: %w", err)
 			}
+		case status == nethttp.StatusTooManyRequests || status >= 500:
+			passing = true
+			p.logger.WarnContext(ctx, "care: push refused for now", slog.Uint64("subscription", sub.ID), slog.Int("status", status))
 		case status >= 400:
 			p.logger.WarnContext(ctx, "care: push refused", slog.Uint64("subscription", sub.ID), slog.Int("status", status))
 		default:
-			delivered = true
+			accepted = true
 		}
 	}
-	return delivered, nil
+	switch {
+	case accepted:
+		return delivered, nil
+	case passing:
+		return retryLater, nil
+	}
+	return notDelivered, nil
 }

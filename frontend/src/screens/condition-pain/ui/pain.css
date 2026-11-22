@@ -1,0 +1,84 @@
+/* `pain-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.pain-page { background: var(--page); }
+
+.pain-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 18px; min-block-size: 100%; }
+
+.pain-scroll > :not(.nb-hdr):not(.pain-footer) { margin-inline: var(--gutter); }
+
+.pain-skel { display: flex; flex-direction: column; gap: 14px; }
+
+.pain-skel-card { height: 120px; }
+
+.pain-skel-chips { height: 112px; border-radius: var(--r-md); }
+
+.pain-section { display: flex; flex-direction: column; gap: 10px; text-align: start; }
+
+.pain-q { display: flex; flex-direction: column; gap: 2px; }
+
+.pain-q-title { margin: 0; font-size: 15px; font-weight: 800; line-height: 1.6; color: var(--text-1); }
+
+.pain-q-hint { margin: 0; font-size: 12.5px; font-weight: 600; line-height: 1.8; color: var(--text-2); }
+
+.nb-card.pain-card { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+
+.pain-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+
+.pain-grid > .nb-chip { min-height: 56px; height: auto; padding: 8px; justify-content: center; text-align: center; line-height: 1.5; white-space: normal; }
+
+.pain-grid .nb-chip-check { display: none; }
+
+.pain-error { margin: 0; font-size: var(--fs-md); font-weight: 700; color: var(--danger-deep); }
+
+.nb-card.pain-join { display: flex; flex-direction: column; gap: 8px; padding: 16px; text-align: start; }
+
+.pain-join-title { margin: 0; font-size: 14.5px; font-weight: 800; line-height: 1.6; color: var(--text-1); }
+
+.pain-join-body { margin: 0; font-size: 13px; font-weight: 600; line-height: 1.9; color: var(--text-2); }
+
+.nb-card.pain-impact { gap: 0; padding-block: 6px; }
+
+.pain-impact > * + * { border-top: 1px solid var(--line); }
+
+.pain-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-block-size: 60px; padding-block: 8px; }
+
+.pain-row-label { flex: 1; min-width: 0; font-size: 14px; font-weight: 800; line-height: 1.7; color: var(--text-1); }
+
+.pain-med { display: flex; flex-direction: column; gap: 12px; padding-block: 14px 10px; }
+
+.pain-med-head { display: flex; align-items: center; gap: 12px; }
+
+.pain-med-titles { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+.pain-med-title { font-size: 14px; font-weight: 800; line-height: 1.6; color: var(--text-1); }
+
+.pain-med-sub { font-size: 12.5px; font-weight: 600; line-height: 1.7; color: var(--text-3); }
+
+.pain-med-fields { display: grid; grid-template-columns: minmax(0, 1fr) 7.5em; gap: 8px; }
+
+.pain-field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+
+.pain-field-label { font-size: 12px; font-weight: 700; color: var(--text-2); }
+
+.pain-input {
+  width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: var(--r-md);
+  background: var(--surface-3); color: var(--text-1); font: inherit; font-size: 14px; font-weight: 700;
+}
+
+.pain-input::placeholder { color: var(--text-4); }
+
+.pain-input:focus-visible { outline: none; border-color: var(--brand); box-shadow: var(--ring); }
+
+.pain-field-time .pain-input { text-align: center; }
+
+.pain-effects .nb-chip { height: 40px; }
+
+.pain-effects .nb-chip-check { display: none; }
+
+.pain-note { margin-top: 2px; }
+
+.pain-footer {
+  position: sticky; bottom: 0; z-index: 2; margin-top: auto; display: flex; flex-direction: column; gap: 8px;
+  padding: 12px var(--gutter) max(14px, env(safe-area-inset-bottom));
+  background: var(--surface-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}

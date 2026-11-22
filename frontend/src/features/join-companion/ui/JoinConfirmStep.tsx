@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Icon, IconCircle } from '@/shared/ui';
 
 import type { JoinCompanion } from '../model/use-join-companion';
+import '@/shared/ui/styles/cmh.css';
 
 function firstLetter(name: string): string {
   return Array.from(name.trim())[0] ?? '';

@@ -10,6 +10,7 @@ import { Icon, IconCircle } from '@/shared/ui';
 
 import { PARTNER_LINKED_ROUTE } from '../model/flow';
 import { StepScreen, type StepContext } from './StepScreen';
+import '@/shared/ui/styles/cmh.css';
 
 type Stage = 'intro' | 'code';
 

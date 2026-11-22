@@ -21,6 +21,7 @@ import { pilot } from '@/shared/pilot';
 import { getApiErrorStatus } from '@/shared/api';
 import { useRouter } from '@/shared/i18n';
 import { Card, EmptyState, HeaderButton, Icon, PrimaryButton, ScreenHeader, SkyLayer } from '@/shared/ui';
+import '@/shared/ui/styles/as.css';
 
 function ChatBody({ page }: { page: ConversationPage }) {
   const t = useTranslations('assistant');

@@ -82,6 +82,7 @@ Every member projection is a dedicated DTO built from the allow-list below; noth
 | Domain | Allowed fields | Never |
 |---|---|---|
 | `cycle_phase` | `main_phase` (from the v6 engine `PublicPhase`; `fertile` allowed in cycle mode only when not suppressed); partner only: `period_soon` (bool, next start ≤ 3 days) (F-01) | dates, cycle day, cycle length, days late / lateness, confidence, predictions, history, mood, symptoms |
+| `period_forecast` (owner consent, companion calendar) | partner role only, with a readable `cycle_phase` grant **and** the owner's per-link consent `companions.share_period_days` (default off): the days in the requested window her period is likely to fall on, **today onwards only** (`GET /companion/calendar`, clamped to today … +92 days); `[]` while she is late | logged / past period days, cycle day, cycle length, lateness, confidence, fertile window, history |
 | `ttc_fertility` (switch) | `fertile_start`, `fertile_end`, `ovulation_date`, `best_days` | LH/BBT/intercourse values, test results |
 | `pregnancy` | `current_week`, `trimester`, `edd` (approximate, date only) | LMP, dating source, scans, notes, alerts content |
 | `fetal_activity` | per day: kick sessions count + "completed/short" flag; contraction session summary (count, last time) | free text, alert evidence |

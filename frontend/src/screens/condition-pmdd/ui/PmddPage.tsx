@@ -35,6 +35,7 @@ import {
 
 import { cycleDayOn, pmddNotes } from '../model/chart';
 import { PmddChartCard } from './PmddChartCard';
+import './cpm.css';
 
 /**
  * «پرسشنامه خلق روزانه» (`/programs/pmdd`, CB-COND-04, nbl_Cond_PMDD): today's six `pmdd_items` rated 1–6

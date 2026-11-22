@@ -5,35 +5,98 @@
 #
 # It writes /opt/ritme/stage-gate.conf on the SERVER — a server-only file, like
 # stage.htpasswd, that rsync never touches. The proxy mounts it into conf.d as
-# aa-stage-gate.conf, where its `map` blocks land at http level and define the
-# variables deploy/vhost-stage.inc uses.
+# aa-stage-gate.conf, where its `map`/`geo` blocks land at http level and
+# define the variables deploy/vhost-stage.inc uses ($stage_auth_realm,
+# $stage_gate_token).
 #
 # Why a cookie and not just Basic auth: see the long comment in vhost-stage.inc.
 # In one line — a request has exactly one Authorization header, the app needs it
 # for `Bearer <token>`, so the gate has to live somewhere else.
 #
-# The token is generated once and then left alone: regenerating it on every
-# deploy would log everyone out of staging for no reason.
+# The token is generated once and then KEPT: every run reads it back from the
+# existing file (regenerating it would log everyone out of staging for no
+# reason). Delete the file to rotate it. The rest of the file IS rewritten on
+# every run (T-M12-02), because the SSR exemption is pinned to the current
+# docker subnets of the stage frontend container; the deploy reloads the proxy
+# afterwards (deploy-stage.sh step 4 / deploy.sh).
+#
+# SSR exemption (T-M12-02, findings S-04). Next.js reads a few public endpoints
+# through this proxy during SSR with no password and no cookie. It used to be
+# exempt as "any private source address" (10/8, 172.16/12), but Docker's
+# userland proxy makes IPv6 and hairpinned clients arrive from a bridge GATEWAY
+# (172.x.0.1) — so anyone on the internet could skip the password. Now:
+#   * source: only the exact subnets of the networks the stage frontend
+#     container is attached to (`docker network inspect`), each network's
+#     gateway explicitly excluded (a `geo` longest-prefix override);
+#   * request: only GET/HEAD of the public read endpoints SSR calls;
+#   * if the subnets cannot be read, nothing is exempt (fail closed: SSR then
+#     falls back to its bundled locales, and the password still holds).
+# Chosen over a shared-secret header from SSR because that needs a frontend
+# change on every server-side fetch; this needs none.
 # ─────────────────────────────────────────────────────────────────────────────
 
 ensure_stage_gate() { # ensure_stage_gate <remote dir holding the file>
-  local dir="$1" token
+  local dir="$1" token nets geo_lines subnet gateway rendered
 
-  # A pre-existing file is authoritative — never overwrite a live token.
-  if ssh_run "grep -qs stage_auth_realm ${dir}/stage-gate.conf"; then
-    return 0
+  # The live token, if a gate file exists. Read on the server and captured into a
+  # variable — never echoed. The remote script is fed on stdin (quoted heredoc)
+  # so nothing here is expanded twice.
+  token="$(ssh_run "sh -s -- ${dir}/stage-gate.conf" <<'SH'
+f="$1"
+[ -f "$f" ] || exit 0
+awk '/^map \$host \$stage_gate_token/ {m=1; next} m && $1 == "default" {gsub(/[";]/, "", $2); print $2; exit}' "$f"
+SH
+)" || token=""
+  if [[ ! "$token" =~ ^[0-9a-f]{48}$ ]]; then
+    echo "==> Provisioning a new staging gate token (${dir}/stage-gate.conf)..."
+    token="$(openssl rand -hex 24)"
   fi
 
-  echo "==> Provisioning the staging access gate (${dir}/stage-gate.conf)..."
-  token="$(openssl rand -hex 24)"
+  # "<subnet> <gateway>" per IPAM pool of every network the stage frontend
+  # container is on (ritme-edge + the project network), or of ritme-edge alone
+  # when the container does not exist yet.
+  nets="$(ssh_run "sh -s" <<'SH'
+cid="$(docker ps -aq --filter label=com.docker.compose.project=ritme-stage --filter label=com.docker.compose.service=frontend | head -n1)"
+if [ -n "$cid" ]; then
+  names="$(docker inspect -f '{{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}' "$cid")"
+else
+  names="ritme-edge"
+fi
+for n in $names; do
+  docker network inspect -f '{{range .IPAM.Config}}{{.Subnet}} {{.Gateway}}{{"\n"}}{{end}}' "$n" 2>/dev/null
+done
+SH
+)" || nets=""
+
+  geo_lines=""
+  while read -r subnet gateway; do
+    # Both must look like addresses; a pool without a known gateway is skipped
+    # (its gateway could not be excluded).
+    [[ "$subnet" =~ ^[0-9a-fA-F:.]+/[0-9]{1,3}$ ]] || continue
+    [[ "$gateway" =~ ^[0-9a-fA-F:.]+$ ]] || continue
+    case "$subnet" in 0.0.0.0/*|::/*) continue ;; esac
+    geo_lines+="    ${subnet} 1;"$'\n'
+    if [[ "$gateway" == *:* ]]; then
+      geo_lines+="    ${gateway}/128 0;"$'\n'
+    else
+      geo_lines+="    ${gateway}/32 0;"$'\n'
+    fi
+  done <<<"$nets"
+  if [[ -z "$geo_lines" ]]; then
+    echo "!! stage gate: could not read the stage frontend's docker subnets — no SSR exemption (SSR uses bundled locales)." >&2
+  fi
 
   # Generated locally and piped over, rather than built with a remote heredoc:
   # the nginx syntax is dense with $variables and quoting it twice through ssh
   # is how these files acquire silent typos.
-  cat <<NGINX | ssh_run "cat > ${dir}/stage-gate.conf"
+  rendered="$(cat <<NGINX
 # Ritme staging access gate — GENERATED by deploy/stage-gate.sh.
 # Server-only: never rsynced, never committed. Delete this file to rotate the
 # token (everyone is then asked for the password again on their next visit).
+
+# The 48-character token is a map key; the default nginx bucket (the CPU cache
+# line, 64 bytes on many hosts) is too small for it. Nothing else sets this.
+map_hash_bucket_size 128;
 
 # 1 once the visitor holds the gate cookie handed out after a successful
 # password prompt.
@@ -42,21 +105,36 @@ map \$cookie_ritme_stage \$stage_cookie_ok {
     "${token}" 1;
 }
 
-# 1 for container-to-container traffic. The Next.js server calls
-# /api/v1/languages and /languages/<code>/messages through this same proxy
-# during SSR, with no password and no cookie to offer; without this the app
-# silently falls back to its bundled locales on every staging page.
-map \$remote_addr \$stage_internal {
+# 1 only for the exact subnets of the networks of the stage frontend container,
+# the gateway of each excluded (docker-proxy makes IPv6 / hairpin clients
+# appear from it). Longest prefix wins. Never 10/8 or 172.16/12 wholesale.
+geo \$remote_addr \$stage_ssr_src {
     default 0;
-    "~^127\\." 1;
-    "~^10\\." 1;
-    "~^172\\.(1[6-9]|2[0-9]|3[01])\\." 1;
+${geo_lines}}
+
+# 1 for a read-only method.
+map \$request_method \$stage_ssr_method {
+    default 0;
+    GET     1;
+    HEAD    1;
+}
+
+# 1 for the public read endpoints the Next.js server calls during SSR
+# (shared/i18n, entities/shop|city-service public APIs). Nothing else.
+map \$uri \$stage_ssr_path {
+    default 0;
+    "~^/api/v1/languages(/[A-Za-z0-9_-]+/messages)?\$" 1;
+    "~^/api/v1/shop/catalog/(home|products(/[0-9]+)?)\$" 1;
+    "~^/api/v1/city-services/listings/[0-9]+\$" 1;
+    "~^/api/v1/info-pages/[A-Za-z0-9_-]+\$" 1;
 }
 
 # The realm string asks for a password; the literal \`off\` disables auth_basic.
-map "\$stage_cookie_ok\$stage_internal" \$stage_auth_realm {
-    "00" "Ritme staging";
-    default off;
+# Open with the cookie, or for an SSR read (all three SSR conditions).
+map "\$stage_cookie_ok\$stage_ssr_src\$stage_ssr_method\$stage_ssr_path" \$stage_auth_realm {
+    "~^1"   off;
+    "0111"  off;
+    default "Ritme staging";
 }
 
 # The cookie value vhost-stage.inc hands out on an authenticated response.
@@ -64,4 +142,8 @@ map \$host \$stage_gate_token {
     default "${token}";
 }
 NGINX
+)"
+  # `cat >` keeps the inode, so the single-file bind mount in the running proxy
+  # sees the new content on the next reload.
+  printf '%s\n' "$rendered" | ssh_run "cat > ${dir}/stage-gate.conf"
 }

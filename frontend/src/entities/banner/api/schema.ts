@@ -40,7 +40,7 @@ const bannerSchema = z
  */
 export const bannersEnvelopeSchema = z
   .object({
-    positions: z.record(z.string(), z.array(bannerSchema)).default({}),
+    positions: z.record(z.string(), z.array(bannerSchema)).prefault({}),
   })
   .transform((e): BannersByPosition => {
     const out = {} as BannersByPosition;
@@ -76,7 +76,7 @@ const adSchema = z
 
 /** `{ positions: { ad_slider: [...], ad_square: [...], ad_strip: [...] } }` — every slot present. */
 export const adsEnvelopeSchema = z
-  .object({ positions: z.record(z.string(), z.array(adSchema)).default({}) })
+  .object({ positions: z.record(z.string(), z.array(adSchema)).prefault({}) })
   .transform((e): Record<AdSlot, Ad[]> => {
     const out = {} as Record<AdSlot, Ad[]>;
     for (const slot of AD_SLOTS) out[slot] = e.positions[slot]?.filter((a) => a.imageUrl) ?? [];

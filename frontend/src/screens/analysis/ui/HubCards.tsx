@@ -23,6 +23,7 @@ import { BarChart, LineChart, StatusPill, type Tone } from '@/shared/ui';
 
 import { signedDecimal } from '../model/hub';
 import { HubCard, NotReady } from './HubCard';
+import '@/shared/ui/styles/an.css';
 
 type T = ReturnType<typeof useTranslations<'analysis.hub'>>;
 

@@ -17,6 +17,7 @@ import { contractionRows, contractionView, isStaleContraction, secondsToMs } fro
 import type { ContractionOverview, ContractionSession } from '../model/types';
 import { useNow } from '../model/use-now';
 import { useToolFormat } from './format';
+import '@/shared/ui/styles/ptl.css';
 
 interface ContractionTimerProps {
   overview: ContractionOverview;

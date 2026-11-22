@@ -7,6 +7,8 @@ import { countShopClick, useShopProducts, type ShopProduct } from '@/entities/sh
 import { useRouter } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
 import { Card, EmptyState, Icon, PrimaryButton, ScreenHeader, SecondaryButton, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/shp.css';
 
 /**
  * `/shop/[category]` — the products of one category, then the link-out. Tapping a product with a link shows the

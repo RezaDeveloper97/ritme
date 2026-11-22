@@ -237,7 +237,20 @@ func TestSimulateV6_GrantAuditCapAndSynthetic(t *testing.T) {
 
 func TestSimulateV6_UnknownUserWithGrant(t *testing.T) {
 	e := rulesEnv(t)
-	grant(e, admintest.SuperID, 999999)
+	// goose 00129 made admin_health_access_requests.user_id a cascading FK, so a grant for a user that does not exist
+	// can no longer be stored normally; a dedicated connection with FK checks off still reproduces that orphan row.
+	conn, err := e.DB.Conn(t.Context())
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = conn.Close() })
+	_, err = conn.ExecContext(t.Context(), "SET FOREIGN_KEY_CHECKS=0")
+	require.NoError(t, err)
+	expires := time.Now().In(civildate.Tehran).Add(30 * time.Minute).Format(time.DateTime)
+	_, err = conn.ExecContext(t.Context(), `INSERT INTO admin_health_access_requests (admin_id, user_id, reason, ticket, status, decided_by, decided_at,
+		expires_at, created_at, updated_at) VALUES (?, 999999, 'message complaint', '#7', 'approved', 1, NOW(), ?, NOW(), NOW())`,
+		admintest.SuperID, expires)
+	require.NoError(t, err)
+	_, err = conn.ExecContext(t.Context(), "SET FOREIGN_KEY_CHECKS=1")
+	require.NoError(t, err)
 	r := e.As(admintest.SuperID).JSON(fiber.MethodPost, "/messages/simulate", map[string]any{"user_id": 999999})
 	assert.Equal(t, 404, r.Status, r.Body)
 	assert.Equal(t, 0, e.Int("SELECT COUNT(*) FROM admin_audit_logs WHERE target_id = 999999"))

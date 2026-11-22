@@ -9,6 +9,7 @@ import { Link, useDirection } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
 import { useSessionFlag } from '@/shared/lib/session-flag';
 import { Icon } from '@/shared/ui';
+import '@/shared/ui/styles/cmp.css';
 
 const DISMISS_KEY = 'companion_invite_banner';
 

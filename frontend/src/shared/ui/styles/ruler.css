@@ -1,0 +1,8 @@
+/* `ruler-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.ruler-wrap { position: relative; width: 108px; margin-inline: auto; }
+
+.ruler-fade {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, var(--surface) 0%, transparent 20%, transparent 80%, var(--surface) 100%);
+}

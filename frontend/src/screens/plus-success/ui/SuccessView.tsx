@@ -7,6 +7,7 @@ import { PlusCrown, type PlusStatus } from '@/entities/plus';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { formatLongDate } from '@/shared/lib/date';
 import { ListGroup, ListRow, PrimaryButton, SkyLayer, StatusPill } from '@/shared/ui';
+import '@/shared/ui/styles/plus.css';
 
 interface SuccessViewProps {
   status: PlusStatus;

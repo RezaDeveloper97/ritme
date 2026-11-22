@@ -4,6 +4,8 @@ import { ChartFigure, type DataTable } from '@/widgets/charts';
 
 import { dayX, linePath, tempScale, tempY, type ChartBox } from '../model/ttc';
 import type { FertilityCycle } from '../model/types';
+import '@/shared/ui/styles/ttc.css';
+import '@/shared/ui/styles/axc.css';
 
 interface BbtChartProps {
   data: FertilityCycle;

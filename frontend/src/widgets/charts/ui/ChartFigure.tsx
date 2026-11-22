@@ -1,5 +1,6 @@
 import { clsx } from 'clsx';
 import type { ReactNode } from 'react';
+import '@/shared/ui/styles/axc.css';
 
 /** The numbers behind a chart, for screen readers (rendered as a visually hidden table). */
 export interface DataTable {

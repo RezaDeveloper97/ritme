@@ -7,6 +7,7 @@ import type { Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { AppSheet } from '@/shared/sheet';
 import { Icon, SecondaryButton, UrgentCard } from '@/shared/ui';
+import '@/shared/ui/styles/vt.css';
 
 /** Emergency number of the bundled fallback (Iran EMS), used when the alert payload carries no call action. */
 const FALLBACK_PHONE = '115';

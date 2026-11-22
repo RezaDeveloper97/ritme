@@ -9,6 +9,7 @@ import type { Locale } from '@/shared/i18n';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { openSheet } from '@/shared/sheet';
 import { Icon } from '@/shared/ui';
+import '@/shared/ui/styles/home.css';
 
 const FA = '۰۱۲۳۴۵۶۷۸۹';
 const localizeNum = (n: number, loc: Locale) => (loc === 'fa' ? String(n).replace(/[0-9]/g, (d) => FA[Number(d)]) : String(n));

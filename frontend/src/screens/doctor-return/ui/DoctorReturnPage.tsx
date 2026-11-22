@@ -9,6 +9,7 @@ import { useVerifyBooking } from '@/features/book-visit';
 import { getApiErrorCode, getApiErrorStatus } from '@/shared/api';
 import { useRouter } from '@/shared/i18n';
 import { EmptyState, PrimaryButton, SecondaryButton, Skeleton, SkyLayer } from '@/shared/ui';
+import '@/shared/ui/styles/dr.css';
 
 /** After these the payment itself did not happen — retrying verify cannot help. */
 const FINAL = new Set(['payment_failed', 'authority_mismatch', 'amount_mismatch', 'booking_closed', 'booking_refunded']);

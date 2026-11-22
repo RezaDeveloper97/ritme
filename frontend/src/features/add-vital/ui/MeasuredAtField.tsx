@@ -10,6 +10,7 @@ import { CalendarPicker, Icon, PrimaryButton, SecondaryButton } from '@/shared/u
 import { pilot } from '@/shared/pilot';
 
 import { tehranNow, validateMeasuredAt } from '../model/validate';
+import '@/shared/ui/styles/vt.css';
 
 export type MeasuredAt = { date: string; time: string } | null;
 

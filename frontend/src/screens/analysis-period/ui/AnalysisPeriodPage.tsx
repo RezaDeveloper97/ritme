@@ -14,6 +14,7 @@ import { BottomNav } from '@/widgets/bottom-nav';
 import { ChartCard, HBarList, HeatGrid, ReportFrame, StatTiles, type HeatRow, type StatTile } from '@/widgets/charts';
 
 import { flowColumns, hasFlow, LEVELS, levelOf } from '../model/period';
+import '@/shared/ui/styles/anr.css';
 
 type Range = (typeof REPORT_RANGES.period)[number];
 

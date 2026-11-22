@@ -10,6 +10,8 @@ import { type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { pilot, pilotOption } from '@/shared/pilot';
 import { Icon, PrimaryButton, SecondaryButton } from '@/shared/ui';
+import '@/shared/ui/styles/csv.css';
+import '@/shared/ui/styles/cdb.css';
 
 /**
  * CB-DIR-13 (F14) — the review form of a completed place booking: 1-5 stars + an optional text. It is stored

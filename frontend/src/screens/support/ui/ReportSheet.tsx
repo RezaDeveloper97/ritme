@@ -9,6 +9,7 @@ import { Icon, PrimaryButton, SecondaryButton } from '@/shared/ui';
 
 import { useSendReport } from '../api/support';
 import { isReportValid, REPORT_MAX, SCREENSHOT_MAX_BYTES } from '../model/support';
+import './rep.css';
 
 function readDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {

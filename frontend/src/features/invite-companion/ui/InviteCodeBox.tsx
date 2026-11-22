@@ -9,6 +9,7 @@ import { formatNumber } from '@/shared/lib/date';
 import { Icon, PrimaryButton, SecondaryButton } from '@/shared/ui';
 
 import { copyText, shareText } from '../lib/share';
+import '@/shared/ui/styles/cmp.css';
 
 interface InviteCodeBoxProps {
   invite: CompanionInvite;

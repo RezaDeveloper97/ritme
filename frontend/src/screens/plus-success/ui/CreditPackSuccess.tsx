@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { formatCredits, useAiCredits } from '@/entities/ai-credit';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { Art3d, PrimaryButton, SecondaryButton, SkyLayer } from '@/shared/ui';
+import '@/shared/ui/styles/plus.css';
 
 /** «اعتبار اضافه شد» — the gateway return of a credit pack (`invoice.kind === 'credit_pack'`). */
 export function CreditPackSuccess({ credits, refId }: { credits: number; refId?: string | null }) {

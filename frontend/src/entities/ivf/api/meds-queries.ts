@@ -39,7 +39,7 @@ export function useIvfMeds() {
   });
 }
 
-function useCatalogGroup<T>(group: string, locale: string, schema: z.ZodType<T, z.ZodTypeDef, unknown>) {
+function useCatalogGroup<T>(group: string, locale: string, schema: z.ZodType<T, unknown>) {
   return useQuery({
     queryKey: ivfKeys.catalog(group, locale),
     queryFn: async () => {

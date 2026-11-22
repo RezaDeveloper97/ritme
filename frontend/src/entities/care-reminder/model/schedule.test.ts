@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { doseDetail, frequencySummary, medicationSchedule, nextDoseAt, relativeDose } from './schedule';
+import { doseDetail, frequencySummary, isDoseDay, medicationSchedule, nextDoseAt, relativeDose } from './schedule';
 
 describe('medicationSchedule', () => {
   it('words the weekdays as every day, every other day or a count', () => {
@@ -72,5 +72,31 @@ describe('relativeDose', () => {
     expect(relativeDose(new Date(2026, 10, 11, 10, 25), now)).toEqual({ kind: 'minutes', n: 25 });
     expect(relativeDose(new Date(2026, 10, 11, 12, 30), now)).toEqual({ kind: 'hours', n: 2 });
     expect(relativeDose(new Date(2026, 10, 13, 10, 0), now)).toEqual({ kind: 'days', n: 2 });
+  });
+});
+
+describe('isDoseDay', () => {
+  const base = { isActive: true, times: ['08:00'], weekdays: [], frequency: null, startsOn: null, endsOn: null };
+  const day = (y: number, mo: number, d: number) => new Date(y, mo - 1, d, 15, 0);
+
+  it('is every day for a plain active medication', () => {
+    expect(isDoseDay(base, day(2026, 11, 17))).toBe(true);
+  });
+  it('honours start/end, activity and slots', () => {
+    expect(isDoseDay({ ...base, startsOn: '2026-11-18' }, day(2026, 11, 17))).toBe(false);
+    expect(isDoseDay({ ...base, endsOn: '2026-11-16' }, day(2026, 11, 17))).toBe(false);
+    expect(isDoseDay({ ...base, endsOn: '2026-11-17' }, day(2026, 11, 17))).toBe(true);
+    expect(isDoseDay({ ...base, isActive: false }, day(2026, 11, 17))).toBe(false);
+    expect(isDoseDay({ ...base, times: [] }, day(2026, 11, 17))).toBe(false);
+  });
+  it('counts «every N days» from the start date', () => {
+    const med = { ...base, frequency: { every: 3, unit: 'day' as const }, startsOn: '2026-11-10' };
+    expect(isDoseDay(med, day(2026, 11, 16))).toBe(true);
+    expect(isDoseDay(med, day(2026, 11, 17))).toBe(false);
+  });
+  it('uses Saturday-based weekdays without a frequency', () => {
+    // 2026-11-17 is a Tuesday → Saturday-based index 3.
+    expect(isDoseDay({ ...base, weekdays: [3] }, day(2026, 11, 17))).toBe(true);
+    expect(isDoseDay({ ...base, weekdays: [0, 2] }, day(2026, 11, 17))).toBe(false);
   });
 });

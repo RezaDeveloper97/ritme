@@ -1,0 +1,27 @@
+/* `bkp-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.bkp-page { background: var(--page); }
+
+.bkp-scroll { display: flex; flex-direction: column; gap: 14px; padding-block-end: calc(40px + env(safe-area-inset-bottom)); }
+
+.bkp-scroll > :not(.nb-hdr) { margin-inline: var(--gutter-form); }
+
+.bkp-sync { display: flex; align-items: center; gap: 14px; padding: 16px; }
+
+.bkp-sync-ic { display: inline-flex; align-items: center; justify-content: center; inline-size: 48px; block-size: 48px; flex-shrink: 0; border-radius: 50%; background: var(--data-soft); color: var(--data); }
+
+.bkp-sync-ic { background: var(--success-soft); color: var(--success); }
+
+.bkp-sync-body { flex: 1; min-inline-size: 0; }
+
+.bkp-text { margin: 4px 0 0; font-size: var(--fs-sm); font-weight: 600; line-height: 1.9; color: var(--text-2); }
+
+.bkp-text { margin: -4px 0 0; padding-inline: 4px; }
+
+.bkp-sync-label { font-size: var(--fs-xs); font-weight: 700; color: var(--text-2); }
+
+.bkp-sync-value { margin-block-start: 2px; font-size: var(--fs-md); font-weight: 800; color: var(--text-1); }
+
+.bkp-sec { display: flex; flex-direction: column; gap: 6px; }
+
+.bkp-label { margin: 0; padding-inline: 4px; font-size: var(--fs-sm); font-weight: 800; color: var(--text-2); }

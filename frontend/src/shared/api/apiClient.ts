@@ -30,6 +30,12 @@ export interface RequestConfig {
   /** A JSON body for `delete` only (e.g. DELETE /push/subscriptions `{endpoint}`); other verbs take `data`. */
   data?: unknown;
   /**
+   * Extra request headers (e.g. `X-Step-Up`, T-M12-06). They can never replace
+   * the ones this client owns (`Authorization`, `Accept`, `Accept-Language`,
+   * `X-Timezone`, `Content-Type`).
+   */
+  headers?: Record<string, string>;
+  /**
    * Upload progress (0–1) of a `FormData` body. When set, the request goes over
    * `XMLHttpRequest` (fetch has no upload progress); everything else — headers,
    * timeout, the error shape, the session rules — is the same.
@@ -155,6 +161,9 @@ function deviceTimeZone(): string | undefined {
   }
 }
 
+/** Headers only this client sets (a caller's `config.headers` cannot override them). */
+const OWN_HEADERS = new Set(['authorization', 'accept', 'accept-language', 'x-timezone', 'content-type']);
+
 async function request<T>(
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   path: string,
@@ -163,7 +172,11 @@ async function request<T>(
 ): Promise<ApiResponse<T>> {
   // axios' default Accept. It matters: Laravel only answers an auth failure
   // with a JSON 401 (the shape `endsSession` trusts) when the request accepts JSON.
-  const headers: Record<string, string> = { Accept: 'application/json, text/plain, */*' };
+  const headers: Record<string, string> = {};
+  for (const [key, value] of Object.entries(config?.headers ?? {})) {
+    if (!OWN_HEADERS.has(key.toLowerCase())) headers[key] = value;
+  }
+  headers.Accept = 'application/json, text/plain, */*';
 
   // Attach the JWT bearer token from the session store (§8.1). Centralized here
   // so auth is never re-implemented per slice.

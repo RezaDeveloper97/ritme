@@ -14,6 +14,8 @@
  * Framework-free (tested with fake-indexeddb); React glue is in useOfflineMedia.ts.
  */
 
+import { getAuthToken } from '@/shared/session/token';
+
 export type OfflineKind = 'video' | 'audio' | 'pdf';
 
 export interface OfflineMeta {
@@ -25,6 +27,8 @@ export interface OfflineMeta {
 }
 
 export interface OfflineItem extends OfflineMeta {
+  /** Session user the download belongs to; rows of anyone else (or untagged) are never returned. */
+  ownerId?: string;
   mime: string;
   /** Plain size in bytes. */
   size: number;
@@ -39,6 +43,21 @@ export class OfflineError extends Error {
   constructor(readonly code: OfflineErrorCode) {
     super(`offline media: ${code}`);
     this.name = 'OfflineError';
+  }
+}
+
+/** The signed-in user's id (JWT `sub`), or null. Signature unchecked: this only scopes local rows. */
+export function currentOwnerId(): string | null {
+  const token = getAuthToken();
+  const payload = token?.split('.')[1];
+  if (!payload) return null;
+  try {
+    const b64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const json = new TextDecoder().decode(Uint8Array.from(atob(b64 + '='.repeat((4 - (b64.length % 4)) % 4)), (c) => c.charCodeAt(0)));
+    const sub = (JSON.parse(json) as { sub?: unknown }).sub;
+    return typeof sub === 'string' || typeof sub === 'number' ? String(sub) : null;
+  } catch {
+    return null;
   }
 }
 
@@ -88,7 +107,14 @@ function openDb(): Promise<IDBDatabase> {
       if (!db.objectStoreNames.contains(ITEMS)) db.createObjectStore(ITEMS, { keyPath: 'lessonId' });
       if (!db.objectStoreNames.contains(CHUNKS)) db.createObjectStore(CHUNKS);
     };
-    req.onsuccess = () => resolve(req.result);
+    req.onsuccess = () => {
+      // Let a wipe from another tab delete the database.
+      req.result.onversionchange = () => {
+        req.result.close();
+        dbPromise = null;
+      };
+      resolve(req.result);
+    };
     req.onerror = () => {
       dbPromise = null;
       reject(new OfflineError('unsupported'));
@@ -150,15 +176,20 @@ async function allItems(): Promise<OfflineItem[]> {
   return tx<OfflineItem[]>([ITEMS], 'readonly', (t) => t.objectStore(ITEMS).getAll());
 }
 
+/** Rows of the current session user only; with no session (or an untagged legacy row) nothing is returned. */
+const ownedBy = (item: OfflineItem | undefined, owner: string | null): item is OfflineItem =>
+  !!item && owner !== null && item.ownerId === owner;
+
 /** Finished downloads, newest first. */
 export async function listOffline(): Promise<OfflineItem[]> {
+  const owner = currentOwnerId();
   const items = await allItems();
-  return items.filter((i) => i.complete).sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+  return items.filter((i) => ownedBy(i, owner) && i.complete).sort((a, b) => b.savedAt.localeCompare(a.savedAt));
 }
 
 export async function getOffline(lessonId: number): Promise<OfflineItem | null> {
   const item = await tx<OfflineItem | undefined>([ITEMS], 'readonly', (t) => t.objectStore(ITEMS).get(lessonId));
-  return item?.complete ? item : null;
+  return ownedBy(item, currentOwnerId()) && item.complete ? item : null;
 }
 
 /** Bytes used by downloads, plus the browser's estimate of the origin quota. */
@@ -198,6 +229,8 @@ export async function assertRoom(size: number | null): Promise<void> {
  * encrypted. A failed / aborted download leaves nothing behind.
  */
 export async function saveOffline(meta: OfflineMeta, response: Response, opts: SaveOptions = {}): Promise<OfflineItem> {
+  const ownerId = currentOwnerId();
+  if (!ownerId) throw new OfflineError('unsupported');
   if (!response.ok || !response.body) throw new OfflineError('network');
   const header = Number(response.headers.get('content-length'));
   const total = Number.isFinite(header) && header > 0 ? header : null;
@@ -207,7 +240,7 @@ export async function saveOffline(meta: OfflineMeta, response: Response, opts: S
 
   // Remove any older copy / leftover, then mark this one as in progress.
   await deleteOffline(meta.lessonId, { silent: true });
-  const item: OfflineItem = { ...meta, mime, size: 0, chunks: 0, savedAt: new Date().toISOString(), complete: false };
+  const item: OfflineItem = { ...meta, ownerId, mime, size: 0, chunks: 0, savedAt: new Date().toISOString(), complete: false };
   await tx([ITEMS], 'readwrite', (t) => {
     t.objectStore(ITEMS).put(item);
   });
@@ -304,9 +337,42 @@ export async function deleteOffline(lessonId: number, opts: { silent?: boolean }
  * unfinished leftover. Returns how many were removed.
  */
 export async function purgeOffline(keep: (item: OfflineItem) => boolean): Promise<number> {
+  const owner = currentOwnerId();
   const items = await allItems();
-  const drop = items.filter((i) => !i.complete || !keep(i));
+  // Rows of another user (or untagged) are not this session's: they go too.
+  const drop = items.filter((i) => !ownedBy(i, owner) || !i.complete || !keep(i));
   for (const i of drop) await deleteOffline(i.lessonId, { silent: true });
   if (drop.length) notify();
   return drop.length;
+}
+
+/**
+ * Session end: delete the whole `ritme-offline-media` database (every user's
+ * rows, chunks and the key), forget the cached connection and key, and ask the
+ * service worker to drop the cached downloads-page HTML. Never throws.
+ */
+export async function wipeOffline(): Promise<void> {
+  const pending = dbPromise;
+  resetOfflineForTests();
+  try {
+    (await pending?.catch(() => null))?.close();
+  } catch {
+    // Already closed.
+  }
+  try {
+    if (typeof indexedDB !== 'undefined') {
+      await new Promise<void>((resolve) => {
+        const req = indexedDB.deleteDatabase(DB_NAME);
+        req.onsuccess = req.onerror = req.onblocked = () => resolve();
+      });
+    }
+  } catch {
+    // Blocked storage: nothing more to do.
+  }
+  try {
+    if (typeof navigator !== 'undefined') navigator.serviceWorker?.controller?.postMessage({ type: 'CLEAR_OFFLINE_PAGES' });
+  } catch {
+    // No worker.
+  }
+  notify();
 }

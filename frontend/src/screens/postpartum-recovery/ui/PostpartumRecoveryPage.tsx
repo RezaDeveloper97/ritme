@@ -54,6 +54,7 @@ import {
   TEMPERATURE_START,
   toggleIn,
 } from '../model/form';
+import '@/shared/ui/styles/pp.css';
 
 /**
  * `/postpartum/recovery` — today's recovery form (nbl_v15_Recovery): lochia

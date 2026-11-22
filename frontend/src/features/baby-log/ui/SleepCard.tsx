@@ -11,6 +11,7 @@ import { Card, IconCircle, PrimaryButton, SecondaryButton, Skeleton } from '@/sh
 import { babyActionError, useSleepAction, useSleepDay } from '../api/queries';
 import { clockText, manualSleepRange, sleepSeconds, tehranNow, wallTime } from '../model/live';
 import { useNow } from '../model/use-now';
+import '@/shared/ui/styles/bfl.css';
 
 /** Hours with one decimal («۱۴٫۲»). */
 export function hoursText(seconds: number, loc: Locale): string {

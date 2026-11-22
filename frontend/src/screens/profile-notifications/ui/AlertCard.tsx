@@ -7,6 +7,8 @@ import { type AlertItem, type AlertLevel, callHref, canAck, canDismiss, evidence
 import { feedLinkTarget } from '@/entities/message';
 import { Link } from '@/shared/i18n';
 import { Card, Icon, IconCircle, type Tone } from '@/shared/ui';
+import './alert.css';
+import '@/shared/ui/styles/pgn.css';
 
 // One health alert with its actions (تماس، دیدم، بستن), shown inside the notifications sheet.
 // Moved here from the old `/alerts` screen: alerts no longer have a page of their own.

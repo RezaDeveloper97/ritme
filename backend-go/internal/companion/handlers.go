@@ -864,6 +864,7 @@ func ownerLinkJSON(l Link, names map[uint64]string) *jsonx.OrderedMap {
 		"goal", string(l.Preferences.Goal()),
 		"goals", goalsJSON(l.Preferences.Goals),
 		"signals", signalsScopeJSON(l.Preferences.Signals),
+		"period_days", l.Preferences.PeriodDays,
 		"action_prefs", actionsJSON(l.Preferences.Actions),
 	)
 }

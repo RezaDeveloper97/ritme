@@ -28,6 +28,8 @@ import { openSheet } from '@/shared/sheet';
 import { EmptyState, Icon, ScreenHeader, SegmentedTabs, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
 import { MARK_DONE_SHEET, editRecordSheetArg, withLocalAttachment } from '../model/view';
+import '@/shared/ui/styles/ck.css';
+import '@/shared/ui/styles/rmd.css';
 
 const PANEL_ID = 'ckh-panel';
 

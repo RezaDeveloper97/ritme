@@ -18,6 +18,9 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/redis/go-redis/v9"
+
+	"github.com/ritme/backend-go/internal/auth"
+	"github.com/ritme/backend-go/internal/platform/cache"
 )
 
 // GoServer is cmd/api built and started by the harness against a private database
@@ -300,6 +303,29 @@ func (g *GoServer) LatestOTP(ctx context.Context, mobile string) (string, error)
 		return "", errors.New("no OTP row")
 	}
 	return code, err
+}
+
+// StepUpToken implements StepUpper: a step-up token for the persona's user, issued at the step's X-Test-Now
+// straight into this run's Redis keyspace (the same store the server reads, auth.StepUp).
+func (g *GoServer) StepUpToken(ctx context.Context, persona, now string) (string, error) {
+	uid := 0
+	for _, p := range Personas {
+		if p.Key == persona {
+			uid = p.UserID
+		}
+	}
+	if uid == 0 {
+		return "", fmt.Errorf("persona %q has no user", persona)
+	}
+	at := time.Now()
+	if now != "" && now != "none" {
+		t, err := time.Parse(time.RFC3339, now)
+		if err != nil {
+			return "", fmt.Errorf("step-up clock %q: %w", now, err)
+		}
+		at = t
+	}
+	return auth.NewStepUp(cache.NewFromClient(g.rdb, g.redisPrefix())).Issue(ctx, uint64(uid), at) //nolint:gosec // G115: fixture ids are positive
 }
 
 // Session implements Target.

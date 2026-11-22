@@ -8,6 +8,8 @@ import { type TrendPoint, stateTone, trimNumber } from '@/entities/lab';
 import { ChartFigure } from '@/widgets/charts';
 
 import { trendGeometry } from '../model/chart';
+import '@/shared/ui/styles/axc.css';
+import '@/shared/ui/styles/lab.css';
 
 interface TrendChartProps {
   points: readonly TrendPoint[];

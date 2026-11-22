@@ -117,7 +117,7 @@ func TestCache_SingleflightPerKey(t *testing.T) {
 			assert.NoError(t, err)
 		}()
 	}
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(50 * time.Millisecond) //nolint:sleep // lets the 8 goroutines reach the loader; an upper-bound assertion (calls <= 2) holds for any scheduling
 	close(release)
 	wg.Wait()
 	assert.LessOrEqual(t, calls.Load(), int32(2), "concurrent misses of one key compute once (a late arrival may hit Redis)")

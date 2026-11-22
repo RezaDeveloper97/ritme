@@ -8,6 +8,7 @@ import { plusKeys, usePlusStatus, useServerCountdown, type PlusTrialOffer } from
 import type { Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
+import '@/shared/ui/styles/plus.css';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 

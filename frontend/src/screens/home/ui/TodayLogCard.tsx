@@ -12,6 +12,7 @@ import { openSheet } from '@/shared/sheet';
 import { Card, Icon, IconCircle, type IconName, type Tone } from '@/shared/ui';
 
 import { summarizeTodayLog } from '../model/today-log';
+import '@/shared/ui/styles/ch.css';
 
 interface Row {
   /** Also the log taxonomy category the row opens (`?sheet=log` scrolls to it). */

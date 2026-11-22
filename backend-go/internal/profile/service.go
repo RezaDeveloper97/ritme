@@ -12,12 +12,14 @@ import (
 	"github.com/go-sql-driver/mysql"
 
 	"github.com/ritme/backend-go/internal/auth"
+	authstore "github.com/ritme/backend-go/internal/auth/store"
 	companionstore "github.com/ritme/backend-go/internal/companion/store"
 	"github.com/ritme/backend-go/internal/cycle/revision"
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/files"
 	filestore "github.com/ritme/backend-go/internal/files/store"
 	"github.com/ritme/backend-go/internal/notify"
+	"github.com/ritme/backend-go/internal/platform/cache"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/phpround"
@@ -52,6 +54,8 @@ type Service struct {
 	Telegram    *notify.Telegram
 	StoragePath string // STORAGE_PATH: support-report screenshots are removed with the account
 	Logger      *slog.Logger
+	// Cache is the Redis client whose per-user keys DeleteAccount removes (nil = none; T-M12-13).
+	Cache *cache.Client
 
 	tx *sql.Tx // set on a Service bound to a transaction by EngineTx (Q runs on it); nil otherwise
 }
@@ -204,12 +208,17 @@ func (s *Service) saveProfile(ctx context.Context, u *auth.User, input phpval.Ma
 	return &SaveResult{User: auth.User(user), Profile: fresh}, nil
 }
 
-// DeleteAccount deletes the user's refresh and access tokens, then the user (cascading to
-// every user-owned table), in one transaction (D-25).
+// DeleteAccount deletes the user's refresh and access tokens, the OTP rows of her number, then the user (cascading to
+// every user-owned table), in one transaction (D-25); then her stored files and per-user Redis keys. What is deleted
+// where, table by table, is docs/quality-2026-11/user-tables.md (T-M12-13).
 func (s *Service) DeleteAccount(ctx context.Context, userID uint64) (err error) {
 	shots, err := s.Q.ListUserSupportScreenshots(ctx, userID)
 	if err != nil {
 		return fmt.Errorf("profile: delete account: screenshots: %w", err)
+	}
+	user, err := s.Q.GetUser(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("profile: delete account: load user: %w", err)
 	}
 	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
@@ -232,6 +241,12 @@ func (s *Service) DeleteAccount(ctx context.Context, userID uint64) (err error) 
 	if err = companionstore.New(tx).DeletePregnancyNoticesForOwner(ctx, userID); err != nil {
 		return fmt.Errorf("profile: delete companion notices: %w", err)
 	}
+	// T-M12-13: otp_verifications is keyed by the number, not the id (no FK can reach it).
+	if user.Mobile.Valid {
+		if err = authstore.New(tx).DeleteOtpsForMobile(ctx, user.Mobile.String); err != nil {
+			return fmt.Errorf("profile: delete otps: %w", err)
+		}
+	}
 	if _, err = q.DeleteUser(ctx, userID); err != nil {
 		return fmt.Errorf("profile: delete user: %w", err)
 	}
@@ -242,6 +257,9 @@ func (s *Service) DeleteAccount(ctx context.Context, userID uint64) (err error) 
 	// B-N6-06 / CB-CORE-05: the encrypted files of every purpose, lab sheets included (their rows went with the user).
 	if err := files.RemoveUser(s.StoragePath, userID); err != nil && s.Logger != nil {
 		s.Logger.ErrorContext(ctx, "profile: delete account: files", slog.String("error", err.Error()))
+	}
+	if err := PurgeUserKeys(ctx, s.Cache, userID); err != nil && s.Logger != nil {
+		s.Logger.ErrorContext(ctx, "profile: delete account: redis", slog.String("error", err.Error()))
 	}
 	return nil
 }

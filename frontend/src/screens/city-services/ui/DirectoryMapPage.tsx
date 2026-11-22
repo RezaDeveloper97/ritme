@@ -21,6 +21,10 @@ import { Card, EmptyState, Icon, ScreenHeader, SecondaryButton, SkyLayer } from 
 import { DirectoryCard, DirectoryFilterSheet } from '@/widgets/directory-filters';
 
 import { CsError, CsSkeleton } from './ListSkeleton';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/csv.css';
+import '@/shared/ui/styles/cdh.css';
+import './dmp.css';
 
 /** Map page size: the API caps `per_page`; a bounding box keeps a dense city below it. */
 const MAP_LIMIT = 50;

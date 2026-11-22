@@ -12,20 +12,26 @@
 -- Down is a no-op: the removed labels were per-row copy and the action no longer exists in code.
 -- No Laravel twin: a guarded update with no row-count effect (`make schema-diff`); prod gets it at cutover
 -- (T-M2-27), as 00008 did.
+-- The UPDATE goes through PREPARE (T-M12-19c) so sqlc, which parses every Up section, never sees the JSON_TABLE /
+-- JSON_ARRAYAGG(… ORDER BY …) syntax its MySQL parser rejects. The statement text is unchanged (only its quotes are
+-- doubled inside the literal), so MariaDB runs exactly what it ran when 00128 was first applied; goose tracks
+-- versions, not file checksums, so stage/beta see nothing new.
 -- Test: db/migrations/drop_alert_visit_note_action_int_test.go (`make test-int PKG=./db/migrations/...`).
 
 -- +goose Up
-UPDATE `message_contents` mc
-   SET mc.`payload` = JSON_SET(mc.`payload`, '$.actions', (
-         SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT('key', jt.k, 'label', jt.l) ORDER BY jt.n), JSON_ARRAY())
-           FROM JSON_TABLE(mc.`payload`, '$.actions[*]' COLUMNS (
+PREPARE `drop_visit_note` FROM 'UPDATE `message_contents` mc
+   SET mc.`payload` = JSON_SET(mc.`payload`, ''$.actions'', (
+         SELECT COALESCE(JSON_ARRAYAGG(JSON_OBJECT(''key'', jt.k, ''label'', jt.l) ORDER BY jt.n), JSON_ARRAY())
+           FROM JSON_TABLE(mc.`payload`, ''$.actions[*]'' COLUMNS (
                   n FOR ORDINALITY,
-                  k VARCHAR(64) PATH '$.key',
-                  l VARCHAR(255) PATH '$.label'
+                  k VARCHAR(64) PATH ''$.key'',
+                  l VARCHAR(255) PATH ''$.label''
                 )) AS jt
-          WHERE jt.k <> 'add_to_visit_note'))
- WHERE mc.`group` = 'pregnancy_alert'
-   AND JSON_SEARCH(mc.`payload`, 'one', 'add_to_visit_note', NULL, '$.actions[*].key') IS NOT NULL;
+          WHERE jt.k <> ''add_to_visit_note''))
+ WHERE mc.`group` = ''pregnancy_alert''
+   AND JSON_SEARCH(mc.`payload`, ''one'', ''add_to_visit_note'', NULL, ''$.actions[*].key'') IS NOT NULL';
+EXECUTE `drop_visit_note`;
+DEALLOCATE PREPARE `drop_visit_note`;
 
 -- +goose Down
 SELECT 1;

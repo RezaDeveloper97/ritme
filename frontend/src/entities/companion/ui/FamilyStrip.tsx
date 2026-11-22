@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 
 import { Icon } from '@/shared/ui';
+import '@/shared/ui/styles/cmp.css';
 
 export type PersonTone = 'self' | 'companion' | 'child';
 

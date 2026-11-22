@@ -1,0 +1,76 @@
+/* `wcs-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.wcs-hero { display: flex; flex-direction: column; gap: 10px; padding-block: 16px 20px; }
+
+.wcs-eyebrow { margin: 0; font-size: var(--fs-md); font-weight: 800; color: var(--brand); }
+
+.wcs-h1 { margin: 0; font-family: var(--font-display); font-size: var(--fs-num-m); line-height: 1.4; color: var(--text-1); }
+
+.wcs-lead { margin: 0; max-inline-size: 62ch; font-size: var(--fs-base); line-height: 1.9; color: var(--text-2); }
+
+.wcs-h2 { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+
+.wcs-searchbar { display: flex; gap: 10px; margin-block-start: 6px; max-inline-size: 760px; }
+
+.wcs-field { display: flex; align-items: center; gap: 8px; min-block-size: 48px; padding-inline: 14px; border: 1px solid var(--line); border-radius: var(--r-pill); background: var(--surface); color: var(--text-3); }
+
+.wcs-field-grow { flex: 1; }
+
+.wcs-field:focus-within { border-color: var(--brand); box-shadow: var(--ring); }
+
+.wcs-field input,
+.wcs-field select { inline-size: 100%; min-inline-size: 0; border: 0; background: transparent; color: var(--text-1); font: inherit; font-size: var(--fs-base); outline: none; }
+
+.wcs-chips { flex-wrap: wrap; overflow: visible; }
+
+.wcs-grid { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 24px; align-items: start; }
+
+.wcs-grid.has-map { grid-template-columns: 260px minmax(0, 1fr) minmax(360px, 42%); }
+
+.wcs-side { position: sticky; inset-block-start: 84px; display: flex; flex-direction: column; gap: 14px; padding: 18px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface); }
+
+.wcs-side-head,
+.wcs-results-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+.wcs-results { display: flex; flex-direction: column; gap: 14px; min-inline-size: 0; }
+
+.wcs-group { margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 8px; }
+
+.wcs-group legend { padding: 0; margin-block-end: 8px; font-size: var(--fs-base); font-weight: 800; color: var(--text-1); }
+
+.wcs-opts { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.wcs-check { position: relative; display: flex; align-items: center; gap: 10px; min-block-size: 32px; font-size: var(--fs-base); font-weight: 600; color: var(--text-2); cursor: pointer; }
+
+.wcs-hint { margin: 0; font-size: var(--fs-sm); line-height: 1.8; color: var(--text-3); }
+
+.wcs-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+
+.wcs-link-btn { background: none; border: 0; padding: 4px 0; font: inherit; font-size: var(--fs-md); font-weight: 800; color: var(--brand); cursor: pointer; text-decoration: none; }
+
+.wcs-link-btn:focus-visible,
+.wcs-pager-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.wcs-pager { display: flex; align-items: center; justify-content: center; gap: 16px; font-size: var(--fs-md); font-weight: 700; color: var(--text-2); }
+
+.wcs-pager-btn { min-block-size: 40px; padding-inline: 18px; border: 1px solid var(--line-strong); border-radius: var(--r-pill); background: var(--surface); color: var(--brand); font: inherit; font-weight: 800; cursor: pointer; }
+
+.wcs-pager-btn:disabled { opacity: .45; cursor: default; }
+
+.wcs-mapcol { position: sticky; inset-block-start: 84px; block-size: calc(var(--app-vh, 100dvh) - 108px); min-block-size: 420px; border: 1px solid var(--line); border-radius: var(--r-card); overflow: hidden; }
+
+.wcs-map { inline-size: 100%; block-size: 100%; }
+
+.wcs-list .csv-card { inline-size: 100%; }
+
+@media (max-width: 1023px) {
+  .wcs-grid,
+  .wcs-grid.has-map { grid-template-columns: minmax(0, 1fr); }
+  .wcs-side { position: static; }
+  .wcs-mapcol { display: none; }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .wcs-grid.has-map { grid-template-columns: 240px minmax(0, 1fr); }
+  .wcs-grid.has-map .wcs-mapcol { display: none; }
+}

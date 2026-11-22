@@ -1,0 +1,7 @@
+/* `rp-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.rp-readout { text-align: center; margin-bottom: 16px; }
+
+.rp-value { font-size: 48px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+.rp-unit { font-size: 15px; color: var(--muted); margin-inline-start: 6px; }

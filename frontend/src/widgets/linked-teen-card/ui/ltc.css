@@ -1,0 +1,17 @@
+/* `ltc-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.ltc-sec { display: flex; flex-direction: column; gap: 10px; }
+
+.nb-card.ltc-code { display: flex; flex-direction: column; gap: 14px; padding: 18px 16px; }
+
+.ltc-code-text { display: flex; flex-direction: column; gap: 4px; }
+
+.ltc-code-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+
+.ltc-code-lead { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+
+.ltc-code-msg { margin: 0; font-size: var(--fs-md); font-weight: 700; text-align: center; }
+
+.ltc-code-msg.is-error { color: var(--danger-deep); }
+
+.ltc-code-msg.is-success { color: var(--success); }

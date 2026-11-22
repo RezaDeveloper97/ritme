@@ -11,6 +11,7 @@ import { Checkbox, IconCircle, PrimaryButton, SecondaryButton } from '@/shared/u
 
 import { useAcceptPendingConsents, usePendingConsents } from '../api/consents';
 import { shouldShowPending } from '../model/consents';
+import '@/shared/ui/styles/lab.css';
 
 /**
  * The one-time acceptance sheet of the mandatory signup consents (T-M10-23,

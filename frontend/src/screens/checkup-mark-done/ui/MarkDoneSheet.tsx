@@ -39,6 +39,9 @@ import { CalendarPicker, Icon, PrimaryButton, SecondaryButton, Skeleton, Skeleto
 
 import { parseMarkDoneArg } from '../model/arg';
 import { useMarkDoneToast } from '../model/toast';
+import '@/shared/ui/styles/ck.css';
+import '@/shared/ui/styles/rmd.css';
+import '@/shared/ui/styles/cfm.css';
 
 const NOTE_MAX = 500;
 const MAX_MB = Math.round(checkupAttachments.limits.maxFileBytes / (1024 * 1024));

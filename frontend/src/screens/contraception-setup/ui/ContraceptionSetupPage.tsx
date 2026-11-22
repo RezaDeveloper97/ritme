@@ -44,6 +44,7 @@ import {
   type SetupDraft,
 } from '../model/draft';
 import { DateSheet, TimeSheet } from './Pickers';
+import '@/shared/ui/styles/ctr.css';
 
 type DateField = 'packStartedOn' | 'insertedOn' | 'injectedOn';
 type OpenPicker = { kind: 'date'; field: DateField; title: string } | { kind: 'time' } | null;

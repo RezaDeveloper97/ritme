@@ -22,6 +22,8 @@ import {
   NOTE_MAX,
   validateLabForm,
 } from '../model/form';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/hlb.css';
 
 /**
  * `/services/home-lab/new?service=ID` — the booking form: name, phone, city / address, preferred day + window, a

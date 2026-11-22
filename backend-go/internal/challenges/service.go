@@ -492,7 +492,8 @@ type Result struct {
 
 // CompleteTask marks a task of the user's run done on day (nil = today's day of the run). Idempotent. The run's row
 // is locked for the whole call, so the completion check and the reward grant (a badge row and the free Plus days,
-// UNIQUE per user and challenge) happen exactly once even under concurrent calls.
+// UNIQUE per user and challenge) happen exactly once even under concurrent calls; the user's row is locked right
+// after it, so two runs of one user finishing together queue their free periods instead of deadlocking.
 func (s *Service) CompleteTask(ctx context.Context, userID, challengeID, taskID uint64, day *int, today civildate.Date, now time.Time) (Result, error) {
 	tx, err := s.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
 	if err != nil {
@@ -506,6 +507,12 @@ func (s *Service) CompleteTask(ctx context.Context, userID, challengeID, taskID 
 		return Result{}, ErrNotJoined
 	} else if err != nil {
 		return Result{}, fmt.Errorf("challenges: lock: %w", err)
+	}
+	// The user row next, before any insert (T-M12-19b): the reward-grant insert's foreign-key check would take a
+	// shared lock on it, and two runs of one user finishing together, both holding that while plus.GrantDays asks for
+	// the exclusive lock, deadlock. Lock order: enrollment row, then the user (as in plus).
+	if _, err := q.LockUser(ctx, userID); err != nil {
+		return Result{}, fmt.Errorf("challenges: lock user: %w", err)
 	}
 	prow, err := q.GetProgram(ctx, challengeID)
 	if err != nil {

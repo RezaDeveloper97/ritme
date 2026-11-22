@@ -54,6 +54,12 @@ import { BottomNav } from '@/widgets/bottom-nav';
 
 import { DayLogSummary } from './DayLogSummary';
 import { DayVitals } from './DayVitals';
+import '@/shared/ui/styles/btn.css';
+import '@/shared/ui/styles/home.css';
+import '@/shared/ui/styles/sec.css';
+import '@/shared/ui/styles/page.css';
+import './cell.css';
+import './legend.css';
 
 // Colors for each calendar marker — shared with the home mini calendar so both
 // surfaces stay in sync. Follicular/luteal days carry no marker and read as

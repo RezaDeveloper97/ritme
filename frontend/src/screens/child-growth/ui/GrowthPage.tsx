@@ -31,6 +31,8 @@ import { useGrowthSeries, useMeasurements } from '../api/queries';
 import { GROWTH_INDICATORS, type GrowthIndicator, type GrowthSeries } from '../model/types';
 import { GrowthChart } from './GrowthChart';
 import { MeasurementSheet } from './MeasurementSheet';
+import '@/shared/ui/styles/chd.css';
+import '@/shared/ui/styles/cgr.css';
 
 type T = ReturnType<typeof useTranslations<'children'>>;
 

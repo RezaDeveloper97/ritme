@@ -6,6 +6,7 @@ import { ApiError, getApiErrorMessage } from '@/shared/api';
 import { Icon } from '@/shared/ui';
 
 import type { SaveState } from '../model/use-autosave';
+import '@/shared/ui/styles/cjn.css';
 
 /** The user-facing text of a failed request: the API's localized message, else a generic one. */
 export function useErrorText() {

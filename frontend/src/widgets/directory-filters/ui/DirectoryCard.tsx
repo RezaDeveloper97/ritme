@@ -7,6 +7,9 @@ import { Link, type Locale, useDirection } from '@/shared/i18n';
 import { formatNumber, formatTimeOfDay, formatWeekday } from '@/shared/lib/date';
 import { pilot } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
+import '@/shared/ui/styles/csv.css';
+import '@/shared/ui/styles/cdh.css';
+import './dfc.css';
 
 interface Props {
   place: CityServiceCard;

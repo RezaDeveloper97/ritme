@@ -46,6 +46,8 @@ import {
   StatusPill,
   Switch,
 } from '@/shared/ui';
+import '@/shared/ui/styles/cmp.css';
+import '@/shared/ui/styles/tnp.css';
 
 const NOTE_MAX = 280;
 

@@ -34,6 +34,7 @@ import {
   type Tone,
 } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
+import '@/shared/ui/styles/chd.css';
 
 type T = ReturnType<typeof useTranslations<'children'>>;
 

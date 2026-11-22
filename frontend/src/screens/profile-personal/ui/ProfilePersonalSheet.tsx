@@ -16,6 +16,8 @@ import type { Locale } from '@/shared/i18n';
 import { birthYearRange, type DateParts, toApiDate, today, toParts, todayParts } from '@/shared/lib/date';
 import { closeSheet } from '@/shared/sheet';
 import { Icon, RulerPicker } from '@/shared/ui';
+import '@/shared/ui/styles/btn.css';
+import '@/shared/ui/styles/prof.css';
 
 const FA = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
 const localizeNum = (value: string | number, loc: Locale) =>

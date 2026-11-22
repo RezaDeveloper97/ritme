@@ -74,9 +74,9 @@ func TestToday_Fixture(t *testing.T) {
 	r = e.today(t, tok, "fa", "")
 	require.Equal(t, http.StatusOK, r.status, r.raw)
 	want := fmt.Sprintf(`{"success":true,"data":{"date":"2026-09-23","doses":[`+
-		`{"reminder_id":%d,"title":"فولیک اسید ۴۰۰ میکروگرم","form":"tablet","slot":"08:00","taken":true},`+
-		`{"reminder_id":%d,"title":"ویتامین C","form":"tablet","slot":"08:00","taken":false},`+
-		`{"reminder_id":%d,"title":"فولیک اسید ۴۰۰ میکروگرم","form":"tablet","slot":"20:00","taken":false}],`+
+		`{"reminder_id":%d,"title":"فولیک اسید ۴۰۰ میکروگرم","form":"tablet","slot":"08:00","taken":true,"amount":null,"unit":null,"unit_label":null,"meal":null},`+
+		`{"reminder_id":%d,"title":"ویتامین C","form":"tablet","slot":"08:00","taken":false,"amount":null,"unit":null,"unit_label":null,"meal":null},`+
+		`{"reminder_id":%d,"title":"فولیک اسید ۴۰۰ میکروگرم","form":"tablet","slot":"20:00","taken":false,"amount":null,"unit":null,"unit_label":null,"meal":null}],`+
 		`"taken_count":1,"total":3,`+
 		`"next_appointment":{"id":%d,"kind":"in_person","title":"سونوگرافی NT","with":"دکتر احمدی",`+
 		`"scheduled_at":"2026-09-30 10:30:00","days_until":7,"location":"مطب","remind_before":"1d","is_active":false}}}`,

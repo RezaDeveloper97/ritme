@@ -22,6 +22,7 @@ import {
   SkyLayer,
 } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
+import '@/shared/ui/styles/chd.css';
 
 type T = ReturnType<typeof useTranslations<'children'>>;
 

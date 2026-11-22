@@ -44,6 +44,7 @@ import { pilot } from '@/shared/pilot';
 
 import { births, medicationSchedule, regularityKey } from '../model/format';
 import { AllergiesSheet, BasicsSheet, ConditionsSheet, PregnanciesSheet } from './RecordSheets';
+import '@/shared/ui/styles/hrec.css';
 
 type SheetId = 'basics' | 'conditions' | 'allergies' | 'pregnancies';
 

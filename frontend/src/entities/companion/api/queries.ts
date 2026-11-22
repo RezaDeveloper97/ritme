@@ -67,6 +67,7 @@ function preferencesBody(prefs: Partial<CompanionPreferences> | undefined): Reco
   if (prefs.goals) body.goals = prefs.goals.filter((g) => g !== 'unknown');
   if (prefs.signals) body.signals = prefs.signals;
   if (prefs.actionPrefs) body.action_prefs = prefs.actionPrefs;
+  if (prefs.periodDays !== undefined) body.period_days = prefs.periodDays;
   return body;
 }
 

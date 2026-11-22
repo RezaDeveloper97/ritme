@@ -14,6 +14,10 @@ import (
 	"github.com/ritme/backend-go/internal/platform/queue"
 )
 
+// pinnedNow is the instant these tests run at: 23:59 Tehran on the last day of a Gregorian month and of the Gregorian
+// year, where a clock read from the wall used to flip day, month and week windows.
+var pinnedNow = time.Date(2026, 12, 31, 23, 59, 0, 0, time.FixedZone("IRST", 3*3600+1800))
+
 func byName(list []Scenario) map[string]Scenario {
 	out := map[string]Scenario{}
 	for _, s := range list {
@@ -35,7 +39,24 @@ func failures(r Run) map[string][]string {
 // TestUrgentScenarios is the nightly urgent-path run (.github/workflows/safety-scenarios-nightly.yml): every path
 // scenario gives its verdict at threshold − 1, threshold and threshold + 1 with the clinical config in force today.
 func TestUrgentScenarios(t *testing.T) {
-	now := time.Now()
+	tehran := time.FixedZone("IRST", 3*3600+1800)
+	// The nightly run is "today"; the rest are the calendar edges every verdict must survive: the last minute of a month
+	// and of a year, the first minute of a year, and 30 Esfand / 1 Farvardin.
+	for name, now := range map[string]time.Time{
+		"today":         time.Now(),
+		"month end":     time.Date(2026, 1, 31, 23, 59, 0, 0, tehran),
+		"year end":      pinnedNow,
+		"year start":    time.Date(2027, 1, 1, 0, 0, 0, 0, tehran),
+		"30 Esfand":     time.Date(2027, 3, 20, 23, 59, 0, 0, tehran),
+		"1 Farvardin":   time.Date(2027, 3, 21, 0, 0, 0, 0, tehran),
+		"leap day edge": time.Date(2028, 2, 29, 23, 59, 0, 0, tehran),
+	} {
+		t.Run(name, func(t *testing.T) { urgentScenariosAt(t, now) })
+	}
+}
+
+func urgentScenariosAt(t *testing.T, now time.Time) {
+	t.Helper()
 	r := RunScenarios(context.Background(), PureEnv(civildate.InTehran(now)), PathScenarios, now)
 	assert.Empty(t, failures(r))
 	assert.Equal(t, len(PathScenarios), r.Passed)
@@ -62,7 +83,7 @@ func TestRunScenarios_ReportsFailuresAndPanics(t *testing.T) {
 		{"wrong", KindPath, func(context.Context, *Env) Detail { return Detail{Probes: []Probe{{"x", true, false}}} }},
 		{"boom", KindPath, func(context.Context, *Env) Detail { panic("x") }},
 	}
-	r := RunScenarios(context.Background(), PureEnv(civildate.MustParse("2026-10-21")), list, time.Now())
+	r := RunScenarios(context.Background(), PureEnv(civildate.MustParse("2026-10-21")), list, pinnedNow)
 	assert.Equal(t, 1, r.Passed)
 	assert.Equal(t, []string{"wrong", "boom"}, r.Failed)
 	assert.Equal(t, []string{"x: want true, got false"}, r.Results[1].Detail.Failures())
@@ -71,7 +92,7 @@ func TestRunScenarios_ReportsFailuresAndPanics(t *testing.T) {
 
 // Without a database the configuration checks fail (never pass silently).
 func TestConfigChecks_NeedTheDatabase(t *testing.T) {
-	r := RunScenarios(context.Background(), PureEnv(civildate.MustParse("2026-10-21")), ConfigChecks, time.Now())
+	r := RunScenarios(context.Background(), PureEnv(civildate.MustParse("2026-10-21")), ConfigChecks, pinnedNow)
 	assert.Len(t, r.Failed, len(ConfigChecks)-1, "config.registry needs no database")
 	assert.Equal(t, []string{"no database"}, r.Results[0].Detail.Problems)
 }
@@ -120,7 +141,7 @@ func TestScenarios_FollowTheRegistry(t *testing.T) {
 			v(clinicalconfig.KeyPregnancyBPHigh, clinicalconfig.Value{"systolic": 140, "diastolic": 90, "urgent": 0}),
 			v(clinicalconfig.KeyPregnancyContractions511, clinicalconfig.Value{"interval_min": 4, "duration_s": 60, "period_min": 60}),
 		})
-		r := RunScenarios(context.Background(), PureEnv(day), PathScenarios, time.Now())
+		r := RunScenarios(context.Background(), PureEnv(day), PathScenarios, pinnedNow)
 		assert.Empty(t, failures(r), "urgent_total %v", total)
 		res := r.Results[indexOf(r, "preg.kicks_count")]
 		assert.Equal(t, "< 8 kicks in 1h30m0s from week 26", res.Detail.Threshold)
@@ -129,7 +150,7 @@ func TestScenarios_FollowTheRegistry(t *testing.T) {
 	clinicalconfig.SetVersions([]clinicalconfig.Version{v(clinicalconfig.KeyPregnancyKicks,
 		clinicalconfig.Value{"target": 2, "window_min": 120, "from_week": 28})})
 	r := RunScenarios(context.Background(), PureEnv(day), append(append([]Scenario{}, PathScenarios...),
-		byName(ConfigChecks)["config.registry"]), time.Now())
+		byName(ConfigChecks)["config.registry"]), pinnedNow)
 	assert.Equal(t, []string{"config.registry"}, r.Failed)
 	assert.Equal(t, []string{"pregnancy.kicks v2: range:target"}, r.Results[len(r.Results)-1].Detail.Problems)
 }

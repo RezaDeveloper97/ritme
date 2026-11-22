@@ -25,6 +25,7 @@ import {
   type Tone,
 } from '@/shared/ui';
 import { pilot } from '@/shared/pilot';
+import '@/shared/ui/styles/lab.css';
 
 const HERO_TAGS: readonly { key: 'blood' | 'hormone' | 'thyroid' | 'urine'; tone: Tone }[] = [
   { key: 'blood', tone: 'brand' },

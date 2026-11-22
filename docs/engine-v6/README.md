@@ -144,7 +144,11 @@ Shipped in T-M9-26 (deviation **D-126**, X-07):
 - Admin and operations (the operator's day, Tehran by design): `admin/checkups` (2), `admin/clinicalcfg` (1),
   `admin/content` (2), `admin/messages` (1), `admin/safetyreview` (1), `cityservices` (1), `shop/admin` (1),
   `bannerads` (1), `content` (1).
-- Other domains (out of scope of X-07): `babylog` (11), `care` (4), `challenges` (3), `checkups` (2), `children` (17),
+- Moved to the user zone by T-M12-21c (user decision 2026-11-18): `care` doses, `/care/upcoming`, `/care/today`,
+  `reminders.Plan` and quiet hours (`notifications.Preferences.Zone`, `usertz.Zones` for jobs; DST: a slot in the
+  spring-forward gap fires at the first valid instant, an overlapped slot at its first occurrence). Appointments'
+  `scheduled_at` is still Tehran; SMS reminders follow the user zone since T-M12-21d.
+- Other domains (out of scope of X-07): `babylog` (11), `challenges` (3), `checkups` (2), `children` (17),
   `companion/shared` (1), `conditions` (2), `emergency` (3), `healthrecord` (7), `healthrecord/extract` (5),
   `insurance` (26), `ivf` (12), `labs` (3), `learning` (1), `loss` (8), `menopause` (17), `partners` (1), `pelvic` (3),
   `pregnancy/tools` (13), `safety` (3), `search` (1), `sharelinks` (2), `shop` (2), `shop/checklist` (3), `teen` (2),

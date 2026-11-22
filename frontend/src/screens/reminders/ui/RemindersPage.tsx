@@ -12,6 +12,7 @@ import { REMINDER_TABS, type RemindersTab, parseTab, tabHref, visibleSections } 
 import { AppointmentSection } from './AppointmentSection';
 import { MedicationSection } from './MedicationSection';
 import { TodayCard } from './TodayCard';
+import '@/shared/ui/styles/rmd.css';
 
 /** The AddChooser sheet (`app/sheets/registry.tsx`). */
 const ADD_SHEET = 'reminders-add';

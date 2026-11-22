@@ -1,4 +1,5 @@
 import { ChartFigure, type DataTable } from './ChartFigure';
+import '@/shared/ui/styles/axc.css';
 
 /** Intensity step of a cell (1 = lightest … 4 = strongest), null = nothing logged. */
 export type HeatLevel = 1 | 2 | 3 | 4 | null;

@@ -10,6 +10,7 @@ import { Icon, ProgressBar, SecondaryButton } from '@/shared/ui';
 
 import { fileProblem } from '../model/join';
 import { useErrorText } from './parts';
+import '@/shared/ui/styles/cjn.css';
 
 /**
  * The photo grid of the application (step 2 and the done screen's «add more photos»): each picked file goes to

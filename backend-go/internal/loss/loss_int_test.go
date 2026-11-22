@@ -102,11 +102,8 @@ func (e *env) pregnant(t *testing.T, userID uint64) {
 		VALUES (?, 1, 0, 'lmp', '2026-08-02', 1, '2026-09-01 09:00:00', '2026-09-01 09:00:00')`, userID)
 	exec(`INSERT INTO user_life_profiles (user_id, life_mode, ivf_iui, track_contraception, created_at, updated_at)
 		VALUES (?, 'pregnancy', 0, 0, '2026-09-01 09:00:00', '2026-09-01 09:00:00')`, userID)
-	for _, lvl := range []string{"emergency", "warning"} {
-		exec(`INSERT INTO pregnancy_alerts (user_id, alert_level, alert_type, title, message, created_at, updated_at)
-			VALUES (?, ?, 'v2:test', 't', 'm', '2026-09-20 09:00:00', '2026-09-20 09:00:00')`, userID, lvl)
-	}
-	// T-M10-08b: the pregnancy alerts of the message engine (preg.* inbox rows), open and resolved.
+	// The pregnancy alerts are the preg.* inbox rows of the message engine (T-M10-08b), open and resolved. No
+	// pregnancy_alerts rows: since T-M10-08c (goose 00114, D-165) no code path reads or writes that table.
 	exec(`INSERT INTO message_inbox (user_id, rule_id, version, rule_key, kind, level, state, first_at, last_at, created_at, updated_at)
 		VALUES (?, 1, 1, 'preg.critical_symptom', 'safety', 'follow_soon', 'active', '2026-09-20 09:00:00', '2026-09-20 09:00:00',
 		'2026-09-20 09:00:00', '2026-09-20 09:00:00'),
@@ -195,7 +192,6 @@ func TestLoss_RecordStopsPregnancyContentDurably(t *testing.T) {
 
 	// Pregnancy mode off (the flag every pregnancy reader keys on), alerts closed, mode back to cycle.
 	assert.EqualValues(t, 0, e.scalar(t, `SELECT pregnancy_mode FROM pregnancy_profiles WHERE user_id = ?`, uid))
-	assert.EqualValues(t, 0, e.scalar(t, `SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND is_dismissed = 0`, uid))
 	assert.EqualValues(t, 0, e.scalar(t, `SELECT COUNT(*) FROM message_inbox WHERE user_id = ? AND rule_key LIKE 'preg.%' AND state <> 'archived'`, uid),
 		"the preg.* inbox rows are archived")
 	assert.Equal(t, "cycle", e.scalar(t, `SELECT life_mode FROM user_life_profiles WHERE user_id = ?`, uid))
@@ -411,7 +407,6 @@ func TestLoss_EraseAndConcurrency(t *testing.T) {
 	assert.EqualValues(t, 2, e.scalar(t, `SELECT COUNT(*) FROM reminders WHERE user_id = ? AND type = 'appointment' AND title IN ('NT scan', 'Dentist')`, uid))
 	assert.Nil(t, e.do(t, http.MethodGet, "/api/v1/loss", tok, "").data()["loss"])
 	assert.EqualValues(t, 0, e.scalar(t, `SELECT pregnancy_mode FROM pregnancy_profiles WHERE user_id = ?`, uid))
-	assert.EqualValues(t, 0, e.scalar(t, `SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ? AND is_dismissed = 0`, uid))
 	assert.EqualValues(t, 0, e.scalar(t, `SELECT COUNT(*) FROM message_inbox WHERE user_id = ? AND rule_key LIKE 'preg.%' AND state <> 'archived'`, uid),
 		"the preg.* inbox rows are archived")
 	assert.EqualValues(t, 0, e.scalar(t, `SELECT is_active FROM reminders WHERE user_id = ? AND title = 'Folic acid'`, uid))

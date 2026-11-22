@@ -1,0 +1,105 @@
+/* `cys-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.cys-page { background: var(--page); }
+
+.cys-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; padding-bottom: 40px; }
+
+.cys-scroll > :not(.nb-hdr) { margin-inline: 16px; }
+
+.cys-card.nb-list { padding: 20px 16px 8px; gap: 12px; }
+
+.cys-card .nb-list-rows > * { padding-block: 10px; }
+
+.cys-card .nb-list-rows > :last-child { padding-bottom: 10px; }
+
+.cys-card .nb-list-rows > .cys-tiles { padding-block: 2px 12px; }
+
+.cys-card .nb-list-rows > .cys-tiles + *,
+.cys-card .nb-list-rows > .cys-manual { border-top: 0; }
+
+.cys-card .nb-row { min-height: 58px; }
+
+.cys-card .nb-list-rows > * + * { border-radius: 0; }
+
+.cys-card .nb-row-desc { line-height: 1.7; }
+
+.cys-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.cys-tile {
+  display: flex; flex-direction: column; gap: 2px; min-height: 92px; padding: 14px 16px;
+  border-radius: 20px; background: var(--brand-soft);
+}
+
+.cys-tile.is-period { background: var(--period-soft); }
+
+.cys-tile-label { font-size: 12.5px; font-weight: 800; color: var(--brand); }
+
+.cys-tile.is-period .cys-tile-label { color: var(--period-deep); }
+
+.cys-tile-value { display: flex; align-items: baseline; gap: 6px; color: var(--text-1); }
+
+.cys-tile-num { font-family: var(--font-display); font-size: 34px; line-height: 1.1; }
+
+.cys-tile-unit { font-size: 12px; font-weight: 700; color: var(--text-2); }
+
+.cys-tile-cap { font-size: 11.5px; font-weight: 700; color: var(--text-2); }
+
+.cys-manual { display: flex; flex-direction: column; gap: 14px; padding-block: 4px 12px; }
+
+.cys-rem { display: flex; flex-direction: column; }
+
+.cys-rem > .nb-row { padding: 0; }
+
+.cys-sub {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-block: -12px; padding: 0;
+  background: transparent; border: 0; font: inherit; color: var(--text-2); cursor: pointer; border-radius: 8px;
+}
+
+.cys-sub-icon { color: var(--brand); opacity: .8; }
+
+.cys-sub:focus-visible,
+.cys-done:focus-visible,
+.cys-time-input:focus-visible {
+  outline: 2px solid var(--brand); outline-offset: 2px;
+}
+
+.cys-edit { display: flex; flex-direction: column; gap: 12px; padding-block: 12px 4px; }
+
+.cys-edit-row { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
+
+.cys-time { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 120px; }
+
+.cys-time-label { font-size: var(--fs-sm); font-weight: 700; color: var(--text-3); }
+
+.cys-time-input {
+  min-height: 44px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 14px;
+  background: var(--surface-3); color: var(--text-1); font: inherit; font-size: 14px; font-weight: 700;
+}
+
+.cys-done {
+  min-height: 44px; padding: 0 18px; border: 0; border-radius: var(--r-pill);
+  background: var(--brand-soft); color: var(--brand-ink); font: inherit; font-size: 13px; font-weight: 800; cursor: pointer;
+}
+
+.cys-check {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 24px; height: 24px; border-radius: 50%; background: var(--brand-fill); color: var(--on-brand);
+}
+
+.cys-empty { margin: 0; padding-block: 8px 12px; font-size: 13px; font-weight: 600; color: var(--text-2); }
+
+.cys-note { margin: 0; padding-inline: 8px; font-size: 12px; font-weight: 600; line-height: 1.9; color: var(--text-3); text-align: center; }
+
+.cys-error { margin: 0; padding-inline: 4px; font-size: var(--fs-sm); font-weight: 700; color: var(--danger); }
+
+.cys-skel { gap: 16px; }
+
+.cys-skel-card { display: flex; flex-direction: column; gap: 12px; padding: 20px 16px; }
+
+.nb-skel.is-block.cys-skel-tile { height: 92px; border-radius: 20px; }
+
+.cys-skel-row { display: flex; align-items: center; gap: 12px; min-height: 58px; }
+
+.cys-skel-text { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+
+.nb-skel.is-block.cys-skel-switch { width: 48px; height: 30px; border-radius: 15px; flex-shrink: 0; }

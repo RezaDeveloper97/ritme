@@ -27,6 +27,7 @@ import { pilot, pilotOption } from '@/shared/pilot';
 import { isValidFrom, parseGroup, REPORT_GROUPS, SECTION_PARAM, selectionOf, useReportDraft } from '../model/selection';
 import { ShareLinkSheet } from './ShareLinkSheet';
 import { estimatePages, usePaperModel, usePdfDownload } from './usePaper';
+import './rx.css';
 
 /**
  * «گزارش برای پزشک» (bloom B-N6-04, nbl_Record_Export): range, section toggles and the patient's question, then a

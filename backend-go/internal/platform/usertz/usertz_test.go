@@ -188,3 +188,85 @@ func TestMiddleware_KnownZoneExpires(t *testing.T) {
 	_, _ = get(t, app, "/today", "")
 	assert.Equal(t, 2, st.reads)
 }
+
+// T-M12-21: the user-local day through the middleware at the edges — the Tehran midnight into Nowruz 1405
+// (2026-03-21), both Berlin DST changes (23:30 vs 00:30 local), odd offsets and the date line. Negative rows: the
+// same instant in another zone, an invalid header (Tehran fallback), a stored zone below a header.
+func TestMiddleware_LocalDayEdges(t *testing.T) {
+	cases := []struct {
+		name   string
+		at     time.Time
+		header string
+		stored string // user 1's stored zone ("" = none)
+		want   string
+	}{
+		{"Tehran 23:59:59 on 29 Esfand 1404", time.Date(2026, 3, 20, 20, 29, 59, 0, time.UTC), "Asia/Tehran", "", "2026-03-20"},
+		{"Tehran 00:00 on Nowruz 1405", time.Date(2026, 3, 20, 20, 30, 0, 0, time.UTC), "Asia/Tehran", "", "2026-03-21"},
+		{"no header, no stored zone: Tehran", time.Date(2026, 3, 20, 20, 30, 0, 0, time.UTC), "", "", "2026-03-21"},
+		{"Berlin at Tehran's Nowruz midnight (negative)", time.Date(2026, 3, 20, 20, 30, 0, 0, time.UTC), "Europe/Berlin", "", "2026-03-20"},
+		{"stored Berlin, no header", time.Date(2026, 3, 20, 22, 30, 0, 0, time.UTC), "", "Europe/Berlin", "2026-03-20"},
+		{"stored Berlin, Tehran header wins", time.Date(2026, 3, 20, 22, 30, 0, 0, time.UTC), "Asia/Tehran", "Europe/Berlin", "2026-03-21"},
+		{"invalid header falls back to the stored zone", time.Date(2026, 3, 20, 22, 30, 0, 0, time.UTC), "+01:00", "Europe/Berlin", "2026-03-20"},
+		{"invalid header, no stored zone: Tehran", time.Date(2026, 3, 20, 22, 30, 0, 0, time.UTC), "Mars/Olympus", "", "2026-03-21"},
+		{"Berlin 00:30 CET, spring-forward day", time.Date(2026, 3, 28, 23, 30, 0, 0, time.UTC), "Europe/Berlin", "", "2026-03-29"},
+		{"Berlin 23:30 CEST, spring-forward day", time.Date(2026, 3, 29, 21, 30, 0, 0, time.UTC), "Europe/Berlin", "", "2026-03-29"},
+		{"Berlin 00:00 CEST after spring-forward", time.Date(2026, 3, 29, 22, 0, 0, 0, time.UTC), "Europe/Berlin", "", "2026-03-30"},
+		{"Berlin 00:30 CEST, fall-back day", time.Date(2026, 10, 24, 22, 30, 0, 0, time.UTC), "Europe/Berlin", "", "2026-10-25"},
+		{"Berlin 23:30 CET, fall-back day", time.Date(2026, 10, 25, 22, 30, 0, 0, time.UTC), "Europe/Berlin", "", "2026-10-25"},
+		{"Berlin 00:00 CET after fall-back", time.Date(2026, 10, 25, 23, 0, 0, 0, time.UTC), "Europe/Berlin", "", "2026-10-26"},
+		{"Kathmandu (+05:45) 00:00", time.Date(2026, 3, 20, 18, 15, 0, 0, time.UTC), "Asia/Kathmandu", "", "2026-03-21"},
+		{"Kathmandu 23:59", time.Date(2026, 3, 20, 18, 14, 0, 0, time.UTC), "Asia/Kathmandu", "", "2026-03-20"},
+		{"Kiritimati (+14) 00:30", time.Date(2026, 3, 20, 10, 30, 0, 0, time.UTC), "Pacific/Kiritimati", "", "2026-03-21"},
+		{"Pago Pago (−11), same instant", time.Date(2026, 3, 20, 10, 30, 0, 0, time.UTC), "Pacific/Pago_Pago", "", "2026-03-19"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			stored := sql.NullString{}
+			if c.stored != "" {
+				stored = sql.NullString{String: c.stored, Valid: true}
+			}
+			m := New(&fakeStore{zones: map[uint64]sql.NullString{1: stored}}, nil)
+			m.logger = slog.New(slog.NewJSONHandler(io.Discard, nil))
+			m.userID = func(fiber.Ctx) (uint64, bool) { return 1, true }
+			app := fiber.New()
+			app.Use(m.Handler())
+			at := c.at
+			app.Get("/today", func(fc fiber.Ctx) error {
+				return fc.SendString(civildate.LocalToday(fc.Context(), clock.At(at)).String())
+			})
+			_, body := get(t, app, "/today", c.header)
+			m.Wait()
+			assert.Equal(t, c.want, body)
+		})
+	}
+}
+
+// Zones (jobs, T-M12-21c): the stored zone, Tehran for none / invalid / no profile; one read per user within the TTL.
+func TestZones_StoredZonePerUser(t *testing.T) {
+	st := &fakeStore{zones: map[uint64]sql.NullString{
+		1: {},
+		2: {String: "Europe/Berlin", Valid: true},
+		3: {String: "Not/AZone", Valid: true},
+	}}
+	z := NewZones(st)
+	at := time.Date(2026, 11, 18, 10, 0, 0, 0, time.UTC)
+	z.now = func() time.Time { return at }
+	ctx := context.Background()
+	for uid, want := range map[uint64]string{1: "Asia/Tehran", 2: "Europe/Berlin", 3: "Asia/Tehran", 4: "Asia/Tehran"} {
+		loc, err := z.For(ctx, uid)
+		require.NoError(t, err)
+		assert.Equal(t, want, loc.String(), uid)
+	}
+	assert.Equal(t, 4, st.reads)
+	_, _ = z.For(ctx, 2)
+	assert.Equal(t, 4, st.reads, "remembered")
+	at = at.Add(knownTTL + time.Second)
+	_, _ = z.For(ctx, 2)
+	assert.Equal(t, 5, st.reads, "read again after the TTL")
+
+	st.readErr = assert.AnError
+	at = at.Add(knownTTL + time.Second)
+	loc, err := z.For(ctx, 2)
+	require.ErrorIs(t, err, assert.AnError)
+	assert.Equal(t, "Asia/Tehran", loc.String())
+}

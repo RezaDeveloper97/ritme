@@ -1,0 +1,109 @@
+/* `pd-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.pd-hero {
+  position: relative; overflow: hidden;
+  margin-top: 8px;
+  border-radius: 20px;
+  padding: 18px;
+  background: linear-gradient(135deg, var(--brand-fill) 0%, color-mix(in srgb, var(--brand-fill) 72%, var(--bloom)) 100%);
+  color: var(--on-brand);
+  box-shadow: var(--shadow-hero);
+  text-align: start;
+}
+
+.pd-hero-deco { position: absolute; border-radius: 50%; background: rgba(255, 255, 255, .13); }
+
+.pd-hero-deco-a { width: 132px; height: 132px; top: -58px; inset-inline-end: -34px; }
+
+.pd-hero-deco-b { width: 72px; height: 72px; bottom: -30px; inset-inline-start: 18%; }
+
+.pd-hero-row { position: relative; display: flex; align-items: center; gap: 12px; }
+
+.pd-hero-b { flex: 1; min-width: 0; }
+
+.pd-hero-overline { font-size: 11px; font-weight: 700; opacity: .85; }
+
+.pd-hero-name { font-size: 22px; font-weight: 900; margin-top: 4px; }
+
+.pd-hero-badge {
+  width: 44px; height: 44px; border-radius: 50%; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, .18);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25);
+}
+
+.pd-hero-sub { position: relative; font-size: 12px; line-height: 1.9; margin: 10px 0 0; opacity: .92; }
+
+.pd-section { padding: 16px; margin-top: 12px; }
+
+.pd-sec-head { display: flex; align-items: center; gap: 10px; }
+
+.pd-badge {
+  width: 38px; height: 38px; border-radius: 13px; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.pd-badge.is-blue { color: var(--blue);        background: var(--blue-soft); }
+
+.pd-badge.is-teal { color: var(--teal);        background: var(--teal-soft); }
+
+.pd-badge.is-pink { color: var(--brand);       background: var(--pink-bg); }
+
+.pd-badge.is-amber { color: var(--amber-deep);  background: var(--amber-soft); }
+
+.pd-badge.is-rose { color: var(--rose);        background: var(--pink-bg); }
+
+.pd-badge.is-green { color: var(--green);       background: var(--green-soft); }
+
+.pd-badge.is-orange { color: var(--orange);      background: var(--orange-soft); }
+
+.pd-badge.is-violet { color: var(--violet);      background: var(--violet-soft); }
+
+.pd-badge.is-indigo { color: var(--indigo-deep); background: var(--indigo-soft); }
+
+.pd-h2 { font-size: 14.5px; font-weight: 800; color: var(--ink); margin: 0; text-align: start; flex: 1; min-width: 0; }
+
+.pd-cta {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin: 14px 2px 2px; padding: 9px 16px; border-radius: 999px;
+  font-size: 13px; font-weight: 700; text-decoration: none;
+  color: var(--ink); background: var(--pink-bg);
+  /* The label is ink, not brand: --brand on --pink-bg is only ~3.4:1 in both
+     themes, under AA for 13px text. The brand ring carries the affordance
+     instead, so the button still reads as tappable at full contrast. */
+  box-shadow: inset 0 0 0 1px var(--brand);
+  transition: filter .14s ease, transform .14s ease;
+}
+
+.pd-cta:hover { filter: brightness(.97); }
+
+.pd-cta:active { transform: scale(.97); }
+
+.pd-cta:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.pd-skel .skeleton-line { margin-top: 8px; }
+
+.pd-skel-head { width: 45%; height: 16px; margin-top: 0 !important; margin-bottom: 6px; }
+
+.pd-skel-last { width: 70%; }
+
+.pd-body { font-size: 13.5px; line-height: 2; color: var(--muted); margin: 10px 2px 0; text-align: start; white-space: pre-line; }
+
+.pd-skel { display: grid; gap: 12px; margin-top: 8px; }
+
+.pd-skel-hero { height: 116px; border-radius: 20px; }
+
+.pd-skel-card { height: 96px; border-radius: 16px; }
+
+.pd-skel-card.is-short { height: 72px; }
+
+.pd-empty { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 64px 24px 24px; }
+
+.pd-empty-icon {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: var(--surface); color: var(--brand);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 10px 30px rgba(17, 32, 47, .08);
+}
+
+.pd-empty-text { font-size: 13.5px; line-height: 2; color: var(--muted); margin: 0; text-align: center; max-width: 260px; }

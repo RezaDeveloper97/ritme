@@ -5,6 +5,7 @@ import { clsx } from 'clsx';
 import { ChipGroup, PillChip } from '@/shared/ui';
 
 import { isMappedRegion } from '../model/regions';
+import './bmap.css';
 
 export interface BodyMapRegion {
   code: string;
