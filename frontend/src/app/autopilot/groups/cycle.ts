@@ -120,7 +120,6 @@ export const CYCLE_TARGETS: readonly CatalogTarget[] = [
   { id: 'home.period-still-going', value: 'action', titleKey: 'targets.home_period_still_going', surface: { route: '/home' } },
   { id: 'home.edit-period', value: 'action', titleKey: 'targets.home_edit_period', surface: { route: '/home' } },
   { id: 'home.log-row:*', value: 'action', surface: { route: '/home' } },
-  { id: 'home.predictions-details', value: 'action', titleKey: 'targets.home_predictions_details', surface: { route: '/home' } },
   { id: 'analysis.card:*', value: 'action', surface: { route: '/analysis' } },
   { id: 'analysis.report', value: 'action', titleKey: 'targets.analysis_report', surface: { route: '/analysis' } },
   { id: 'analysis.range:*', value: 'action', surface: { route: '/analysis' } },

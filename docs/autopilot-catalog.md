@@ -266,7 +266,6 @@
 | `home.period-still-going` | action | هنوز ادامه داره | route `/home` | — | — |
 | `home.edit-period` | action | ویرایش پریود | route `/home` | — | — |
 | `home.log-row:*` | action | — | route `/home` | — | — |
-| `home.predictions-details` | action | جزئیات پیش‌بینی‌ها | route `/home` | — | — |
 | `analysis.card:*` | action | — | route `/analysis` | — | — |
 | `analysis.report` | action | گزارش ماهانه | route `/analysis` | — | — |
 | `analysis.range:*` | action | — | route `/analysis` | — | — |

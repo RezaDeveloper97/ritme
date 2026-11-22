@@ -2,6 +2,7 @@
 
 import { clsx } from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
+import type { ReactNode } from 'react';
 
 import type { AnalysisSection } from '@/entities/analysis';
 import { pilot } from '@/shared/pilot';
@@ -300,7 +301,8 @@ function HubSkeleton({ label }: { label: string }) {
  * intercourse timing / mucus / luteal phase (Plus) and cycle regularity. The
  * BBT, LH and Plus cards open the fertility detail (`/analysis/fertility`).
  */
-export function AnalysisTtcHub() {
+/** `predictions`: the «پیش‌بینی‌ها» card (widgets/cycle-predictions), composed in by the route. */
+export function AnalysisTtcHub({ predictions }: { predictions?: ReactNode } = {}) {
   const t = useTranslations('analysis.ttc.ui');
   const tHub = useTranslations('analysis.hub');
   const mounted = useMounted();
@@ -359,6 +361,7 @@ export function AnalysisTtcHub() {
           {t('modeChip')}
         </StatusPill>
       </header>
+      {predictions}
       {body}
     </div>
   );

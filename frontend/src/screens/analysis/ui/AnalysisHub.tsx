@@ -2,7 +2,7 @@
 
 import { clsx } from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 
 import { DEFAULT_RANGE, HUB_RANGES, useAnalysisSummary, type AnalysisSummary, type HubRangeKey } from '@/entities/analysis';
 import { isRangeDenial, PlusRangePaywall, usePlusRangeLocked } from '@/entities/plus';
@@ -97,7 +97,7 @@ function renderCard(card: HubCard, summary: AnalysisSummary, variant: HubVariant
  * its detail screen (B-N3-09/10). Plus sections arrive locked (no data) for a
  * free user and render as a blurred teaser behind the paywall button.
  */
-export function AnalysisHub({ variant }: { variant: HubVariant }) {
+export function AnalysisHub({ variant, predictions }: { variant: HubVariant; predictions?: ReactNode }) {
   const t = useTranslations('analysis.hub');
   const tCorr = useTranslations('analysis.correlations');
   const mounted = useMounted();
@@ -181,6 +181,7 @@ export function AnalysisHub({ variant }: { variant: HubVariant }) {
   return (
     <div className="an-hub">
       <HubHead />
+      {predictions}
       <SegmentedTabs
         label={t('rangeLabel')}
         value={range}

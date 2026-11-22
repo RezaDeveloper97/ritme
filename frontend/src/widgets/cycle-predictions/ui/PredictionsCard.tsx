@@ -6,7 +6,6 @@ import type { ReactNode } from 'react';
 
 import type { CycleRegularity, OvulationSource } from '@/entities/cycle';
 import { Link, type Locale } from '@/shared/i18n';
-import { pilot } from '@/shared/pilot';
 import { formatNumber } from '@/shared/lib/date';
 import { Card, Icon, IconCircle, StatusPill, type IconName, type Tone } from '@/shared/ui';
 
@@ -41,7 +40,7 @@ const OVULATION_SOURCE_KEY: Record<OvulationSource, 'sourceBbt' | 'sourceLh' | '
 };
 
 /**
- * «پیش‌بینی‌ها» (nbl_Cycle_Home): next period, PMS, fertile window and
+ * «پیش‌بینی‌ها» (nbl_Cycle_Home, now on `/analysis`): next period, PMS, fertile window and
  * ovulation as dot rows, then the cycle length (median ± spread) with its
  * regularity pill. The dates are the engine's (`cycle_view` + `/home/cycle-overview`);
  * this card only words the countdown.
@@ -115,8 +114,6 @@ export function PredictionsCard({
     <Card as="section" className="ch-pred" aria-labelledby="ch-pred-title">
       <div className="ch-card-head">
         <h2 id="ch-pred-title" className="ch-overline">{t('title')}</h2>
-        {/* B-N3-08: «جزئیات» opens the analysis hub; the cycle-length row below keeps /cycle (history). */}
-        <Link href="/analysis" className="ch-link" {...pilot('home.predictions-details')}>{t('details')}</Link>
       </div>
       <ul className="ch-pred-list">
         {rows.map((row) => (
@@ -128,6 +125,7 @@ export function PredictionsCard({
           </li>
         ))}
       </ul>
+      {/* The cycle-length row opens the «تاریخچه» tab of the same page. */}
       {length && (
         <Link href="/analysis?tab=history" className="ch-len">
           <span className="ch-len-body">

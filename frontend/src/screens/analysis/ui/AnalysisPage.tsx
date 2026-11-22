@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 
 import { useRouter } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
@@ -23,23 +23,33 @@ import { AnalysisHub } from './AnalysisHub';
  * slices never import each other. `pregnancyHub` is the pregnancy hub
  * (screens/analysis-pregnancy, B-N3-12), composed in the same way, and
  * `postpartumHub` the postpartum hub (screens/analysis-postpartum, B-N5-07).
+ * `predictions` is the «پیش‌بینی‌ها» card (widgets/cycle-predictions), moved here from «امروز»;
+ * the cycle hub shows it under its header (the TTC hub gets its own copy from the route).
  */
 export function AnalysisPage({
   ttcHub,
   pregnancyHub,
   postpartumHub,
   historyPanel,
+  predictions,
   initialTab = 'analysis',
 }: {
   ttcHub?: ReactNode;
   pregnancyHub?: ReactNode;
   postpartumHub?: ReactNode;
   historyPanel?: ReactNode;
+  predictions?: ReactNode;
   initialTab?: AnalysisTab;
 } = {}) {
   const t = useTranslations('analysis.hub');
   const tTabs = useTranslations('analysis.tabs');
   const [tab, setTab] = useState<AnalysisTab>(historyPanel ? initialTab : 'analysis');
+  // A link to this same route with another `?tab=` (the predictions card's cycle-length row)
+  // re-renders with a new `initialTab` but keeps the state, so follow it.
+  useEffect(() => {
+    if (historyPanel) setTab(initialTab);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialTab]);
   const changeTab = (next: AnalysisTab) => {
     setTab(next);
     // Keep the URL shareable / back-safe without a server round-trip.
@@ -87,7 +97,8 @@ export function AnalysisPage({
       </div>
     );
   } else {
-    content = <AnalysisHub variant={variant} />;
+    // The «پیش‌بینی‌ها» card only for the plain cycle hub (teen / menopause have no predictions card).
+    content = <AnalysisHub variant={variant} predictions={mode === 'cycle' ? predictions : undefined} />;
   }
 
   return (
