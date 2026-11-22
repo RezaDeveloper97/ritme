@@ -21,6 +21,11 @@ type Querier interface {
 	DeleteLogEntriesOn(ctx context.Context, arg DeleteLogEntriesOnParams) error
 	// One param of a day (every item of a multi / items / text_items param).
 	DeleteLogEntryParam(ctx context.Context, arg DeleteLogEntryParamParams) error
+	// T-M12-31 (P-06): every slot of the given params of a day in one statement — the (category, param) IN (…) of a
+	// save. sqlc drops a sqlc.slice whose left side is a tuple or an expression (no type to infer), so the pairs go as
+	// one comma-separated "category.param" list (taxonomy codes are [a-z0-9_], never a comma; the caller checks).
+	// The (user_id, log_date) prefix of the slot index narrows the scan to the day's rows first.
+	DeleteLogEntryParams(ctx context.Context, arg DeleteLogEntryParamsParams) error
 	DeleteLogEntrySlot(ctx context.Context, arg DeleteLogEntrySlotParams) error
 	DeleteLogPreferences(ctx context.Context, arg DeleteLogPreferencesParams) error
 	// B-N3-14b (D-55): the first period that starts after a bleeding day (it may start a day or two later).
@@ -62,6 +67,11 @@ type Querier interface {
 	// Every column is written; the ones the request did not send are NULL (their DB default).
 	InsertDailyHealthLog(ctx context.Context, arg InsertDailyHealthLogParams) (int64, error)
 	InsertLogCustomItem(ctx context.Context, arg InsertLogCustomItemParams) (int64, error)
+	// T-M12-31 (P-06): every row of one day save in one multi-row INSERT. batch is a JSON array of rows
+	// [category, param, item, value_code|null, value_num|null, value_text|null, source], kept in array order (ids follow
+	// it, as the per-row inserts did). sqlc's parser has neither JSON_TABLE nor recursive CTEs, so the array is walked by
+	// an index 0…999 built from three digit tables (as InsertMessageEventsBatch); the caller sends at most 1000 rows.
+	InsertLogEntriesBatch(ctx context.Context, arg InsertLogEntriesBatchParams) error
 	InsertLogEntry(ctx context.Context, arg InsertLogEntryParams) error
 	// CycleHistoryService::updatePreviousPeriodEndDate: the last bleeding day in [from, before).
 	LastBleedingDateBetween(ctx context.Context, arg LastBleedingDateBetweenParams) (civildate.Date, error)

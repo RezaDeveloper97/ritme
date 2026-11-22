@@ -26,6 +26,9 @@ import {
   highlightMeta,
   ringFraction,
 } from '../model/counts';
+import '@/shared/ui/styles/ck.css';
+import '@/shared/ui/styles/trm.css';
+import './ckc.css';
 
 type T = ReturnType<typeof useTranslations<'checkups'>>;
 

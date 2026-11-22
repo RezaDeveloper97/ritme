@@ -41,10 +41,33 @@
 ##      every later request — XHR with a bearer token, service-worker fetch,
 ##      RSC prefetch — passes without any Authorization header of its own.
 ##
-## The same map turns the gate off for container-to-container traffic, which is
-## how the Next.js server reaches /api/v1/languages during SSR.
+## The same map turns the gate off for the Next.js server's own SSR reads
+## (T-M12-02, S-04): only from the exact subnets of the stage frontend
+## container's networks, never their gateways (where docker-proxy makes
+## IPv6 / hairpin clients appear), and only for GET/HEAD of the public read
+## endpoints SSR calls (/api/v1/languages…, shop catalog, city-service
+## listings, info pages). Never all of 10/8 or 172.16/12 — see stage-gate.sh.
 ##
 ## Credentials still live in /opt/ritme/stage.htpasswd (server-only).
+
+# Client IP (T-M12-02): $remote_addr is the real client — rewritten from
+# X-Forwarded-For only when the peer is an ArvanCloud edge (cdn-real-ip.inc;
+# stage normally resolves straight here, so it is usually the TCP peer).
+include /etc/nginx/conf.d/cdn-real-ip.inc;
+
+# Forwarded headers for every location that does not spell out its own: the
+# client IP is $remote_addr ALONE, never the client's X-Forwarded-For chain
+# (proxy-params.inc appends to it, so this vhost no longer includes it).
+proxy_http_version 1.1;
+proxy_set_header Host              $host;
+proxy_set_header X-Real-IP         $remote_addr;
+proxy_set_header X-Forwarded-For   $remote_addr;
+proxy_set_header X-Forwarded-Proto $scheme;
+proxy_set_header X-Forwarded-Host  $host;
+proxy_set_header Upgrade           $http_upgrade;
+proxy_set_header Connection        "upgrade";
+proxy_read_timeout 120s;
+proxy_send_timeout 120s;
 
 client_max_body_size 25m;
 
@@ -55,7 +78,8 @@ auth_basic_user_file /etc/nginx/stage.htpasswd;
 # hands out the very cookie that opens the gate. Locations that switch the
 # password off define their own add_header, which cancels this inheritance —
 # an exempt public file must not mint a session either.
-add_header Set-Cookie "ritme_stage=$stage_gate_token; Path=/; Max-Age=31536000; HttpOnly; SameSite=Lax";
+# `Secure` (S-05): the cookie is the password, so it never rides plain HTTP.
+add_header Set-Cookie "ritme_stage=$stage_gate_token; Path=/; Max-Age=31536000; Secure; HttpOnly; SameSite=Lax";
 
 # Staging is private: keep it out of every index. It is also the add_header
 # the password-exempt locations below repeat, so they still cancel the
@@ -85,7 +109,6 @@ location = /up {
     auth_basic off;
     add_header Cache-Control "no-store";
     proxy_pass $stage_backend_go_target;
-    include /etc/nginx/conf.d/proxy-params.inc;
 }
 
 # Fetched with `credentials: omit` per spec, so neither the password nor the
@@ -96,7 +119,6 @@ location = /manifest.webmanifest {
     auth_basic off;
     add_header X-Robots-Tag "noindex, nofollow" always;
     proxy_pass http://stage_frontend_upstream;
-    include /etc/nginx/conf.d/proxy-params.inc;
 }
 
 # The worker script, its precache manifest and the icons it caches. All public
@@ -106,14 +128,12 @@ location ~ ^/(sw\.js|version\.json|offline\.html|favicon\.ico)$ {
     auth_basic off;
     add_header X-Robots-Tag "noindex, nofollow" always;
     proxy_pass http://stage_frontend_upstream;
-    include /etc/nginx/conf.d/proxy-params.inc;
 }
 
 location ^~ /icons/ {
     auth_basic off;
     add_header X-Robots-Tag "noindex, nofollow" always;
     proxy_pass http://stage_frontend_upstream;
-    include /etc/nginx/conf.d/proxy-params.inc;
 }
 
 # The one /api path that is NOT the backend: a Next.js route handler (session
@@ -122,7 +142,6 @@ location ^~ /icons/ {
 # web.ritme.app sends everything, /api/ included, to Next (vhost-web.inc).
 location = /api/session/flag {
     proxy_pass http://stage_frontend_upstream;
-    include /etc/nginx/conf.d/proxy-params.inc;
 }
 
 # ── Strangler route groups (T-M2-09) ──────────────────────────────────────
@@ -165,8 +184,8 @@ location ^~ /api/admin/ {
 # `/panel` itself is admin-web's root (Next basePath, no trailing slash);
 # `/panel/…` is every page and its /panel/_next assets. Not `/panel` as a bare
 # prefix, which would also swallow e.g. `/panelists`.
-location = /panel  { proxy_pass $stage_admin_web_target; include /etc/nginx/conf.d/proxy-params.inc; }
-location ^~ /panel/ { proxy_pass $stage_admin_web_target; include /etc/nginx/conf.d/proxy-params.inc; }
+location = /panel  { proxy_pass $stage_admin_web_target; }
+location ^~ /panel/ { proxy_pass $stage_admin_web_target; }
 
 # ── Everything else the backend answers: Go (T-M2-28) ──────────────────────
 # Plain prefixes, NOT `^~`: a `^~` match would stop nginx from evaluating the
@@ -255,8 +274,8 @@ location ^~ /api/v1/media/ {
     proxy_buffering off;
     proxy_read_timeout 300s;
 }
-location /storage/   { proxy_pass $stage_backend_go_target; include /etc/nginx/conf.d/proxy-params.inc; }
-location ^~ /docs    { proxy_pass $stage_backend_go_target; include /etc/nginx/conf.d/proxy-params.inc; }
+location /storage/   { proxy_pass $stage_backend_go_target; }
+location ^~ /docs    { proxy_pass $stage_backend_go_target; }
 
 # Passport's own /oauth/* routes: no client uses them (the app authenticates
 # through /api/v1/auth), and Go does not implement them.
@@ -288,9 +307,7 @@ location ^~ /admin/ {
 location ~ ^/(?:[A-Za-z-]+/)?(?:shared/report|d|emergency)/ {
     access_log off;
     proxy_pass http://stage_frontend_upstream;
-    include /etc/nginx/conf.d/proxy-params.inc;
 }
 location / {
     proxy_pass http://stage_frontend_upstream;
-    include /etc/nginx/conf.d/proxy-params.inc;
 }

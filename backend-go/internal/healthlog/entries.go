@@ -1,8 +1,10 @@
 package healthlog
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -45,14 +47,70 @@ func toEntry(r store.HealthLogEntry) taxonomy.Entry {
 }
 
 func (s *Service) insertEntries(ctx context.Context, userID uint64, date civildate.Date, entries []taxonomy.Entry, source string, now time.Time) error {
+	rows := make([]sourcedEntry, len(entries))
+	for i, e := range entries {
+		rows[i] = sourcedEntry{e, source}
+	}
+	return s.insertBatch(ctx, userID, date, rows, now)
+}
+
+// sourcedEntry is one health_log_entries row to insert.
+type sourcedEntry struct {
+	entry  taxonomy.Entry
+	source string
+}
+
+// maxBatchRows is InsertLogEntriesBatch's ceiling (its row index reaches 999).
+const maxBatchRows = 1000
+
+// insertBatch inserts rows in order with one multi-row INSERT per maxBatchRows (T-M12-31, P-06): the ids follow
+// the slice order, as the per-row inserts did.
+func (s *Service) insertBatch(ctx context.Context, userID uint64, date civildate.Date, rows []sourcedEntry, now time.Time) error {
 	ts := sql.NullTime{Time: now, Valid: true}
-	for _, e := range entries {
-		if err := s.q.InsertLogEntry(ctx, store.InsertLogEntryParams{
-			UserID: userID, LogDate: date, Category: e.Category, Param: e.Param, Item: e.Item,
-			ValueCode: e.Code, ValueNum: e.Num, ValueText: e.Text, Source: source, CreatedAt: ts, UpdatedAt: ts,
-		}); err != nil {
-			return fmt.Errorf("healthlog: insert entry: %w", err)
+	for start := 0; start < len(rows); start += maxBatchRows {
+		part := rows[start:min(start+maxBatchRows, len(rows))]
+		batch := make([][7]any, len(part))
+		for i, r := range part {
+			e := r.entry
+			batch[i] = [7]any{e.Category, e.Param, e.Item, nullable(e.Code), nullable(e.Num), nullable(e.Text), r.source}
 		}
+		var buf bytes.Buffer
+		enc := json.NewEncoder(&buf)
+		enc.SetEscapeHTML(false) // the text goes to the DB as written (JSON_VALUE decodes \uXXXX too)
+		if err := enc.Encode(batch); err != nil {
+			return fmt.Errorf("healthlog: encode entries: %w", err)
+		}
+		if err := s.q.InsertLogEntriesBatch(ctx, store.InsertLogEntriesBatchParams{
+			UserID: userID, LogDate: date, Batch: buf.String(), Now: ts,
+		}); err != nil {
+			return fmt.Errorf("healthlog: insert entries: %w", err)
+		}
+	}
+	return nil
+}
+
+// nullable is a NULL-able column value in the batch JSON (null = SQL NULL).
+func nullable(v sql.NullString) any {
+	if !v.Valid {
+		return nil
+	}
+	return v.String
+}
+
+// deleteParams removes every slot of the given "category.param" keys of a day in one statement (no keys: no query).
+func (s *Service) deleteParams(ctx context.Context, userID uint64, date civildate.Date, keys []string) error {
+	if len(keys) == 0 {
+		return nil
+	}
+	for _, k := range keys {
+		if strings.ContainsRune(k, ',') { // FIND_IN_SET list separator; taxonomy codes never contain one
+			return fmt.Errorf("healthlog: delete entries: invalid param key %q", k)
+		}
+	}
+	if err := s.q.DeleteLogEntryParams(ctx, store.DeleteLogEntryParamsParams{
+		UserID: userID, LogDate: date, ParamKeys: strings.Join(keys, ","),
+	}); err != nil {
+		return fmt.Errorf("healthlog: delete entries: %w", err)
 	}
 	return nil
 }
@@ -60,13 +118,8 @@ func (s *Service) insertEntries(ctx context.Context, userID uint64, date civilda
 // deleteLegacySlots removes the v2 slots the given legacy columns write (nil = every mapped slot).
 func (s *Service) deleteLegacySlots(ctx context.Context, userID uint64, date civildate.Date, columns []string) error {
 	params, items := taxonomy.SlotsOf(columns)
-	for _, p := range params {
-		cat, param, _ := strings.Cut(p, ".")
-		if err := s.q.DeleteLogEntryParam(ctx, store.DeleteLogEntryParamParams{
-			UserID: userID, LogDate: date, Category: cat, Param: param,
-		}); err != nil {
-			return fmt.Errorf("healthlog: delete entries: %w", err)
-		}
+	if err := s.deleteParams(ctx, userID, date, params); err != nil {
+		return err
 	}
 	for _, slot := range items {
 		parts := strings.SplitN(slot, ".", 3)
@@ -179,6 +232,17 @@ func (s *Service) Range(ctx context.Context, userID uint64, from, to civildate.D
 // SaveDay applies validated changes to a day (each change replaces one param) and writes the
 // legacy-representable values of the changed params back into daily_health_logs. Returns the new day.
 func (s *Service) SaveDay(ctx context.Context, userID uint64, date civildate.Date, changes []taxonomy.Change, locale string, now time.Time) ([]taxonomy.Entry, error) {
+	return s.SaveDayWith(ctx, userID, date, func([]taxonomy.Entry) ([]taxonomy.Change, error) { return changes, nil }, locale, now)
+}
+
+// SaveDayWith is SaveDay with the changes built from the stored day as read under the user lock (T-M12-31, P-06):
+// PUT /logs/days/{date} validates against that read instead of one of its own, so a save reads the day once and
+// never builds its changes on a day another save changed in between. An error from build (a validation failure)
+// rolls back with nothing written and no revision bump.
+//
+// The write is one DELETE of every changed param and one multi-row INSERT of the new rows (it was a DELETE per
+// param and an INSERT per row), then the legacy write-back.
+func (s *Service) SaveDayWith(ctx context.Context, userID uint64, date civildate.Date, build func(existing []taxonomy.Entry) ([]taxonomy.Change, error), locale string, now time.Time) ([]taxonomy.Entry, error) {
 	now = dbNow(now)
 	var day []taxonomy.Entry
 	err := s.inTxLocked(ctx, userID, func(t *Service) error {
@@ -186,37 +250,61 @@ func (s *Service) SaveDay(ctx context.Context, userID uint64, date civildate.Dat
 		if err != nil {
 			return err
 		}
-		changed := map[string]bool{}
-		for _, ch := range changes {
-			changed[ch.Key()] = true
-			if err := t.q.DeleteLogEntryParam(ctx, store.DeleteLogEntryParamParams{
-				UserID: userID, LogDate: date, Category: ch.Category, Param: ch.Param,
-			}); err != nil {
-				return fmt.Errorf("healthlog: replace entries: %w", err)
-			}
-			source := SourceManual
-			if ch.Source != "" {
-				source = ch.Source
-			}
-			if err := t.insertEntries(ctx, userID, date, ch.Entries, source, now); err != nil {
-				return err
-			}
+		changes, err := build(existing)
+		if err != nil {
+			return err
 		}
-		for _, e := range existing {
-			if !changed[e.ParamKey()] {
-				day = append(day, e)
-			}
-		}
-		for _, ch := range changes {
-			day = append(day, ch.Entries...)
-		}
-		return t.writeBackLegacy(ctx, userID, date, changed, day, locale, now)
+		day, err = t.applyChanges(ctx, userID, date, existing, changes, locale, now)
+		return err
 	})
 	if err != nil {
 		return nil, err
 	}
 	events.Goal(ctx, userID, "log_saved") // T-M10-06, M-17: server-matched message goal (after commit)
 	return day, nil
+}
+
+// applyChanges replaces the changed params of the day (existing = its rows, in id order) and returns the new day:
+// the unchanged rows, then the new ones in change order. Of two changes to one param the last wins, at its own
+// place — what the per-param delete + insert left behind.
+func (s *Service) applyChanges(ctx context.Context, userID uint64, date civildate.Date, existing []taxonomy.Entry, changes []taxonomy.Change, locale string, now time.Time) ([]taxonomy.Entry, error) {
+	last := map[string]int{}
+	for i, ch := range changes {
+		last[ch.Key()] = i
+	}
+	changed := map[string]bool{}
+	keys := make([]string, 0, len(last))
+	var rows []sourcedEntry
+	for i, ch := range changes {
+		if last[ch.Key()] != i {
+			continue
+		}
+		changed[ch.Key()] = true
+		keys = append(keys, ch.Key())
+		source := SourceManual
+		if ch.Source != "" {
+			source = ch.Source
+		}
+		for _, e := range ch.Entries {
+			rows = append(rows, sourcedEntry{e, source})
+		}
+	}
+	if err := s.deleteParams(ctx, userID, date, keys); err != nil {
+		return nil, err
+	}
+	if err := s.insertBatch(ctx, userID, date, rows, now); err != nil {
+		return nil, err
+	}
+	var day []taxonomy.Entry
+	for _, e := range existing {
+		if !changed[e.ParamKey()] {
+			day = append(day, e)
+		}
+	}
+	for _, r := range rows {
+		day = append(day, r.entry)
+	}
+	return day, s.writeBackLegacy(ctx, userID, date, changed, day, locale, now)
 }
 
 // writeBackLegacy updates daily_health_logs from the changed params (no row is created for a day that

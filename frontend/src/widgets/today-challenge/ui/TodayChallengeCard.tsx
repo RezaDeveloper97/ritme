@@ -7,6 +7,7 @@ import { useTodayChallenge, type TodayChallenge } from '@/entities/challenge';
 import type { FeedChallenge } from '@/entities/message';
 import { useToggleChallenge } from '@/features/complete-challenge';
 import { Card, CheckTick, Icon, IconCircle, type IconName } from '@/shared/ui';
+import './tc.css';
 
 /** Category → icon. Unknown/absent categories fall back to a neutral sparkle. */
 const CATEGORY_ICON: Record<string, IconName> = {

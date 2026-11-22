@@ -47,9 +47,9 @@ describe('appointment detail model', () => {
     expect(pregnancyWeekAt(400, 0)).toBeNull();
   });
 
-  it('only offers directions for an in-person address', () => {
+  it('offers directions for an address, not for a link', () => {
     expect(mapsHref(appt)).toContain(encodeURIComponent('تهران، ولیعصر'));
-    expect(mapsHref({ ...appt, kind: 'online' })).toBeNull();
+    expect(mapsHref({ ...appt, location: 'https://meet.example/x' })).toBeNull();
     expect(mapsHref({ ...appt, location: null })).toBeNull();
   });
 

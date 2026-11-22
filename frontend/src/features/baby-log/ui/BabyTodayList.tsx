@@ -11,6 +11,7 @@ import { parseBabyToday } from '../api/schema';
 import { wallTime } from '../model/live';
 import { feedingHref } from '../model/links';
 import { hoursText } from './SleepCard';
+import '@/shared/ui/styles/bfl.css';
 
 /**
  * The child home «امروز» rows (v16_ChildHome, B-N5-05 card filled by B-N5-07):

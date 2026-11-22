@@ -9,6 +9,7 @@ import { Icon } from '@/shared/ui';
 import { companionName, hoursUntil, sharedSections } from '../lib/grants';
 import type { OwnerCompanion } from '../model/types';
 import { PersonBubble } from './FamilyStrip';
+import '@/shared/ui/styles/cmp.css';
 
 interface CompanionCardProps {
   companion: OwnerCompanion;

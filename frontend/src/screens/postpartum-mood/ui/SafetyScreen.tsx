@@ -8,6 +8,7 @@ import { formatNumber } from '@/shared/lib/date';
 import { Card, Icon, SecondaryButton } from '@/shared/ui';
 
 import { safetyCalls } from '../model/flow';
+import '@/shared/ui/styles/pp.css';
 
 type T = ReturnType<typeof useTranslations<'postpartum'>>;
 

@@ -8,6 +8,7 @@ import (
 	contentstore "github.com/ritme/backend-go/internal/content/store"
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
+	"github.com/ritme/backend-go/internal/platform/etag"
 	"github.com/ritme/backend-go/internal/teen"
 	"github.com/ritme/backend-go/resources/translations"
 )
@@ -37,7 +38,7 @@ func init() {
 		r.Get("/api/v1/info-pages/:group", locale, h.InfoPage) // B-N1-12, Go only
 
 		// auth:api.
-		r.Get("/api/v1/banners", locale, guard, h.Banners)
+		r.Get("/api/v1/banners", locale, guard, etag.ByBody(), h.Banners) // T-M12-34: ETag / 304
 		r.Get("/api/v1/articles", locale, guard, h.Articles)
 		r.Get("/api/v1/articles/:slug", locale, guard, h.Article)
 		r.Get("/api/v1/cycle/phase-content/:phase", locale, guard, h.PhaseContent)

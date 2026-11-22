@@ -30,6 +30,9 @@ import type { Locale } from '@/shared/i18n';
 import { Icon, type IconName } from '@/shared/ui';
 
 import { appointmentParts, byReminderId, clockLabel, isCancelled } from '../model/row';
+import '@/shared/ui/styles/btn.css';
+import '@/shared/ui/styles/prof.css';
+import '@/shared/ui/styles/rem.css';
 
 const FA = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
 const localizeNum = (value: string, loc: Locale) =>

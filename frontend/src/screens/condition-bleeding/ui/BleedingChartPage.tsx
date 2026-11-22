@@ -39,6 +39,7 @@ import {
 } from '@/shared/ui';
 
 import { entryFrom, isDirty, liveScores, payloadFor } from '../model/form';
+import './cnb.css';
 
 /**
  * «جدول خونریزی» (`/programs/bleeding`, CB-COND-05, nbl_Cond_Bleed): today's pads per soak level (1 / 5 / 20

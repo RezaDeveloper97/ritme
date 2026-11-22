@@ -24,6 +24,8 @@ import { Card, Checkbox, EmptyState, Icon, PrimaryButton, SecondaryButton, Skele
 import { APP_SHOP, STORE_HOME } from '../model/store';
 import { CartSummary } from './WebShopCart';
 import { isTeenRefusal, WebShopGate, WebShopTeen } from './WebShopGate';
+import './wsh.css';
+import './wsc.css';
 
 function Steps() {
   const t = useTranslations('shop.checkout');

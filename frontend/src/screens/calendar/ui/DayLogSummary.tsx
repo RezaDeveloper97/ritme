@@ -18,6 +18,8 @@ import { toApiDate } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { pilot } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
+import '@/shared/ui/styles/has.css';
+import './dls.css';
 
 type TCal = ReturnType<typeof useTranslations>;
 type TLog = ReturnType<typeof useTranslations>;

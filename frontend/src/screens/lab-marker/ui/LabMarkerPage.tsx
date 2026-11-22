@@ -34,6 +34,7 @@ import {
 } from '@/shared/ui';
 
 import { TrendChart } from './TrendChart';
+import '@/shared/ui/styles/lab.css';
 
 function Shell({ header, children }: { header: ReactNode; children: ReactNode }) {
   return (

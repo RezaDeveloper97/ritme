@@ -77,9 +77,7 @@ type goldenFile struct {
 func TestCycleViewGoldenSweep(t *testing.T) {
 	files, err := filepath.Glob(filepath.Join(goldenDir, "date.*.json"))
 	require.NoError(t, err)
-	if len(files) == 0 {
-		t.Skip("cycle-sweep goldens not recorded (T-M2-05)")
-	}
+	require.NotEmpty(t, files, "cycle-sweep goldens are recorded in contract/golden/cycle-sweep (T-M2-05); a missing set must fail, not skip")
 
 	histories, profiles := loadFixture(t)
 	steps := 0

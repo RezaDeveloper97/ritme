@@ -30,6 +30,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/plus"
+	plusstore "github.com/ritme/backend-go/internal/plus/store"
 )
 
 // Refunder is the payment-gateway port refunds use (*payments.Gateway satisfies it).
@@ -233,9 +234,22 @@ func truncate(s string, n int) string {
 
 // inTx runs fn in a READ COMMITTED transaction (the row locks of refund / extend must see committed data).
 func (h *Handlers) inTx(ctx context.Context, fn func(q *store.Queries) error) error {
+	return h.inTxLocked(ctx, 0, fn)
+}
+
+// inTxLocked is inTx that first takes the user's row lock (userID > 0) — the lock every Plus-period write of one
+// user is serialised on (plus settle / GrantDays, challenge rewards; T-M12-19, T-M12-19b). Taken before fn's own
+// row locks (deleting a user also locks that row before its cascade reaches the periods).
+func (h *Handlers) inTxLocked(ctx context.Context, userID uint64, fn func(q *store.Queries) error) error {
 	tx, err := h.db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
 	if err != nil {
 		return err
+	}
+	if userID > 0 {
+		if _, err := plusstore.New(tx).LockUser(ctx, userID); err != nil {
+			_ = tx.Rollback()
+			return err
+		}
 	}
 	if err := fn(h.q.WithTx(tx)); err != nil {
 		_ = tx.Rollback()

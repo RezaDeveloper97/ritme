@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/ritme/backend-go/cmd/contract/internal/ojson"
+	"github.com/ritme/backend-go/internal/auth"
 )
 
 // CanonicalHost is the host every request claims (Host header) and every absolute
@@ -30,6 +31,12 @@ type Target interface {
 	LatestOTP(ctx context.Context, mobile string) (string, error)
 	// Session returns the persona's bearer token ("" + true for anon).
 	Session(persona string) (string, bool)
+}
+
+// StepUpper is a target that can mint a step-up token for a persona (the Go server, D-213). A target without it
+// (Laravel) has no step-up, and `step_up` steps are sent without the header.
+type StepUpper interface {
+	StepUpToken(ctx context.Context, persona, now string) (string, error)
 }
 
 // Result is what one step produced.
@@ -143,6 +150,13 @@ func (r *Runner) step(ctx context.Context, s *Step, vars map[string]string) (Res
 	}
 	if contentType != "" {
 		req.Header.Set("Content-Type", contentType)
+	}
+	if su, ok := r.T.(StepUpper); ok && s.StepUp {
+		stepUp, err := su.StepUpToken(ctx, s.Persona, s.Now)
+		if err != nil {
+			return Result{}, fmt.Errorf("step-up for %s: %w", s.Persona, err)
+		}
+		req.Header.Set(auth.StepUpHeader, stepUp)
 	}
 	for _, h := range s.Headers {
 		if h.Value == "" {

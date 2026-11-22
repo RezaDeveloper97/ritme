@@ -270,3 +270,17 @@ func (q *Queries) ListPlusUserIDs(ctx context.Context, arg ListPlusUserIDsParams
 	}
 	return items, nil
 }
+
+const lockUser = `-- name: LockUser :one
+SELECT id FROM users WHERE id = ? FOR UPDATE
+`
+
+// Serialises the period writes of one user (activate, GrantDays): taken before LatestValidSubscription, so
+// concurrent settles of different invoices queue one period after the other instead of overlapping (T-M12-19).
+// Lock order: the invoice / store purchase / enrollment row first, then this one.
+func (q *Queries) LockUser(ctx context.Context, id uint64) (uint64, error) {
+	row := q.db.QueryRowContext(ctx, lockUser, id)
+	var id_2 uint64
+	err := row.Scan(&id_2)
+	return id_2, err
+}

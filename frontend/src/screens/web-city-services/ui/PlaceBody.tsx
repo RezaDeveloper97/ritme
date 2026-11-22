@@ -8,6 +8,9 @@ import { formatDecimal, formatNumber } from '@/shared/lib/date';
 import { Card, Icon } from '@/shared/ui';
 
 import { monthsLabelParts, priceParts } from '../model/place';
+import '@/shared/ui/styles/csv.css';
+import '@/shared/ui/styles/cdh.css';
+import '@/shared/ui/styles/cdp.css';
 
 /* CB-DIR-11 — the read-only sections of the desktop place page (the booking panel is in WebPlacePage). Prices are the
    venue's own declarations, display only. */

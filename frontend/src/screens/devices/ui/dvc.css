@@ -1,0 +1,32 @@
+/* `dvc-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.dvc-page { background: var(--page); }
+
+.dvc-scroll { display: flex; flex-direction: column; gap: 14px; padding-block-end: calc(40px + env(safe-area-inset-bottom)); }
+
+.dvc-scroll > :not(.nb-hdr) { margin-inline: var(--gutter-form); }
+
+.dvc-hero { display: flex; align-items: center; gap: 14px; padding: 16px; }
+
+.dvc-hero-ic { display: inline-flex; align-items: center; justify-content: center; inline-size: 48px; block-size: 48px; flex-shrink: 0; border-radius: 50%; background: var(--data-soft); color: var(--data); }
+
+.dvc-hero-body { flex: 1; min-inline-size: 0; }
+
+.dvc-hero-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; font-size: var(--fs-md); font-weight: 800; color: var(--text-1); }
+
+.dvc-hero-text { margin: 4px 0 0; font-size: var(--fs-sm); font-weight: 600; line-height: 1.9; color: var(--text-2); }
+
+.dvc-sec { display: flex; flex-direction: column; gap: 6px; }
+
+.dvc-label { margin: 0; padding-inline: 4px; font-size: var(--fs-sm); font-weight: 800; color: var(--text-2); }
+
+.dvc-note { margin: 0; padding-inline: 4px; font-size: var(--fs-xs); font-weight: 600; color: var(--text-3); }
+
+.dvc-notify { display: inline-flex; align-items: center; gap: 4px; min-block-size: 44px; padding-inline: 12px; border: 1px solid var(--line-strong); border-radius: var(--r-pill); background: transparent; color: var(--brand-ink); font: inherit; font-size: var(--fs-xs); font-weight: 800; cursor: pointer; }
+
+.dvc-notify.is-on { background: var(--brand-soft); border-color: transparent; color: var(--brand-strong); }
+
+.dvc-notify:focus-visible,
+.dvc-link:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.dvc-link { align-self: center; min-block-size: 44px; padding-inline: 16px; border: 0; background: none; color: var(--brand-ink); font: inherit; font-size: var(--fs-sm); font-weight: 800; cursor: pointer; }

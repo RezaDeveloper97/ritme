@@ -8,6 +8,7 @@ import { pilot } from '@/shared/pilot';
 import { type DateParts, diffInDays, fromApiDate, partsToDate, toApiDate, toParts, today } from '@/shared/lib/date';
 import { AppSheet } from '@/shared/sheet';
 import { CalendarPicker, PrimaryButton, SecondaryButton } from '@/shared/ui';
+import './lst.css';
 
 /** How far back the approximate date may go (CB-LOSS-01 `MaxPastDays`). */
 const MAX_PAST_DAYS = 365;

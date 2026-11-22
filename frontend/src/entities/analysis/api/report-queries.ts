@@ -17,7 +17,7 @@ import { bodyReportSchema, correlationsReportSchema, cycleReportSchema, periodRe
  * on screen while the next one loads. Never log what these return (§11).
  */
 
-type Parser<T> = z.ZodType<T, z.ZodTypeDef, unknown>;
+type Parser<T> = z.ZodType<T, unknown>;
 
 async function fetchReport<T>(name: ReportName, range: AnalysisRangeKey, schema: Parser<T>): Promise<T> {
   const { data } = await apiClient.get<ApiEnvelope<unknown>>(`/analysis/${name}`, { params: { range } });

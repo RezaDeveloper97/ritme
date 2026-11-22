@@ -55,10 +55,10 @@ export function pregnancyWeekAt(totalDaysToday: number | null | undefined, daysA
   return week >= 1 && week <= 42 ? week : null;
 }
 
-/** «مسیریابی» — a generic maps search for an in-person address; null otherwise. */
-export function mapsHref(appt: Pick<Appointment, 'kind' | 'location'>): string | null {
+/** «مسیریابی» — a generic maps search for the place; null for none or a link. */
+export function mapsHref(appt: Pick<Appointment, 'location'>): string | null {
   const place = appt.location?.trim();
-  if (appt.kind !== 'in_person' || !place) return null;
+  if (!place || /^https?:\/\//i.test(place)) return null;
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place)}`;
 }
 

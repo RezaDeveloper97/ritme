@@ -102,7 +102,7 @@ const EMPTY_FEEDS: FeedTotals = {
 };
 
 /** Items lists drop a row that doesn't parse instead of failing the day. */
-function lenientList<T>(item: z.ZodType<T, z.ZodTypeDef, unknown>) {
+function lenientList<T>(item: z.ZodType<T, unknown>) {
   return z
     .array(z.unknown())
     .catch([])

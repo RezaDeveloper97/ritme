@@ -19,6 +19,7 @@ export const NAV_ROOT_PATHS: readonly string[] = [
   '/postpartum',
   '/children',
   '/companion',
+  '/companion/calendar', // companion: «تقویم» tab (his reminders + her likely period days)
   '/companion/learn', // companion v2: «یادگیری» tab (compLearn)
   '/companion/actions', // companion v2: «اقدام‌ها» tab (compCards)
   '/analysis',

@@ -6,6 +6,7 @@ import { KindThumb, minutesOf, newCourses, useCourseMeta, useMyCourses, useOffli
 import { Link, useRouter, type Locale } from '@/shared/i18n';
 import { formatDayMonth, formatNumber } from '@/shared/lib/date';
 import { Card, Icon, SectionTitle } from '@/shared/ui';
+import '@/shared/ui/styles/lrn.css';
 
 /**
  * Home learning card (Option A — `nbl_/nbd_LearnEntry_HomeContinue` and

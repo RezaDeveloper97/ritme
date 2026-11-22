@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 
 import { IconCircle, SecondaryButton } from '@/shared/ui';
+import '@/shared/ui/styles/me.css';
 
 /** Error state of the Me screens: the profile could not be fetched. */
 export function MeErrorCard({ onRetry }: { onRetry: () => void }) {

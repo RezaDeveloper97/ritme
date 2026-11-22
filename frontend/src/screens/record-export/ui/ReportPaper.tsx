@@ -1,6 +1,7 @@
 import { clsx } from 'clsx';
 
 import type { PaperModel } from '../model/paper';
+import './rx.css';
 
 interface ReportPaperProps {
   model: PaperModel;

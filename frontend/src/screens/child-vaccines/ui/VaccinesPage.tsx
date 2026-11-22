@@ -35,6 +35,9 @@ import { isReadOnlyError, useVaccineSchedule, useVaccineWrite } from '../api/que
 import { givenDoses, isActionable, notedDoses } from '../model/schedule';
 import type { MarkTarget, VaccineSchedule, VaccineVisitDetail } from '../model/types';
 import { MarkGivenSheet } from './MarkGivenSheet';
+import '@/shared/ui/styles/chd.css';
+import '@/shared/ui/styles/cgr.css';
+import '@/shared/ui/styles/cvx.css';
 
 type T = ReturnType<typeof useTranslations<'children'>>;
 type Tab = 'schedule' | 'card' | 'notes';

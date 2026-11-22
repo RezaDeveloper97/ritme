@@ -6,13 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
-import {
-  APPOINTMENT_KINDS,
-  APPOINTMENT_TOPICS,
-  REMIND_BEFORE,
-  type Appointment,
-  type AppointmentKind,
-} from '@/entities/care-reminder';
+import { APPOINTMENT_TOPICS, REMIND_BEFORE, type Appointment } from '@/entities/care-reminder';
 import {
   isCompanionForbidden,
   parseForUserId,
@@ -41,13 +35,11 @@ import { AppSheet } from '@/shared/sheet';
 import {
   CalendarPicker,
   Icon,
-  type IconName,
   PrimaryButton,
   ScreenHeader,
   Skeleton,
   SkeletonGroup,
   SkyLayer,
-  Switch,
   WheelPicker,
 } from '@/shared/ui';
 
@@ -63,12 +55,8 @@ import {
   returnPathFor,
   validateForm,
 } from '../model/form';
-
-const KIND_ICON: Record<AppointmentKind, IconName> = {
-  in_person: 'doctor',
-  phone: 'phone',
-  online: 'video',
-};
+import '@/shared/ui/styles/rmd.css';
+import '@/shared/ui/styles/cfm.css';
 
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
@@ -80,15 +68,19 @@ interface Props {
   id?: number;
 }
 
-/** Where a companion goes back to (`?from=companion`, B-N4-06), else null. */
-function companionReturn(from: string | null): '/companion' | null {
-  return from === 'companion' ? '/companion' : null;
+/** Where a companion goes back to (`?from=companion`, B-N4-06; `?from=companion-calendar`), else null. */
+function companionReturn(from: string | null): '/companion' | '/companion/calendar' | null {
+  if (from === 'companion') return '/companion';
+  return from === 'companion-calendar' ? '/companion/calendar' : null;
 }
 
 /**
- * Add / edit appointment (`v13_AddAppointment`): kind, who, specialty, topic,
- * short description, date + time (locale calendar), place, remind-before,
- * add-to-calendar and the prep list (one line = one checklist item).
+ * Add / edit a doctor's appointment («وقت پزشک», `v13_AddAppointment`): who,
+ * specialty, topic, short description, date + time (locale calendar), place,
+ * remind-before and the prep list (one line = one checklist item). One form for
+ * every visit — no in-person / phone / online tabs; a new visit is saved as
+ * `in_person` (or `?kind=`), an edit keeps the stored kind. No add-to-calendar
+ * switch here: the detail page has the explicit «افزودن به تقویم» action.
  *
  * «ثبت برای چه کسی؟» (B-N4-06, Hamdam_RecordFor): a companion with edit on an
  * owner's appointments picks «خودم» or her before saving a new visit (`?for=`
@@ -232,15 +224,6 @@ function AppointmentForm({
   const companionBack = companionReturn(searchParams.get('from'));
   const pending = create.isPending || update.isPending;
   const dateParts = form.date ? toParts(fromApiDate(form.date), locale) : null;
-  const placeLabel =
-    form.kind === 'online' ? t('placeOnline') : form.kind === 'phone' ? t('placePhone') : t('place');
-  const placeHint =
-    form.kind === 'online'
-      ? t('placeOnlinePlaceholder')
-      : form.kind === 'phone'
-        ? t('placePhonePlaceholder')
-        : t('placePlaceholder');
-
   const submit = (confirmed = false) => {
     const problem = validateForm(form);
     if (problem) {
@@ -368,23 +351,6 @@ function AppointmentForm({
             <p className="cfm-error is-center" role="alert">{tr('viewOnly')}</p>
           )}
 
-          <div className="cfm-kinds" role="radiogroup" aria-label={t('subtitle')} {...pilot('appt.kind', 'choice')}>
-            {APPOINTMENT_KINDS.map((kind) => (
-              <button
-                key={kind}
-                type="button"
-                role="radio"
-                aria-checked={form.kind === kind}
-                className="cfm-kind"
-                {...pilotOption(kind)}
-                onClick={() => set('kind', kind)}
-              >
-                <Icon name={KIND_ICON[kind]} size={20} strokeWidth={1.8} />
-                {t(`kinds.${kind}`)}
-              </button>
-            ))}
-          </div>
-
           {/* ── Card 1: who and what ── */}
           <section className="cfm-card">
             <label className="cfm-group">
@@ -489,14 +455,13 @@ function AppointmentForm({
               <p className="cfm-error" role="alert">{t(`errors.${error}`)}</p>
             )}
             <label className="cfm-group">
-              <span className="cfm-label">{placeLabel}</span>
+              <span className="cfm-label">{t('place')}</span>
               <span className="cfm-field">
-                <Icon name={form.kind === 'online' ? 'video' : form.kind === 'phone' ? 'phone' : 'mapPin'} size={18} strokeWidth={1.8} />
+                <Icon name="mapPin" size={18} strokeWidth={1.8} />
                 <input
                   value={form.location}
-                  placeholder={placeHint}
-                  inputMode={form.kind === 'phone' ? 'tel' : form.kind === 'online' ? 'url' : 'text'}
-                  dir={form.kind === 'in_person' ? undefined : 'auto'}
+                  placeholder={t('placePlaceholder')}
+                  dir="auto"
                   onChange={(e) => set('location', e.target.value)}
                   {...pilot('appt.location', 'text')}
                 />
@@ -523,20 +488,6 @@ function AppointmentForm({
                   </button>
                 ))}
               </div>
-            </div>
-            <div className="cfm-set">
-              <span className="cfm-set-body">
-                <span className="cfm-set-t">{t('addToCalendar')}</span>
-                <span className="cfm-set-s">{t('addToCalendarHint')}</span>
-              </span>
-              <Switch
-                compact
-                className="rmd-hit"
-                checked={form.addToCalendar}
-                label={t('addToCalendar')}
-                onCheckedChange={(next) => set('addToCalendar', next)}
-                pilot={pilot('appt.calendar')}
-              />
             </div>
             {/* The prep checklist stays the owner's own (B-N4-02). */}
             {!forOwner && (

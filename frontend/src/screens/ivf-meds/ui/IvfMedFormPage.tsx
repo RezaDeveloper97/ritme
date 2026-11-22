@@ -57,6 +57,7 @@ import {
   STOCK_RANGE,
 } from '../model/form';
 import { ConfirmSheet, DateSheet, TimeSheet } from './Pickers';
+import '@/shared/ui/styles/ivfm.css';
 
 type DateField = 'triggerDate' | 'startsOn' | 'endsOn';
 type OpenPicker =

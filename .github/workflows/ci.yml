@@ -1,0 +1,207 @@
+# Backend CI (T-M12-11): the whole Go suite — integration tests included — with the race detector, against real
+# MariaDB 11.4 + Redis 7 service containers (same engines as docker-compose.test.yml and prod).
+#
+# Triggers: pushes to stage/main, pull requests, and `workflow_call` from claude-to-stage.yml, whose auto-merge into
+# stage `needs` this job. claude/** pushes are deliberately not listed under `push`: claude-to-stage already calls
+# this workflow for them, and listing them here would run the ~20-minute race suite twice per push.
+#
+# testdb fails (instead of skipping) when CI=true and TEST_DB_DSN is empty, so a broken service/env block below turns
+# the run red rather than into a green run of skips. Credentials are throw-away, scoped to the job's containers.
+# Local equivalent: `make test-race` (Linux) or `make test-race-docker` (macOS without a working cgo linker).
+name: ci
+
+on:
+  push:
+    branches:
+      - stage
+      - main
+  pull_request: {}
+  workflow_call: {}
+  workflow_dispatch: {}
+  # Nightly browser smoke (T-M12-25) only; the jobs above skip the schedule.
+  schedule:
+    - cron: '30 0 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  backend-race:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: backend-go
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_DATABASE: ritme_test
+          MARIADB_USER: ritme
+          MARIADB_PASSWORD: ritme
+          MARIADB_ROOT_PASSWORD: root
+          TZ: UTC
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "healthcheck.sh --connect --innodb_initialized"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 60
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
+    env:
+      TEST_DB_DSN: ritme:ritme@tcp(127.0.0.1:3306)/ritme_test?parseTime=true&loc=Asia%2FTehran&charset=utf8mb4&collation=utf8mb4_unicode_ci
+      TEST_DB_ADMIN_DSN: root:root@tcp(127.0.0.1:3306)/?parseTime=true&loc=Asia%2FTehran&charset=utf8mb4&collation=utf8mb4_unicode_ci
+      TEST_REDIS_ADDR: 127.0.0.1:6379
+      CGO_ENABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      # Service images run the server's own defaults; utf8mb4_unicode_ci as in docker-compose.test.yml (`command:`
+      # is not available for service containers, so set it on the server instead).
+      - name: MariaDB server charset
+        run: |
+          docker exec "${{ job.services.mariadb.id }}" mariadb -uroot -proot -e \
+            "SET GLOBAL character_set_server='utf8mb4'; SET GLOBAL collation_server='utf8mb4_unicode_ci'; ALTER DATABASE ritme_test CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+      - name: go vet
+        run: go vet ./...
+      - name: go test -race (unit + integration)
+        # Coverage rides on the same -race run (no second pass); report only, no threshold (T-M12-12).
+        run: make test-race COVER_FLAGS='-coverprofile=cover.out -coverpkg=./...'
+      - name: Go coverage summary
+        if: always()
+        run: |
+          if [ -s cover.out ]; then
+            go tool cover -func=cover.out > cover-func.txt
+            tail -n 1 cover-func.txt
+            { echo '### Go coverage (report only)'; echo '```'; tail -n 1 cover-func.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Upload Go coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-go
+          path: |
+            backend-go/cover.out
+            backend-go/cover-func.txt
+          if-no-files-found: warn
+      - name: Integration tests ran (not skipped)
+        run: |
+          # testdb's own suite always uses the database: if it skipped, the env above is broken.
+          out="$(go test -count=1 -v -run 'TestBaselineAppliedToFreshMariaDB' ./internal/platform/db/testdb/ 2>&1)"
+          echo "$out" | tail -n 5
+          echo "$out" | grep -q -- '--- PASS: TestBaselineAppliedToFreshMariaDB' \
+            || { echo "::error::integration test did not run against the service database"; exit 1; }
+
+  # Admin web (T-M12-12): typecheck + vitest, blocking; coverage is a report only.
+  admin-web:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: admin-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: admin-web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: typecheck
+        run: npm run typecheck
+      - name: unit tests + coverage (report only)
+        run: npx vitest run --coverage --coverage.reporter=text-summary --coverage.reporter=json-summary --coverage.reporter=lcov
+      - name: Upload admin-web coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-admin-web
+          path: admin-web/coverage
+          if-no-files-found: warn
+
+  # Browser smoke (T-M12-25): login -> onboarding -> log a period -> ring -> calendar, light + dark, in Chromium against a
+  # real backend-go + MariaDB + Redis. Nightly / manual only. Boot budget ~5 min (Go build ~1-2, goose ~10 s, next dev
+  # cold compile ~1 min); if a run's "Boot stack" step exceeds that, drop this job rather than keep a slow gate.
+  e2e-smoke:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_DATABASE: ritme_e2e
+          MARIADB_USER: ritme
+          MARIADB_PASSWORD: ritme
+          MARIADB_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "healthcheck.sh --connect --innodb_initialized"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 60
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    env:
+      E2E_API_URL: http://127.0.0.1:8020
+      E2E_DB_NAME: ritme_e2e
+      E2E_DB_CLI: mariadb -h127.0.0.1 -P3306 -uritme -pritme
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: backend-go/go.mod
+          cache-dependency-path: backend-go/go.sum
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Boot stack (migrate + API)
+        working-directory: backend-go
+        env:
+          CGO_ENABLED: "0"
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq mariadb-client
+          go run -tags "no_postgres no_sqlite3 no_mssql no_vertica no_clickhouse no_ydb no_libsql" \
+            github.com/pressly/goose/v3/cmd/goose@v3.26.0 -dir db/migrations mysql \
+            "ritme:ritme@tcp(127.0.0.1:3306)/ritme_e2e?parseTime=true&multiStatements=true" up
+          mariadb -h127.0.0.1 -P3306 -uroot -proot ritme_e2e -e "INSERT IGNORE INTO oauth_clients (id,name,provider,redirect_uris,grant_types,revoked,created_at,updated_at) VALUES ('0199c0de-0000-7000-8000-00000000de01','Ritme Personal Access','users','[]','[\"personal_access\"]',0,NOW(),NOW());"
+          go build -o /tmp/ritme-api ./cmd/api
+          APP_ENV=local HTTP_ADDR=:8020 SMS_PROVIDER=log CYCLE_ENGINE=v6 \
+            DB_HOST=127.0.0.1 DB_PORT=3306 DB_DATABASE=ritme_e2e DB_USERNAME=ritme DB_PASSWORD=ritme \
+            REDIS_HOST=127.0.0.1 REDIS_PORT=6379 CORS_ALLOWED_ORIGINS=http://localhost:3100 \
+            STORAGE_PATH="$PWD/contract/fixtures/keys" nohup /tmp/ritme-api > /tmp/api.log 2>&1 &
+          for _ in $(seq 1 60); do curl -fsS http://127.0.0.1:8020/up && break; sleep 2; done
+      - name: Install web deps and Chromium
+        working-directory: frontend
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Playwright smoke
+        working-directory: frontend
+        run: npx playwright test
+      - name: API log on failure
+        if: failure()
+        run: tail -n 100 /tmp/api.log

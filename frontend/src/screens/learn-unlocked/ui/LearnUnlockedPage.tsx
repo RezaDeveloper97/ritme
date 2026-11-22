@@ -6,6 +6,7 @@ import { KindThumb, lessonBlock, useCourseMeta, useUnlockedGrant } from '@/entit
 import { Link, useRouter, type Locale } from '@/shared/i18n';
 import { formatLongDate, formatNumber } from '@/shared/lib/date';
 import { Avatar, Card, EmptyState, Icon, PrimaryButton, SecondaryButton, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
+import '@/shared/ui/styles/lrn.css';
 
 /**
  * `/learn/unlocked/[grant]` — Learn_Unlocked, the target of the «… برایت باز

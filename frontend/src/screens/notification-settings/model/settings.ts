@@ -84,7 +84,7 @@ export const settingsSchema = z
         start: z.string().default('23:00'),
         end: z.string().default('08:00'),
       })
-      .default({}),
+      .prefault({}),
     neutral_copy: z.boolean().default(true),
     sms_reminders: z.boolean().default(true),
   })

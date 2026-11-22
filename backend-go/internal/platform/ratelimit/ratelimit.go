@@ -21,6 +21,7 @@ import (
 	"crypto/sha1" //nolint:gosec // G505: key derivation identical to Laravel, not a security boundary
 	"encoding/hex"
 	"fmt"
+	"net/netip"
 	"strconv"
 	"time"
 
@@ -112,21 +113,49 @@ type Identity func(c fiber.Ctx) string
 // Signature is ThrottleRequests::resolveRequestSignature: sha1(user id) when the request is
 // authenticated, else sha1("|" + client IP) (trusted X-Forwarded-For, see cmd/api).
 func Signature(c fiber.Ctx, identity Identity) string {
+	return signature(c, identity, false)
+}
+
+// NetSignature is Signature with guests keyed on their network (ClientNet): an IPv6 client on its /64.
+func NetSignature(c fiber.Ctx, identity Identity) string {
+	return signature(c, identity, true)
+}
+
+func signature(c fiber.Ctx, identity Identity, byNet bool) string {
 	var src string
 	if identity != nil {
 		src = identity(c)
 	}
 	if src == "" {
-		src = "|" + c.IP()
+		ip := c.IP()
+		if byNet {
+			ip = ClientNet(ip)
+		}
+		src = "|" + ip
 	}
 	sum := sha1.Sum([]byte(src)) //nolint:gosec // G401: same identifier as Laravel
 	return hex.EncodeToString(sum[:])
 }
 
+// ClientNet is the throttle bucket of a client address (T-M12-01): an IPv6 address becomes its /64 (one subscriber
+// line usually gets a whole /64, so per-address keys are free to rotate); IPv4 and IPv4-mapped IPv6 stay the single
+// IPv4 address. Anything unparsable is returned unchanged.
+func ClientNet(ip string) string {
+	addr, err := netip.ParseAddr(ip)
+	if err != nil {
+		return ip
+	}
+	addr = addr.Unmap().WithZone("")
+	if addr.Is4() {
+		return addr.String()
+	}
+	return netip.PrefixFrom(addr, 64).Masked().String()
+}
+
 // Middleware is `throttle:maxAttempts,decayMinutes` (decay = decayMinutes minutes).
 // identity may be nil for guest-only routes.
 func (l *Limiter) Middleware(maxAttempts int, decay time.Duration, identity Identity) fiber.Handler {
-	return l.middleware("", maxAttempts, decay, identity, nil)
+	return l.middleware("", maxAttempts, decay, identity, nil, Signature)
 }
 
 // Named is Middleware on a counter of its own: the key is name + ":" + Signature, so it never
@@ -163,14 +192,22 @@ func (l *Limiter) NamedWith(name string, maxAttempts int, decay time.Duration, i
 	if name == "" {
 		panic("ratelimit: Named needs a name")
 	}
-	return l.middleware(name+":", maxAttempts, decay, identity, reject)
+	return l.middleware(name+":", maxAttempts, decay, identity, reject, Signature)
 }
 
-func (l *Limiter) middleware(prefix string, maxAttempts int, decay time.Duration, identity Identity, reject Reject) fiber.Handler {
+// NamedNet is Named keyed on NetSignature: guests on an IPv6 /64 share one bucket (T-M12-01, the OTP limiters).
+func (l *Limiter) NamedNet(name string, maxAttempts int, decay time.Duration, identity Identity) fiber.Handler {
+	if name == "" {
+		panic("ratelimit: Named needs a name")
+	}
+	return l.middleware(name+":", maxAttempts, decay, identity, nil, NetSignature)
+}
+
+func (l *Limiter) middleware(prefix string, maxAttempts int, decay time.Duration, identity Identity, reject Reject, sig func(fiber.Ctx, Identity) string) fiber.Handler {
 	limit := strconv.Itoa(maxAttempts)
 	return func(c fiber.Ctx) error {
 		now := clock.FromContext(c, l.base).Now()
-		res, err := l.Attempt(c.Context(), prefix+Signature(c, identity), maxAttempts, decay, now)
+		res, err := l.Attempt(c.Context(), prefix+sig(c, identity), maxAttempts, decay, now)
 		if err != nil {
 			return err
 		}

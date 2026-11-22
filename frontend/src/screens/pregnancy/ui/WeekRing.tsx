@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 
 import { V2_TERM_WEEKS } from '@/entities/pregnancy';
+import '@/shared/ui/styles/pgn.css';
 
 const SIZE = 260;
 const RADIUS = 118;

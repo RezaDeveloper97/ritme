@@ -71,6 +71,10 @@ type Querier interface {
 	LockDiscountCode(ctx context.Context, code string) (PlusDiscountCode, error)
 	// Serialises concurrent verifies of one token.
 	LockStorePurchase(ctx context.Context, arg LockStorePurchaseParams) (PlusStorePurchase, error)
+	// Serialises the period writes of one user (activate, GrantDays): taken before LatestValidSubscription, so
+	// concurrent settles of different invoices queue one period after the other instead of overlapping (T-M12-19).
+	// Lock order: the invoice / store purchase / enrollment row first, then this one.
+	LockUser(ctx context.Context, id uint64) (uint64, error)
 	LockUserInvoiceByReference(ctx context.Context, arg LockUserInvoiceByReferenceParams) (PlusInvoice, error)
 	MarkInvoiceFailed(ctx context.Context, arg MarkInvoiceFailedParams) error
 	MarkInvoicePaid(ctx context.Context, arg MarkInvoicePaidParams) error

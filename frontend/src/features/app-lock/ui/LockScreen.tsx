@@ -14,6 +14,7 @@ import type { LockSnapshot } from '../model/controller';
 import { getLockController } from '../model/store';
 import { verifyBiometric } from '../model/webauthn';
 import { PasscodePad } from './PasscodePad';
+import './lk.css';
 
 function useSecondsLeft(until: number): number {
   const [now, setNow] = useState(() => Date.now());

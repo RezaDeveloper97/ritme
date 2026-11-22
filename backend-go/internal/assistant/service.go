@@ -55,7 +55,10 @@ type Options struct {
 	Box Sealer
 	// BookingNotFound tells BookingSource's "not yours / unknown" error apart (telemed.ErrBookingNotFound).
 	BookingNotFound error
-	Logger          *slog.Logger
+	// HistoryTurns is how many of the newest stored turns go back to the model with a new message (config
+	// AI_ASSISTANT_HISTORY_TURNS); 0 = HistoryTurns. Older turns are not read at all (T-M12-32).
+	HistoryTurns int
+	Logger       *slog.Logger
 }
 
 // Service is the assistant clinic.
@@ -68,6 +71,9 @@ type Service struct {
 func NewService(o Options) *Service {
 	if o.Logger == nil {
 		o.Logger = slog.Default()
+	}
+	if o.HistoryTurns <= 0 {
+		o.HistoryTurns = HistoryTurns
 	}
 	return &Service{o: o, q: store.New(o.DB)}
 }
@@ -278,6 +284,22 @@ func (s *Service) Messages(ctx context.Context, c store.AssistantConversation) (
 	if err != nil {
 		return nil, fmt.Errorf("assistant: messages: %w", err)
 	}
+	for i := range rows {
+		rows[i].Body = s.open(rows[i].Body, messageAD(c.UserID, c.ID, rows[i].ID))
+	}
+	return rows, nil
+}
+
+// recentTurns are the newest Options.HistoryTurns user / assistant turns of conversation c, oldest first, bodies
+// decrypted — the model's history window; the rest of the conversation is never read for a new message (T-M12-32).
+func (s *Service) recentTurns(ctx context.Context, c store.AssistantConversation) ([]store.AssistantMessage, error) {
+	rows, err := s.q.ListRecentChatMessages(ctx, store.ListRecentChatMessagesParams{
+		ConversationID: c.ID, Limit: int32(s.o.HistoryTurns), //nolint:gosec // config bounds it (1..200)
+	})
+	if err != nil {
+		return nil, fmt.Errorf("assistant: history: %w", err)
+	}
+	slices.Reverse(rows)
 	for i := range rows {
 		rows[i].Body = s.open(rows[i].Body, messageAD(c.UserID, c.ID, rows[i].ID))
 	}
@@ -542,7 +564,7 @@ func (s *Service) Prepare(ctx context.Context, c store.AssistantConversation, te
 		return Prepared{}, err
 	}
 	diagnosis := terms.AsksDiagnosis(text)
-	history, err := s.Messages(ctx, c)
+	history, err := s.recentTurns(ctx, c)
 	if err != nil {
 		return Prepared{}, err
 	}
@@ -561,9 +583,7 @@ func (s *Service) Prepare(ctx context.Context, c store.AssistantConversation, te
 			}
 		}
 	}
-	if len(msgs) > HistoryTurns {
-		msgs = msgs[len(msgs)-HistoryTurns:]
-	}
+	// The window is bounded in SQL (recentTurns); it opens on a user turn.
 	for len(msgs) > 0 && msgs[0].Role != ai.RoleUser {
 		msgs = msgs[1:]
 	}

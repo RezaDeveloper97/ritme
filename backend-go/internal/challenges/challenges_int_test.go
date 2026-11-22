@@ -480,3 +480,47 @@ func TestChallenges_FeedCandidates(t *testing.T) {
 	assert.Equal(t, 0, card.Day, "a completed run has no day")
 	assert.Equal(t, 3, card.DurationDays)
 }
+
+// T-M12-19b: two different challenges of one user finishing at the same moment, both with Plus-day rewards. Each
+// run's reward-grant insert takes a shared lock on the users row (foreign key) before plus.GrantDays asks for the
+// exclusive one; without the user lock taken up front the two calls deadlock (MariaDB 1213) or — under a looser
+// order — queue their free periods on top of each other. With it: both rewards, periods back to back.
+func TestChallenges_TwoRunsOfOneUserFinishTogether(t *testing.T) {
+	e := setup(t)
+	today := civildate.InTehran(fixed)
+	const rounds = 15
+	for round := range rounds {
+		uid, _ := e.user(t, "0912100"+strings.Repeat("0", 4-len(itoa(uint64(round))))+itoa(uint64(round)))
+		var cids, tids [2]uint64
+		for i := range 2 {
+			cid, tasks := e.challenge(t, "pair-"+itoa(uint64(round))+"-"+itoa(uint64(i)), `null`, "anytime", 1, 3+i)
+			e.enroll(t, uid, cid, "2026-10-06") // day 1 has only task 1: completing it finishes the run
+			cids[i], tids[i] = cid, tasks[0]
+		}
+		var wg sync.WaitGroup
+		start := make(chan struct{})
+		errs := make([]error, 2)
+		finished := make([]bool, 2)
+		for i := range 2 {
+			wg.Go(func() {
+				<-start
+				res, err := e.svc.CompleteTask(context.Background(), uid, cids[i], tids[i], nil, today, fixed)
+				errs[i], finished[i] = err, res.JustFinally
+			})
+		}
+		close(start)
+		wg.Wait()
+		for i := range 2 {
+			require.NoError(t, errs[i], "round %d run %d: no deadlock", round, i)
+			assert.True(t, finished[i], "round %d run %d finished", round, i)
+		}
+		require.Equal(t, 2, e.count(t, `SELECT COUNT(*) FROM challenge_reward_grants WHERE user_id = ? AND subscription_id IS NOT NULL`, uid),
+			"round %d: both rewards granted", round)
+		require.Equal(t, 2, e.count(t, `SELECT COUNT(*) FROM plus_subscriptions WHERE user_id = ? AND source = 'challenge'`, uid))
+		require.Zero(t, e.count(t, `SELECT COUNT(*) FROM plus_subscriptions a JOIN plus_subscriptions b
+			ON a.user_id = b.user_id AND a.id < b.id AND a.starts_at < b.ends_at AND b.starts_at < a.ends_at
+			WHERE a.user_id = ?`, uid), "round %d: the free periods follow each other", round)
+		require.Equal(t, 7, e.count(t, `SELECT DATEDIFF(MAX(ends_at), MIN(starts_at)) FROM plus_subscriptions WHERE user_id = ?`, uid),
+			"round %d: 3 + 4 days, none lost", round)
+	}
+}

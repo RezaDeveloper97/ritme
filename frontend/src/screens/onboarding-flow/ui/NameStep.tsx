@@ -8,6 +8,7 @@ import { OnbFrame } from '@/features/auth';
 
 import { useSaveOnboardingStep } from '../api/onboarding';
 import { StepScreen, type StepContext } from './StepScreen';
+import '@/shared/ui/styles/onb.css';
 
 const MAX_NAME = 255;
 

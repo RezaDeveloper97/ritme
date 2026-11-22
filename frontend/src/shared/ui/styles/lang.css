@@ -1,0 +1,25 @@
+/* `lang-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.lang-list { display: flex; flex-direction: column; padding: 4px 0 24px; }
+
+.lang-hint { margin: 0 14px 12px; font-size: 12.5px; line-height: 1.9; color: var(--muted); }
+
+.lang-row {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  padding: 13px 14px; background: transparent; border: 0; font: inherit;
+  text-align: start; cursor: pointer; border-radius: 14px;
+}
+
+.lang-row + .lang-row { margin-top: 2px; }
+
+.lang-row:disabled { cursor: default; }
+
+.lang-row.is-active { background: var(--pink-soft); }
+
+.lang-row-body { flex: 1; min-width: 0; text-align: start; }
+
+.lang-row-name { display: block; font-size: 14.5px; font-weight: 800; color: var(--ink); }
+
+.lang-row-code { display: block; font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+.lang-row-check { color: var(--brand); flex-shrink: 0; }

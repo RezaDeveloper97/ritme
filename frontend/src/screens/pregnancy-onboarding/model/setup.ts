@@ -1,25 +1,12 @@
-import type { DatingPreviewInput, DatingSource, OnboardingInput } from '@/entities/pregnancy';
-import { datePartsToApiDate } from '@/features/edit-profile';
-import type { Locale } from '@/shared/i18n';
-import type { DateParts } from '@/shared/lib/date';
+import type { OnboardingInput } from '@/entities/pregnancy';
 
 /*
- * Pure state + payload builders for the pregnancy Setup v2 flow (T-M7-09).
- * Dates are held in the locale's calendar (DateParts) and converted to
- * Gregorian ISO only when a request body is built (CLAUDE.md §7).
+ * Pure state + payload builders for the in-app pregnancy setup. The dating
+ * itself is the sign-up form (`widgets/pregnancy-dating`); this adds the
+ * optional history and the order of the finishing writes.
  */
 
 export const SETUP_CONDITION_NONE = 'none';
-
-export interface SetupDating {
-  source: DatingSource;
-  lmp: DateParts | null;
-  ultrasoundDate: DateParts | null;
-  ultrasoundWeeks: number | null;
-  ultrasoundDays: number;
-  manualWeeks: number | null;
-  manualDays: number;
-}
 
 export interface SetupHistory {
   miscarriage: boolean;
@@ -29,16 +16,6 @@ export interface SetupHistory {
   bloodType: string | null;
   rhFactor: string | null;
 }
-
-export const EMPTY_DATING: SetupDating = {
-  source: 'lmp',
-  lmp: null,
-  ultrasoundDate: null,
-  ultrasoundWeeks: null,
-  ultrasoundDays: 0,
-  manualWeeks: null,
-  manualDays: 0,
-};
 
 export const EMPTY_HISTORY: SetupHistory = {
   miscarriage: false,
@@ -65,53 +42,19 @@ export function noneFirst(conditions: readonly string[]): string[] {
   ];
 }
 
-/** Has the dating step got everything its source needs? */
-export function isDatingComplete(d: SetupDating): boolean {
-  switch (d.source) {
-    case 'lmp':
-      return d.lmp != null;
-    case 'ultrasound':
-      return d.ultrasoundDate != null && d.ultrasoundWeeks != null;
-    case 'manual':
-      return d.manualWeeks != null;
-  }
-}
-
-/** Body for `POST /pregnancy/v2/dating-preview`, or null if incomplete. */
-export function toPreviewInput(d: SetupDating, locale: Locale): DatingPreviewInput | null {
-  if (!isDatingComplete(d)) return null;
-  switch (d.source) {
-    case 'lmp':
-      return { source: 'lmp', lmp_date: datePartsToApiDate(d.lmp!, locale) };
-    case 'ultrasound':
-      return {
-        source: 'ultrasound',
-        ultrasound_date: datePartsToApiDate(d.ultrasoundDate!, locale),
-        ultrasound_weeks: d.ultrasoundWeeks!,
-        ultrasound_days: d.ultrasoundDays,
-      };
-    case 'manual':
-      return { source: 'manual', manual_weeks: d.manualWeeks!, manual_days: d.manualDays };
-  }
-}
-
-/** Body for v1 `POST /pregnancy/onboarding`; history fields only when given. */
-export function toOnboardingInput(
-  d: SetupDating,
-  h: SetupHistory | null,
-  locale: Locale,
-): OnboardingInput | null {
-  const preview = toPreviewInput(d, locale);
-  if (!preview) return null;
-  const { source, ...dating } = preview;
-  const body: OnboardingInput = { age_source: source, ...dating };
+/**
+ * Adds the optional history to the v1 `POST /pregnancy/onboarding` dating
+ * body (built by the shared dating form); only the fields the user gave.
+ */
+export function withHistory(body: OnboardingInput, h: SetupHistory | null): OnboardingInput {
   if (!h) return body;
-  if (h.miscarriage) body.has_miscarriage_history = true;
-  if (h.highRisk) body.has_high_risk_history = true;
-  if (h.conditions.length) body.pre_existing_conditions = h.conditions;
-  if (h.bloodType) body.blood_type = h.bloodType;
-  if (h.rhFactor) body.rh_factor = h.rhFactor;
-  return body;
+  const out: OnboardingInput = { ...body };
+  if (h.miscarriage) out.has_miscarriage_history = true;
+  if (h.highRisk) out.has_high_risk_history = true;
+  if (h.conditions.length) out.pre_existing_conditions = h.conditions;
+  if (h.bloodType) out.blood_type = h.bloodType;
+  if (h.rhFactor) out.rh_factor = h.rhFactor;
+  return out;
 }
 
 /** The three writes of «تمومه», injected so the order is unit-tested without a server. */

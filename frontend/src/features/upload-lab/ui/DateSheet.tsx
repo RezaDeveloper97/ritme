@@ -8,6 +8,7 @@ import { type DateParts, fromApiDate, partsToDate, toApiDate, toParts } from '@/
 import { AppSheet } from '@/shared/sheet';
 import { CalendarPicker, PrimaryButton, SecondaryButton } from '@/shared/ui';
 import { pilot } from '@/shared/pilot';
+import '@/shared/ui/styles/lab.css';
 
 /** The sheet date in the locale's calendar (Jalali in fa) → `Y-m-d`. Mounted only while open. */
 export function DateSheet({

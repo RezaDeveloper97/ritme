@@ -13,6 +13,7 @@ import { Card, EmptyState, HeaderButton, Icon, PrimaryButton, ScreenHeader, Skel
 import { BottomNav } from '@/widgets/bottom-nav';
 
 import { meterPercent, sizeParts } from '../model/size';
+import '@/shared/ui/styles/lrn.css';
 
 function useSize() {
   const t = useTranslations('learn');

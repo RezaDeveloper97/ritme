@@ -9,6 +9,7 @@ import { pilot } from '@/shared/pilot';
 import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber, monthName, toParts } from '@/shared/lib/date';
 import { Art3d, type Art3dName, Icon, IconCircle, ListGroup, ListRow, SectionTitle, StatusPill } from '@/shared/ui';
+import './svc.css';
 
 /*
  * The «خدمات» hub sections (B-N7-01, v17_Main). Copy comes from the API (admin catalog) with the bundled strings as

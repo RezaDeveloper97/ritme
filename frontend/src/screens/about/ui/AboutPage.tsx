@@ -23,6 +23,7 @@ import {
 
 import { useInfoPage } from '../api/info-page';
 import { type InfoPageSection, splitAbout } from '../model/info-page';
+import './abt.css';
 
 /** Icons for admin rows, in order (the content is data; the icons are decoration). */
 const ROW_ICONS: ReadonlyArray<readonly [IconName, Tone]> = [

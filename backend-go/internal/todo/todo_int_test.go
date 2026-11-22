@@ -350,3 +350,34 @@ func TestTodo_DismissSuggestion(t *testing.T) {
 	require.Equal(t, http.StatusOK, r.status, r.body)
 	assert.Nil(t, r.data()["suggestion"])
 }
+
+// TestTodo_BoardNotificationSwitch: the board reads the tasks and the reminder switch in one query (T-M12-30b,
+// ListBoard). The switch follows the user's own settings row whether the board is empty or not, the default without
+// a row, and another user's settings never leak in.
+func TestTodo_BoardNotificationSwitch(t *testing.T) {
+	e := setup(t)
+	uidA, tokA := e.user(t, "09120000011")
+	_, tokB := e.user(t, "09120000012")
+	switchOf := func(tok string) any {
+		r := e.do(t, http.MethodGet, "/api/v1/todo", tok, "en", nil)
+		require.Equal(t, http.StatusOK, r.status, r.body)
+		return r.data()["notifications"].(map[string]any)["enabled"]
+	}
+	assert.Equal(t, true, switchOf(tokA), "no settings row: the category default")
+
+	_, err := e.db.Exec(`INSERT INTO notification_preferences (user_id, categories, quiet_hours_enabled, neutral_copy, created_at, updated_at)
+		VALUES (?, '{"appointments":false}', 0, 0, NOW(), NOW())`, uidA)
+	require.NoError(t, err)
+	assert.Equal(t, false, switchOf(tokA), "empty board still carries the settings")
+	assert.Equal(t, true, switchOf(tokB), "another user's settings do not apply")
+
+	for _, title := range []string{"One", "Two", "Three"} {
+		r := e.do(t, http.MethodPost, "/api/v1/todo/tasks", tokA, "en", map[string]any{"title": title, "category": "work"})
+		require.Equal(t, http.StatusCreated, r.status, r.body)
+	}
+	r := e.do(t, http.MethodGet, "/api/v1/todo", tokA, "en", nil)
+	require.Equal(t, http.StatusOK, r.status, r.body)
+	assert.Len(t, group(r, "later"), 3)
+	assert.Equal(t, false, r.data()["notifications"].(map[string]any)["enabled"])
+	assert.Empty(t, group(e.do(t, http.MethodGet, "/api/v1/todo", tokB, "en", nil), "later"))
+}

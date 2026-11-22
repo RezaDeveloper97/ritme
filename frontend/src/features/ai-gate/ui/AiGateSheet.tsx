@@ -12,6 +12,7 @@ import { AppSheet } from '@/shared/sheet';
 import { Art3d, IconCircle, PrimaryButton, SecondaryButton } from '@/shared/ui';
 
 import { openAiGate, useAiGateStore } from '../model/store';
+import './aigate.css';
 
 /** Where the sheet's actions lead (explicit routes — never history, CLAUDE.md §4.2). */
 export const CREDITS_BUY_ROUTE = '/plus/credits';

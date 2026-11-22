@@ -247,3 +247,51 @@ func (m *Middleware) forget(uid uint64) {
 	defer m.mu.Unlock()
 	delete(m.known, uid)
 }
+
+// Reader reads the stored zone (satisfied by *profilestore.Queries).
+type Reader interface {
+	GetUserTimezone(ctx context.Context, userID uint64) (sql.NullString, error)
+}
+
+// Zones is the stored zone per user for background jobs (push and reminder senders, T-M12-21c), which have no
+// request and so no header: one SELECT per user, remembered for knownTTL. A missing profile, a NULL or an invalid
+// zone is Asia/Tehran; a read error is returned (the caller decides) and nothing is remembered.
+type Zones struct {
+	r   Reader
+	now func() time.Time
+
+	mu    sync.Mutex
+	known map[uint64]known
+}
+
+// NewZones returns the job-side zone lookup over r.
+func NewZones(r Reader) *Zones {
+	return &Zones{r: r, now: time.Now, known: map[uint64]known{}}
+}
+
+// For is userID's stored zone (Asia/Tehran when none).
+func (z *Zones) For(ctx context.Context, userID uint64) (*time.Location, error) {
+	z.mu.Lock()
+	k, ok := z.known[userID]
+	z.mu.Unlock()
+	if ok && z.now().Sub(k.at) <= knownTTL {
+		return zoneOrTehran(k.zone), nil
+	}
+	name, err := z.r.GetUserTimezone(ctx, userID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return civildate.Tehran, err
+	}
+	zone := ""
+	if name.Valid {
+		if _, ok := Parse(name.String); ok {
+			zone = name.String
+		}
+	}
+	z.mu.Lock()
+	if len(z.known) >= knownMax {
+		z.known = map[uint64]known{}
+	}
+	z.known[userID] = known{zone: zone, at: z.now()}
+	z.mu.Unlock()
+	return zoneOrTehran(zone), nil
+}

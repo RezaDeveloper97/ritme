@@ -19,7 +19,6 @@ export const CYCLE_ROUTES: readonly CatalogRoute[] = [
 
 export const CYCLE_SHEETS: readonly CatalogSheet[] = [
   { sheet: 'phase', titleKey: 'sheets.phase' },
-  { sheet: 'quick-access', titleKey: 'sheets.quick_access' },
 ];
 
 export const CYCLE_TARGETS: readonly CatalogTarget[] = [
@@ -97,10 +96,6 @@ export const CYCLE_TARGETS: readonly CatalogTarget[] = [
   { id: 'calendar.start-period-here', value: 'action', titleKey: 'targets.calendar_start_period_here', surface: { route: '/calendar' } },
   { id: 'calendar.log-day', value: 'action', titleKey: 'targets.calendar_log_day', surface: { route: '/calendar' } },
   { id: 'calendar.vitals', value: 'action', titleKey: 'targets.calendar_vitals', surface: { route: '/calendar' } },
-  { id: 'home.quick:*', value: 'action', surface: { route: '/home' } },
-  { id: 'home.quick-edit', value: 'action', titleKey: 'targets.home_quick_edit', surface: { route: '/home' } },
-  { id: 'quick-access.pick:*', value: 'bool', surface: { sheet: 'quick-access' }, reveal: () => [{ do: 'expand', target: `home.quick-edit` }] },
-  { id: 'quick-access.save', value: 'action', titleKey: 'targets.quick_access_save', surface: { sheet: 'quick-access' }, reveal: () => [{ do: 'expand', target: `home.quick-edit` }] },
   { id: 'home.today-tasks', value: 'action', titleKey: 'targets.home_today_tasks', surface: { route: '/home' }, module: 'todo' },
   { id: 'home.later-vitals', value: 'action', titleKey: 'targets.home_later_vitals', surface: { route: '/home' } },
   { id: 'home.later-appointment', value: 'action', titleKey: 'targets.home_later_appointment', surface: { route: '/home' } },
@@ -119,8 +114,7 @@ export const CYCLE_TARGETS: readonly CatalogTarget[] = [
   { id: 'home.period-ended', value: 'action', titleKey: 'targets.home_period_ended', surface: { route: '/home' } },
   { id: 'home.period-still-going', value: 'action', titleKey: 'targets.home_period_still_going', surface: { route: '/home' } },
   { id: 'home.edit-period', value: 'action', titleKey: 'targets.home_edit_period', surface: { route: '/home' } },
-  { id: 'home.log-row:*', value: 'action', surface: { route: '/home' } },
-  { id: 'home.predictions-details', value: 'action', titleKey: 'targets.home_predictions_details', surface: { route: '/home' } },
+  { id: 'home.log-card:*', value: 'action', surface: { route: '/home' } },
   { id: 'analysis.card:*', value: 'action', surface: { route: '/analysis' } },
   { id: 'analysis.report', value: 'action', titleKey: 'targets.analysis_report', surface: { route: '/analysis' } },
   { id: 'analysis.range:*', value: 'action', surface: { route: '/analysis' } },

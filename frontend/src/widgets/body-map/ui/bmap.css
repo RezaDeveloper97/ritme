@@ -1,0 +1,62 @@
+/* `bmap-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.bmap-pin:focus-visible {
+  outline: none; box-shadow: var(--ring); border-radius: 14px;
+}
+
+.bmap-figure { position: relative; width: min(100%, 260px); aspect-ratio: 240 / 300; margin: 0 auto; }
+
+.bmap-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.bmap-body { fill: var(--brand-soft); stroke: var(--line-strong); stroke-width: 1.5; }
+
+.bmap-limb { fill: none; stroke: var(--line-strong); stroke-width: 2; stroke-linecap: round; }
+
+.bmap-pin {
+  position: absolute; transform: translate(-50%, -22px);
+  display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 48px; min-height: 48px; padding: 5px 2px 0;
+  background: none; border: 0; font-family: inherit; cursor: pointer;
+}
+
+.bmap-dot {
+  width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+  background: var(--surface); border: 2.5px solid var(--text-2); transition: background .15s ease, border-color .15s ease;
+}
+
+.bmap-pin[aria-pressed="true"] .bmap-dot { background: var(--bloom); border-color: color-mix(in srgb, var(--bloom) 55%, var(--surface)); }
+
+.bmap-pin.is-current[aria-pressed="true"] .bmap-dot { box-shadow: 0 0 0 4px color-mix(in srgb, var(--bloom) 28%, transparent); }
+
+.bmap-label { font-size: 11.5px; font-weight: 800; color: var(--text-1); white-space: nowrap; line-height: 1.3; }
+
+.bmap-pin.is-head { inset-inline-start: 50%; top: 14%; }
+
+.bmap-pin.is-breast { inset-inline-start: 50%; top: 39%; }
+
+.bmap-pin.is-abdomen { inset-inline-start: 50%; top: 56%; }
+
+.bmap-pin.is-back { inset-inline-start: 76%; top: 50%; }
+
+.bmap-pin.is-ovary { inset-inline-start: 31%; top: 62%; }
+
+.bmap-pin.is-pelvis { inset-inline-start: 50%; top: 71%; }
+
+.bmap-pin.is-stitches { inset-inline-start: 66%; top: 66%; }
+
+.bmap-pin.is-leg { inset-inline-start: 38%; top: 88%; }
+
+.bmap-pin.is-joints { inset-inline-start: 63%; top: 88%; }
+
+.bmap-extra { justify-content: center; }
+
+.bmap-pin { transform: translate(-50%, -20px); }
+
+.bmap-dot { width: 30px; height: 30px; }
+
+.bmap-pin.is-breast { top: 41%; }
+
+.bmap-pin.is-abdomen { top: 57%; }
+
+.bmap-pin.is-ovary { inset-inline-start: 28%; top: 68%; }
+
+.bmap-pin.is-pelvis { top: 74%; }

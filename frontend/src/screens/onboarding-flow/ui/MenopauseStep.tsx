@@ -19,6 +19,7 @@ import { OnbFrame } from '@/features/auth';
 import { useSaveOnboardingStep } from '../api/onboarding';
 import { MENOPAUSE_STAGES, type MenopauseStage } from '../model/state';
 import { StepScreen, type StepContext } from './StepScreen';
+import '@/shared/ui/styles/onb.css';
 
 const META: Record<MenopauseStage, Pick<RadioCardOption<MenopauseStage>, 'icon' | 'iconTone'>> = {
   peri: { icon: 'clock', iconTone: 'period' },

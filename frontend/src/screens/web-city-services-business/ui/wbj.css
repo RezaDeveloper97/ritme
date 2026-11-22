@@ -1,0 +1,62 @@
+/* `wbj-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.wbj-exit:focus-visible,
+.wbj-prev:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.wbj-page { display: flex; flex-direction: column; gap: 24px; padding-block: 16px; }
+
+.wbj-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+
+.wbj-h1 { margin: 0; font-size: var(--fs-2xl, var(--fs-xl)); font-weight: 800; color: var(--text-1); }
+
+.wbj-exit,
+.wbj-prev { min-block-size: 44px; padding-inline: 18px; border: 1px solid var(--line-strong); border-radius: var(--r-pill); background: var(--surface); color: var(--brand); font: inherit; font-weight: 800; cursor: pointer; }
+
+.wbj-prev { align-self: flex-start; border-color: var(--line); color: var(--text-2); }
+
+.wbj-layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 32px; align-items: start; }
+
+.wbj-side { position: sticky; inset-block-start: 88px; display: flex; flex-direction: column; gap: 20px; }
+
+.wbj-steps { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+
+.wbj-step { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--r-md); border: 1px solid transparent; }
+
+.wbj-step.is-current { border-color: var(--line-strong); background: var(--brand-soft); }
+
+.wbj-dot { display: grid; place-items: center; flex-shrink: 0; inline-size: 30px; block-size: 30px; border-radius: 50%; background: var(--surface-3); color: var(--text-3); font-size: var(--fs-md); font-weight: 800; }
+
+.wbj-step.is-current .wbj-dot { background: var(--brand-fill); color: var(--on-brand); }
+
+.wbj-step.is-done .wbj-dot { background: var(--data-soft); color: var(--data-deep); }
+
+.wbj-step-text { display: flex; flex-direction: column; text-align: start; font-size: var(--fs-base); color: var(--text-1); }
+
+.wbj-step-text small { font-size: var(--fs-md); font-weight: 700; color: var(--text-3); }
+
+.wbj-hint { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: 1.9; color: var(--text-3); text-align: start; }
+
+.wbj-preview { display: flex; flex-direction: column; gap: 10px; }
+
+.wbj-side-t { margin: 0; font-size: var(--fs-base); font-weight: 800; color: var(--text-1); text-align: start; }
+
+.wbj-card { display: flex; flex-direction: column; gap: 4px; padding: 16px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--surface); text-align: start; }
+
+.wbj-card-name { font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+
+.wbj-card-sub { font-size: var(--fs-md); font-weight: 700; color: var(--text-2); }
+
+.wbj-card-note { margin-block-start: 6px; font-size: var(--fs-md); font-weight: 600; line-height: 1.8; color: var(--text-3); }
+
+.wbj-main { display: flex; flex-direction: column; gap: 16px; max-inline-size: 760px; min-inline-size: 0; }
+
+.wbj-stepno { margin: 0; font-size: var(--fs-md); font-weight: 800; color: var(--text-3); text-align: start; }
+
+.wbj-done { max-inline-size: 640px; margin-inline: auto; padding-block: 24px; }
+
+.wbj-skel { display: flex; flex-direction: column; gap: 14px; max-inline-size: 760px; }
+
+@media (max-width: 899px) {
+  .wbj-layout { grid-template-columns: minmax(0, 1fr); }
+  .wbj-side { position: static; }
+}

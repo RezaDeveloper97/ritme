@@ -25,6 +25,7 @@ import { FLOW_ROUTES, isGoal, landingRoute } from '../model/flow';
 import { usesHormonalMethod } from '../model/hormonal';
 import type { OnboardingState } from '../model/state';
 import { StepScreen, type StepContext } from './StepScreen';
+import '@/shared/ui/styles/onb.css';
 
 const LIFE_MODES = ['cycle', 'ttc', 'pregnancy', 'postpartum', 'menopause', 'teen'] as const;
 

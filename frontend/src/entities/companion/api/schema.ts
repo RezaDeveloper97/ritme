@@ -72,12 +72,14 @@ export const preferencesSchema = z
     goals: z.unknown().optional(),
     signals: signalScopeSchema,
     action_prefs: actionPrefsSchema,
+    period_days: z.unknown().optional(),
   })
   .transform(
     (p): CompanionPreferences => ({
       goals: readGoals(p.goals, p.goal),
       signals: p.signals,
       actionPrefs: p.action_prefs,
+      periodDays: p.period_days === true,
     }),
   );
 
@@ -86,6 +88,8 @@ const ownerLinkShape = z.object({
   goals: z.unknown().optional(),
   signals: signalScopeSchema,
   action_prefs: actionPrefsSchema,
+  // Absent on Laravel / older Go builds → off (the private reading).
+  period_days: z.unknown().optional(),
   id: z.number(),
   type: z.enum(['partner', 'spouse']),
   status: z.enum(['invited', 'active']),
@@ -116,7 +120,12 @@ export const ownerCompanionSchema = ownerLinkShape.transform(
     grants: l.grants,
     invite: l.invite ? { expiresAt: l.invite.expires_at, phone: l.invite.phone ?? null } : null,
     family: l.family ? { id: l.family.id, sharedChildIds: l.family.shared_child_ids ?? [] } : null,
-    preferences: { goals: readGoals(l.goals, l.goal), signals: l.signals, actionPrefs: l.action_prefs },
+    preferences: {
+      goals: readGoals(l.goals, l.goal),
+      signals: l.signals,
+      actionPrefs: l.action_prefs,
+      periodDays: l.period_days === true,
+    },
   }),
 );
 

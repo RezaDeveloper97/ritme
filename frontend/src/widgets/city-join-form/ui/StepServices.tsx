@@ -21,6 +21,7 @@ import {
 } from '../model/join';
 import { useAutosave } from '../model/use-autosave';
 import { SaveHint, useErrorText } from './parts';
+import '@/shared/ui/styles/cjn.css';
 
 const MAX_SERVICES = 30;
 

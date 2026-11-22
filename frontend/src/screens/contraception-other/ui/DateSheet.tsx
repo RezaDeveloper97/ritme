@@ -8,6 +8,7 @@ import { type DateParts, fromApiDate, partsToDate, toApiDate, toParts } from '@/
 import { pilot } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { CalendarPicker, PrimaryButton, SecondaryButton } from '@/shared/ui';
+import '@/shared/ui/styles/ctr.css';
 
 /**
  * A date in the locale's calendar (Jalali in fa) → `Y-m-d`, for the implant's

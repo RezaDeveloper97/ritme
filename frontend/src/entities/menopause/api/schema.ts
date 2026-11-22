@@ -137,7 +137,7 @@ const treatmentSchema = z
   }));
 
 /** Drops the entries that fail to parse instead of failing the whole list. */
-function lenientArray<T extends z.ZodTypeAny>(item: T) {
+function lenientArray<T extends z.ZodType>(item: T) {
   return z
     .array(z.unknown())
     .catch([])

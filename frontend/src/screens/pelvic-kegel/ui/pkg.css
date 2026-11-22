@@ -1,0 +1,59 @@
+/* `pkg-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.pkg-page { background: var(--page); }
+
+.pkg-scroll { position: relative; z-index: 1; }
+
+.pkg-body {
+  display: flex; flex-direction: column; align-items: center; gap: 18px;
+  padding: 8px var(--gutter) 32px; text-align: center;
+}
+
+.pkg-skel { display: flex; justify-content: center; padding-top: 24px; }
+
+.pkg-skel-ring { inline-size: 252px; block-size: 252px; }
+
+.pkg-ring { display: flex; justify-content: center; transition: transform .6s ease; }
+
+.pkg-ring.is-hold { transform: scale(1.03); }
+
+.pkg-ring.is-relax { transform: scale(.97); }
+
+.pkg-ring .nb-countdown-caption { font-size: 26px; }
+
+.pkg-ring.is-idle .nb-countdown-value { color: var(--text-2); }
+
+.pkg-reps {
+  display: flex; justify-content: center; gap: 6px; inline-size: 100%; max-inline-size: 300px;
+  margin: 0; padding: 0; list-style: none;
+}
+
+.pkg-rep { flex: 1 1 0; max-inline-size: 24px; block-size: 8px; border-radius: 99px; background: var(--track); }
+
+.pkg-rep.is-done { background: var(--brand-fill); }
+
+.pkg-line { margin: 0; min-height: 24px; font-size: 13.5px; font-weight: 800; line-height: 1.8; color: var(--text-2); }
+
+.pkg-round {
+  display: inline-flex; align-items: center; justify-content: center;
+  inline-size: 72px; block-size: 72px; border: 0; border-radius: 50%;
+  background: var(--brand-fill); color: var(--on-brand); box-shadow: var(--shadow-cta);
+  font-family: inherit; font-size: 15px; font-weight: 800; cursor: pointer;
+}
+
+.pkg-round:active { transform: scale(.96); }
+
+.pkg-round:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.pkg-end { display: flex; flex-direction: column; gap: 8px; inline-size: 100%; }
+
+.pkg-error { margin: 0; font-size: 13px; font-weight: 700; color: var(--danger-deep); }
+
+.pkg-note { inline-size: 100%; text-align: start; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pkg-ring,
+  .pkg-ring.is-hold,
+  .pkg-ring.is-relax { transition: none; transform: none; }
+  .pkg-round:active { transform: none; }
+}

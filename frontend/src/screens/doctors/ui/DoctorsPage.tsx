@@ -21,6 +21,8 @@ import { Link, useRouter, type Locale } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
 import { formatNumber, formatWeekdayDayMonth, fromApiDate } from '@/shared/lib/date';
 import { Card, EmptyState, HeaderButton, Icon, PillChip, ScreenHeader, SegmentedTabs, SkyLayer } from '@/shared/ui';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/dr.css';
 
 type ModeTab = 'all' | VisitMode;
 const MODE_TABS: readonly ModeTab[] = ['all', 'video', 'phone', 'in_person'];

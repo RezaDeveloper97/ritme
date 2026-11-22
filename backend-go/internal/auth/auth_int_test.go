@@ -58,6 +58,7 @@ type env struct {
 	db   *sql.DB
 	app  *fiber.App
 	jobs *recorder
+	h    *auth.Handlers
 }
 
 // setup builds the auth routes on a fresh DB. tokenClock drives JWT time validation and
@@ -81,7 +82,7 @@ func setup(t *testing.T, tokenClock clock.Clock) *env {
 	app.Post("/api/v1/auth/logout", guard.RequireUser, h.Logout)
 	app.Get("/api/v1/auth/user", guard.RequireUser, h.User)
 	app.Post("/api/v1/auth/refresh-session", guard.RequireUser, h.RefreshSession)
-	return &env{db: db, app: app, jobs: rec}
+	return &env{db: db, app: app, jobs: rec, h: h}
 }
 
 type response struct {

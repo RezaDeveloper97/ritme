@@ -48,34 +48,6 @@
     "todoNone": "Nothing on your list today",
     "todoSub": "To-do list"
   },
-  "quickAccess": {
-    "title": "Quick access",
-    "subtitle": "Choose what you want here",
-    "edit": "Edit",
-    "editTitle": "Edit quick access",
-    "editLead": "Pick up to {max} shortcuts; they are saved on this phone only.",
-    "count": "{count} of {max}",
-    "save": "Save",
-    "reset": "Back to default",
-    "items": {
-      "record": "Record",
-      "doctor": "Doctor",
-      "painDiary": "Pain diary",
-      "courses": "Courses",
-      "checkups": "Checkups",
-      "reminders": "Reminders",
-      "vitals": "Vitals",
-      "labs": "Labs",
-      "analysis": "Analysis",
-      "todo": "To-do list",
-      "contraception": "Contraception",
-      "children": "Children",
-      "search": "Search",
-      "hotFlash": "Hot flash",
-      "ivfMeds": "Injections",
-      "kicks": "Kicks"
-    }
-  },
   "later": {
     "title": "For later",
     "appointment": "Appointment or visit",

@@ -7,7 +7,10 @@ Wants=network-online.target
 Type=oneshot
 # systemd sets no HOME; deploy-stage.sh (and docker's config lookup) need it.
 Environment=HOME=/root
-ExecStart=/opt/ritme-stage-src/deploy/stage-autodeploy.sh
+# An INSTALLED copy, never the checkout: a pushed commit must not be able to change the gate that verifies it
+# (T-M12-03). Update it only by hand — docs/quality-2026-11/autodeploy.md:
+#   install -o root -g root -m 0755 deploy/stage-autodeploy.sh /usr/local/sbin/ritme-stage-autodeploy
+ExecStart=/usr/local/sbin/ritme-stage-autodeploy
 StandardOutput=append:/var/log/ritme-stage-autodeploy.log
 StandardError=append:/var/log/ritme-stage-autodeploy.log
 # A full stage build (backend-go + frontend + admin-web) takes 30–45 min on the busy prod machine.

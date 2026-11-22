@@ -1,7 +1,8 @@
 // Package users is user management in the admin API (Admin\UserController): list with
 // search and status filter, show with stats, update (name, subscription, goal),
 // block / unblock and delete. Blocking and deleting revoke every Passport token of the
-// user (auth.RevokeUserTokens); revoking on delete is deviation D-03.
+// user (auth.RevokeUserTokens); revoking on delete is deviation D-03, and delete then runs the self-delete routine
+// (profile.Service.DeleteAccount, T-M12-13b).
 package users
 
 import (
@@ -20,11 +21,10 @@ import (
 	"github.com/ritme/backend-go/internal/admin/store"
 	"github.com/ritme/backend-go/internal/auth"
 	authstore "github.com/ritme/backend-go/internal/auth/store"
-	companionstore "github.com/ritme/backend-go/internal/companion/store"
 	"github.com/ritme/backend-go/internal/cycle/revision"
 	"github.com/ritme/backend-go/internal/enums"
-	"github.com/ritme/backend-go/internal/files"
 	"github.com/ritme/backend-go/internal/i18n"
+	"github.com/ritme/backend-go/internal/platform/cache"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 	"github.com/ritme/backend-go/internal/platform/validation"
@@ -44,7 +44,8 @@ type Handlers struct {
 	db          *sql.DB
 	q           *store.Queries
 	logger      *slog.Logger
-	storagePath string // STORAGE_PATH: support-report screenshots are removed with the user (B-N1-12)
+	storagePath string        // STORAGE_PATH: support-report screenshots are removed with the user (B-N1-12)
+	cache       *cache.Client // Redis: the user's per-user keys are removed with her (T-M12-13b; nil = none)
 }
 
 // NewHandlers wires the handlers.
@@ -55,6 +56,12 @@ func NewHandlers(db *sql.DB, logger *slog.Logger) *Handlers {
 // WithStoragePath sets STORAGE_PATH so Destroy also removes the user's support-report screenshots.
 func (h *Handlers) WithStoragePath(p string) *Handlers {
 	h.storagePath = p
+	return h
+}
+
+// WithCache sets the Redis client so Destroy also removes the user's per-user keys (profile.PurgeUserKeys).
+func (h *Handlers) WithCache(c *cache.Client) *Handlers {
+	h.cache = c
 	return h
 }
 
@@ -393,49 +400,36 @@ func (h *Handlers) setBlocked(c fiber.Ctx, blocked bool) error {
 	), msg)
 }
 
-// Destroy is DELETE /users/:id. Tokens are revoked first (D-03: Laravel only deletes the
-// row; oauth_access_tokens has no foreign key, so the rows would stay unrevoked).
+// Destroy is DELETE /users/:id. The tokens are revoked first (D-03), so revoked_tokens still reports the sessions it
+// ended; then the user goes through profile.Service.DeleteAccount, the routine DELETE /api/v1/account runs (T-M12-13b):
+// tokens and refresh tokens deleted, the OTP rows of her number, companion notices, the user row with every cascade,
+// support screenshots, stored files and per-user Redis keys. The admin audit row stays.
 func (h *Handlers) Destroy(c fiber.Ctx) error {
 	id, err := h.userID(c)
 	if err != nil {
 		return err
 	}
-	nowTime := httpadmin.Now(c)
-	// The files outlive the rows (support_reports goes by ON DELETE CASCADE): list them first.
-	shots, err := profilestore.New(h.db).ListUserSupportScreenshots(c.Context(), id)
-	if err != nil {
-		return fmt.Errorf("users: support screenshots: %w", err)
-	}
-	var revoked int64
-	err = h.inTx(c.Context(), func(q *store.Queries, tx *sql.Tx) error {
-		n, err := auth.RevokeUserTokens(c.Context(), authstore.New(tx), id, nowTime)
-		if err != nil {
-			return err
-		}
-		revoked = n
-		// CB-LOSS-01: the pregnancy notices her companions got (their inboxes, no FK to her).
-		if err := companionstore.New(tx).DeletePregnancyNoticesForOwner(c.Context(), id); err != nil {
-			return err
-		}
-		res, err := q.DeleteUser(c.Context(), id)
-		if err != nil {
-			return err
-		}
-		if affected, _ := res.RowsAffected(); affected == 0 {
-			return httpadmin.NotFound("User")
-		}
-		return nil
-	})
-	if err != nil {
+	ctx := c.Context()
+	if err := h.mustExist(ctx, id); err != nil {
 		return err
 	}
-	profile.RemoveSupportFiles(h.storagePath, shots, h.logger)
-	// B-N6-06 / CB-CORE-05: the encrypted files of every purpose, lab sheets included (their rows went with the user).
-	if err := files.RemoveUser(h.storagePath, id); err != nil {
-		h.logger.ErrorContext(c.Context(), "users: delete: files", slog.String("error", err.Error()))
+	revoked, err := auth.RevokeUserTokens(ctx, authstore.New(h.db), id, httpadmin.Now(c))
+	if err != nil {
+		return fmt.Errorf("users: revoke tokens: %w", err)
+	}
+	if err := h.accountDeleter().DeleteAccount(ctx, id); err != nil {
+		if errors.Is(err, sql.ErrNoRows) { // deleted by someone else in between
+			return httpadmin.NotFound("User")
+		}
+		return err
 	}
 	httpadmin.Audit(c, h.logger, "user.delete", "user", id, slog.Int64("revoked_tokens", revoked))
 	return httpadmin.OK(c, jsonx.Obj("id", id, "revoked_tokens", revoked), "User deleted.")
+}
+
+// accountDeleter is the self-delete service bound to this handler's database, storage and Redis.
+func (h *Handlers) accountDeleter() *profile.Service {
+	return &profile.Service{DB: h.db, Q: profilestore.New(h.db), StoragePath: h.storagePath, Logger: h.logger, Cache: h.cache}
 }
 
 func (h *Handlers) mustExist(ctx context.Context, id uint64) error {

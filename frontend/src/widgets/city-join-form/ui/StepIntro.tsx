@@ -26,6 +26,7 @@ import { step1Body, step1From, toggleItem } from "../model/join";
 import { useAutosave } from "../model/use-autosave";
 import { SaveHint, useErrorText } from "./parts";
 import { pilot, pilotOption } from "@/shared/pilot";
+import '@/shared/ui/styles/cjn.css';
 
 /** Step 1 «معرفی» (nbl_Dir_Join): what the venue gets, the cooperation-terms placeholder and the basic details. */
 export function StepIntro({

@@ -99,7 +99,8 @@ export function emptyForm(kind: AppointmentKind): AppointmentFormState {
     time: '',
     location: '',
     remindBefore: '1d',
-    addToCalendar: true,
+    // The form no longer offers the switch; the detail page exports .ics on request.
+    addToCalendar: false,
     prepText: '',
     careItemKey: '',
   };

@@ -57,7 +57,6 @@
     "privacy": "Privacy & lock",
     "privacyLockOn": "App lock on",
     "notifications": "Notifications & reminders",
-    "appearance": "Appearance",
     "language": "Language & calendar",
     "help": "Help & FAQ",
     "chat": "Chat with support",
@@ -78,11 +77,6 @@
   "logout": "Log out",
   "loggingOut": "Logging out…",
   "version": "Version {version}",
-  "theme": {
-    "light": "Light",
-    "dark": "Dark",
-    "system": "Match phone"
-  },
   "calendars": {
     "jalali": "Solar Hijri",
     "gregorian": "Gregorian"
@@ -108,19 +102,9 @@
     "health": "Cycle & health",
     "delete": "Delete account"
   },
-  "appearance": {
-    "title": "Appearance",
-    "back": "Back",
-    "theme": "Theme",
-    "followSystem": "Match phone settings",
-    "textSize": "Text size",
-    "textSizeSmall": "Smaller",
-    "textSizeLarge": "Larger",
-    "textSizeValue": "{percent}%",
-    "sample": "Aa",
-    "reduceMotion": "Reduce motion & animation",
-    "reduceMotionSub": "For motion sensitivity",
-    "reduceMotionSystem": "Your phone already reduces motion"
+  "themeToggle": {
+    "toDark": "Dark mode",
+    "toLight": "Light mode"
   },
   "language": {
     "title": "Language & calendar",

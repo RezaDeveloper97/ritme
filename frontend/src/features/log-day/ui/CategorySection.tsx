@@ -12,6 +12,7 @@ import { asBool, asItems, categoryEntries, type LabelContext } from '../model/dr
 import { logPilotId } from '../model/pilot-targets';
 import { categoryLook, panelOf, type PanelKind } from '../model/presentation';
 import { ParamField } from './ParamField';
+import '@/shared/ui/styles/lday.css';
 
 export interface CategorySectionProps {
   category: LogCategory;

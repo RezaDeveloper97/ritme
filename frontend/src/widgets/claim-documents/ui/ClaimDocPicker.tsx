@@ -10,6 +10,7 @@ import { formatDayMonth, fromApiDate } from '@/shared/lib/date';
 import { pilot } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { EmptyState, IconCircle, PrimaryButton, SecondaryButton, Skeleton } from '@/shared/ui';
+import '@/shared/ui/styles/ins.css';
 
 interface ClaimDocPickerProps {
   open: boolean;

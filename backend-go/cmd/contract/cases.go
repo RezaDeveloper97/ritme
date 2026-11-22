@@ -153,6 +153,9 @@ type StepSpec struct {
 	// OTPFor reads the latest OTP code of that mobile from the target DB into {{otp}}
 	// before the request is sent.
 	OTPFor string `yaml:"otp_for"`
+	// StepUp sends a fresh single-use step-up token as X-Step-Up (D-213: Go's GET /profile/export and
+	// DELETE /account need one; Laravel has no step-up and never gets the header, so goldens are unchanged).
+	StepUp bool `yaml:"step_up"`
 	// StrictBytes compares the raw body byte-for-byte (framework error bodies).
 	StrictBytes bool `yaml:"strict_bytes"`
 	// IgnoreBody skips the body entirely (non-API responses such as /up).
@@ -398,6 +401,7 @@ func (f *CaseFile) expandOne(spec *CaseSpec, persona, locale string, pInID, lInI
 		}
 		// Case-level settings are inherited by every step; defaults by every case.
 		s.StrictBytes = s.StrictBytes || caseLevel.StrictBytes || f.Defaults.StrictBytes
+		s.StepUp = s.StepUp || caseLevel.StepUp
 		s.IgnoreBody = s.IgnoreBody || caseLevel.IgnoreBody
 		if s.Now == "" {
 			s.Now = firstString(caseLevel.Now, f.Defaults.Now, DefaultNow)

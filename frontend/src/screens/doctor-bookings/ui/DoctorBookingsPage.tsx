@@ -7,6 +7,8 @@ import { BodySkeleton, DoctorAvatar, LoadError, ModeTag, useBookings, useDoctorT
 import { Link, useRouter, type Locale } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
 import { Card, EmptyState, PrimaryButton, ScreenHeader, SegmentedTabs, SkyLayer, StatusPill } from '@/shared/ui';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/dr.css';
 
 type Scope = 'upcoming' | 'past';
 const SCOPES: readonly Scope[] = ['upcoming', 'past'];

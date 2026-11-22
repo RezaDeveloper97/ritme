@@ -27,6 +27,7 @@ import {
 } from '@/shared/ui';
 
 import { answersFor, groupQuestions, initialAnswers, isComplete, isKnownDomain } from '../model/score';
+import './msq.css';
 
 /**
  * Monthly questionnaire (`/menopause/score/questionnaire`, CB-MENO-08): the

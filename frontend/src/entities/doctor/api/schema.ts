@@ -138,7 +138,7 @@ export const bookingSchema = z.object({
   cancel_deadline: text,
   can_cancel: z.boolean().catch(false),
   can_reschedule: z.boolean().catch(false),
-  consent: z.record(z.boolean()).catch({}),
+  consent: z.record(z.string(), z.boolean()).catch({}),
 });
 export type Booking = z.infer<typeof bookingSchema>;
 

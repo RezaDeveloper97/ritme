@@ -37,7 +37,7 @@ func init() {
 		}
 		authH := adminauth.NewHandlers(kit, q, limiter)
 		dash := dashboard.NewHandlers(q)
-		usersH := users.NewHandlers(d.DB, d.Logger).WithStoragePath(d.Config.StoragePath) // B-N1-12: screenshots go with the user
+		usersH := users.NewHandlers(d.DB, d.Logger).WithStoragePath(d.Config.StoragePath).WithCache(d.Cache) // T-M12-13b: Redis keys too; B-N1-12: screenshots go with the user
 		adminsH := admins.NewHandlers(d.DB, kit.Sessions(), d.Logger)
 
 		p := httpadmin.Prefix

@@ -1,0 +1,97 @@
+/* `art-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.art-cover { border-radius: 18px; overflow: hidden; background: var(--surface-3); }
+
+.art-cover-img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
+
+.art-head { margin-top: 16px; }
+
+.art-tag { display: inline-block; background: var(--pink-bg); color: var(--brand); font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
+
+.art-title { margin: 10px 0 0; font-size: 21px; font-weight: 900; line-height: 1.6; color: var(--ink); text-align: start; }
+
+.art-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 10px; }
+
+.art-meta-item { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 700; color: var(--muted-2); }
+
+.art-excerpt { margin: 14px 0 0; font-size: 13.5px; line-height: 2; color: var(--ink-3); text-align: start; }
+
+.art-body { margin-top: 18px; font-size: 14px; line-height: 2.1; color: var(--ink-2); text-align: start; }
+
+.art-body p { margin: 0 0 14px; }
+
+.art-body h1,
+.art-body h2,
+.art-body h3,
+.art-body h4 { margin: 24px 0 10px; font-weight: 800; line-height: 1.6; color: var(--ink); }
+
+.art-body h1 { font-size: 18px; }
+
+.art-body h2 { font-size: 17px; }
+
+.art-body h3 { font-size: 15.5px; }
+
+.art-body h4 { font-size: 14.5px; }
+
+.art-body ul { margin: 0 0 14px; padding-inline-start: 22px; list-style: disc outside; }
+
+.art-body ol { margin: 0 0 14px; padding-inline-start: 22px; list-style: decimal outside; }
+
+.art-body li::marker { color: var(--brand); }
+
+.art-body li { margin-bottom: 8px; }
+
+.art-body a { color: var(--brand); text-decoration: underline; }
+
+.art-body img { max-width: 100%; height: auto; border-radius: 14px; display: block; margin: 14px 0; }
+
+.art-body blockquote { margin: 14px 0; padding: 12px 14px; background: var(--surface-3); border-inline-start: 3px solid var(--brand-line-soft); border-radius: 12px; color: var(--ink-3); }
+
+.art-body pre { overflow-x: auto; background: var(--surface-3); border-radius: 12px; padding: 12px; direction: ltr; text-align: start; }
+
+.art-body code { font-size: 12.5px; }
+
+.art-body hr { border: 0; border-top: 1px solid var(--line); margin: 20px 0; }
+
+.art-body figure { margin: 14px 0; }
+
+.art-body figcaption { font-size: 12px; color: var(--muted-3); text-align: center; margin-top: 6px; }
+
+.art-body table { width: 100%; border-collapse: collapse; font-size: 12.5px; display: block; overflow-x: auto; }
+
+.art-body th,
+.art-body td { border: 1px solid var(--line); padding: 8px; text-align: start; }
+
+.art-nobody { margin: 20px 0 0; font-size: 13px; color: var(--muted-2); text-align: start; }
+
+.art-disclaimer {
+  display: flex; align-items: flex-start; gap: 8px; margin: 20px 0 0;
+  background: var(--surface-3); border-radius: 12px; padding: 10px 12px;
+  font-size: 12px; line-height: 1.9; color: var(--muted-2); text-align: start;
+}
+
+.art-related { margin-top: 26px; }
+
+.art-related-title { margin: 0 2px 12px; font-size: 15px; font-weight: 800; color: var(--ink); text-align: start; }
+
+.art-related-track { display: flex; gap: 12px; min-width: min-content; padding-bottom: 4px; }
+
+.art-missing { padding: 54px 12px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+
+.art-missing-icon { width: 62px; height: 62px; border-radius: 50%; background: var(--pink-bg); color: var(--brand); display: flex; align-items: center; justify-content: center; }
+
+.art-missing-title { margin: 14px 0 0; font-size: 16px; font-weight: 800; color: var(--ink); }
+
+.art-missing-text { margin: 8px 0 0; font-size: 13px; line-height: 1.9; color: var(--muted-2); max-width: 260px; }
+
+.art-missing-cta { margin-top: 20px; width: auto; padding: 0 22px; text-decoration: none; }
+
+.art-skel { padding-top: 4px; display: flex; flex-direction: column; gap: 12px; }
+
+.art-skel-cover { height: 190px; border-radius: 18px; }
+
+.art-skel-title { height: 20px; width: 80%; }
+
+.art-skel-line { height: 12px; }
+
+.art-skel-line.is-short { width: 55%; }

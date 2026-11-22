@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { IconCircle, type IconName, type Tone } from '@/shared/ui';
 
 import type { ActionCardKey } from '../model/actions';
+import '@/shared/ui/styles/cmh.css';
 
 interface ActionCardProps {
   cardKey: ActionCardKey;

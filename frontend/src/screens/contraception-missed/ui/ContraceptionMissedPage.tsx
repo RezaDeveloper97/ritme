@@ -28,6 +28,8 @@ import {
   SkyLayer,
   UrgentCard,
 } from '@/shared/ui';
+import '@/shared/ui/styles/ctr.css';
+import './ctrm.css';
 
 /**
  * «قرص جا افتاده» (`/contraception/missed`, CB-CONTRA-03, nbl_Contra_Missed):

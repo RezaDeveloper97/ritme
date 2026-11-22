@@ -858,12 +858,13 @@ type Companion struct {
 	ExpiresAt        sql.NullTime
 	UrgentSms        bool
 	OwnerConfirmedAt sql.NullTime
-	Goal             sql.NullString
 	SharePain        bool
 	ShareMood        bool
 	ShareEnergy      bool
 	ShareSleep       bool
 	ActionPrefs      sql.NullString
+	Goal             sql.NullString
+	SharePeriodDays  bool
 }
 
 type CompanionAuditLog struct {

@@ -42,6 +42,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/metrics"
+	"github.com/ritme/backend-go/internal/platform/racedet"
 )
 
 const feedKeysDir = "../../contract/fixtures/keys"
@@ -253,7 +254,7 @@ func TestFeedInt_SlotsShownEligibleAndSelected(t *testing.T) {
 	require.Equal(t, 200, st, body)
 	require.Len(t, slotItems(body, "urgent_modal"), 1)
 	assert.Empty(t, slotItems(body, "daily_challenge"), "no product message right after a safety one (SPEC §5.4.1)")
-	time.Sleep(1500 * time.Millisecond) // past one flush interval
+	time.Sleep(1500 * time.Millisecond) //nolint:sleep // negative assertion: nothing may be logged after one flush interval, so it cannot poll
 	assert.Equal(t, served, e.count(shown, e.uid))
 
 	// A switched-off module empties its slot: daily_advice still has a candidate today (advice[3]).
@@ -392,6 +393,9 @@ func TestFeedInt_BannerSeed(t *testing.T) {
 
 // Budget (T-M10-06): the feed with a warm engine state and 200 active rules, ≤ 20 ms p95 and ≤ 3 queries plus auth.
 func TestFeedInt_Budget(t *testing.T) {
+	if racedet.Enabled {
+		t.Skip("latency budget is meaningless under -race")
+	}
 	configcache.SetEnabled(true)
 	defer configcache.SetEnabled(false)
 	e := newFeedEnv(t, "09120006103", civildate.MustParse("2026-10-05"))

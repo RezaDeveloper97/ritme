@@ -435,6 +435,51 @@ func TestExtendSubscription(t *testing.T) {
 	assert.Equal(t, billing.CodeSubscriptionNotActive, r.Code())
 }
 
+// T-M12-19b: an admin extending a running period while the same user's purchase settles. The settle queues its
+// period after the last valid one under the user's row lock; the extend must take the same lock before it reads the
+// period's end, or one of them works from a stale end and the periods overlap.
+func TestExtendRacingSettleNeverOverlaps(t *testing.T) {
+	e := newEnv(t)
+	c := e.As(admintest.SuperID)
+	plan := e.planID("plus_1m")
+	const rounds = 12
+	for round := range rounds {
+		now := tehranNow()
+		u := e.user(fmt.Sprintf("0912200%04d", round), "")
+		_, cur := e.paidInvoice(u, plan, fmt.Sprintf("RPRACE%03d", round), 990000, now.AddDate(0, 0, -20), now.AddDate(0, 0, 10))
+		co, err := e.svc.Checkout(t.Context(), u, plan, "", now)
+		require.NoError(t, err)
+		require.NotNil(t, co.Payment)
+
+		var wg sync.WaitGroup
+		start := make(chan struct{})
+		var status int
+		var settleErr error
+		wg.Go(func() {
+			<-start
+			status = c.JSON(fiber.MethodPost, "/plus/subscriptions/"+id(cur)+"/extend", map[string]any{"days": 7, "note": "race gift"}).Status
+		})
+		wg.Go(func() {
+			<-start
+			_, settleErr = e.svc.Verify(context.Background(), u, co.Invoice.Reference, co.Payment.Authority, map[string]string{"status": "OK"}, now)
+		})
+		close(start)
+		wg.Wait()
+		require.Equal(t, 200, status, "round %d: the extend went through", round)
+		require.NoError(t, settleErr, "round %d: the settle went through", round)
+
+		require.Equal(t, 2, e.Int("SELECT COUNT(*) FROM plus_subscriptions WHERE user_id = ?", u))
+		require.Zero(t, e.Int(`SELECT COUNT(*) FROM plus_subscriptions a JOIN plus_subscriptions b
+			ON a.user_id = b.user_id AND a.id < b.id AND a.starts_at < b.ends_at AND b.starts_at < a.ends_at
+			WHERE a.user_id = ?`, u), "round %d: the periods never overlap", round)
+		var end, next time.Time
+		require.NoError(t, e.DB.QueryRowContext(t.Context(), "SELECT ends_at FROM plus_subscriptions WHERE id = ?", cur).Scan(&end))
+		require.NoError(t, e.DB.QueryRowContext(t.Context(), "SELECT starts_at FROM plus_subscriptions WHERE user_id = ? AND id <> ?", u, cur).Scan(&next))
+		require.True(t, end.Equal(now.AddDate(0, 0, 17)), "round %d: the 7 days are kept: %v", round, end)
+		require.True(t, next.Equal(end), "round %d: the bought period starts where the extended one ends (%v vs %v)", round, next, end)
+	}
+}
+
 func TestRefundThroughGateway(t *testing.T) {
 	e := newEnv(t)
 	c := e.As(admintest.SuperID)

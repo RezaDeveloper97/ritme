@@ -50,6 +50,9 @@ import {
   signed,
   type YearMonth,
 } from '../model/monthly';
+import '@/shared/ui/styles/axc.css';
+import '@/shared/ui/styles/anr.css';
+import './amr.css';
 
 interface Props {
   /** `YYYY-MM` from the route. */

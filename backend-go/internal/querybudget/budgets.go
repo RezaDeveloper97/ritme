@@ -81,8 +81,69 @@ var Budgets = []Budget{
 	{"analysis monthly", "/api/v1/analysis/monthly/:ym", "/api/v1/analysis/monthly/2026-09", enums.LifeModeCycle, 14, 6, ""},
 	{"analysis ttc", "/api/v1/analysis/ttc", "/api/v1/analysis/ttc", enums.LifeModeTTC, 15, 6, ""},
 	{"analysis pregnancy", "/api/v1/analysis/pregnancy", "/api/v1/analysis/pregnancy", enums.LifeModePregnancy, 18, 6, ""},
+	// T-M12-30 (P-05): the GETs the web home fires on every open (docs/quality-2026-11/perf.md §web-home fan-out).
+	// Measured on the fixture users, cold = fresh process, warm = caches filled; each row is the measured count.
+	// pregnancy v2 today: T-M12-30b measured warm 21 = the Today read 6 (auth, profile, week details, week state, today
+	// extras, tip payloads) + the daily alert evaluation 15 on every request. T-M12-30c (TestQueryAttribution): the
+	// evaluation is skipped while its input revision (user_revisions + GetV2AlertInputStamp + rule snapshot + clinical
+	// registry + build) is unchanged and the request is before its next due instant (kick window end, Tehran midnight,
+	// next visit, rule hour windows / schedules) — warm 7 = the Today read 6 + the input stamp. Cold 31 = the
+	// evaluation + the stamp read before and after it (+2) + two rule-snapshot loads with the config caches off.
+	// Safety: internal/messages/pregnancyalerts/evalcache_int_test.go.
+	{"care today", "/api/v1/care/today", "/api/v1/care/today", enums.LifeModeCycle, 5, 4, ""},
+	{"checkups home", "/api/v1/checkups/home", "/api/v1/checkups/home", enums.LifeModeCycle, 5, 4, ""},
+	// T-M12-30b: the board, its item counts and the reminder switch's notification categories are one read (ListBoard).
+	// v1 warm 5 = auth + board + the suggestion's v1 cycle load (profile, histories, logs; internal/cycle/service).
+	// v6 warm 3 = auth + board + the engine-state revisions (the suggestion reads the cached state). Row growth:
+	// TestHomeReadsConstantInRows (1 vs 20 lists, care rows, checkups, notifications).
+	{"todo", "/api/v1/todo", "/api/v1/todo", enums.LifeModeCycle, 7, 5, ""},
+	{"todo v6", "/api/v1/todo", "/api/v1/todo", enums.LifeModeCycle, 9, 3, config.CycleEngineV6},
+	{"home notifications", "/api/v1/home/notifications", "/api/v1/home/notifications?per_page=50", enums.LifeModeCycle, 4, 3, ""},
+	{"modules", "/api/v1/modules", "/api/v1/modules", enums.LifeModeCycle, 1, 0, ""},
+	{"profile", "/api/v1/profile", "/api/v1/profile", enums.LifeModeCycle, 4, 3, ""},
+	{"fertility today", "/api/v1/fertility/today", "/api/v1/fertility/today", enums.LifeModeTTC, 6, 4, ""},
+	{"banners ads", "/api/v1/banners/ads", "/api/v1/banners/ads?mode=cycle", enums.LifeModeCycle, 4, 3, ""},
+	{"learning courses", "/api/v1/learning/courses", "/api/v1/learning/courses", enums.LifeModeCycle, 5, 3, ""},
+	{"logs taxonomy", "/api/v1/logs/taxonomy", "/api/v1/logs/taxonomy", enums.LifeModeCycle, 6, 4, ""},
+	{"logs day", "/api/v1/logs/days/:date", "/api/v1/logs/days/2026-10-20", enums.LifeModeCycle, 3, 2, ""},
+	{"pregnancy v2 today", "/api/v1/pregnancy/v2/today", "/api/v1/pregnancy/v2/today", enums.LifeModePregnancy, 31, 7, ""},
+	{"companion home", "/api/v1/companion/home", "/api/v1/companion/home", enums.LifeModeCompanion, 9, 7, ""},
+	{"teen today", "/api/v1/teen/today", "/api/v1/teen/today", enums.LifeModeTeen, 12, 7, ""},
 }
 
 // Auth is the auth step alone (passport Verify, T-M9-09): cold loads the OAuth client list once, warm is the one
 // token-with-user JOIN. Every warm row above includes it.
 var Auth = Budget{Name: "auth verify", Route: "(guard)", Cold: 2, Warm: 1}
+
+// WriteBudget is a write route's query ceiling: a Budget plus the request it sends. Cold is the first save on a fresh
+// process; warm is the same save again (same body) with every cache filled.
+type WriteBudget struct {
+	Budget
+	// Method and Body are the request (Body is JSON).
+	Method, Body string
+}
+
+// LogSaveBody is a 10-param day save of the cycle fixture user (T-M12-31, P-06): no flow change, so no period
+// bridge; spotting, mood, sleep, energy, weight and note have legacy columns (the daily_health_logs write-back),
+// relief, discharge amount and activity duration are v2-only.
+const LogSaveBody = `{"categories":{` +
+	`"bleeding":{"spotting":false},` +
+	`"pain":{"relief":["heat","rest"]},` +
+	`"mood":{"moods":["calm","energetic"]},` +
+	`"sleep":{"duration":"6_9","quality":"good"},` +
+	`"appetite_energy":{"energy":"high"},` +
+	`"measurements":{"weight":58.4},` +
+	`"discharge":{"amount":"light"},` +
+	`"activity":{"duration":30},` +
+	`"note":{"text":"budget"}}}`
+
+// WriteBudgets are the hot writes (T-M12-31).
+var WriteBudgets = []WriteBudget{
+	// T-M12-31 (P-06), measured by TestWriteBudgets: before, warm 36 / cold 38 — the day read twice (handler + under
+	// the lock), a DELETE per param (10) and an INSERT per row (12). Now the day is read once under the lock and the
+	// entries are one DeleteLogEntryParams + one InsertLogEntriesBatch, whatever the number of params: the entry write
+	// is lock + day + delete + insert + revision bump = 5. Warm 15 = that 5 + auth, life mode (life profile, pregnancy,
+	// profile), custom items, the legacy write-back (find, update, reload, profile, mark recalculated) and the message
+	// goal after the commit. Cold +2: the stored zone and the language list (config caches off).
+	{Budget{"logs day save", "/api/v1/logs/days/:date", "/api/v1/logs/days/2026-10-20", enums.LifeModeCycle, 17, 15, ""}, "PUT", LogSaveBody},
+}

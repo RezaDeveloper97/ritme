@@ -103,7 +103,7 @@ export type HubReport =
 const num = z.number().nullable().catch(null);
 const int = z.number().int().nullable().catch(null);
 
-function card<T extends z.ZodTypeAny>(data: T) {
+function card<T extends z.ZodType>(data: T) {
   return z
     .object({
       plus: z.boolean().catch(false),
@@ -112,7 +112,7 @@ function card<T extends z.ZodTypeAny>(data: T) {
       data: data.nullable().catch(null),
       days_needed: int,
     })
-    .transform((c) => ({ plus: c.plus, locked: c.locked, ready: c.ready, data: c.data as z.output<T> | null, daysNeeded: c.days_needed }));
+    .transform((c0) => { const c = c0 as { plus: boolean; locked: boolean; ready: boolean; data: unknown; days_needed: number | null }; return ({ plus: c.plus, locked: c.locked, ready: c.ready, data: c.data as z.output<T> | null, daysNeeded: c.days_needed }); });
 }
 
 const epdsPoint = z

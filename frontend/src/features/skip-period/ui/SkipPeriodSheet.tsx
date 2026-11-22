@@ -7,6 +7,8 @@ import { toApiDate, today } from '@/shared/lib/date';
 
 import { skipErrorKind, useSkipPeriod, type SkipErrorKind } from '../api/mutations';
 import { useSkipStore } from '../model/store';
+import '@/shared/ui/styles/btn.css';
+import '@/shared/ui/styles/ch.css';
 
 const ERROR_KEY = {
   not_expected_yet: 'errors.notExpectedYet',

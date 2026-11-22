@@ -24,6 +24,8 @@ import { CalendarPicker, Icon, IconCircle, PrimaryButton, SecondaryButton } from
 import { isReadOnlyError, useDeleteMeasurement, useSaveMeasurement } from '../api/queries';
 import { checkForm, emptyForm, formFromMeasurement, MEASUREMENT_RANGES, type MeasurementField } from '../model/form';
 import type { MeasurementForm } from '../model/types';
+import '@/shared/ui/styles/chd.css';
+import '@/shared/ui/styles/cgr.css';
 
 const API_FIELD: Record<MeasurementField | 'measuredOn', string> = {
   measuredOn: 'measured_on',

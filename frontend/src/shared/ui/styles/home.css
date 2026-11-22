@@ -1,0 +1,374 @@
+/* `home-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+@keyframes tip-aurora { to { --tip-angle: 495deg; } }
+
+.home-grad {
+  background: linear-gradient(180deg, var(--home-grad-1) 0%, var(--home-grad-2) 100%);
+}
+
+.home-top { display: flex; flex-direction: column; gap: 18px; padding: 4px 16px 0; }
+
+.home-hdr { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+.home-hdr-date { font-size: 12px; font-weight: 700; color: var(--ink-3); }
+
+.home-hdr-greet { font-size: 20px; font-weight: 800; color: var(--ink); }
+
+.home-hdr-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+.home-hdr-btn {
+  width: 44px; height: 44px; border-radius: 22px; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface-2); border: 1px solid var(--line); color: var(--ink);
+  cursor: pointer; transition: filter .15s ease, box-shadow .15s ease;
+}
+
+.home-hdr-btn:hover { filter: brightness(.97); }
+
+.home-hdr-btn:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.home-week { display: flex; gap: 4px; }
+
+.home-wday {
+  flex: 1 1 0; min-width: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: none; border: 0; padding: 0; font-family: inherit; cursor: pointer;
+}
+
+.home-wday:focus-visible { outline: none; }
+
+.home-wday-name { font-size: 10.5px; font-weight: 700; color: var(--muted-2); }
+
+.home-wday-cell {
+  box-sizing: border-box; width: 100%; max-width: 42px; height: 54px; border-radius: 16px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--ink);
+  background: var(--surface-2); border: 1px solid var(--line);
+  transition: box-shadow .15s ease, border-color .15s ease;
+}
+
+.home-wday-dot { width: 6px; height: 6px; border-radius: 3px; }
+
+.home-wday-dot.is-none { visibility: hidden; }
+
+.home-wday-dot.is-period { background: var(--period); }
+
+.home-wday-dot.is-fertile { background: var(--fertile-2); }
+
+.home-wday-dot.is-ovulation { background: var(--fertile-4); }
+
+.home-wday-dot.is-pms { background: var(--violet); }
+
+/* Fertile window: one green, deeper as the chance rises toward ovulation. */
+.home-wday-dot.is-lv1 { background: var(--fertile-1); }
+
+.home-wday-dot.is-lv2 { background: var(--fertile-2); }
+
+.home-wday-dot.is-lv3 { background: var(--fertile-3); }
+
+.home-wday-dot.is-lv4 { background: var(--fertile-4); }
+
+.home-wday.is-today .home-wday-name { color: var(--ink); }
+
+.home-wday.is-today .home-wday-cell { background: var(--ink); border-color: var(--ink); color: var(--page); }
+
+.home-wday.is-today .home-wday-dot { visibility: visible; background: var(--brand-line-soft); }
+
+.home-wday.is-selected .home-wday-cell { border-color: var(--brand); box-shadow: inset 0 0 0 1px var(--brand); }
+
+.home-wday:focus-visible .home-wday-cell { box-shadow: var(--ring); }
+
+.home-ring { position: relative; display: flex; flex-direction: column; align-items: center; transition: opacity .15s ease; }
+
+.home-ring.is-loading { opacity: .55; }
+
+.home-ring-glow {
+  position: absolute; top: 60px; width: 230px; height: 230px; border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--period) 25%, transparent), color-mix(in srgb, var(--period) 0%, transparent) 70%);
+  pointer-events: none;
+}
+
+.home-ring-svg { position: relative; display: block; width: 300px; max-width: 100%; height: auto; aspect-ratio: 1; }
+
+.home-ring-track { fill: none; stroke: var(--line); stroke-width: 1; stroke-dasharray: 2 6; }
+
+.home-ring-dot { fill: var(--brand-line-soft); stroke: none; }
+
+/* Every day that marks a state is a solid dot in that state's colour —
+   predicted days included; nothing on the ring is hollow. */
+.home-ring-dot.is-period { fill: var(--period); }
+
+.home-ring-dot.is-fertile { fill: var(--fertile-2); }
+
+.home-ring-dot.is-ovulation { fill: var(--fertile-4); }
+
+.home-ring-dot.is-pms { fill: var(--violet); }
+
+/* Fertile window: one green, deeper as the chance rises toward ovulation. */
+.home-ring-dot.is-lv1 { fill: var(--fertile-1); }
+
+.home-ring-dot.is-lv2 { fill: var(--fertile-2); }
+
+.home-ring-dot.is-lv3 { fill: var(--fertile-3); }
+
+.home-ring-dot.is-lv4 { fill: var(--fertile-4); }
+
+/* The selected day: a soft halo under a larger dot ringed in white. */
+.home-ring-halo { opacity: .35; }
+
+.home-ring-now { stroke: var(--on-accent); stroke-width: 3; }
+
+.home-ring-halo.is-none,
+.home-ring-now.is-none { fill: var(--brand); }
+
+.home-ring-halo.is-period,
+.home-ring-now.is-period { fill: var(--period); }
+
+.home-ring-halo.is-fertile,
+.home-ring-now.is-fertile { fill: var(--fertile-2); }
+
+.home-ring-halo.is-ovulation,
+.home-ring-now.is-ovulation { fill: var(--fertile-4); }
+
+.home-ring-halo.is-pms,
+.home-ring-now.is-pms { fill: var(--violet); }
+
+.home-ring-halo.is-lv1,
+.home-ring-now.is-lv1 { fill: var(--fertile-1); }
+
+.home-ring-halo.is-lv2,
+.home-ring-now.is-lv2 { fill: var(--fertile-2); }
+
+.home-ring-halo.is-lv3,
+.home-ring-now.is-lv3 { fill: var(--fertile-3); }
+
+.home-ring-halo.is-lv4,
+.home-ring-now.is-lv4 { fill: var(--fertile-4); }
+
+.home-ring-center {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  pointer-events: none;
+}
+
+.home-ring-over { font-size: 11px; font-weight: 800; letter-spacing: .14em; color: var(--period); }
+
+.home-ring-big { display: flex; align-items: baseline; gap: 8px; color: var(--ink); }
+
+.home-ring-num { font-family: "Lalezar", var(--font-sans); font-size: 72px; line-height: 1; font-weight: 400; font-variant-numeric: tabular-nums; }
+
+.home-ring-unit { font-size: 17px; font-weight: 800; }
+
+.home-ring-sub { font-size: 12px; font-weight: 600; color: var(--ink-3); }
+
+.home-ring-edit {
+  pointer-events: auto; margin-top: 8px; height: 44px; padding: 0 20px; border-radius: 22px;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+  background: transparent; border: 1.5px solid var(--line); color: var(--ink);
+  font-family: inherit; font-size: 13.5px; font-weight: 800; cursor: pointer;
+  transition: background .15s ease, box-shadow .15s ease;
+}
+
+.home-ring-edit:hover { background: var(--surface-2); }
+
+.home-ring-edit:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.home-ring-over.is-ttc { color: var(--fert-amber); }
+
+.home-ring-glow.is-ttc {
+  background: radial-gradient(circle, color-mix(in srgb, var(--fert-amber) 22%, transparent), color-mix(in srgb, var(--fert-amber) 0%, transparent) 70%);
+}
+
+.home-ring-edit.is-ink { background: var(--ink); border-color: transparent; color: var(--page); text-decoration: none; }
+
+.home-ring-edit.is-ink:hover { background: var(--ink-2); }
+
+.home-phase {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 24px;
+  padding: 18px 16px; display: flex; flex-direction: column; gap: 12px;
+  transition: opacity .15s ease;
+}
+
+.home-phase.is-loading { opacity: .55; }
+
+.home-phase-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+.home-phase-name { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 16px; font-weight: 700; color: var(--ink); }
+
+.home-phase-dot { width: 10px; height: 10px; border-radius: 5px; flex-shrink: 0; background: var(--brand); }
+
+.home-phase-dot.is-period { background: var(--period); }
+
+.home-phase-dot.is-fertile { background: var(--amber); }
+
+.home-phase-dot.is-ovulation { background: var(--data-deep); }
+
+.home-phase-fert { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; font-size: 11px; font-weight: 700; color: var(--ink-3); }
+
+.home-phase-fert-pill {
+  display: inline-flex; align-items: center; height: 28px; padding: 0 11px; border-radius: 14px;
+  background: var(--surface-2); border: 1px solid var(--data-deep); color: var(--data-deep);
+  font-size: 11.5px; font-weight: 800; white-space: nowrap;
+}
+
+.home-phase-text {
+  margin: 0; font-size: 13px; line-height: 1.95; color: var(--ink-3); text-align: start;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+.home-phase-more {
+  align-self: flex-start; min-height: 40px; padding: 0;
+  display: flex; align-items: center; gap: 4px;
+  background: none; border: 0; border-radius: 8px; cursor: pointer;
+  font-family: inherit; font-size: 13px; font-weight: 800; color: var(--brand-strong);
+}
+
+.home-phase-more:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.home-phase-more-chev { color: var(--brand); }
+
+[dir="ltr"] .home-phase-more-chev { transform: scaleX(-1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hdr-btn,
+  .home-wday-cell,
+  .home-ring,
+  .home-ring-edit,
+  .home-phase { transition: none; }
+}
+
+.home-panel { background: var(--surface); border-radius: 16px; padding: 16px; }
+
+.home-rec-title { font-size: 15px; font-weight: 800; color: var(--ink); text-align: start; margin-bottom: 14px; }
+
+.home-rec-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--data-soft-faint);
+  border: 1px solid color-mix(in srgb, var(--data) 18%, transparent);
+  border-inline-start: 3px solid color-mix(in srgb, var(--data) 55%, transparent);
+  border-radius: 14px; padding: 12px 14px;
+}
+
+.home-rec-item + .home-rec-item { margin-top: 10px; }
+
+.home-rec-badge { width: 38px; height: 38px; border-radius: 50%; background: var(--data-soft); display: flex; align-items: center; justify-content: center; flex: 0 0 auto; color: var(--data-deep); }
+
+.home-rec-body { flex: 1; text-align: start; align-self: center; }
+
+.home-rec-name { font-size: 14px; font-weight: 700; color: var(--ink-2); line-height: 1.5; }
+
+.home-rec-desc { font-size: 12.5px; color: var(--muted-3); margin-top: 4px; line-height: 1.7; }
+
+.home-tip-card {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    conic-gradient(from var(--tip-angle),
+      var(--grad-start), var(--grad-end), var(--data), var(--grad-start)) border-box;
+  box-shadow: 0 14px 34px -24px var(--grad-start);
+  animation: tip-aurora 9s linear infinite;
+}
+
+.home-tip-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+
+.home-tip-badge {
+  width: 26px; height: 26px; border-radius: 50%; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--gradient-brand); color: var(--on-brand);
+}
+
+.home-tip-title { font-size: 15px; font-weight: 800; color: var(--ink); text-align: start; }
+
+.home-tip-chip { font-size: 11px; font-weight: 800; color: var(--data-deep); background: var(--data-soft); border-radius: 999px; padding: 4px 10px; }
+
+.home-tip-body { text-align: start; margin: 0 2px; line-height: 1.9; }
+
+.home-tip-body.has-action { margin-bottom: 14px; }
+
+.home-tip-extras { list-style: none; margin: 14px 2px 0; padding: 0; display: grid; gap: 10px; }
+
+.home-tip-extra { display: flex; align-items: flex-start; gap: 10px; text-align: start; font-size: 12.5px; color: var(--muted); line-height: 1.7; }
+
+.home-tip-bullet { width: 6px; height: 6px; border-radius: 50%; background: var(--gradient-brand); flex: 0 0 auto; margin-top: 6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .home-tip-card { animation: none; }
+}
+
+.home-tip-extra span:last-child { flex: 1; }
+
+.home-skel { display: grid; gap: 8px; }
+
+.home-skel-block { height: 44px; border-radius: 12px; margin-top: 6px; }
+
+.home-articles { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); padding: 16px; }
+
+.home-articles-title { font-size: 15px; font-weight: 800; color: var(--text-1); text-align: start; margin-bottom: 14px; }
+
+.home-articles-track { display: flex; gap: 16px; min-width: min-content; }
+
+.home-article { width: 162px; flex: 0 0 162px; display: flex; flex-direction: column; gap: 4px; }
+
+.home-article-cover { height: 130px; border-radius: var(--r-lg); background: linear-gradient(135deg, var(--surface-2), var(--indigo-soft)); display: flex; align-items: center; justify-content: center; color: var(--pink); overflow: hidden; }
+
+.home-article-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.home-article-name { font-size: 13.5px; font-weight: 700; color: var(--ink); text-align: start; line-height: 1.55; padding: 8px 0 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+.home-article-meta { display: flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+
+.home-article-skel { height: 130px; border-radius: 12px; }
+
+.home-articles-cta { margin-top: 16px; height: var(--h-btn); border-radius: calc(var(--h-btn) / 2); }
+
+.home-status-card { background: var(--surface); border: 1px solid var(--teal-soft); border-radius: 12px; padding: 14px 12px; }
+
+.home-status-row { display: flex; gap: 12px; }
+
+.home-status-tile { flex: 1; background: var(--surface); border: 1px solid var(--line-2); border-radius: 12px; padding: 10px 8px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+
+.home-status-label { font-size: 12px; color: var(--ink); font-weight: 700; }
+
+.home-status-value { font-size: 10.5px; font-weight: 700; color: var(--teal-deep); background: var(--teal-tint); border-radius: 4px; padding: 2px 8px; white-space: nowrap; }
+
+.home-grad-fill { position: absolute; inset: 0; }
+
+.home-article { background: transparent; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; }
+
+.home-article:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 12px; }
+
+.home-ring-glow.is-period {
+  background: radial-gradient(circle, color-mix(in srgb, var(--period) 25%, transparent), color-mix(in srgb, var(--period) 0%, transparent) 70%);
+}
+
+.home-ring-cta {
+  pointer-events: auto; margin-top: 8px; height: 44px; padding: 0 20px; border-radius: 22px; border: 0;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+  background: var(--brand-fill); color: var(--on-brand); box-shadow: var(--shadow-cta);
+  font-family: inherit; font-size: 13.5px; font-weight: 800; cursor: pointer;
+}
+
+.home-ring-cta.is-period { background: var(--period); color: var(--on-accent); box-shadow: none; }
+
+[data-theme="dark"] .home-ring-cta.is-period { color: var(--page); }
+
+.home-ring-cta:disabled { opacity: .6; cursor: default; }
+
+.home-ring-cta:focus-visible,
+.home-ring-later:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.home-ring-later {
+  pointer-events: auto; margin-top: 2px; min-height: 44px; padding: 0 12px; border: 0; border-radius: 22px;
+  display: flex; align-items: center; background: none;
+  font-family: inherit; font-size: 12px; font-weight: 700; color: var(--text-2); cursor: pointer;
+}
+
+.home-ring-center.is-compact { gap: 2px; }
+
+.home-ring-center.is-compact .home-ring-num { font-size: 52px; }
+
+.home-ring-center.is-compact .home-ring-cta { margin-top: 4px; }
+
+.home-ring-center.is-compact .home-ring-later { margin-top: 0; min-height: 36px; }
+
+.meno-log.home-ring-edit { margin-top: 10px; color: var(--text-1); text-decoration: none; }

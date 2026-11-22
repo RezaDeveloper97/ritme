@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 
 import { Link } from '@/shared/i18n';
 import { IconCircle } from '@/shared/ui';
+import '@/shared/ui/styles/ch.css';
 
 /** After a positive test the engine offers pregnancy mode (`limits.prompt_pregnancy_mode`); never forced. */
 export function PregnancyPromptCard({ onDismiss }: { onDismiss: () => void }) {

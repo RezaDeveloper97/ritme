@@ -13,6 +13,9 @@ import { pilot } from '@/shared/pilot';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { openSheet } from '@/shared/sheet';
 import { Icon } from '@/shared/ui';
+import '@/shared/ui/styles/btn.css';
+import '@/shared/ui/styles/skeleton.css';
+import './ar.css';
 
 /** Keystrokes settle before a page is requested — one call per pause, not per key. */
 const SEARCH_DEBOUNCE_MS = 350;

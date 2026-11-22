@@ -7,6 +7,7 @@ import { allMonthNames, type DateParts, formatNumber } from '@/shared/lib/date';
 import type { Locale } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
 import { WheelPicker } from '@/shared/ui';
+import '@/shared/ui/styles/wheel.css';
 
 interface DateWheelsProps {
   /** Unique prefix for the underlying wheel ids (one instance per screen). */
