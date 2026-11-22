@@ -5730,23 +5730,23 @@ html[data-motion="reduce"] *::after {
 .ch-error-text { flex: 1; min-width: 0; margin: 0; font-size: var(--fs-base); font-weight: 700; color: var(--text-1); text-align: start; }
 .ch-error-retry { flex-basis: 100%; }
 
-/* «ثبت امروز» */
-.nb-card.ch-log { display: flex; flex-direction: column; padding: 14px 16px; }
+/* «ثبت امروز» — three cards: «ثبت پریود» (→ calendar editor), «علائم», «حال و روحیه» */
+.ch-log { display: flex; flex-direction: column; }
 .ch-streak { font-size: 11.5px; font-weight: 800; color: var(--data-deep); }
-.ch-log-row {
-  display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 4px 0;
-  color: var(--text-1); text-decoration: none;
+.ch-log-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.nb-card.ch-log-tile {
+  display: flex; flex-direction: column; align-items: stretch; gap: 6px; min-height: 112px; padding: 12px 10px;
+  color: var(--text-1); text-decoration: none; font-family: inherit; text-align: start; cursor: pointer;
 }
-.ch-log-row + .ch-log-row { border-top: 1px solid var(--line); }
-.ch-log-row:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 12px; }
-.ch-log-body { display: flex; flex-direction: column; flex: 1; min-width: 0; text-align: start; }
-.ch-log-title { font-size: 14px; font-weight: 800; }
+.ch-log-tile:focus-visible { outline: none; box-shadow: var(--ring); }
+.ch-log-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 4px; margin-bottom: 2px; }
+.ch-log-title { font-size: 13.5px; font-weight: 800; }
 .ch-log-sub {
-  font-size: 11.5px; font-weight: 600; color: var(--text-2);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: 11px; font-weight: 600; color: var(--text-2); line-height: 1.5;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
 }
 .ch-log-add {
-  width: 36px; height: 36px; border-radius: 18px; flex-shrink: 0;
+  width: 26px; height: 26px; border-radius: 13px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   border: 1.5px solid var(--line); color: var(--nb-tone-ink);
 }
@@ -5754,7 +5754,7 @@ html[data-motion="reduce"] *::after {
 .ch-log-add.is-brand { color: var(--brand); }
 .ch-log-add.is-data { color: var(--data-deep); }
 .ch-log-count {
-  min-width: 36px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  min-width: 26px; height: 26px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums;
 }
 .ch-log-count.is-period { color: var(--period-deep); }
@@ -7783,8 +7783,6 @@ button.me-plus:focus-visible { outline: none; box-shadow: var(--ring); }
 .bmap-pin.is-joints   { inset-inline-start: 63%; top: 88%; }
 .bmap-extra { justify-content: center; }
 
-/* Home «ثبت امروز» rows open the sheet now (buttons, not links). */
-button.ch-log-row { width: 100%; background: none; border: 0; font-family: inherit; cursor: pointer; text-align: start; }
 /* ═══ end B-N3-03 ═══ */
 
 /* ═══ B-N3-04 — log customisation (nbl_/nbd_Log_Customize, features/customize-log) ═══ */

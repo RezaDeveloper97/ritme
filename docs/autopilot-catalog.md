@@ -146,7 +146,6 @@
 | `todo-add` | کار تازه | — | todo |
 | `vitals-add` | ثبت علائم حیاتی | — | — |
 | `phase` | جزئیات فاز | — | — |
-| `quick-access` | ویرایش دسترسی سریع | — | — |
 | `reminders-add` | افزودن یادآور | — | — |
 | `checkup-mark-done` | ثبت انجام چکاپ | "<typeId>" or "<typeId>-<recordId>" | — |
 | `lab-consent` | رضایت تحلیل آزمایش | upload (optional) | — |
@@ -243,10 +242,6 @@
 | `calendar.start-period-here` | action | پریودم از این روز شروع شد | route `/calendar` | — | — |
 | `calendar.log-day` | action | ثبت یا ویرایش روز انتخاب‌شده | route `/calendar` | — | — |
 | `calendar.vitals` | action | علائم حیاتی | route `/calendar` | — | — |
-| `home.quick:*` | action | — | route `/home` | — | — |
-| `home.quick-edit` | action | ویرایش دسترسی سریع | route `/home` | — | — |
-| `quick-access.pick:*` | bool | — | sheet `quick-access` | yes | — |
-| `quick-access.save` | action | ذخیره‌ی دسترسی سریع | sheet `quick-access` | yes | — |
 | `home.today-tasks` | action | کارهای امروز | route `/home` | — | — |
 | `home.later-vitals` | action | ثبت علائم حیاتی | route `/home` | — | — |
 | `home.later-appointment` | action | ثبت وقت پزشک | route `/home` | — | — |
@@ -265,7 +260,7 @@
 | `home.period-ended` | action | پریودم تموم شد | route `/home` | — | — |
 | `home.period-still-going` | action | هنوز ادامه داره | route `/home` | — | — |
 | `home.edit-period` | action | ویرایش پریود | route `/home` | — | — |
-| `home.log-row:*` | action | — | route `/home` | — | — |
+| `home.log-card:*` | action | — | route `/home` | — | — |
 | `home.predictions-details` | action | جزئیات پیش‌بینی‌ها | route `/home` | — | — |
 | `analysis.card:*` | action | — | route `/analysis` | — | — |
 | `analysis.report` | action | گزارش ماهانه | route `/analysis` | — | — |

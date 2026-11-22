@@ -43,7 +43,6 @@ import { BottomNav } from '@/widgets/bottom-nav';
 import { ForToday } from '@/widgets/for-today';
 import { HeaderActions } from '@/widgets/notification-bell';
 import { PregnancyCareChecklist } from '@/widgets/pregnancy-care-checklist';
-import { QuickAccess } from '@/widgets/quick-access';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
 import { WeekRing } from './WeekRing';
@@ -385,8 +384,6 @@ export function PregnancyPage() {
       {/* CB-NAV-03b: «برای امروز» = reminders + to-do row, like the other homes. */}
       <ForToday reminders={<TodayRemindersCard hideAppointmentId={data.nextVisit?.appointmentId ?? null} />} />
       {data.nextVisit && <NextVisitCard visit={data.nextVisit} t={t} />}
-      {/* CB-NAV-03 (IA_Map Today): the user-picked «دسترسی سریع». */}
-      <QuickAccess />
       {data.tip && <TipCard tip={data.tip} week={data.progress.week} t={t} />}
       <PregnancyCareChecklist week={data.progress.week} tasks={data.tasks} />
       {postpartumOn && data.progress.week >= DELIVERED_FROM_WEEK && <DeliveredCard t={t} />}

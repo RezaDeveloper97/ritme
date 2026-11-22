@@ -100,7 +100,6 @@ import { HomeLabCards } from '@/widgets/home-lab-cards';
 import { BottomNav } from '@/widgets/bottom-nav';
 import { ForToday } from '@/widgets/for-today';
 import { HeaderActions } from '@/widgets/notification-bell';
-import { QuickAccess } from '@/widgets/quick-access';
 import { CheckupsCard } from '@/widgets/checkups-card';
 import { CompanionInviteBanner } from '@/widgets/companion-invite-banner';
 import { LearnHomeCard } from '@/widgets/learn-home-card';
@@ -1306,11 +1305,8 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
               )}
             </CycleRing>
           </section>
-          {/* «دسترسی سریع» sits right under the cycle ring (user request, 2026-11-08) — except on the TTC
-              home, where it sits right above «برای امروز» so the phase pills and tiles follow the ring
-              (user request, 2026-11-10). */}
-          {!isTtc && <QuickAccess />}
-          {/* «ثبت امروز» + streak (nbl_Cycle_Home), right under «دسترسی سریع» (user request, 2026-11-09).
+          {/* «ثبت امروز» + streak (nbl_Cycle_Home), right under the cycle ring: three cards — «ثبت پریود»
+              (→ calendar editor), «علائم», «حال و روحیه» (user request, 2026-11-22; «دسترسی سریع» removed).
               The TTC home logs through its tiles. */}
           {!noPeriodData && !loadFailed && !isTtc && <TodayLogCard streakDays={overview?.streakDays ?? null} />}
           {feedBanner ? (
@@ -1424,9 +1420,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
             {!teen && <AdSlot slot="ad_slider" mode={lifeMode} />}
             {/* «یادآورهای امروز» — today's doses + next appointment (M3, /care/today),
                 right under the hero like the reminders artboard (T-M3-10 audit L-6). */}
-            {/* CB-NAV-03 (nbd_Nav_Today): «برای امروز» = the M3 reminders card + today's to-do count,
-                (the user-picked «دسترسی سریع» moved up, under the ring). */}
-            {isTtc && <QuickAccess />}
+            {/* CB-NAV-03 (nbd_Nav_Today): «برای امروز» = the M3 reminders card + today's to-do count. */}
             <ForToday reminders={<TodayRemindersCard />} />
             {/* CB-COND-07b: soft condition suggestion (heavy pain / flow) — nothing unless /messages/nudges hits. */}
             {!teen && modules.programs && <HomeConditionNudge />}
@@ -1621,12 +1615,7 @@ export function HomePage() {
           <TeenHome
             actions={<HeaderActions className="home-hdr-btn" />}
             // CB-NAV-04b: same Today sections as every home; the doctor/labs tiles need a parent link (no shop/ads).
-            today={
-              <>
-                <ForToday reminders={<TodayRemindersCard />} />
-                <QuickAccess />
-              </>
-            }
+            today={<ForToday reminders={<TodayRemindersCard />} />}
           />
           <div className="page-tail" />
         </div>

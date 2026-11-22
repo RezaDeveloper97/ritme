@@ -54,7 +54,6 @@ import {
 import { BottomNav } from '@/widgets/bottom-nav';
 import { NotificationBell, ThemeToggle } from '@/widgets/notification-bell';
 import { ForToday } from '@/widgets/for-today';
-import { QuickAccess } from '@/widgets/quick-access';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
 import { breastfeedingAnswer, breastfeedingView } from '../model/breastfeeding';
@@ -180,9 +179,8 @@ export function PostpartumPage() {
         <MoodCard t={t} />
         <BreastfeedingCard data={data} t={t} />
         <Tiles data={data} t={t} />
-        {/* CB-NAV-03b (nbd_Nav_Today / IA_Map Today): «برای امروز» + the user-picked «دسترسی سریع». */}
+        {/* CB-NAV-03b (nbd_Nav_Today / IA_Map Today): «برای امروز». */}
         <ForToday reminders={<TodayRemindersCard />} />
-        <QuickAccess />
         <PostpartumVisitsCard data={data} t={t} />
         <VisitsCard t={t} />
         <CallWhenCard data={data} t={t} />

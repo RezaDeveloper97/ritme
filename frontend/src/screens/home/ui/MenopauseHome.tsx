@@ -36,7 +36,6 @@ import {
 import { BottomNav } from '@/widgets/bottom-nav';
 import { ForToday } from '@/widgets/for-today';
 import { LinkedTeenCards } from '@/widgets/linked-teen-card';
-import { QuickAccess } from '@/widgets/quick-access';
 
 import { flashElapsedSeconds, listedMessages, routedLink, scoreTrend } from '../model/menopause';
 import { MenopauseReportLink } from './MenopauseReportLink';
@@ -111,13 +110,8 @@ export function MenopauseHome({ header }: { header: ReactNode }) {
           {header}
           {body}
           {/* CB-NAV-03 (IA_Map Today): «برای امروز» (today's to-do count; the menopause home has no M3 reminders
-              card) and the user-picked «دسترسی سریع», under the menopause content. */}
-          {today.isSuccess ? (
-            <>
-              <ForToday />
-              <QuickAccess />
-            </>
-          ) : null}
+              card), under the menopause content. */}
+          {today.isSuccess ? <ForToday /> : null}
           {/* CB-TEEN-03: a parent's read-only teen cards (nothing for everyone else). */}
           <LinkedTeenCards />
         </div>
