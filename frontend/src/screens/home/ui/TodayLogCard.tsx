@@ -74,24 +74,24 @@ export function TodayLogCard({ streakDays }: { streakDays: number | null }) {
     },
   ];
 
+  // Centred card (user request, 2026-11-22): the 3D icon on top, then title and summary; the + / count / tick
+  // sits in the top corner.
   const body = (tile: Tile) => (
     <>
-      <span className="ch-log-top">
-        <IconCircle icon={tile.icon} tone={tile.tone} outlined />
-        {tile.count === 0 ? (
-          <span className={`ch-log-add is-${tile.tone}`} aria-hidden>
-            <Icon name="plus" size={14} strokeWidth={2.4} />
-          </span>
-        ) : tile.count === null ? (
-          <span className={`ch-log-count is-${tile.tone}`} aria-hidden>
-            <Icon name="check" size={16} strokeWidth={2.4} />
-          </span>
-        ) : (
-          <span className={`ch-log-count is-${tile.tone}`} aria-hidden>
-            {formatNumber(tile.count, loc)}
-          </span>
-        )}
-      </span>
+      {tile.count === 0 ? (
+        <span className={`ch-log-add is-${tile.tone}`} aria-hidden>
+          <Icon name="plus" size={14} strokeWidth={2.4} />
+        </span>
+      ) : tile.count === null ? (
+        <span className={`ch-log-count is-${tile.tone}`} aria-hidden>
+          <Icon name="check" size={16} strokeWidth={2.4} />
+        </span>
+      ) : (
+        <span className={`ch-log-count is-${tile.tone}`} aria-hidden>
+          {formatNumber(tile.count, loc)}
+        </span>
+      )}
+      <IconCircle icon={tile.icon} tone={tile.tone} size="lg" outlined className="ch-log-icon" />
       <span className="ch-log-title">{tile.title}</span>
       <span className="ch-log-sub">{tile.sub}</span>
     </>

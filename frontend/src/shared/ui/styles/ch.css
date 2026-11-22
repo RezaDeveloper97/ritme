@@ -53,31 +53,39 @@
 
 .ch-error-retry { flex-basis: 100%; }
 
-/* «ثبت امروز» — three cards: «ثبت پریود» (→ calendar editor), «علائم», «حال و روحیه» */
+/* «ثبت امروز» — three centred cards: «ثبت پریود» (→ calendar editor), «علائم», «حال و روحیه» */
 .ch-log { display: flex; flex-direction: column; }
+
+.ch-log > .ch-card-head { flex-direction: column; justify-content: center; gap: 2px; }
+
+.ch-log > .ch-card-head .ch-card-title { text-align: center; }
 
 .ch-streak { font-size: 11.5px; font-weight: 800; color: var(--data-deep); }
 
 .ch-log-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 
 .nb-card.ch-log-tile {
-  display: flex; flex-direction: column; align-items: stretch; gap: 6px; min-height: 112px; padding: 12px 10px;
-  color: var(--text-1); text-decoration: none; font-family: inherit; text-align: start; cursor: pointer;
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  min-height: 128px; padding: 16px 8px 12px;
+  color: var(--text-1); text-decoration: none; font-family: inherit; text-align: center; cursor: pointer;
 }
 
 .nb-card.ch-log-tile:focus-visible { outline: none; box-shadow: var(--ring); }
 
-.ch-log-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 4px; margin-bottom: 2px; }
+.ch-log-tile .nb-icircle.ch-log-icon { width: 52px; height: 52px; margin-bottom: 4px; }
 
 .ch-log-title { font-size: 13.5px; font-weight: 800; }
 
 .ch-log-sub {
-  font-size: 11px; font-weight: 600; color: var(--text-2); line-height: 1.5;
+  max-width: 100%; font-size: 11px; font-weight: 600; color: var(--text-2); line-height: 1.5;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
 }
 
+.ch-log-tile > .ch-log-add,
+.ch-log-tile > .ch-log-count { position: absolute; top: 8px; inset-inline-end: 8px; }
+
 .ch-log-add {
-  width: 26px; height: 26px; border-radius: 13px; flex-shrink: 0;
+  width: 24px; height: 24px; border-radius: 12px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   border: 1.5px solid var(--line); color: var(--nb-tone-ink);
 }
@@ -89,7 +97,7 @@
 .ch-log-add.is-data { color: var(--data-deep); }
 
 .ch-log-count {
-  min-width: 26px; height: 26px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  min-width: 24px; height: 24px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums;
 }
 
