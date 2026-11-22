@@ -64,7 +64,7 @@ const bookingRaw = z.object({
 
 const hubRaw = z.object({
   sections: z.array(z.unknown()),
-  upcoming_booking: z.unknown().nullable(),
+  upcoming_booking: z.unknown().nullable().optional(),
   care: z.array(z.unknown()),
   programs: z.array(z.unknown()),
 });

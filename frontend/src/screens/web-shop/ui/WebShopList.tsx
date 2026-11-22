@@ -23,6 +23,8 @@ import { Card, CheckTick, EmptyState, Icon, Skeleton, SkeletonGroup } from '@/sh
 
 import { APP_SHOP, FACET_KEYS, FACET_SOURCE, type FacetKey, type Filters, NO_FILTERS, STORE_HOME, storeCategoryHref } from '../model/store';
 import { ShopWebShell, WebTile } from './ShopWebShell';
+import '@/shared/ui/styles/shp.css';
+import './wsh.css';
 
 const SKIN_KEYS = ['oily', 'combination', 'normal', 'dry', 'sensitive'];
 const digits = (v: string) => v.replace(/\D/g, '');

@@ -7,6 +7,7 @@ import { type Locale } from '@/shared/i18n';
 import { formatLongDate, fromApiDate } from '@/shared/lib/date';
 import { pilot } from '@/shared/pilot';
 import { StatusPill, type Tone } from '@/shared/ui';
+import '@/shared/ui/styles/ins.css';
 
 const STATUS_TONE: Record<PolicyStatus, Tone> = { current: 'success', upcoming: 'data', past: 'neutral' };
 

@@ -206,12 +206,13 @@ export function todayHref(mode: NavMode, ready: Partial<NavReady> = {}, ivf = fa
 }
 
 /**
- * Companion v2 (tabbarM): امروز · یادگیری · اقدام‌ها · پروفایل, no FAB — a man logs nothing of hers, and his own
- * value is the learn content and the action ideas.
+ * Companion v2 (tabbarM): امروز · تقویم · یادگیری · اقدام‌ها · پروفایل, no FAB — a man logs nothing of hers. «تقویم»
+ * holds his own medication / appointment reminders and, with her consent, her likely period days.
  */
 const COMPANION_NAV: NavConfig = {
   before: [
     { key: 'today', href: '/companion', icon: 'home' },
+    { key: 'calendar', href: '/companion/calendar', icon: 'calendar' },
     { key: 'learn', href: '/companion/learn', icon: 'learn' },
   ],
   after: [

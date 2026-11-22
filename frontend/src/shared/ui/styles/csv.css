@@ -1,0 +1,123 @@
+/* `csv-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.csv-view { position: relative; }
+
+.csv-body { display: flex; flex-direction: column; gap: 14px; padding: 8px var(--gutter) 24px; }
+
+.csv-stack { display: flex; flex-direction: column; gap: 12px; }
+
+.csv-chips { display: flex; gap: 8px; overflow-x: auto; padding-block-end: 2px; scrollbar-width: none; }
+
+.csv-chips::-webkit-scrollbar { display: none; }
+
+.csv-chip { flex-shrink: 0; min-block-size: 44px; }
+
+.csv-days { flex-wrap: nowrap; overflow-x: auto; padding-block-end: 4px; }
+
+.csv-days .chip { flex-shrink: 0; min-block-size: 44px; }
+
+.csv-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+
+.csv-card,
+.csv-bk-head {
+  display: flex; align-items: center; gap: 12px; min-block-size: 88px; padding: 12px; text-decoration: none; color: var(--text-1);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card);
+}
+
+.csv-bk-head { min-block-size: 64px; padding: 0; background: none; border: 0; border-radius: 0; }
+
+.csv-card:focus-visible,
+.csv-bk-head:focus-visible,
+.csv-link:focus-visible,
+.csv-go-btn:focus-visible,
+.csv-tel:focus-visible,
+.csv-strip-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.csv-thumb {
+  flex-shrink: 0; inline-size: 64px; block-size: 64px; border-radius: 16px; overflow: hidden; display: flex;
+  align-items: center; justify-content: center; background: var(--brand-soft); color: var(--brand);
+}
+
+.csv-thumb img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+
+.csv-card-main { display: flex; flex-direction: column; gap: 4px; flex: 1; min-inline-size: 0; }
+
+.csv-card-title { font-size: 14px; font-weight: 800; line-height: 1.6; }
+
+.csv-card-meta { margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 11.5px; font-weight: 600; color: var(--text-2); }
+
+.csv-badge {
+  display: inline-flex; align-items: center; block-size: 22px; padding-inline: 8px; border-radius: var(--r-pill);
+  background: var(--brand-soft); color: var(--brand-ink); font-size: 11px; font-weight: 800;
+}
+
+.csv-price { font-size: 13px; font-weight: 800; color: var(--text-1); }
+
+.csv-mode { font-size: 11px; font-weight: 700; color: var(--text-2); }
+
+.csv-go { flex-shrink: 0; color: var(--text-3); }
+
+.csv-pager { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; font-weight: 700; color: var(--text-2); }
+
+.csv-link { display: inline-flex; align-items: center; gap: 8px; min-block-size: 44px; font-size: 13px; font-weight: 800; color: var(--brand-strong); text-decoration: none; }
+
+.csv-note { margin: 0; padding-inline: 8px; font-size: 11.5px; font-weight: 600; line-height: 1.8; color: var(--text-2); text-align: center; }
+
+.csv-hero { border-radius: 20px; overflow: hidden; aspect-ratio: 16 / 10; background: var(--brand-soft); display: flex; align-items: center; justify-content: center; }
+
+.csv-hero-img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+
+.csv-hero-art { color: var(--brand); }
+
+.csv-strip { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; overflow-x: auto; }
+
+.csv-strip-btn { inline-size: 56px; block-size: 56px; min-inline-size: 44px; padding: 0; border: 2px solid transparent; border-radius: 12px; overflow: hidden; background: var(--surface-3); cursor: pointer; }
+
+.csv-strip-btn.on { border-color: var(--brand); }
+
+.csv-strip-btn img { inline-size: 100%; block-size: 100%; object-fit: cover; display: block; }
+
+.csv-name { margin: 0 0 6px; font-size: 18px; font-weight: 800; line-height: 1.5; color: var(--text-1); }
+
+.csv-facts { margin: 0; display: flex; flex-direction: column; gap: 12px; }
+
+.csv-fact { display: grid; grid-template-columns: auto auto 1fr; align-items: start; gap: 4px 10px; color: var(--text-2); }
+
+.csv-fact dt { font-size: 12px; font-weight: 700; color: var(--text-2); }
+
+.csv-fact dd { margin: 0; font-size: 13px; font-weight: 700; color: var(--text-1); overflow-wrap: anywhere; text-align: end; }
+
+.csv-tel { display: inline-flex; align-items: center; min-block-size: 44px; color: var(--brand-strong); text-decoration: none; }
+
+.csv-sub { margin: 0 0 6px; font-size: 13px; font-weight: 800; color: var(--text-1); }
+
+.csv-text { margin: 0; font-size: 13px; font-weight: 500; line-height: 1.95; color: var(--text-1); white-space: pre-line; }
+
+.csv-cta { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
+
+.csv-go-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-block-size: 48px; padding-inline: 20px;
+  border-radius: var(--r-pill); background: var(--brand-fill); color: var(--on-brand); font-size: 13px; font-weight: 800; text-decoration: none;
+}
+
+.csv-for { margin: 0; font-size: 13px; font-weight: 800; color: var(--text-1); }
+
+.csv-area { block-size: auto; align-items: flex-start; padding-block: 10px; }
+
+.csv-area textarea { inline-size: 100%; resize: none; font-family: inherit; line-height: 1.8; background: none; border: 0; color: inherit; outline: none; }
+
+.csv-err { margin: 0; text-align: start; font-size: 12px; font-weight: 700; color: var(--danger-deep); }
+
+.csv-bk { display: flex; flex-direction: column; gap: 6px; padding: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); }
+
+.csv-bk-line { margin: 0; font-size: 12px; font-weight: 600; color: var(--text-2); }
+
+.csv-bk-note { margin: 0; padding: 8px 10px; border-radius: 12px; background: var(--brand-soft); color: var(--text-1); font-size: 12px; font-weight: 700; line-height: 1.8; }
+
+.csv-bk-confirm { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; font-weight: 700; color: var(--text-1); }
+
+.csv-chip.on .dfl-badge { background: var(--on-brand); color: var(--brand); }
+
+.wcs-list .csv-card { inline-size: 100%; }
+
+.wcp-thumbs .csv-strip-btn { inline-size: 96px; block-size: 72px; }

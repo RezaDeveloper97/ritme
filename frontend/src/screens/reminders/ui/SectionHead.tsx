@@ -1,6 +1,7 @@
 import { Link } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
+import '@/shared/ui/styles/rmd.css';
 
 /** A list section's title row with its «+ افزودن» link to the matching form. */
 export function SectionHead({

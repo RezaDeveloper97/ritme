@@ -14,6 +14,9 @@ import { formatLongDate, fromApiDate } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { openSheet, type SheetContentProps } from '@/shared/sheet';
 import { Icon } from '@/shared/ui';
+import '@/shared/ui/styles/btn.css';
+import '@/shared/ui/styles/skeleton.css';
+import './art.css';
 
 /**
  * One article, opened from the home row or the library. Renders the cover, the

@@ -31,6 +31,7 @@ import {
 } from '@/shared/ui';
 
 import { ShareCodeSheet } from './ShareCodeSheet';
+import './rsh.css';
 
 /**
  * `/record/share` «چه کسی پرونده‌ات را می‌بیند؟» (CB-REC-05, nbl_Rec_Share): the 24h doctor code + QR (create in a

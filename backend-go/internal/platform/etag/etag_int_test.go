@@ -24,6 +24,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 	"github.com/ritme/backend-go/internal/platform/etag"
 	"github.com/ritme/backend-go/internal/platform/metrics"
+	"github.com/ritme/backend-go/internal/platform/racedet"
 )
 
 func TestMain(m *testing.M) { testdb.Main(m) }
@@ -142,6 +143,9 @@ func TestEngineGetInt_304IsOnlyTheAuthQuery(t *testing.T) {
 // Budget: the 304 path ≤ 5 ms p95 locally with 1 query. Asserted only when a trivial round trip is fast (the dev
 // machine is often loaded); the numbers are logged either way.
 func TestEngineGetInt_304Budget(t *testing.T) {
+	if racedet.Enabled {
+		t.Skip("latency budget is meaningless under -race")
+	}
 	ea := newEngineApp(t)
 	_, _, tag := ea.get(t, "", "fa")
 	const n = 300

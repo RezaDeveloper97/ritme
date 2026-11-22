@@ -22,6 +22,12 @@ WHERE user_id = sqlc.arg(user_id)
 ORDER BY ends_at DESC, id DESC
 LIMIT 1;
 
+-- name: LockUser :one
+-- Serialises the period writes of one user (activate, GrantDays): taken before LatestValidSubscription, so
+-- concurrent settles of different invoices queue one period after the other instead of overlapping (T-M12-19).
+-- Lock order: the invoice / store purchase / enrollment row first, then this one.
+SELECT id FROM users WHERE id = ? FOR UPDATE;
+
 -- name: LatestValidSubscription :one
 -- Where a new purchase starts: the last still-valid period ending after now (current or queued).
 SELECT * FROM plus_subscriptions

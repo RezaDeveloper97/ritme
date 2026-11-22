@@ -33,6 +33,10 @@ import {
 } from '@/shared/ui';
 
 import { AddressSheet } from './AddressSheet';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/shp.css';
+import '@/shared/ui/styles/shco.css';
+import '@/shared/ui/styles/shcart.css';
 
 function Stepper() {
   const t = useTranslations('shop.checkout');

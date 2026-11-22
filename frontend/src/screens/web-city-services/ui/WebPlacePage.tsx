@@ -14,6 +14,11 @@ import { Card, EmptyState, Icon, Skeleton, SkeletonGroup } from '@/shared/ui';
 import { APP_DIRECTORY, bookable, minPrice, neshanHref, PLACES_HOME, safeHttp, slotParts, telHref } from '../model/place';
 import { DirectoryWebShell } from './DirectoryWebShell';
 import { PlaceBody, usePrice } from './PlaceBody';
+import '@/shared/ui/styles/csv.css';
+import '@/shared/ui/styles/cdh.css';
+import '@/shared/ui/styles/cdp.css';
+import './wcs.css';
+import './wcp.css';
 
 /**
  * CB-DIR-11 — `W_Dir_Place`: breadcrumb, gallery, details and a sticky booking panel. Public; the server hands over the

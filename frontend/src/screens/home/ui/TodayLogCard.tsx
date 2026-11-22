@@ -12,6 +12,7 @@ import { openSheet } from '@/shared/sheet';
 import { Icon, IconCircle, type IconName, type Tone } from '@/shared/ui';
 
 import { summarizeTodayLog } from '../model/today-log';
+import '@/shared/ui/styles/ch.css';
 
 interface Tile {
   key: 'period' | 'symptoms' | 'mood';

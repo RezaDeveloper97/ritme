@@ -24,7 +24,7 @@ export type Condition = z.infer<typeof conditionSchema>;
 const groupSchema = z.object({ op: z.enum(['and', 'or']), items: z.array(conditionSchema).default([]) });
 export type Group = z.infer<typeof groupSchema>;
 
-const nullable = <T extends z.ZodTypeAny>(s: T) => s.nullish().transform((v) => v ?? null);
+const nullable = <T extends z.ZodType>(s: T) => s.nullish().transform((v) => v ?? null);
 const capSchema = z.object({ count: z.number(), period: z.string() });
 export type Cap = z.infer<typeof capSchema>;
 const variantWeightSchema = z.object({ key: z.string(), weight: z.number() });

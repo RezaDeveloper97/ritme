@@ -27,6 +27,7 @@ import {
   SkeletonGroup,
   SkyLayer,
 } from '@/shared/ui';
+import './tob.css';
 
 const LOOK: Record<TeenMenarche, Pick<RadioCardOption<TeenMenarche>, 'icon' | 'iconTone'>> = {
   not_yet: { icon: 'sprout', iconTone: 'data' },

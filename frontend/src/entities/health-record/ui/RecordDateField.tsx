@@ -7,6 +7,8 @@ import type { Locale } from '@/shared/i18n';
 import { formatLongDate, fromApiDate, partsToDate, toApiDate, toParts } from '@/shared/lib/date';
 import { CalendarPicker, SecondaryButton } from '@/shared/ui';
 import { pilot } from '@/shared/pilot';
+import '@/shared/ui/styles/lab.css';
+import '@/shared/ui/styles/rec.css';
 
 /**
  * An optional date of a record document form (CB-REC-04): a field button that opens the locale's calendar (Jalali

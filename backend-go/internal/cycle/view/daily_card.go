@@ -154,7 +154,7 @@ func (b cardBuilder) actualPeriodDay(cycleDay, periodDay int) DailyCard {
 func (b cardBuilder) openPeriodDay(cycleDay, periodDay int, open OpenPeriodState, isToday bool) DailyCard {
 	if isToday && open.EndOverdue {
 		return b.card(
-			b.t("پایان پریود هنوز ثبت نشده", "Period end not logged yet"),
+			b.t("پایان پریود ثبت نشده", "Period end not logged yet"),
 			b.t("برای دقیق\u200cتر شدن تقویم، مشخص کن خون\u200cریزی چه زمانی تمام شده است.",
 				"To keep your calendar accurate, tell us when the bleeding stopped."),
 			enums.DataStatusIncomplete, enums.FertilityLevelLow,

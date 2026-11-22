@@ -15,6 +15,8 @@ import { Chip, FieldRow, NotesField, NumberField, PgCard, Segmented, Toggle } fr
 import { toApiDate, today } from '@/shared/lib/date';
 import { pilot } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
+import '@/shared/ui/styles/btn.css';
+import './plog.css';
 
 type T = ReturnType<typeof useTranslations>;
 type DynT = (key: string) => string;

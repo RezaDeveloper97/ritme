@@ -5,8 +5,8 @@ import { z } from 'zod';
 
 import { api, createResource, pagedSchema } from '@/shared/api';
 
-const list = <T extends z.ZodTypeAny>(item: T) => z.preprocess((v) => (Array.isArray(v) ? v : []), z.array(item));
-const record = <T extends z.ZodTypeAny>(item: T) =>
+const list = <T extends z.ZodType>(item: T) => z.preprocess((v) => (Array.isArray(v) ? v : []), z.array(item));
+const record = <T extends z.ZodType>(item: T) =>
   z.preprocess((v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {}), z.record(z.string(), item));
 
 /** Where the text the companion panel shows today comes from (admin-api.md §16). */

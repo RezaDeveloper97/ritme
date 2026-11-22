@@ -7,6 +7,7 @@ import { pilot } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
 
 import { useEndPeriod, usePeriodStatus, useStartPeriod } from '../api/mutations';
+import './ped.css';
 
 /**
  * Period action on the home screen. It reads the current period state and

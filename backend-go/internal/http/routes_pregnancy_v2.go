@@ -8,6 +8,7 @@ import (
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/messages/pregnancyalerts"
 	"github.com/ritme/backend-go/internal/platform/clock"
+	"github.com/ritme/backend-go/internal/platform/etag"
 	"github.com/ritme/backend-go/internal/pregnancy/store"
 	pregnancyv2 "github.com/ritme/backend-go/internal/pregnancy/v2"
 	"github.com/ritme/backend-go/internal/pregnancy/v2/calendar"
@@ -23,7 +24,8 @@ func init() {
 		h := pregnancyv2.NewHandlers(store.New(d.DB), clock.Real{})
 		const p = "/api/v1/pregnancy/v2"
 
-		al := pregnancyalerts.NewHandlers(store.New(d.DB), clock.Real{})
+		// T-M12-30c: Today's evaluation is skipped while its inputs and its next due instant say nothing can have changed.
+		al := pregnancyalerts.NewHandlers(store.New(d.DB), clock.Real{}).WithCache(d.Cache, etag.Build())
 
 		// Setup copy (admin-edited pregnancy_setup texts, T-M7-20).
 		r.Get(p+"/setup-copy", locale, guard, h.SetupCopy)

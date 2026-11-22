@@ -20,6 +20,8 @@ import {
 import { useSupportBoxes } from '../api/support';
 import { contactOf, filterFaq } from '../model/support';
 import { ReportSheet } from './ReportSheet';
+import '@/shared/ui/styles/tone.css';
+import './sup.css';
 
 /**
  * Support (B-N1-12, `nbl_Me_Support` / `nbd_Me_Support`) at `/profile/support`:

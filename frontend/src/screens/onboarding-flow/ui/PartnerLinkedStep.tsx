@@ -12,6 +12,8 @@ import { OnbFrame } from '@/features/auth';
 
 import { useFinishOnboarding } from '../api/onboarding';
 import { FLOW_ROUTES, landingRoute } from '../model/flow';
+import '@/shared/ui/styles/onb.css';
+import '@/shared/ui/styles/cmh.css';
 
 /** The link just made: the newest one (link ids only grow). */
 function newestPartner(partners: readonly CompanionPartner[]): CompanionPartner | null {

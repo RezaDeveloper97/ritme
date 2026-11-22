@@ -50,6 +50,11 @@ export interface CompanionPreferences {
   goals: CompanionGoal[];
   signals: CompanionSignalScope;
   actionPrefs: CompanionAction[];
+  /**
+   * Her consent (off by default) to show this companion the days her period is likely to fall on, in his calendar.
+   * Separate from the cycle grant and the signals: he needs both the cycle grant and this switch.
+   */
+  periodDays?: boolean;
 }
 
 export interface CompanionFamily {

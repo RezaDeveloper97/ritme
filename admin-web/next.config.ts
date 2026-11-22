@@ -50,6 +50,8 @@ const csp = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // The image optimizer (/_next/image) is unused (T-M12-04): serve images as-is and shut the endpoint.
+  images: { unoptimized: true },
   // Local only: NEXT_DIST_DIR=.next-dev keeps a dev server alive while `npm run build` runs.
   distDir: process.env.NEXT_DIST_DIR || '.next',
   ...(basePath ? { basePath } : {}),

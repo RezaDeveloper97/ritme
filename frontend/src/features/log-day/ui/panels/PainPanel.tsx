@@ -13,6 +13,7 @@ import { ChipGroup, PillChip } from '@/shared/ui';
 import { asItems, asList, defaultLevel, pickableOptions, setItemScore, toggleInList, toggleItem } from '../../model/draft';
 import { logPilotId } from '../../model/pilot-targets';
 import { PanelCard } from './PanelCard';
+import '@/shared/ui/styles/lday.css';
 
 /** One body-map region as the log sheet hands it to the map widget. */
 export interface BodyMapRegionView {

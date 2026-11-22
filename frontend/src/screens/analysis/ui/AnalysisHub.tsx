@@ -35,6 +35,7 @@ import {
   VitalsCard,
   WeightCard,
 } from './HubCards';
+import '@/shared/ui/styles/an.css';
 
 /** `/analysis/monthly/<ym>` for this month in the reader's calendar («گزارش مهر»). */
 function useReportLink(): { href: string; month: string } {

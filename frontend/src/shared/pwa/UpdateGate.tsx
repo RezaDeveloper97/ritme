@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { installChunkErrorRecovery } from './chunkReload';
 import { useAppUpdate } from './useAppUpdate';
+import '@/shared/ui/styles/pwa.css';
 
 /**
  * Mounted once at the app root. Renders nothing until an update is detected,

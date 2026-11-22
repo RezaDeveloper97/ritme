@@ -1,0 +1,99 @@
+/* `ws-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.ws-card { background: var(--surface); border: 1px solid var(--teal-soft); border-radius: 12px; padding: 14px 12px; transition: opacity .15s ease; }
+
+.ws-card[aria-busy="true"] { opacity: .6; }
+
+.ws-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+
+.ws-title { flex: 1; font-size: 14px; font-weight: 800; color: var(--ink); text-align: start; }
+
+.ws-link { font-size: 12px; font-weight: 700; color: var(--brand); text-decoration: none; }
+
+.ws-sub { font-size: 12px; color: var(--muted); font-weight: 600; text-align: start; margin: -4px 2px 12px; }
+
+.ws-tiles { display: flex; gap: 12px; }
+
+.ws-tile { flex: 1; background: var(--surface-3); border-radius: 12px; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+
+.ws-tile-ic { width: 36px; height: 36px; border-radius: 50%; background: var(--surface); display: flex; align-items: center; justify-content: center; }
+
+.ws-tile-l { font-size: 12px; color: var(--ink); font-weight: 700; }
+
+.ws-tile-v { font-size: 14px; font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+.ws-trend { display: flex; }
+
+.ws-trend.is-up { transform: rotate(180deg); }
+
+.ws-note { margin-top: 12px; background: linear-gradient(90deg, var(--pink-bg), var(--violet-soft)); border-radius: 12px; padding: 10px 12px; text-align: center; font-size: 12px; font-weight: 600; color: var(--steel); }
+
+.ws-note-cta { color: var(--brand); font-weight: 800; text-decoration: none; }
+
+.stage:has(.ws-root) { display: block; }
+
+.app-shell:has(.ws-root) { max-width: none; height: auto; min-block-size: var(--app-vh, 100dvh); overflow: visible; box-shadow: none; padding-top: 0; }
+
+.ws-root { display: flex; flex-direction: column; min-block-size: var(--app-vh, 100dvh); background: var(--page); color: var(--text-1); -webkit-user-select: text; user-select: text; }
+
+.ws-skip { position: absolute; inset-inline-start: 12px; inset-block-start: -64px; z-index: 60; padding: 10px 16px; border-radius: var(--r-pill); background: var(--brand-fill); color: var(--on-brand); font-weight: 800; text-decoration: none; }
+
+.ws-skip:focus-visible { inset-block-start: 12px; }
+
+.ws-header { position: sticky; inset-block-start: 0; z-index: 40; background: var(--surface-glass); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-block-end: 1px solid var(--line); }
+
+.ws-bar { display: flex; align-items: center; gap: 24px; max-inline-size: 1280px; margin-inline: auto; padding: 12px 32px; }
+
+.ws-brand { font-family: var(--font-display); font-size: var(--fs-display); color: var(--brand); text-decoration: none; }
+
+.ws-nav { display: flex; gap: 6px; flex: 1; }
+
+.ws-grow { flex: 1; }
+
+.ws-nav-link { padding: 8px 14px; border-radius: var(--r-pill); font-size: var(--fs-base); font-weight: 700; color: var(--text-2); text-decoration: none; }
+
+.ws-nav-link:hover { background: var(--surface-3); }
+
+.ws-nav-link.on { background: var(--brand-soft); color: var(--brand-ink); }
+
+.ws-actions { display: flex; align-items: center; gap: 10px; }
+
+.ws-cta,
+.ws-login { display: inline-flex; align-items: center; min-block-size: 40px; padding-inline: 18px; border-radius: var(--r-pill); font-size: var(--fs-base); font-weight: 800; text-decoration: none; }
+
+.ws-cta { border: 1px solid var(--line-strong); color: var(--brand); background: var(--surface); }
+
+.ws-login { background: var(--brand-fill); color: var(--on-brand); }
+
+.ws-brand:focus-visible,
+.ws-nav-link:focus-visible,
+.ws-cta:focus-visible,
+.ws-login:focus-visible,
+.ws-foot-links a:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.ws-main { flex: 1; inline-size: 100%; max-inline-size: 1280px; margin-inline: auto; padding: 24px 32px 56px; }
+
+.ws-footer { border-block-start: 1px solid var(--line); background: var(--surface); }
+
+.ws-foot-in { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 32px; max-inline-size: 1280px; margin-inline: auto; padding: 24px 32px; }
+
+.ws-foot-brand { display: flex; flex-direction: column; gap: 2px; }
+
+.ws-foot-brand strong { font-family: var(--font-display); font-size: var(--fs-xl); color: var(--brand); }
+
+.ws-foot-brand span,
+.ws-foot-note { font-size: var(--fs-md); color: var(--text-3); }
+
+.ws-foot-note { margin: 0; flex-basis: 100%; }
+
+.ws-foot-links { display: flex; gap: 18px; flex: 1; }
+
+.ws-foot-links a { font-size: var(--fs-md); font-weight: 700; color: var(--text-2); text-decoration: none; }
+
+@media (max-width: 1023px) {
+  .ws-bar,
+  .ws-main,
+  .ws-foot-in { padding-inline: 16px; }
+  .ws-nav { display: none; }
+  .ws-grow { flex: 1; }
+}

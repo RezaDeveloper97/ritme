@@ -10,7 +10,7 @@
     "require": {
         "php": "^8.2",
         "bacon/bacon-qr-code": "^3.0",
-        "enshrined/svg-sanitize": "^0.22",
+        "enshrined/svg-sanitize": "^1.1.1",
         "filament/filament": "^4.0",
         "intervention/image": "^3.11",
         "laravel/framework": "^12.0",

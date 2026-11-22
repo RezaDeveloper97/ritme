@@ -244,14 +244,15 @@ func (s *Service) CreateInvite(ctx context.Context, ownerID uint64, in InviteInp
 			OwnerID: ownerID, Type: string(in.Type), DisplayName: nstr(in.DisplayName), Now: nt(now),
 			Goal: goalColumn(in.Preferences.Goals), SharePain: in.Preferences.Signals.On(SignalPain),
 			ShareMood: in.Preferences.Signals.On(SignalMood), ShareEnergy: in.Preferences.Signals.On(SignalEnergy),
-			ShareSleep: in.Preferences.Signals.On(SignalSleep), ActionPrefs: actionsColumn(in.Preferences.Actions),
+			ShareSleep: in.Preferences.Signals.On(SignalSleep), SharePeriodDays: in.Preferences.PeriodDays,
+			ActionPrefs: actionsColumn(in.Preferences.Actions),
 		})
 		if err != nil {
 			return fmt.Errorf("companion: create: %w", err)
 		}
 		cid := uint64(id) //nolint:gosec // AUTO_INCREMENT ids are positive
 		if err := applyGrants(ctx, tx, store.Companion{ID: cid, OwnerID: ownerID, Type: string(in.Type)}, ownerID,
-			toV6(in.Grants), family.ChangeInvite, now); err != nil {
+			toV6(in.Grants), nil, family.ChangeInvite, now); err != nil {
 			return err
 		}
 		if in.Type == TypeSpouse {
@@ -443,7 +444,8 @@ func (s *Service) SetGrants(ctx context.Context, ownerID, companionID uint64, gr
 			return err
 		}
 		// family.Grants.Apply writes the grants_changed activity row (with the v6 diff) and the consent event.
-		if err := applyGrants(ctx, tx, c, ownerID, toV6(grants), family.ChangeOwnerEdit, now); err != nil {
+		// Only the domains a legacy section can name change; v6-only grants are kept (T-M12-17b).
+		if err := applyGrants(ctx, tx, c, ownerID, toV6(grants), legacyScope, family.ChangeOwnerEdit, now); err != nil {
 			return err
 		}
 		link, err = loadLink(ctx, q, c.ID)
@@ -685,10 +687,11 @@ func checkTeenRule(ctx context.Context, q *store.Queries, ownerID uint64, t Type
 // applyGrants is the only grant writer: family.Grants.Apply (registry check, epoch stamp, activity diff, consent
 // event) in the caller's transaction. ownerID is the actor (only the owner changes grants).
 func applyGrants(ctx context.Context, tx *sql.Tx, c store.Companion, ownerID uint64, set map[family.Domain]family.Level,
-	reason string, now time.Time) error {
+	scope []family.Domain, reason string, now time.Time) error {
 	_, err := family.Grants{}.Apply(ctx, tx, family.Change{
 		LinkID: c.ID, OwnerID: c.OwnerID, MemberID: uint64(max(c.CompanionUserID.Int64, 0)), ActorID: ownerID,
-		Role: family.ParseRole(c.Role.String, c.Type), Set: set, ExpiresAt: c.ExpiresAt.Time, Reason: reason, Now: now,
+		Role: family.ParseRole(c.Role.String, c.Type), Set: set, Scope: scope, ExpiresAt: c.ExpiresAt.Time, Reason: reason,
+		Now: now,
 	})
 	if errors.Is(err, family.ErrLevelNotAllowed) {
 		return ErrInvalidLevel

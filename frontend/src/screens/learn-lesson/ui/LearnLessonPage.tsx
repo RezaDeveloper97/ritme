@@ -25,6 +25,8 @@ import { useOfflineBlobUrl } from '@/shared/pwa/offline';
 import { Card, EmptyState, HeaderButton, Icon, PrimaryButton, ScreenHeader, Skeleton, SkeletonGroup } from '@/shared/ui';
 
 import { useLessonMedia } from '../model/use-media';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/lrn.css';
 
 type Media = ReturnType<typeof useLessonMedia>;
 

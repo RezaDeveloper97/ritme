@@ -77,13 +77,13 @@ import { defaultHighlightTone } from '../model/v2';
 
 /** Unknown / missing enum → null. */
 const enumOrNull = <T extends readonly [string, ...string[]]>(values: T) =>
-  z.unknown().transform((v): T[number] | null => {
+  z.unknown().optional().transform((v): T[number] | null => {
     const parsed = z.enum(values).safeParse(v);
     return parsed.success ? parsed.data : null;
   });
 
 /** A number (or numeric string) → number; anything else → null. */
-const numberOrNull = z.unknown().transform((v): number | null => {
+const numberOrNull = z.unknown().optional().transform((v): number | null => {
   if (v === null || v === undefined || v === '' || typeof v === 'boolean') return null;
   const n = typeof v === 'number' ? v : typeof v === 'string' ? Number(v) : Number.NaN;
   return Number.isFinite(n) ? n : null;
@@ -100,13 +100,13 @@ const clampPercent = numberOrNull.transform((n) =>
 
 /** Trimmed non-empty string → string; anything else → null. */
 const textOrNull = z
-  .unknown()
+  .unknown().optional()
   .transform((v): string | null => (typeof v === 'string' && v.trim() !== '' ? v.trim() : null));
 
-const bool = z.unknown().transform((v) => v === true || v === 1 || v === '1' || v === 'true');
+const bool = z.unknown().optional().transform((v) => v === true || v === 1 || v === '1' || v === 'true');
 
 /** `YYYY-MM-DD…` → `YYYY-MM-DD`; anything else → null. */
-const dateOrNull = z.unknown().transform((v): string | null => {
+const dateOrNull = z.unknown().optional().transform((v): string | null => {
   if (typeof v !== 'string') return null;
   const day = v.slice(0, 10);
   return /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : null;
@@ -116,8 +116,8 @@ const dateOrNull = z.unknown().transform((v): string | null => {
 const timeOrNull = textOrNull.transform((v) => (v && /^\d{1,2}:\d{2}/.test(v) ? v.slice(0, 5) : null));
 
 /** Parse each row with `row`; drop rows that fail. Not an array → `[]`. */
-function listOf<T>(row: z.ZodType<T, z.ZodTypeDef, unknown>) {
-  return z.unknown().transform((raw): T[] => {
+function listOf<T>(row: z.ZodType<T, unknown>) {
+  return z.unknown().optional().transform((raw): T[] => {
     if (!Array.isArray(raw)) return [];
     const out: T[] = [];
     for (const item of raw) {
@@ -129,15 +129,15 @@ function listOf<T>(row: z.ZodType<T, z.ZodTypeDef, unknown>) {
 }
 
 /** Parse with `schema`; on failure (or null/undefined) → null. */
-function orNull<T>(schema: z.ZodType<T, z.ZodTypeDef, unknown>) {
-  return z.unknown().transform((raw): T | null => {
+function orNull<T>(schema: z.ZodType<T, unknown>) {
+  return z.unknown().optional().transform((raw): T | null => {
     if (raw === null || raw === undefined) return null;
     const parsed = schema.safeParse(raw);
     return parsed.success ? parsed.data : null;
   });
 }
 
-const obj = z.record(z.unknown());
+const obj = z.record(z.string(), z.unknown());
 
 // ── Shared pieces ──────────────────────────────────────────────
 
@@ -153,7 +153,7 @@ const rangeSchema = obj.transform((r, ctx): DateRange => {
 const rangeOrNull = orNull(rangeSchema);
 
 /** `{level,label}` or a bare level string. */
-const confidenceSchema = z.unknown().transform((raw): Confidence => {
+const confidenceSchema = z.unknown().optional().transform((raw): Confidence => {
   if (typeof raw === 'string') return { level: enumOrNull(CONFIDENCE_LEVELS).parse(raw), label: null };
   if (typeof raw === 'object' && raw !== null) {
     const r = raw as Record<string, unknown>;
@@ -365,7 +365,7 @@ const highlightSchema = obj.transform((r, ctx): WeekHighlight => {
 });
 
 /** `sources` may be `[{title,url}]`, `["text"]` or one string. */
-const sourcesSchema = z.unknown().transform((raw): WeekSource[] => {
+const sourcesSchema = z.unknown().optional().transform((raw): WeekSource[] => {
   if (typeof raw === 'string') {
     const t = raw.trim();
     return t ? [{ title: t, url: null }] : [];
@@ -383,7 +383,7 @@ const sourcesSchema = z.unknown().transform((raw): WeekSource[] => {
   });
 });
 
-const stringList = z.unknown().transform((raw): string[] =>
+const stringList = z.unknown().optional().transform((raw): string[] =>
   Array.isArray(raw) ? raw.map((s) => textOrNull.parse(s)).filter((s): s is string => s !== null) : [],
 );
 
@@ -404,11 +404,11 @@ const EMPTY_DETAILS: WeekDetails = {
 };
 
 /** A stat may be a number or a text range — keep it as display text. */
-const statText = z.unknown().transform((v): string | null =>
+const statText = z.unknown().optional().transform((v): string | null =>
   typeof v === 'number' && Number.isFinite(v) ? String(v) : textOrNull.parse(v),
 );
 
-const weekDetailsSchema = z.unknown().transform((raw): WeekDetails => {
+const weekDetailsSchema = z.unknown().optional().transform((raw): WeekDetails => {
   if (typeof raw !== 'object' || raw === null) return EMPTY_DETAILS;
   const r = raw as Record<string, unknown>;
   return {
@@ -467,7 +467,7 @@ export const weekStateSchema = obj.transform((r, ctx): WeekState => {
 // ── Alerts ─────────────────────────────────────────────────────
 
 /** `{key,label}` or a bare key. */
-const alertActionSchema = z.unknown().transform((raw, ctx): AlertActionV2 => {
+const alertActionSchema = z.unknown().optional().transform((raw, ctx): AlertActionV2 => {
   if (typeof raw === 'string' && raw.trim()) return { key: raw.trim(), label: null };
   if (typeof raw === 'object' && raw !== null) {
     const r = raw as Record<string, unknown>;
@@ -478,7 +478,7 @@ const alertActionSchema = z.unknown().transform((raw, ctx): AlertActionV2 => {
   return z.NEVER;
 });
 
-const contactSchema = z.unknown().transform((raw, ctx): AlertContact => {
+const contactSchema = z.unknown().optional().transform((raw, ctx): AlertContact => {
   if (typeof raw === 'string' && raw.trim()) return { text: raw.trim(), phone: null };
   if (typeof raw === 'object' && raw !== null) {
     const r = raw as Record<string, unknown>;
@@ -537,7 +537,7 @@ const legendRowSchema = obj.transform((r, ctx): AlertLegendRow => {
   return { level, label: textOrNull.parse(r.label), text: textOrNull.parse(r.text ?? r.description) };
 });
 
-export const pregnancyAlertsV2Schema = z.unknown().transform((raw): PregnancyAlertsV2 => {
+export const pregnancyAlertsV2Schema = z.unknown().optional().transform((raw): PregnancyAlertsV2 => {
   // Accept a bare array of alerts as well as the documented object.
   const r = (Array.isArray(raw) ? { alerts: raw } : typeof raw === 'object' && raw !== null ? raw : {}) as Record<
     string,
@@ -563,7 +563,7 @@ const moodSchema = intOrNull.transform((n): Mood | null =>
  * `{symptom: severity}`; also accepts `[{key, severity}]`. Unknown symptoms and
  * severities are dropped; a symptom with a missing severity is `mild`.
  */
-const symptomsSchema = z.unknown().transform((raw): DaySymptoms => {
+const symptomsSchema = z.unknown().optional().transform((raw): DaySymptoms => {
   const out: DaySymptoms = {};
   const sev = enumOrNull(SEVERITIES);
   const put = (key: unknown, severity: unknown) => {
@@ -768,7 +768,7 @@ const record = (raw: unknown): Record<string, unknown> =>
   (typeof raw === 'object' && raw !== null && !Array.isArray(raw) ? raw : {}) as Record<string, unknown>;
 
 /** Forgiving: a missing item or text is null (the screen falls back to its bundle). */
-export const setupCopySchema = z.unknown().transform((raw): SetupCopy => {
+export const setupCopySchema = z.unknown().optional().transform((raw): SetupCopy => {
   const r = record(raw);
   const welcome = record(r.welcome);
   const dating = record(r.dating);

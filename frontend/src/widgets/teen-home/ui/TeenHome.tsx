@@ -23,6 +23,7 @@ import {
 } from '@/shared/ui';
 
 import { signsCard } from '../model/signs';
+import './tnh.css';
 
 /**
  * Teen home (CB-TEEN-02, nbl_Teen_Home) — replaces bloom's simplified teen

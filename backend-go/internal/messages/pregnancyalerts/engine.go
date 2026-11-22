@@ -290,6 +290,10 @@ type EvalOptions struct {
 	Readings []Reading
 	// V1 adds `trigger_symptoms` to each alert: the evidence in the v1 alert terms (EvaluateV1).
 	V1 bool
+	// Due, when set, receives the earliest instant after the evaluation's now at which a time-based rule may change
+	// its answer with no write (NextDue and the rule gates of the served snapshot, T-M12-30c); it is left zero when
+	// the backend cannot tell, and a zero Due is never cached.
+	Due *time.Time
 }
 
 // Backend is the inbox side: it evaluates the user's pregnancy rules, lists and acts on her alerts.
@@ -358,6 +362,18 @@ func (e *Engine) EvaluateAll(ctx context.Context, userID uint64, now time.Time, 
 		return nil, err
 	}
 	return b.Evaluate(ctx, e.q, userID, now, l, EvalOptions{Daily: true})
+}
+
+// EvaluateDaily is EvaluateAll for the evaluate-before-Today skip (T-M12-30c): it runs the same daily evaluation and
+// returns its next due instant (zero = unknown: evaluate again on the next read).
+func (e *Engine) EvaluateDaily(ctx context.Context, userID uint64, now time.Time, l v2.Lang) (time.Time, error) {
+	b, err := backendOf()
+	if err != nil {
+		return time.Time{}, err
+	}
+	var due time.Time
+	_, err = b.Evaluate(ctx, e.q, userID, now, l, EvalOptions{Daily: true, Due: &due})
+	return due, err
 }
 
 // TimeRules are the calendar alerts (legacy keys): returned by the daily evaluation only.

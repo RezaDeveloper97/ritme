@@ -29,6 +29,7 @@ import {
   SkyLayer,
 } from '@/shared/ui';
 import { useNavMode } from '@/widgets/bottom-nav';
+import '@/shared/ui/styles/plus.css';
 
 /**
  * «مدت اشتراک را انتخاب کن» (`/plus/plans`, B-N2-07, `nbl_Prem_Plans`):

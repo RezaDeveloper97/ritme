@@ -1,0 +1,41 @@
+/* `ctro-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.nb-note.ctro-note { background: var(--surface); border: 1px solid var(--line); }
+
+.ctro-section { display: flex; flex-direction: column; gap: 10px; }
+
+.nb-card.ctro-list { padding: 6px 16px; }
+
+.ctro-list .nb-row { padding-block: 12px; }
+
+.ctro-list .nb-row + .nb-row { border-top: 1px solid var(--line); border-radius: 0; }
+
+.ctro-tag {
+  flex-shrink: 0; display: inline-flex; align-items: center; block-size: 32px; padding: 0 12px;
+  border-radius: var(--r-pill); border: 1px solid var(--brand); color: var(--brand-strong);
+  font-size: 12.5px; font-weight: 800;
+}
+
+.ctro-act {
+  flex-shrink: 0; block-size: 40px; padding: 0 14px; border-radius: var(--r-pill);
+  border: 1.5px solid var(--nb-tone); background: color-mix(in srgb, var(--nb-tone) 8%, transparent);
+  color: var(--nb-tone-ink); font-family: inherit; font-size: 12.5px; font-weight: 800; cursor: pointer;
+}
+
+.ctro-act:disabled { opacity: .6; cursor: default; }
+
+.ctro-act:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.nb-card.ctro-inj { display: flex; flex-direction: column; gap: 14px; padding: 18px 16px; }
+
+.ctro-inj-head { display: flex; align-items: center; gap: 14px; }
+
+.ctro-inj-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; text-align: start; }
+
+.ctro-inj-cap { margin: 0; font-size: 12px; font-weight: 700; color: var(--text-2); }
+
+.ctro-inj-num { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: var(--fs-num-m); line-height: 1.15; color: var(--text-1); }
+
+.ctro-inj-num.is-late { color: var(--warm-deep); }
+
+.ctro-inj-sub { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); }

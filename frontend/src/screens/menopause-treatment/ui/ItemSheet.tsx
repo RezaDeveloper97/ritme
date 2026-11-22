@@ -33,6 +33,7 @@ import {
   SecondaryButton,
   Switch,
 } from '@/shared/ui';
+import './mtr.css';
 
 type FieldErrors = Record<string, string>;
 

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Icon, PrimaryButton } from '@/shared/ui';
 
 import { useDeviceNotifications } from './useDeviceNotifications';
+import '@/shared/ui/styles/ntf.css';
 
 /**
  * «اعلان‌ها روی این دستگاه» — on / off / blocked / not supported for THIS

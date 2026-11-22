@@ -78,7 +78,7 @@ const catalogItemSchema = z
   );
 
 /** A list where an unparseable row is dropped, not the whole list. */
-function rows<T>(schema: z.ZodType<T, z.ZodTypeDef, unknown>) {
+function rows<T>(schema: z.ZodType<T, unknown>) {
   return z
     .array(z.unknown())
     .catch([])

@@ -367,5 +367,11 @@
     "revoked": "You no longer have edit access to this section, so nothing was saved. Your access list has been refreshed.",
     "forbidden": "You don't have access to this item. Your access may have changed.",
     "viewOnly": "You can only view this section, so changes can't be saved."
+  },
+  "periodDays": {
+    "label": "Companion calendar",
+    "title": "Likely period days",
+    "desc": "Your companion sees in his calendar which days your period is likely to fall on. Upcoming predictions only — no history, no cycle numbers.",
+    "needsCycle": "To see these days, he also needs the “Cycle” section shared in access."
   }
 }

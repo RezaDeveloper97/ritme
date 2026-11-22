@@ -29,6 +29,7 @@ import {
 import { pilot, pilotOption } from '@/shared/pilot';
 
 import { MarkerRow } from './MarkerRow';
+import '@/shared/ui/styles/lab.css';
 
 const NORMAL_PREVIEW = 2;
 

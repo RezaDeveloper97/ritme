@@ -7,6 +7,7 @@ import { toApiDate, today } from '@/shared/lib/date';
 
 import { useUndoSkip } from '../api/mutations';
 import { useSkipStore } from '../model/store';
+import '@/shared/ui/styles/ch.css';
 
 const TOAST_MS = 8000;
 

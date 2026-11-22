@@ -129,7 +129,7 @@ func TestAssistant_InFlightSlotHeldUntilStreamEnds(t *testing.T) {
 	first := make(chan resp, 1)
 	go func() { first <- e.send(t, tok, conv, map[string]any{"text": "first"}) }()
 	<-started
-	time.Sleep(200 * time.Millisecond) // the handler has returned; the stream writer is waiting on the provider
+	time.Sleep(200 * time.Millisecond) //nolint:sleep // the handler returned; the stream writer then waits on the provider (no hook to observe it)
 	r := e.send(t, tok, conv, map[string]any{"text": "second"})
 	assert.Equal(t, 429, r.status, r.raw)
 	assert.Equal(t, "ai_busy", r.body["error_code"])

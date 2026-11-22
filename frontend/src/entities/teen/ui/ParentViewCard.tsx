@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 
 import { isEmptyParentView } from '../lib/parent-view';
 import type { TeenParentView } from '../model/types';
+import '@/shared/ui/styles/tnp.css';
 
 interface ParentViewCardProps {
   /** The teen's name as the parent sees it. */

@@ -8,6 +8,8 @@ import { type CityServiceCatalogOption, type DirectoryFilters, EMPTY_FILTERS } f
 import { pilot, pilotOption } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { PrimaryButton, SecondaryButton } from '@/shared/ui';
+import '@/shared/ui/styles/csv.css';
+import './dfs.css';
 
 interface Props {
   open: boolean;

@@ -128,8 +128,8 @@ type env struct {
 func setup(t *testing.T) *env { t.Helper(); return setupWith(t, 0, nil) }
 
 // setupWith: maxConcurrent overrides the gate's per-user in-flight cap (0 = default); limiter adds the feature
-// throttles (nil = none).
-func setupWith(t *testing.T, maxConcurrent int, limiter *ratelimit.Limiter) *env {
+// throttles (nil = none); opts adjust the service options (T-M12-32: HistoryTurns).
+func setupWith(t *testing.T, maxConcurrent int, limiter *ratelimit.Limiter, opts ...func(*assistant.Options)) *env {
 	t.Helper()
 	quiet := slog.New(slog.NewTextHandler(io.Discard, nil))
 	db := testdb.New(t)
@@ -156,9 +156,13 @@ func setupWith(t *testing.T, maxConcurrent int, limiter *ratelimit.Limiter) *env
 	vault, err := files.NewVault(t.TempDir(), files.DevKey("assistant-test"), nil, false)
 	require.NoError(t, err)
 	bookings := telemed.NewBookings(db, catalog.NewReader(catalogstore.New(db), nil, 0, quiet), telemed.BookingOptions{Clock: clock.Real{}, Logger: quiet})
-	svc := assistant.NewService(assistant.Options{DB: db, AI: client, Consents: consents,
+	so := assistant.Options{DB: db, AI: client, Consents: consents,
 		Profile: assistant.RecordProfile(healthrecord.NewService(db, nil)), Photos: files.NewService(files.Options{DB: db, Vault: vault}),
-		Bookings: bookings, BookingNotFound: telemed.ErrBookingNotFound, Logger: quiet, Box: box})
+		Bookings: bookings, BookingNotFound: telemed.ErrBookingNotFound, Logger: quiet, Box: box}
+	for _, o := range opts {
+		o(&so)
+	}
+	svc := assistant.NewService(so)
 	h := assistant.NewHandlers(svc, creditQuota(creditSvc, aiCatalog), clock.Real{})
 
 	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(quiet)})

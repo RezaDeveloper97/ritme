@@ -32,6 +32,7 @@ import { ChildrenPicker } from './ChildrenPicker';
 import { CompanionPreview } from './CompanionPreview';
 import { InviteCodeBox } from './InviteCodeBox';
 import { ActionPicker, GoalPicker } from './PreferenceFields';
+import '@/shared/ui/styles/cmp.css';
 
 interface InviteCompanionFlowProps {
   /** Leave the wizard (back on the first step, «متوجه شدم», back from the code). */

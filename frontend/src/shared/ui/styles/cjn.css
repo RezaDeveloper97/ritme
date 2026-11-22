@@ -1,0 +1,166 @@
+/* `cjn-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.cjn-view { position: relative; }
+
+.cjn-body { display: flex; flex-direction: column; gap: 14px; padding: 8px var(--gutter) 24px; }
+
+.cjn-stack { display: flex; flex-direction: column; gap: 14px; }
+
+.cjn-fields { display: flex; flex-direction: column; gap: 14px; }
+
+.cjn-group { display: flex; flex-direction: column; gap: 8px; text-align: start; }
+
+.cjn-row { display: flex; gap: 10px; align-items: flex-end; }
+
+.cjn-row > * { flex: 1; min-inline-size: 0; }
+
+.cjn-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+
+.cjn-h { font-size: 16px; font-weight: 800; color: var(--text-1); text-align: start; }
+
+.cjn-label { font-size: 14.5px; font-weight: 800; color: var(--text-1); text-align: start; }
+
+.cjn-hint { font-size: 12px; font-weight: 600; line-height: 1.8; color: var(--text-3); text-align: start; }
+
+.cjn-err { font-size: 12.5px; font-weight: 700; line-height: 1.7; color: var(--danger-deep); text-align: start; }
+
+.cjn-area textarea { inline-size: 100%; min-block-size: 64px; padding: 10px 0; border: 0; outline: 0; background: none; font: inherit; color: var(--text-1); resize: vertical; }
+
+.cjn-link { display: inline-flex; align-items: center; gap: 4px; min-block-size: 44px; padding: 0 4px; border: 0; background: none; font: inherit; font-size: 13px; font-weight: 800; color: var(--brand); cursor: pointer; text-decoration: none; }
+
+.cjn-link.is-danger { color: var(--danger-deep); align-self: center; }
+
+.cjn-link:focus-visible,
+.cjn-x:focus-visible,
+.cjn-offer-main:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.cjn-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 0; padding: 0; list-style: none; }
+
+.cjn-step-name { font-size: 11px; font-weight: 700; color: var(--text-3); text-align: center; }
+
+.cjn-step-name[aria-current='step'] { color: var(--brand); font-weight: 800; }
+
+.cjn-step-name[data-done='true'] { color: var(--text-2); }
+
+.cjn-save { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--text-3); }
+
+.cjn-save[data-state='saved'] { color: var(--data-deep); }
+
+.cjn-save[data-state='error'] { color: var(--danger-deep); }
+
+.cjn-hero { display: flex; flex-direction: column; gap: 10px; padding: 18px 16px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--hero-tint); text-align: start; }
+
+.cjn-hero-title { font-size: 19px; font-weight: 800; color: var(--text-1); }
+
+.cjn-hero-body { font-size: 13px; font-weight: 600; line-height: 1.9; color: var(--text-2); }
+
+.cjn-benefits { display: flex; flex-direction: column; gap: 10px; margin: 4px 0 0; padding: 0; list-style: none; }
+
+.cjn-benefit { display: flex; gap: 10px; align-items: flex-start; }
+
+.cjn-benefit-ic { display: grid; place-items: center; flex-shrink: 0; inline-size: 36px; block-size: 36px; border-radius: 50%; background: var(--brand-soft); color: var(--brand-ink); }
+
+.cjn-benefit-t { display: block; font-size: 13.5px; font-weight: 800; color: var(--text-1); }
+
+.cjn-benefit-s { display: block; font-size: 12px; font-weight: 600; line-height: 1.8; color: var(--text-2); }
+
+.cjn-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 999px; background: var(--surface-3); color: var(--text-3); font-size: 11.5px; font-weight: 800; white-space: nowrap; }
+
+.cjn-chip[data-set='true'] { background: var(--data-soft); color: var(--data-deep); }
+
+.cjn-pin { display: flex; flex-direction: column; gap: 12px; }
+
+.cjn-map { display: flex; flex-direction: column; gap: 6px; }
+
+.cjn-map-fill { position: relative; block-size: 220px; overflow: hidden; border-radius: var(--r-md); border: 1px solid var(--line); }
+
+.cjn-details summary { min-block-size: 44px; display: flex; align-items: center; font-size: 13px; font-weight: 800; color: var(--brand); cursor: pointer; }
+
+.cjn-photos { display: flex; flex-direction: column; gap: 10px; }
+
+.cjn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0; padding: 0; list-style: none; }
+
+.cjn-thumb { position: relative; aspect-ratio: 1; overflow: hidden; border-radius: var(--r-sm); background: var(--surface-3); }
+
+.cjn-img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+
+.cjn-x { position: absolute; inset-block-start: 4px; inset-inline-end: 4px; display: grid; place-items: center; inline-size: 28px; block-size: 28px; border: 0; border-radius: 50%; background: var(--surface-glass); color: var(--text-1); cursor: pointer; }
+
+.cjn-x.is-static { position: static; inline-size: 44px; block-size: 44px; background: none; color: var(--text-3); }
+
+.cjn-count { font-size: 12px; font-weight: 700; color: var(--warm-deep); text-align: start; }
+
+.cjn-count[data-ok='true'] { color: var(--data-deep); }
+
+.cjn-hours { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+
+.cjn-day { display: grid; grid-template-columns: 76px 1fr auto; gap: 8px; align-items: center; min-block-size: 48px; }
+
+.cjn-day-name { font-size: 13px; font-weight: 800; color: var(--text-1); }
+
+.cjn-times { display: flex; align-items: center; gap: 6px; }
+
+.cjn-times input { min-block-size: 40px; padding: 0 8px; border: 1px solid var(--line); border-radius: var(--r-xs); background: var(--surface); color: var(--text-1); font: inherit; font-size: 13px; }
+
+.cjn-closed { font-size: 12.5px; font-weight: 700; color: var(--text-3); }
+
+.cjn-offers { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+
+.cjn-offer { display: flex; align-items: center; gap: 4px; padding-inline: 12px 4px; }
+
+.cjn-offer-main { display: flex; flex: 1; flex-direction: column; gap: 2px; min-block-size: 64px; padding: 10px 0; border: 0; background: none; font: inherit; text-align: start; cursor: pointer; }
+
+.cjn-offer-name { font-size: 14px; font-weight: 800; color: var(--text-1); }
+
+.cjn-offer-sub { font-size: 12px; font-weight: 600; color: var(--text-3); }
+
+.cjn-offer-price { font-size: 12.5px; font-weight: 800; color: var(--brand-ink); }
+
+.cjn-docs { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+
+.cjn-doc { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: flex-start; padding: 12px; border: 1px solid var(--line); border-radius: var(--r-md); }
+
+.cjn-doc-ic { display: grid; place-items: center; inline-size: 36px; block-size: 36px; border-radius: 50%; background: var(--brand-soft); color: var(--brand-ink); }
+
+.cjn-doc-text { display: flex; flex-direction: column; gap: 2px; text-align: start; }
+
+.cjn-doc-title { font-size: 14px; font-weight: 800; color: var(--text-1); }
+
+.cjn-doc-actions { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+
+.cjn-private { display: flex; align-items: center; gap: 6px; }
+
+.cjn-terms { text-align: start; }
+
+.cjn-missing { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--line-strong); border-radius: var(--r-md); background: var(--warm-soft); text-align: start; }
+
+.cjn-missing ul { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: 12.5px; font-weight: 600; color: var(--text-1); }
+
+.cjn-missing li { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+.cjn-sheet-copy { font-size: 13.5px; font-weight: 600; line-height: 2; color: var(--text-2); text-align: start; }
+
+.cjn-confirm { display: flex; flex-direction: column; gap: 10px; padding: 12px; border-radius: var(--r-md); background: var(--danger-soft); color: var(--danger-deep); font-size: 13px; font-weight: 700; text-align: start; }
+
+.cjn-done-hero { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 22px 16px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--hero-tint); text-align: center; }
+
+.cjn-done-ic { display: grid; place-items: center; inline-size: 64px; block-size: 64px; border-radius: 50%; background: var(--data-soft); color: var(--data-deep); }
+
+.cjn-code { display: flex; flex-direction: column; align-items: center; gap: 2px; inline-size: 100%; padding: 12px; border-radius: var(--r-md); background: var(--surface); border: 1px dashed var(--line-strong); }
+
+.cjn-code-l { font-size: 12px; font-weight: 700; color: var(--text-3); }
+
+.cjn-code-v { font-family: var(--font-display); font-size: 24px; letter-spacing: 0.08em; color: var(--text-1); }
+
+.cjn-area { block-size: auto; align-items: flex-start; padding-block: 10px; }
+
+.cjn-row .field input,
+.cjn-fields .field input { min-inline-size: 0; inline-size: 100%; }
+
+.cjn-row .field input[dir='ltr'] { text-align: start; }
+
+.cjn-term { white-space: pre-line; }
+
+.cjn-term { display: block; }
+
+.cjn-term + .cjn-term { margin-block-start: 8px; }

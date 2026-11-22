@@ -101,6 +101,8 @@ const devLegacyApiOrigin = isProd ? null : originOf(process.env.DEV_LEGACY_API_O
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // The image optimizer (/_next/image) is unused (T-M12-04): serve images as-is and shut the endpoint.
+  images: { unoptimized: true },
   ...(devCareApiOrigin && devLegacyApiOrigin
     ? {
         async rewrites() {

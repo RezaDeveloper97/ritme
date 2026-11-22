@@ -14,6 +14,8 @@ import { CalendarPicker, Icon, PrimaryButton, SecondaryButton } from '@/shared/u
 import { isReadOnlyError, useVaccineWrite } from '../api/queries';
 import { defaultGivenOn } from '../model/schedule';
 import type { MarkTarget } from '../model/types';
+import '@/shared/ui/styles/chd.css';
+import '@/shared/ui/styles/cvx.css';
 
 /** Server cap on a dose note (backend-go `MaxNoteLen`). */
 const MAX_NOTE = 500;

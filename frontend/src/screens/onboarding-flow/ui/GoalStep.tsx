@@ -10,6 +10,7 @@ import { OnbFrame } from '@/features/auth';
 import { useSaveOnboardingStep } from '../api/onboarding';
 import type { OnboardingGoal } from '../model/flow';
 import { StepScreen, type StepContext } from './StepScreen';
+import '@/shared/ui/styles/onb.css';
 
 const META: Record<OnboardingGoal, Pick<RadioCardOption<OnboardingGoal>, 'icon' | 'iconTone' | 'art'>> = {
   cycle: { icon: 'drop', iconTone: 'period', art: 'cycle' },

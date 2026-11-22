@@ -137,7 +137,7 @@ func TodayJSON(day civildate.Date, doses []Dose, next *Appointment, now time.Tim
 	)
 }
 
-// Today is GET /care/today?date=Y-m-d (default today, Tehran): the day's doses with their
+// Today is GET /care/today?date=Y-m-d (default today on the user's clock, Asia/Tehran without a zone): the day's doses with their
 // taken state and the next appointment, in three queries (medications, intakes, appointments).
 func (h *Handlers) Today(c fiber.Ctx) error {
 	userID, err := h.user(c)
@@ -151,7 +151,7 @@ func (h *Handlers) Today(c fiber.Ctx) error {
 	if v.Fails() {
 		return failValidation(locale, v.ErrorBag())
 	}
-	day := civildate.InTehran(now)
+	day := civildate.FromTime(now.In(civildate.Zone(c))) // her day: doses are on her clock (T-M12-21c)
 	if raw, _ := v.Validated().Get("date"); raw != nil && phpval.ToString(raw) != "" {
 		if day, err = civildate.Parse(phpval.ToString(raw)); err != nil {
 			return fmt.Errorf("care: today date: %w", err)
@@ -166,7 +166,7 @@ func (h *Handlers) Today(c fiber.Ctx) error {
 	if err != nil {
 		return fmt.Errorf("care: today intakes: %w", err)
 	}
-	appts, err := h.q.ListAppointmentsFrom(c, store.ListAppointmentsFromParams{
+	appts, err := h.q.NextAppointmentFrom(c, store.NextAppointmentFromParams{ // at most one row, cancelled skipped in SQL
 		UserID: userID, ScheduledAt: sql.NullTime{Time: now, Valid: true},
 	})
 	if err != nil {

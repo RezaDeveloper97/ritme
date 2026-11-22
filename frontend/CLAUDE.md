@@ -501,6 +501,26 @@ violations each file still carries, and the gate fails only when a file goes
 
 ---
 
+
+### Browser smoke (Playwright, T-M12-25)
+
+`npm run e2e` (= `npx playwright test`) drives the main routine in a real browser, light and dark (fa): login by OTP →
+onboarding → log a period through the log sheet → home ring «روز ۱» → calendar marks today. Selectors are the autopilot
+`pilot()` names; every page is checked for raw `namespace.key` text (`e2e/support/raw-keys.ts`). Specs are
+`e2e/*.e2e.ts` (vitest never runs them). It needs a LOCAL stack, never `ritme_test`:
+
+1. A private DB: `CREATE DATABASE ritme_e2e` on the docker test stack, goose up, plus the personal-access
+   `oauth_clients` row (local-dev skill §2a).
+2. backend-go on it: `SMS_PROVIDER=log CYCLE_ENGINE=v6 DB_DATABASE=ritme_e2e HTTP_ADDR=:8020
+   CORS_ALLOWED_ORIGINS=http://localhost:3100 make run` (another port + `E2E_API_URL` if 8020 is busy).
+3. `cd frontend && npm run e2e` — starts `next dev -p 3100` itself (or reuses one); the OTP is read from
+   `otp_verifications`.
+
+Env: `E2E_API_URL` (http://127.0.0.1:8020), `E2E_WEB_PORT` (3100), `E2E_BASE_URL`, `E2E_DB_NAME` (ritme_e2e),
+`E2E_DB_CLI`, `E2E_BROWSER_CHANNEL` (`chrome` locally; CI installs Playwright's chromium). One worker on purpose
+(send-otp 5/min per IP). Keep `outputDir` outside `frontend/` (next dev reloads on writes inside it). CI: job
+`e2e-smoke`, nightly / on demand only.
+
 ## 10. Code conventions
 
 - **Components:** function components only. Presentational components take props
@@ -526,7 +546,13 @@ violations each file still carries, and the gate fails only when a file goes
 ### 10.1 No inline styles
 
 `style={{ … }}` is **not** how this app is styled. Every static rule belongs in
-a class in `src/app/globals.css`.
+a class — in `src/app/globals.css` (tokens, base, shell, shared primitives) **or** in the CSS file of the slice
+that renders it (`<slice>/ui/<prefix>.css`, or `shared/ui/styles/<prefix>.css` for a family several slices
+use), imported by every file that renders the family (T-M12-27). Keep screen CSS out of `globals.css`:
+everything the root layout reaches statically is downloaded by **every** route, and layout-reachable CSS loads
+*before* `globals.css`, so it must win by specificity, not by source order (cascade ties go to `globals.css`).
+Do not import a sheet/screen/feature barrel from the layout: use `next/dynamic` (`app/sheets/registry.tsx`,
+`app/LazyGlobals.tsx`). `npm run check:bundle` (after `npm run build`) enforces the budgets.
 
 Why this is a hard rule and not a preference:
 

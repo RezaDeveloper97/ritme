@@ -1,0 +1,87 @@
+/* `preg-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.preg-page { background: var(--page); }
+
+.preg-loading { padding: 60px 0; text-align: center; color: var(--muted); }
+
+.preg-gate { padding: 40px 22px 0; text-align: center; }
+
+.preg-gate-dot { width: 72px; height: 72px; margin: 0 auto 18px; background: var(--surface-2); color: var(--brand); }
+
+.preg-gate-title { font-size: 20px; }
+
+.preg-gate-body { margin: 10px 0 24px; line-height: 2; }
+
+.preg-gate-cta { border-radius: 16px; }
+
+.preg-hero { padding: 18px 18px 22px; color: var(--on-accent); }
+
+.preg-hero-top { display: flex; align-items: center; justify-content: space-between; }
+
+.preg-hero-title { font-size: 13px; font-weight: 700; opacity: .92; }
+
+.preg-hero-badge { font-size: 11px; font-weight: 800; background: rgba(255, 255, 255, .22); border-radius: 20px; padding: 3px 10px; }
+
+.preg-hero-row { margin-top: 14px; display: flex; align-items: center; gap: 14px; }
+
+.preg-hero-dot { width: 62px; height: 62px; background: rgba(255, 255, 255, .2); color: var(--on-accent); flex: 0 0 auto; }
+
+.preg-hero-week { font-size: 22px; font-weight: 900; }
+
+.preg-hero-ga { font-size: 13px; font-weight: 600; opacity: .95; margin-top: 3px; }
+
+.preg-prog { margin-top: 16px; }
+
+.preg-prog-track { height: 8px; border-radius: 20px; background: rgba(255, 255, 255, .28); overflow: hidden; }
+
+.preg-prog-fill { height: 100%; background: var(--on-accent); border-radius: 20px; }
+
+.preg-prog-meta { display: flex; justify-content: space-between; margin-top: 7px; font-size: 11.5px; font-weight: 600; opacity: .95; }
+
+.preg-tiles { padding: 14px 16px 0; display: flex; gap: 10px; }
+
+.preg-tile { flex: 1; padding: 12px 13px; text-align: start; }
+
+.preg-tile-head { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 11.5px; font-weight: 700; }
+
+.preg-tile-val { font-size: 14.5px; font-weight: 800; color: var(--ink); margin-top: 5px; }
+
+.preg-tile-sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+.preg-tile-sub.is-brand { color: var(--brand); font-weight: 700; }
+
+.preg-actions { padding: 12px 16px 0; display: flex; gap: 10px; }
+
+.preg-action { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 8px; cursor: pointer; font-family: inherit; flex: 1; }
+
+.preg-action:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.preg-action-dot { width: 40px; height: 40px; }
+
+.preg-action-label { font-size: 12px; font-weight: 700; color: var(--ink); text-align: center; line-height: 1.4; }
+
+.preg-weeknav { padding: 18px 16px 0; }
+
+.preg-weeknav-card { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; }
+
+.preg-weeknav-mid { text-align: center; }
+
+.preg-weeknav-week { font-size: 15px; font-weight: 800; color: var(--ink); }
+
+.preg-weeknav-now {
+  background: none; border: 0; color: var(--brand);
+  font-size: 11.5px; font-weight: 700; cursor: pointer; font-family: inherit;
+  margin-top: 2px; border-radius: 6px; padding: 1px 4px;
+}
+
+.preg-weeknav-now:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.preg-weeknav-card .iconbtn:disabled { opacity: .3; }
+
+.preg-content { padding: 12px 16px 0; }
+
+.preg-content-load { padding: 18px 14px; text-align: center; color: var(--muted); font-size: 13px; }
+
+.preg-alerts { padding: 20px 16px 0; }
+
+.preg-tail { height: 24px; }

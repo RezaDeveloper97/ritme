@@ -1,0 +1,54 @@
+/* `mst-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.mst-page { background: var(--page); }
+
+.mst-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; min-block-size: 100%; }
+
+.mst-scroll > :not(.nb-hdr):not(.mst-footer) { margin-inline: var(--gutter); }
+
+.mst-skel { display: flex; flex-direction: column; gap: 12px; }
+
+.mst-skel-card { block-size: 84px; border-radius: var(--r-card); }
+
+.mst-intro { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+
+.mst-question { margin: 0; font-size: 24px; line-height: 1.5; font-weight: 900; color: var(--text-1); }
+
+.mst-lead { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+
+.nb-card.mst-card { display: flex; flex-direction: column; padding: 6px 16px; }
+
+.mst-card > * + * { border-top: 1px solid var(--line); }
+
+.mst-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-block-size: 64px; padding-block: 10px; }
+
+.mst-label { font-size: 13.5px; font-weight: 700; color: var(--text-2); }
+
+.mst-month { display: inline-flex; align-items: center; gap: 6px; }
+
+.mst-month-value { min-width: 7.5em; text-align: center; font-size: 14.5px; font-weight: 800; color: var(--text-1); }
+
+.mst-step {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 44px; height: 44px;
+  border-radius: 50%; border: 1px solid var(--line); background: var(--surface-3); color: var(--text-1); cursor: pointer;
+}
+
+.mst-step:disabled { opacity: .35; cursor: default; }
+
+.mst-step:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.mst-q { flex: 1; min-width: 0; font-size: 14px; font-weight: 800; line-height: 1.8; color: var(--text-1); }
+
+.mst-yn { display: inline-flex; gap: 8px; flex-shrink: 0; }
+
+.mst-yn .nb-chip { height: 44px; min-width: 56px; justify-content: center; border-radius: 22px; }
+
+.mst-yn .nb-chip-check { display: none; }
+
+.mst-error { margin: 0; font-size: var(--fs-md); font-weight: 700; color: var(--danger-deep); }
+
+.mst-footer {
+  position: sticky; bottom: 0; z-index: 2; margin-top: auto; display: flex; flex-direction: column; gap: 8px;
+  padding: 12px var(--gutter) max(14px, env(safe-area-inset-bottom));
+  background: var(--surface-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}

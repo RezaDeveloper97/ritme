@@ -8,6 +8,7 @@ import { SkeletonGroup, Skeleton, TileButton, type IconName, type Tone } from '@
 
 import { type NavMode } from '../model/nav-items';
 import { useNavMode } from '../model/use-nav-mode';
+import './nblog.css';
 
 type EntryKey = 'daily' | 'fertility' | 'bbt' | 'pregDaily' | 'pregWeekly' | 'pregMovement' | 'checkup' | 'reminder';
 

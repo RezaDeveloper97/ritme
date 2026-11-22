@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 
 import { type IllustrationProps, svgA11y } from './svg-a11y';
+import '@/shared/ui/styles/pg2.css';
 
 /**
  * Setup welcome drawing (Setup artboard, step 0) — a curled baby on a soft

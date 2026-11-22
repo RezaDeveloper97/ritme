@@ -35,6 +35,7 @@ import {
   toSegments,
   type PeriodSelection,
 } from '../model/selection';
+import './epd.css';
 
 // Fallback bleed length when the profile hasn't recorded one — matches the
 // calendar so an open period pre-fills to the same span the user sees there.

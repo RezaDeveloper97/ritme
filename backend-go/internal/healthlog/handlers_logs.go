@@ -174,10 +174,6 @@ func (h *LogHandlers) Save(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	existing, err := h.svc.Day(c.Context(), userID, date)
-	if err != nil {
-		return err
-	}
 	custom, err := h.svc.CustomSet(c.Context(), userID)
 	if err != nil {
 		return err
@@ -187,12 +183,17 @@ func (h *LogHandlers) Save(c fiber.Ctx) error {
 		return err
 	}
 	input := validation.Input(c)
-	changes, err := taxonomy.Parse(input, mode, i18n.Locale(c), existing, custom, gates)
-	if err != nil {
-		return err
-	}
-	markVoice(input, changes)
-	day, err := h.svc.SaveDay(c.Context(), userID, date, changes, i18n.ResolveLocale(c, ""), now)
+	locale := i18n.Locale(c)
+	// T-M12-31 (P-06): the body is validated against the day as read under the save's user lock — one read per
+	// save, never a day another save changed in between.
+	day, err := h.svc.SaveDayWith(c.Context(), userID, date, func(existing []taxonomy.Entry) ([]taxonomy.Change, error) {
+		changes, err := taxonomy.Parse(input, mode, locale, existing, custom, gates)
+		if err != nil {
+			return nil, err
+		}
+		markVoice(input, changes)
+		return changes, nil
+	}, i18n.ResolveLocale(c, ""), now)
 	if err != nil {
 		return err
 	}

@@ -8,6 +8,7 @@ import { IconCircle } from '@/shared/ui';
 import type { Conversation } from '../api/schema';
 import { deptIcon } from '../model/format';
 import { TriagePill } from './AssistantBits';
+import '@/shared/ui/styles/as.css';
 
 /** Relative day label for a conversation row («امروز», «دیروز», «۲ هفته پیش»). */
 export function useWhen() {

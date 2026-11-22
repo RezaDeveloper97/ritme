@@ -81,15 +81,17 @@ describe('navConfig (nav.md per-mode table)', () => {
     expect(activeTabKey(ivf, '/ivf/scan')).toBe('treatment');
   });
 
-  it('companion v2: امروز · یادگیری · اقدام‌ها · پروفایل, no FAB', () => {
+  it('companion v2: امروز · تقویم · یادگیری · اقدام‌ها · پروفایل, no FAB', () => {
     const c = navConfig('companion');
     expect([...c.before, ...c.after].map((tab) => `${tab.key}:${tab.href}`)).toEqual([
       'today:/companion',
+      'calendar:/companion/calendar',
       'learn:/companion/learn',
       'actions:/companion/actions',
       'profile:/profile',
     ]);
     expect(c.fab).toBe(false);
+    expect(activeTabKey(c, '/companion/calendar')).toBe('calendar');
     expect(activeTabKey(c, '/companion/learn')).toBe('learn');
     expect(activeTabKey(c, '/companion/actions')).toBe('actions');
     expect(activeTabKey(c, '/profile')).toBe('profile');

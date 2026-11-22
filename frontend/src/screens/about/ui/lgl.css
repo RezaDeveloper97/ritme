@@ -1,0 +1,44 @@
+/* `lgl-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.lgl-page { background: var(--page); }
+
+.lgl-scroll {
+  position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; padding-bottom: 40px;
+}
+
+.lgl-scroll > :not(.nb-hdr) { margin-inline: var(--gutter-form); }
+
+.lgl-updated { margin: -8px 0 0; font-size: 12px; font-weight: 700; color: var(--text-3); text-align: center; }
+
+.lgl-summary { display: flex; flex-direction: column; gap: 10px; padding: 18px; background: linear-gradient(135deg, var(--data-soft), var(--surface) 70%); }
+
+.lgl-card-h { margin: 0; font-size: 15px; font-weight: 800; color: var(--text-1); }
+
+.lgl-sum-list { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+
+.lgl-sum-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; font-weight: 600; line-height: 1.9; color: var(--text-2); }
+
+.lgl-sum-icon { flex-shrink: 0; margin-top: 5px; color: var(--data-deep); }
+
+.lgl-toc { display: flex; flex-direction: column; gap: 6px; padding: 18px; }
+
+.lgl-toc-list { display: flex; flex-direction: column; margin: 0; padding: 0; list-style: none; }
+
+.lgl-toc-link {
+  display: flex; align-items: center; min-height: 44px; font-size: 13.5px; font-weight: 800; color: var(--brand); text-decoration: none; border-radius: 8px;
+}
+
+.lgl-toc-link:focus-visible,
+.lgl-sec-link:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.lgl-sec { display: flex; flex-direction: column; gap: 8px; scroll-margin-top: 16px; }
+
+.lgl-sec:focus { outline: none; }
+
+.lgl-sec-h { margin: 0; font-size: 16px; font-weight: 800; color: var(--text-1); }
+
+.lgl-sec-body { margin: 0; font-size: 13.5px; font-weight: 600; line-height: 2; color: var(--text-2); white-space: pre-line; }
+
+.lgl-sec-link { display: inline-flex; align-items: center; min-height: 44px; font-size: 13px; font-weight: 800; color: var(--brand); }
+
+.lgl-skel { gap: 12px; }

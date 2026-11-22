@@ -12,7 +12,7 @@ export const phaseContentSchema = z
   .object({
     phase: z.string(),
     phase_label: z.string().default(''),
-    sections: z.record(z.string(), z.string()).default({}),
+    sections: z.record(z.string(), z.string()).prefault({}),
   })
   .transform(
     (v): PhaseContent => ({

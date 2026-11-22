@@ -29,7 +29,7 @@ const paramFieldSchema = z.object({
   max_length: z.number().optional(),
 });
 const objectSchema = z.preprocess((v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {}), z.record(z.string(), z.unknown()));
-const list = <T extends z.ZodTypeAny>(item: T) => z.preprocess((v) => (Array.isArray(v) ? v : []), z.array(item));
+const list = <T extends z.ZodType>(item: T) => z.preprocess((v) => (Array.isArray(v) ? v : []), z.array(item));
 
 const actionSchema = z.object({ key: z.string(), label: z.string().catch('') });
 export type AlertAction = z.infer<typeof actionSchema>;

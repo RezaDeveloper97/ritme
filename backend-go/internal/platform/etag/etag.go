@@ -130,6 +130,42 @@ func Middleware(tag func(c fiber.Ctx) (string, error)) fiber.Handler {
 	}
 }
 
+// BodyTag is the weak entity tag of a response body: W/"b" + the first 16 bytes of its SHA-256 in hex. Weak, because
+// the same body leaves gzip- or brotli-encoded or plain (httpx.Compress) under one tag.
+func BodyTag(body []byte) string {
+	sum := sha256.Sum256(body)
+	return `W/"b` + hex.EncodeToString(sum[:16]) + `"`
+}
+
+// ByBody is the ETag / 304 middleware of the slow-changing GETs (T-M12-34, P-10: modules, banners, the log taxonomy,
+// health-log enums, courses, the checkups home) whose inputs are not all known before the handler runs. The handler
+// runs as usual; a 200 GET answer is then tagged with BodyTag of the body built for THIS request, and a matching
+// If-None-Match turns it into a 304 with no body (every header the handler set is kept). The tag is a function of the
+// bytes alone, so it changes with everything the body depends on (user, segment, locale, query, clock) and a tag sent
+// by another account can only match when her body is byte-identical to this one — nothing of anyone else is ever
+// served. It saves the transfer, not the server work. A handler's own Cache-Control (e.g. the public modules map) is
+// kept; otherwise the response gets CacheControl. Error answers, non-200s, streams, already-encoded bodies and answers
+// that already carry an ETag pass through untouched.
+func ByBody() fiber.Handler {
+	return func(c fiber.Ctx) error {
+		if err := c.Next(); err != nil {
+			return err
+		}
+		res := c.Response()
+		if c.Method() != fiber.MethodGet || res.StatusCode() != fiber.StatusOK || res.IsBodyStream() ||
+			len(res.Header.Peek(fiber.HeaderETag)) > 0 || len(res.Header.Peek(fiber.HeaderContentEncoding)) > 0 {
+			return nil
+		}
+		tag := BodyTag(res.Body())
+		cc := string(res.Header.Peek(fiber.HeaderCacheControl))
+		NotModified(c, tag)
+		if cc != "" {
+			c.Set(fiber.HeaderCacheControl, cc)
+		}
+		return nil
+	}
+}
+
 // Build identifies the running binary for the {build} part of the tag and the engine state cache key: a new deploy
 // changes every tag, so a client never keeps a body computed by older code. It is the VCS revision stamped by the Go
 // toolchain for a clean tree, otherwise (no VCS stamp, or a modified tree such as a beta build of the working tree)

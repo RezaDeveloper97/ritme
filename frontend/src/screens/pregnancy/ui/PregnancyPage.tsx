@@ -46,6 +46,8 @@ import { PregnancyCareChecklist } from '@/widgets/pregnancy-care-checklist';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
 import { WeekRing } from './WeekRing';
+import '@/shared/ui/styles/preg.css';
+import '@/shared/ui/styles/pgn.css';
 
 type T = ReturnType<typeof useTranslations<'pregnancyV2'>>;
 

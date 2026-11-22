@@ -40,6 +40,9 @@ import { useSignedBlob } from '../model/use-signed-blob';
 import { DETAIL_KEYS, detailValue, sizeOf } from '../model/format';
 import { ConfirmSheet, DocConsentSheet, EditSheet } from './DocumentSheets';
 import { ReadSection } from './ReadSection';
+import '@/shared/ui/styles/has.css';
+import '@/shared/ui/styles/hrec.css';
+import '@/shared/ui/styles/rec.css';
 
 type SheetId = 'edit' | 'consent' | 'delete' | 'dating' | 'preview';
 

@@ -18,11 +18,10 @@ export type PregnancyChance = 'low' | 'medium' | 'high';
 export type CycleDayMarker = 'period' | 'fertile' | 'ovulation' | 'pms';
 
 /**
- * Visual weight of a day's marker tint. Graded by the day's conception
- * probability relative to the other days carrying the same marker, so e.g.
- * fertile-window cells deepen toward ovulation. Informational only (§11).
+ * Conception-chance step of a fertile-window day: 1 (low) … 4 (ovulation), so the
+ * green deepens toward ovulation. Informational only (§11).
  */
-export type MarkerIntensity = 'faint' | 'medium' | 'strong';
+export type FertileLevel = 1 | 2 | 3 | 4;
 
 /** The parameters that define a user's cycle. Gregorian at this boundary (§7). */
 export interface CycleConfig {

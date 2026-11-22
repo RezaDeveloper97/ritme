@@ -47,6 +47,9 @@ type Options struct {
 	Logger *slog.Logger
 	// Children builds the shared-children card of a spouse link (children.Service, bloom B-N5-02); nil = no card.
 	Children ChildCards
+	// Forecast reads the owner's likely period days for GET /companion/calendar (internal/companion/shared); nil =
+	// never shared.
+	Forecast ForecastReader
 }
 
 // ChildCards is the shared-children card source; it audits the read itself.
@@ -63,12 +66,14 @@ type Handlers struct {
 	accounts *companion.Accounts
 	logger   *slog.Logger
 	children ChildCards
+	forecast ForecastReader
 }
 
 // NewHandlers wires the handlers; base is the fallback clock (tests and the contract suite pin it per request).
 func NewHandlers(conn companion.Conn, base clock.Clock, opt Options) *Handlers {
 	h := &Handlers{conn: conn, base: base, reader: opt.Reader, appURL: opt.AppURL,
-		accounts: companion.NewAccounts(conn), logger: opt.Logger, children: opt.Children}
+		accounts: companion.NewAccounts(conn), logger: opt.Logger, children: opt.Children,
+		forecast: opt.Forecast}
 	if h.logger == nil {
 		h.logger = slog.Default()
 	}

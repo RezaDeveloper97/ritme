@@ -26,6 +26,8 @@ import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { pilot, pilotOption } from '@/shared/pilot';
 import { Card, EmptyState, Icon, InfoNote, PillChip, PrimaryButton, ScreenHeader, SkyLayer, Switch, type IconName } from '@/shared/ui';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/dr.css';
 
 const SCOPE_ICON: Record<ConsentScope, IconName> = { cycle_summary: 'chart', bbt_lh: 'thermo', assistant_summaries: 'sparkle' };
 const DATE = /^\d{4}-\d{2}-\d{2}$/;

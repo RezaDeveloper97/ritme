@@ -12,6 +12,7 @@ import { OnbFrame } from '@/features/auth';
 import { useOnboardingState } from '../api/onboarding';
 import { FLOW_ROUTES, type FlowStep, isGoal, nextStep, type OnboardingGoal, previousRoute, PROGRESS, PROGRESS_TOTAL } from '../model/flow';
 import type { OnboardingState } from '../model/state';
+import '@/shared/ui/styles/onb.css';
 
 export interface StepContext {
   state: OnboardingState;

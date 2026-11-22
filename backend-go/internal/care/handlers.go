@@ -59,6 +59,13 @@ func (h *Handlers) now(c fiber.Ctx) time.Time {
 	return clock.FromContext(c, h.clock).Now().In(civildate.Tehran).Truncate(time.Second)
 }
 
+// localWall is now's wall-clock time in the request's zone (civildate.Zone), read as Tehran wall-clock: what a
+// Tehran-clock helper (the validator's "today") needs to judge her local day. Equal to now for a Tehran user.
+func localWall(c fiber.Ctx, now time.Time) time.Time {
+	l := now.In(civildate.Zone(c))
+	return time.Date(l.Year(), l.Month(), l.Day(), l.Hour(), l.Minute(), l.Second(), 0, civildate.Tehran)
+}
+
 // Enums is GET /care/enums.
 func (h *Handlers) Enums(c fiber.Ctx) error { return Enums(c) }
 
@@ -113,7 +120,7 @@ func (h *Handlers) StoreMedication(c fiber.Ctx) error {
 	locale, now := i18n.Locale(c), h.now(c)
 	data := pickMedication(phpval.NewMap(), validation.Input(c))
 	if v, _ := data.Get("starts_on"); v == nil {
-		data.Set("starts_on", civildate.FromTime(now).String())
+		data.Set("starts_on", civildate.FromTime(now.In(civildate.Zone(c))).String()) // her day (T-M12-21c)
 	}
 	in, err := validateMedication(locale, data, now)
 	if err != nil {
@@ -292,8 +299,10 @@ func (h *Handlers) intake(c fiber.Ctx, tick bool) error {
 		return err
 	}
 	locale, now := i18n.Locale(c), h.now(c)
+	// "Not in the future" is judged on her day (T-M12-21c): the validator reads dates on the Tehran clock, so it gets
+	// her wall-clock now expressed there (a Tehran user: unchanged).
 	v := validation.Make(lang.Default(), locale, validation.Input(c), intakeRules(tick),
-		validation.Now(now), validation.Attributes(attributes(locale)...))
+		validation.Now(localWall(c, now)), validation.Attributes(attributes(locale)...))
 	if v.Fails() {
 		return failValidation(locale, v.ErrorBag())
 	}

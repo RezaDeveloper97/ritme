@@ -1,0 +1,6 @@
+/* `ivfc-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.ivfc-stop-list {
+  margin: 0 0 12px; padding-inline-start: 20px; display: flex; flex-direction: column; gap: 4px;
+  font-size: var(--fs-base); font-weight: 700; color: var(--text-1);
+}

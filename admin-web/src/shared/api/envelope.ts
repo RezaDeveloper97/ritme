@@ -1,11 +1,13 @@
 import { z } from 'zod';
 
 /** `{success, message?, data}` — admin-api.md §2. */
-export function envelopeSchema<T extends z.ZodTypeAny>(data: T) {
+export function envelopeSchema<T extends z.ZodType>(data: T) {
   return z.object({
     success: z.literal(true),
     message: z.string().optional(),
-    data,
+    // zod 4 makes a missing key invalid unless the schema is optional-in; zod 3 let a schema that accepts
+    // `undefined` (z.unknown(), nullish…) skip the key. Keep that: only such schemas become optional.
+    data: (data.safeParse(undefined).success ? data.optional() : data) as T,
   });
 }
 
@@ -26,7 +28,7 @@ export const pageMetaSchema = z.object({
 export type PageMeta = z.infer<typeof pageMetaSchema>;
 
 /** `{items, meta, filters}` — admin-api.md §5. */
-export function listSchema<I extends z.ZodTypeAny, F extends z.ZodTypeAny>(
+export function listSchema<I extends z.ZodType, F extends z.ZodType>(
   item: I,
   filters: F,
 ) {

@@ -9,16 +9,15 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   calcToPhase,
   cycleDayMarker,
-  cycleMarkerBg,
   cycleMarkerStyle,
-  markerIntensityByDate,
+  fertileLevelAt,
   normalizePhase,
   useCycleMonth,
   useCycleStatus,
   type CycleCalculation,
   type CycleDayMarker,
   type CyclePhase,
-  type MarkerIntensity,
+  type FertileLevel,
 } from '@/entities/cycle';
 import { useUserProfile } from '@/entities/user';
 import {
@@ -55,6 +54,12 @@ import { BottomNav } from '@/widgets/bottom-nav';
 
 import { DayLogSummary } from './DayLogSummary';
 import { DayVitals } from './DayVitals';
+import '@/shared/ui/styles/btn.css';
+import '@/shared/ui/styles/home.css';
+import '@/shared/ui/styles/sec.css';
+import '@/shared/ui/styles/page.css';
+import './cell.css';
+import './legend.css';
 
 // Colors for each calendar marker — shared with the home mini calendar so both
 // surfaces stay in sync. Follicular/luteal days carry no marker and read as
@@ -257,30 +262,22 @@ interface DayCellProps {
   onSelect: (date: Date) => void;
   dayNumber: string;
   marker: CycleDayMarker | null;
-  /** Tint depth for the marker — graded by the day's conception probability. */
-  intensity: MarkerIntensity;
+  /** Chance step of a fertile-window day — the green deepens toward ovulation. */
+  level: FertileLevel | null;
   /** Whether the day is inside a real logged period (vs an engine prediction). */
   isLogged: boolean;
   /** Full spoken label (date + cycle state) for screen readers — the visible digit is aria-hidden. */
   ariaLabel: string;
 }
 
-function DayCell({ cell, selectedDate, onSelect, dayNumber, marker, intensity, isLogged, ariaLabel }: DayCellProps) {
+function DayCell({ cell, selectedDate, onSelect, dayNumber, marker, level, isLogged, ariaLabel }: DayCellProps) {
   if (!cell) return <span />;
 
-  const markerStyle = marker ? MARKER_STYLE[marker] : undefined;
-  const markerBg = marker ? cycleMarkerBg[marker][intensity] : undefined;
   const selected = isSameDay(cell.date, selectedDate);
   const isToday = isSameDay(cell.date, today());
-  // A period marker the user hasn't actually logged is a prediction → hollow ring,
-  // not a solid fill (spec §12: predicted periods must read differently from real ones).
-  const isPredicted = marker === 'period' && !isLogged;
-
-  // Selection dresses the cell in ITS OWN marker colour (deeper fill, ring and
-  // glow), falling back to the brand purple on neutral days.
-  const accent = markerStyle ? markerStyle.color : 'var(--brand)';
-  const baseBg = markerBg && !isPredicted ? markerBg : 'transparent';
-  const selectedBg = marker && !isPredicted ? cycleMarkerBg[marker].strong : baseBg;
+  // Every state day is a solid fill. A period the user hasn't logged is the
+  // engine's prediction: still filled, in a lighter red than a logged one.
+  const tone = marker === 'period' && !isLogged ? 'predicted' : marker;
 
   return (
     <button
@@ -289,42 +286,15 @@ function DayCell({ cell, selectedDate, onSelect, dayNumber, marker, intensity, i
       aria-pressed={selected}
       aria-current={isToday ? 'date' : undefined}
       {...pilot(`calendar.day:${toApiDate(cell.date)}`)}
-      style={{
-        position: 'relative',
-        width: 40,
-        height: 40,
-        justifySelf: 'center',
-        border: selected ? `2px solid ${accent}` : '2px solid transparent',
-        borderRadius: '50%',
-        background: selected ? selectedBg : baseBg,
-        color: markerStyle ? markerStyle.color : 'var(--ink)',
-        fontFamily: 'inherit',
-        fontSize: 14,
-        fontWeight: 700,
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        boxShadow: [
-          isPredicted && markerStyle ? `inset 0 0 0 1.5px ${markerStyle.color}` : null,
-          selected ? `0 4px 12px color-mix(in srgb, ${accent} 35%, transparent)` : null,
-        ].filter(Boolean).join(', ') || undefined,
-        fontVariantNumeric: 'tabular-nums',
-      }}
+      className={clsx(
+        'cal-cell',
+        tone && `is-${tone}`,
+        level && `is-lv${level}`,
+        selected && 'is-selected',
+      )}
     >
       <span aria-hidden>{dayNumber}</span>
-      {isToday && (
-        <span
-          style={{
-            position: 'absolute',
-            bottom: 4,
-            width: 4,
-            height: 4,
-            borderRadius: '50%',
-            background: markerStyle ? markerStyle.color : 'var(--brand)',
-          }}
-        />
-      )}
+      {isToday && <span className="cal-cell-today" />}
     </button>
   );
 }
@@ -524,11 +494,10 @@ export function CalendarPage() {
     return c ? cycleDayMarker(c) : null;
   };
 
-  // Tint depth per day, graded by conception probability within each marker
-  // group (overlay-painted days have no calculation yet → medium).
-  const intensityMap = useMemo(() => markerIntensityByDate(calcMap.values()), [calcMap]);
-  const intensityFor = (date: Date): MarkerIntensity =>
-    intensityMap.get(toApiDate(date)) ?? 'medium';
+  // Fertile-window green step per day, from its distance to ovulation — the
+  // same grading the home ring uses.
+  const levelFor = (date: Date): FertileLevel | null =>
+    fertileLevelAt((offset) => markerFor(addDays(date, offset)));
 
   // Spoken label for a day cell (§ a11y): the localized date plus its cycle state and
   // today/selected context, so screen-reader users get more than a bare digit.
@@ -557,7 +526,7 @@ export function CalendarPage() {
 
   // A period-colored day is "actual" only when the user really logged it (or is
   // optimistically painting it right now); otherwise the engine merely predicted
-  // it, so the cell renders as a hollow prediction (spec §12).
+  // it, so the cell renders in the lighter predicted red (spec §12).
   const isActualPeriodDay = (date: Date): boolean => {
     const iso = toApiDate(date);
     if (overlay?.paint.has(iso)) return true;
@@ -949,7 +918,7 @@ export function CalendarPage() {
                         onSelect={onDaySelect}
                         dayNumber={cell ? format.number(cell.day) : ''}
                         marker={cell ? markerFor(cell.date) : null}
-                        intensity={cell ? intensityFor(cell.date) : 'medium'}
+                        level={cell ? levelFor(cell.date) : null}
                         isLogged={cell ? isActualPeriodDay(cell.date) : false}
                         ariaLabel={cell ? dayAriaLabel(cell.date) : ''}
                       />

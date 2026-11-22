@@ -26,6 +26,8 @@ import { useTtcHub } from '../api/ttc';
 import { barShares, lhCells, tryingShare } from '../model/ttc';
 import type { TtcBbt, TtcHub, TtcLh, TtcLuteal, TtcMucus, TtcRegularity, TtcTiming } from '../model/types';
 import { TtcCard } from './TtcCard';
+import '@/shared/ui/styles/ttc.css';
+import '@/shared/ui/styles/an.css';
 
 type T = ReturnType<typeof useTranslations<'analysis.ttc.ui'>>;
 

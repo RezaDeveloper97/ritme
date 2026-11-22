@@ -28,6 +28,8 @@ import { BottomNav } from '@/widgets/bottom-nav';
 import { readingsNeeded } from '../model/reports';
 import { PlanEditorSheet } from './PlanEditorSheet';
 import { TargetsCard } from './TargetsSheet';
+import '@/shared/ui/styles/log.css';
+import '@/shared/ui/styles/vt.css';
 
 /**
  * `/vitals` — «علائم حیاتی» hub (nbl_/nbd_Vitals_Hub): the latest reading of

@@ -11,6 +11,8 @@ import { Card, EmptyState, Skeleton, SkeletonGroup } from '@/shared/ui';
 
 import { STORE_HOME } from '../model/store';
 import { ShopWebShell } from './ShopWebShell';
+import './wsh.css';
+import './wsc.css';
 
 /**
  * Frame of the signed-in desktop pages (cart, checkout, order done): the shop shell plus a page-level login prompt

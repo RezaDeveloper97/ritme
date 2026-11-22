@@ -7,6 +7,7 @@ import { IconCircle } from '@/shared/ui';
 
 import { CONDITION_LOOK } from '../model/programs';
 import type { ConditionNudge } from '../model/types';
+import '@/shared/ui/styles/cnd.css';
 
 /** Shared by the programs hub (CB-COND-02) and the cycle home (CB-COND-07b). */
 /** A soft suggestion: heavy pain / heavy flow logged on 2+ days this cycle while not in the matching program. */

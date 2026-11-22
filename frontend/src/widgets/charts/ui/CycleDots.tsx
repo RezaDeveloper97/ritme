@@ -1,6 +1,7 @@
 import { clsx } from 'clsx';
 
 import { ChartFigure, type DataTable } from './ChartFigure';
+import '@/shared/ui/styles/axc.css';
 
 export interface CycleDotRow {
   key: string;

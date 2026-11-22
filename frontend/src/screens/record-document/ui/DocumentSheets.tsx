@@ -29,6 +29,9 @@ import {
   SkeletonGroup,
 } from '@/shared/ui';
 import { pilot, pilotOption } from '@/shared/pilot';
+import '@/shared/ui/styles/lab.css';
+import '@/shared/ui/styles/hrec.css';
+import '@/shared/ui/styles/rec.css';
 
 /* The document screen's sheets (CB-REC-04). They mount outside the screen's scroller, next to `.view`. */
 

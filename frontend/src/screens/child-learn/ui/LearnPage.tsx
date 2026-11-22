@@ -29,6 +29,10 @@ import {
 import { useChildLearn } from '../api/queries';
 import { learnAge } from '../model/age';
 import type { LearnTip } from '../model/types';
+import '@/shared/ui/styles/chd.css';
+import '@/shared/ui/styles/cgr.css';
+import '@/shared/ui/styles/cms.css';
+import './clr.css';
 
 type T = ReturnType<typeof useTranslations<'children'>>;
 

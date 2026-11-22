@@ -25,6 +25,7 @@ If this is pre-deploy, also run `make docker` in `backend-go` (builds `ritme-bac
 ## Frontend
 ```bash
 cd frontend && npm run typecheck && npm run lint && npm run fsd:lint && npm run lint:styles && npm run lint:dark && npm run test
+cd frontend && npm run build && npm run check:bundle   # bundle gate (CSS every route downloads, home/log first-load JS)
 ```
 
 `lint:dark` enforces CLAUDE.md §10.3: every colour token has a value in both

@@ -8,6 +8,7 @@ import { Link, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { pilot } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
+import '@/shared/ui/styles/shp.css';
 
 /**
  * Header cart button with the item count (CB-SHOP-08). Hidden for a teen-mode account (403) and while the cart is

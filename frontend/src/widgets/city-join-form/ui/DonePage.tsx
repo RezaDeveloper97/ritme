@@ -10,6 +10,7 @@ import { pilot } from '@/shared/pilot';
 import { Icon, InfoNote, PrimaryButton, SecondaryButton, StatusPill, StepTimeline, type TimelineStep } from '@/shared/ui';
 
 import { PhotoManager } from './PhotoManager';
+import '@/shared/ui/styles/cjn.css';
 
 /** The review timeline of an application as `StepTimeline` rows (shared with the desktop done page). */
 export function useJoinTimeline(status: JoinStatus | undefined): TimelineStep[] {

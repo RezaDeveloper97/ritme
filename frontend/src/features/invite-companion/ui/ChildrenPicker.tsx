@@ -9,6 +9,7 @@ import { Link } from '@/shared/i18n';
 import { CheckTick, Icon, PrimaryButton, Skeleton, SkeletonGroup } from '@/shared/ui';
 
 import { toggleChildId } from '../model/draft';
+import '@/shared/ui/styles/cmp.css';
 
 interface ChildrenPickerProps {
   /** Selected child ids. */

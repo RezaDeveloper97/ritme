@@ -12,7 +12,7 @@ import {
   useSheetStore,
 } from '@/shared/sheet';
 
-import { sheetDefinition } from './registry';
+import { sheetDefinition, warmSheets } from './registry';
 
 /**
  * Renders whichever secondary screen the URL currently asks for, as a sheet
@@ -31,6 +31,13 @@ export function SheetHost() {
 
   // Adopt a sheet named in the URL on first load, then follow back/forward.
   useEffect(() => syncSheetWithHistory(), []);
+
+  // Idle-time warm-up of the chunk most often opened from inside another sheet.
+  useEffect(() => {
+    const w = window as Window & { requestIdleCallback?: (cb: () => void) => number };
+    if (w.requestIdleCallback) w.requestIdleCallback(warmSheets);
+    else setTimeout(warmSheets, 2000);
+  }, []);
 
   // A route change replaces the screen underneath, which would leave the sheet
   // hovering over something it has nothing to do with.

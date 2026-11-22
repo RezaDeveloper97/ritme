@@ -1,0 +1,169 @@
+/* `pg2-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.pg2-tone-brand { --pg2-ink: var(--brand-deep);   --pg2-soft: var(--surface-2); }
+
+.pg2-tone-pink { --pg2-ink: var(--preg-pink-ink); --pg2-soft: var(--pink-soft); }
+
+.pg2-tone-teal { --pg2-ink: var(--preg-teal-ink); --pg2-soft: var(--data-soft); }
+
+.pg2-tone-warn { --pg2-ink: var(--amber-deep);   --pg2-soft: var(--amber-tint); }
+
+.pg2-tone-green { --pg2-ink: var(--success);      --pg2-soft: var(--success-soft); }
+
+.pg2-tone-neutral { --pg2-ink: var(--ink-2);        --pg2-soft: var(--line); }
+
+.pg2-level-info { --pg2-ink: var(--brand-deep);    --pg2-soft: var(--surface-2); }
+
+.pg2-level-suggestion { --pg2-ink: var(--preg-teal-ink); --pg2-soft: var(--data-soft); }
+
+.pg2-level-follow_up { --pg2-ink: var(--preg-warn-ink); --pg2-soft: var(--amber-tint); }
+
+.pg2-level-urgent { --pg2-ink: var(--care-rose);     --pg2-soft: var(--care-rose-soft); }
+
+.pg2-tile {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  color: var(--pg2-ink, var(--brand-deep));
+  background: var(--pg2-soft, var(--surface-2));
+}
+
+.pg2-chip {
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  font-weight: 900; color: var(--pg2-ink, var(--brand-deep));
+  background: var(--pg2-soft, var(--surface-2));
+}
+
+.pg2-warn {
+  background: var(--amber-tint); border: 1px solid var(--preg-warn-line);
+  color: var(--preg-warn-ink);
+}
+
+.pg2-warn-icon { color: var(--amber-deep); flex-shrink: 0; }
+
+.pg2-note { background: var(--surface-2); color: var(--ink-2); }
+
+.pg2-note-icon { color: var(--brand); flex-shrink: 0; }
+
+.pg2-roundbtn {
+  width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.pg2-roundbtn:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.pg2-btn-solid {
+  background: var(--brand-fill); color: var(--on-brand); border: 0; border-radius: 14px;
+}
+
+.pg2-btn-solid:disabled { background: var(--brand-disabled); cursor: default; }
+
+.pg2-textlink {
+  display: inline-flex; align-items: center; gap: 4px; min-height: 44px;
+  font-size: 13px; font-weight: 900; color: var(--brand);
+  background: transparent; border: 0; padding: 0; cursor: pointer; text-decoration: none;
+}
+
+.pg2-textlink:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 8px; }
+
+.pg2-alert.pg2-level-follow_up { border-color: var(--preg-warn-line); }
+
+.pg2-alert.pg2-level-urgent { border-color: var(--care-rose-line); }
+
+.pg2-fact { background: var(--surface-2); border-radius: 14px; padding: 10px 12px; }
+
+.pg2-check {
+  width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 2px solid var(--brand-line-soft); color: transparent; background: var(--surface);
+}
+
+.pg2-check.is-on { background: var(--brand-fill); border-color: var(--brand-fill); color: var(--on-brand); }
+
+.pg2-hero {
+  background: linear-gradient(to bottom, var(--preg-hero-start), var(--preg-hero-end));
+  color: var(--on-accent); border-radius: 0 0 32px 32px; padding: 14px 16px 18px;
+}
+
+.pg2-hero-pill {
+  display: inline-flex; align-items: center; height: 36px; padding: 0 14px; border-radius: 18px;
+  font-size: 13px; font-weight: 800; background: color-mix(in srgb, var(--on-accent) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--on-accent) 35%, transparent);
+}
+
+.pg2-hero-bell {
+  position: relative; width: 44px; height: 44px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center; color: var(--on-accent);
+  background: color-mix(in srgb, var(--on-accent) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--on-accent) 35%, transparent);
+}
+
+.pg2-hero-dot {
+  position: absolute; inset-block-start: 9px; inset-inline-end: 10px; width: 9px; height: 9px;
+  border-radius: 50%; background: var(--data); box-shadow: 0 0 0 2px var(--preg-hero-start);
+}
+
+.pg2-day {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0;
+  border-radius: 14px; color: var(--on-accent); text-decoration: none;
+  background: color-mix(in srgb, var(--on-accent) 16%, transparent); border: 1.5px solid transparent;
+}
+
+.pg2-day.is-today { background: var(--on-accent); color: var(--preg-hero-end); }
+
+.pg2-day.is-future { background: transparent; border: 1.5px dashed color-mix(in srgb, var(--on-accent) 45%, transparent); }
+
+.pg2-day:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.pg2-age { font-size: 30px; line-height: 1.35; font-weight: 900; white-space: nowrap; }
+
+.pg2-illu { display: block; flex-shrink: 0; }
+
+.pg2-illu-disc { fill: var(--surface-2); }
+
+.pg2-illu-ring { fill: none; stroke: var(--field-border); }
+
+.pg2-illu-ring-pk { fill: none; stroke: var(--preg-illu-ring); }
+
+.pg2-illu-plate { fill: var(--surface); }
+
+.pg2-illu-body { fill: var(--pink-soft); }
+
+.pg2-illu-halo { fill: var(--pink-soft); opacity: .55; }
+
+.pg2-illu-baby { fill: var(--blush); }
+
+.pg2-illu-head { fill: var(--pink); }
+
+.pg2-illu-shine { fill: var(--on-accent); }
+
+.pg2-illu-arc { fill: none; stroke: var(--brand); }
+
+.pg2-illu-spark { fill: var(--brand); }
+
+.pg2-illu-leaf { fill: var(--green); }
+
+.pg2-illu-stem { fill: none; stroke: var(--green); }
+
+.pg2-illu-gloss { fill: var(--on-accent); opacity: .55; }
+
+.pg2-illu.on-hero .pg2-illu-plate,
+.pg2-illu.on-hero .pg2-illu-halo { fill: var(--on-accent); opacity: .12; }
+
+.pg2-illu.on-hero .pg2-illu-body { fill: color-mix(in srgb, var(--pink) 28%, var(--on-accent)); }
+
+.pg2-illu.on-hero .pg2-illu-ring-pk { stroke: var(--on-accent); opacity: .8; }
+
+.pg2-fruit-berry { fill: var(--rose-deep); }
+
+.pg2-fruit-yellow { fill: var(--amber); }
+
+.pg2-fruit-orange { fill: var(--orange); }
+
+.pg2-fruit-green { fill: var(--green-mid); }
+
+.pg2-fruit-purple { fill: var(--indigo); }
+
+.pg2-fruit-brown { fill: var(--amber-deep); }
+
+.pg2-fruit-cream { fill: var(--amber-soft); stroke: var(--amber-deep); stroke-width: 1.5; }

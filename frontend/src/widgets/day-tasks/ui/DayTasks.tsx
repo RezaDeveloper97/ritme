@@ -14,6 +14,10 @@ import {
 import type { Locale } from '@/shared/i18n';
 import { toApiDate } from '@/shared/lib/date';
 import { CheckTick, Icon, type IconName } from '@/shared/ui';
+import '@/shared/ui/styles/btn.css';
+import '@/shared/ui/styles/sec.css';
+import '@/shared/ui/styles/has.css';
+import './dt.css';
 
 const FA = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
 const localizeNum = (n: number, loc: Locale) =>

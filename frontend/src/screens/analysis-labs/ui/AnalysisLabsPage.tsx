@@ -21,6 +21,8 @@ import {
 import { PlusBadge } from '@/shared/ui/plus-gate';
 import { BottomNav } from '@/widgets/bottom-nav';
 import { TrendLine } from '@/widgets/charts';
+import '@/shared/ui/styles/axc.css';
+import './alb.css';
 
 /**
  * `/analysis/labs` (An_Labs, B-N3-10). With verified labs (B-N6-06) it lists

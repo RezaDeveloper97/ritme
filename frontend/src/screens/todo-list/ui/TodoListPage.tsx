@@ -35,6 +35,7 @@ import {
   SkyLayer,
 } from '@/shared/ui';
 import { pilot } from '@/shared/pilot';
+import '@/shared/ui/styles/td.css';
 
 /**
  * `/todo/lists/[id]` — one list (nbl_/nbd_Todo_List): «خرید · ۳ از ۵ مانده»,

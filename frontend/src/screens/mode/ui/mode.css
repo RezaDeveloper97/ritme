@@ -1,0 +1,101 @@
+/* `mode-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.mode-dot {
+  box-shadow: inset 0 0 0 11px var(--surface);
+  transition: border-color .18s ease, border-width .2s ease, background-color .18s ease, box-shadow .26s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mode-dot { transition: none !important; animation: none !important; }
+}
+
+.mode-contra .nb-row + .nb-row { border-top: 1px solid var(--line); border-radius: 0; }
+
+.mode-page { background: var(--page); }
+
+.mode-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 12px; padding-bottom: 60px; }
+
+.mode-scroll > :not(.nb-hdr) { margin-inline: 20px; }
+
+.mode-list { display: flex; flex-direction: column; gap: 12px; }
+
+.mode-card {
+  display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-radius: var(--r-card, 24px);
+  background: var(--surface); border: 1.5px solid var(--line);
+}
+
+.mode-card.is-on {
+  border-color: var(--nb-tone-ink); background: color-mix(in srgb, var(--nb-tone-ink) 10%, var(--surface));
+}
+
+.mode-radio {
+  display: flex; flex-direction: column; gap: 10px; width: 100%; min-height: 44px; padding: 0; margin: 0;
+  background: transparent; border: 0; font: inherit; color: inherit; text-align: start; cursor: pointer; border-radius: 16px;
+}
+
+.mode-radio:disabled { cursor: default; opacity: .6; }
+
+.mode-radio:focus-visible,
+.mode-loss:focus-visible { outline: 2px solid var(--brand); outline-offset: 4px; }
+
+.mode-head { display: flex; align-items: center; gap: 12px; width: 100%; }
+
+.mode-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+.mode-title { font-size: 15px; font-weight: 800; color: var(--text-1); }
+
+.mode-desc { font-size: 12px; font-weight: 600; line-height: 1.7; color: var(--text-2); }
+
+.mode-dot {
+  flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--text-3);
+  background: var(--surface); box-sizing: border-box;
+}
+
+.mode-card.is-on .mode-dot {
+  box-shadow: none;
+  border-color: var(--nb-tone-ink); background: radial-gradient(circle, var(--nb-tone-ink) 0 5px, var(--surface) 5.5px);
+}
+
+.mode-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.mode-chip {
+  display: inline-flex; align-items: center; height: 26px; padding: 0 10px; border-radius: 13px;
+  background: var(--page); border: 1px solid var(--line); font-size: 11px; font-weight: 700; color: var(--text-2);
+}
+
+.mode-sub {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px;
+  padding: 10px 12px; border-radius: 16px; background: var(--page); font-size: 12.5px; font-weight: 700; color: var(--text-1);
+}
+
+.mode-sub-label { flex: 1; min-width: 0; }
+
+.mode-loss {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; padding: 10px 12px; margin: 0;
+  border: 0; border-radius: 16px; background: var(--page); font: inherit; color: var(--text-1); text-align: start; cursor: pointer;
+}
+
+.mode-loss-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+.mode-loss-text b { font-size: 12.5px; font-weight: 800; }
+
+.mode-loss-text span { font-size: 11.5px; font-weight: 600; color: var(--text-2); }
+
+.mode-loss > svg { color: var(--text-2); flex-shrink: 0; }
+
+.mode-contra { padding: 2px 16px; border-radius: var(--r-card, 24px); background: var(--surface); border: 1px solid var(--line); }
+
+.mode-contra .nb-row { padding-block: 12px; min-height: 56px; }
+
+.mode-note {
+  display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px; border-radius: 20px;
+  background: var(--surface); border: 1px solid var(--line); font-size: 12px; font-weight: 600; line-height: 1.8; color: var(--text-2);
+}
+
+.mode-note > svg { flex-shrink: 0; margin-top: 2px; }
+
+.mode-error { margin: 0; padding-inline: 4px; font-size: var(--fs-sm); font-weight: 700; color: var(--danger); }
+
+.mode-confirm-body { margin: 0; font-size: 13.5px; font-weight: 600; line-height: 1.9; color: var(--text-2); }
+
+.mode-confirm-btns { display: flex; flex-direction: column; gap: 8px; }

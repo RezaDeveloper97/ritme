@@ -7,6 +7,8 @@ import { formatBbt, useFertilityToday } from '@/entities/fertility';
 import { Link, type Locale } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
 import { Icon, type IconName, Skeleton, SkeletonGroup } from '@/shared/ui';
+import '@/shared/ui/styles/ttc.css';
+import '@/shared/ui/styles/fert.css';
 
 type Tone = 'lh' | 'bbt' | 'intercourse';
 

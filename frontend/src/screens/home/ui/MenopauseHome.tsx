@@ -40,6 +40,9 @@ import { LinkedTeenCards } from '@/widgets/linked-teen-card';
 import { flashElapsedSeconds, listedMessages, routedLink, scoreTrend } from '../model/menopause';
 import { MenopauseReportLink } from './MenopauseReportLink';
 import { PlusTrialOffer } from './PlusTrialOffer';
+import '@/shared/ui/styles/home.css';
+import '@/shared/ui/styles/page.css';
+import './mh.css';
 
 const STATUS_TONE: Record<CheckupStatus, Tone> = {
   overdue: 'danger',

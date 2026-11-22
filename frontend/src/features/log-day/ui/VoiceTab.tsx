@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 
 import type { LogCategory, LogDayValues, LogParamValue } from '@/entities/health-log';
 import { Icon, type IconName, SecondaryButton, type Tone } from '@/shared/ui';
+import '@/shared/ui/styles/lday.css';
 
 /**
  * What the log sheet hands the voice recorder (B-N3-05 `features/voice-log`, passed in by the screen —

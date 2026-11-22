@@ -9,6 +9,7 @@ import { OnbFrame } from '@/features/auth';
 import { useSaveOnboardingStep } from '../api/onboarding';
 import { CHRONIC_ILLNESSES, GYN_CONDITIONS, MEDICATIONS, toggleListItem } from '../model/state';
 import { StepScreen, type StepContext } from './StepScreen';
+import '@/shared/ui/styles/onb.css';
 
 interface GroupProps<T extends string> {
   title: string;

@@ -14,6 +14,7 @@ import { EmptyState, IconCircle, InfoNote, PrimaryButton, Skeleton, SkeletonGrou
 
 import { whyThisDate } from '../model/why';
 import { availableTabs, phaseDayRange, TAB_SECTIONS, type PhaseTab } from '../model/tabs';
+import './phs.css';
 
 /** Icon + tone per section so each item reads at a glance (tokens only, via tone classes). */
 const SECTION_LOOK: Record<PhaseSectionKey, { icon: IconName; tone: Tone }> = {

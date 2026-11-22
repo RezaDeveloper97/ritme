@@ -22,6 +22,7 @@ import { Card, EmptyState, HeaderButton, Icon, PrimaryButton, ScreenHeader, Seco
 
 import { type FeedItem, HISTORY_TABS, type HistoryTab, buildFeed } from '../model/feed';
 import { useHistoryPdf } from './useHistoryPdf';
+import '@/shared/ui/styles/as.css';
 
 const PANEL_ID = 'as-hist-panel';
 

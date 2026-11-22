@@ -10,6 +10,7 @@ import { PrimaryButton, SecondaryButton } from '@/shared/ui';
 import { resolveSwipeIndex } from '../lib/swipe';
 import { hasSlideBody, INTRO_SLIDES, SKIP_TARGET } from '../model/slides';
 import { IntroIllustration } from './IntroIllustration';
+import '@/shared/ui/styles/ib.css';
 
 interface Props {
   /** 0-based slide to open on (deep link / QA). */

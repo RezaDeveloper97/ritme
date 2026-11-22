@@ -1,0 +1,25 @@
+/* `ctrm-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.nb-card.ctrm-count { display: flex; flex-direction: column; gap: 14px; padding: 18px 16px; }
+
+.ctrm-count-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); text-align: start; }
+
+.ctrm-chips { gap: 8px; }
+
+.ctrm-steps-wrap { display: flex; flex-direction: column; gap: 10px; }
+
+.nb-card.ctrm-steps-card { padding: 6px 16px; }
+
+.ctrm-steps { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+
+.ctrm-step { display: flex; align-items: flex-start; gap: 12px; padding-block: 10px; }
+
+.ctrm-step-num {
+  flex-shrink: 0; inline-size: 28px; block-size: 28px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--brand-soft); color: var(--brand-ink); font-size: 13px; font-weight: 800;
+}
+
+.ctrm-step-text { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 700; line-height: 1.85; color: var(--text-1); text-align: start; }
+
+.nb-note.ctrm-note { background: var(--surface); border: 1px solid var(--line); }

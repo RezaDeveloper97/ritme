@@ -43,6 +43,7 @@ import {
   StepTimeline,
   type Tone,
 } from '@/shared/ui';
+import '@/shared/ui/styles/ins.css';
 
 const STATE_TONE: Record<QuestionnaireStatus, Tone> = {
   draft: 'brand',

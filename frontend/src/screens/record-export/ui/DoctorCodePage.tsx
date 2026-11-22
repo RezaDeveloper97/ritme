@@ -12,6 +12,8 @@ import { retryAfterSeconds, usePageHide } from '@/shared/lib/page-hide';
 import { InfoNote, PrimaryButton, SecondaryButton } from '@/shared/ui';
 
 import { SharedReportBody, SharedReportShell } from './SharedReportPage';
+import '@/shared/ui/styles/hrec.css';
+import './rx.css';
 
 /**
  * `/d` — the doctor types the patient's 24h code (CB-REC-05, D-71): POST /shared-reports/code, then the same

@@ -22,6 +22,7 @@ import { pilot } from '@/shared/pilot';
 import { Icon, type IconName, InfoNote, ProgressBar, SecondaryButton, Skeleton, StatusPill, type Tone } from '@/shared/ui';
 
 import { PolicyHistory } from './PolicyHistory';
+import '@/shared/ui/styles/ins.css';
 
 const CLAIM_TONE: Record<ClaimStatus, Tone> = {
   submitted: 'neutral',

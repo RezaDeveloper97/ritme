@@ -3,6 +3,8 @@
 import { ChartFigure, type DataTable } from '@/widgets/charts';
 
 import { EPDS_W, epdsGeometry, type EpdsTrend } from '../model/hub';
+import '@/shared/ui/styles/axc.css';
+import './anp.css';
 
 /**
  * EPDS scores over the weeks after the birth (An_Hub_Post «حال روحی»): the

@@ -36,6 +36,7 @@ import {
 import { GroupedColumns } from '@/widgets/charts';
 
 import { checkForm, formFrom, growthWindow, isDirty, scanDate, type ScanForm, stimDayOn } from '../model/form';
+import './ivs.css';
 
 type T = ReturnType<typeof useTranslations<'ivf'>>;
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
 import { type ApiEnvelope, apiClient, invalidateCycleDependents } from '@/shared/api';
@@ -135,6 +135,22 @@ export function useCycleMonth(year: number, month: number) {
     enabled: isAuthenticated(),
     staleTime: 5 * 60_000,
     retry: false,
+  });
+}
+
+/**
+ * Several months at once, in parallel, under the same keys as {@link useCycleMonth}
+ * (so a month already cached or in flight is shared, never re-requested).
+ */
+export function useCycleMonths(months: readonly { year: number; month: number }[]) {
+  return useQueries({
+    queries: months.map(({ year, month }) => ({
+      queryKey: cycleKeys.month(year, month),
+      queryFn: () => fetchCycleMonth(year, month),
+      enabled: isAuthenticated(),
+      staleTime: 5 * 60_000,
+      retry: false,
+    })),
   });
 }
 
