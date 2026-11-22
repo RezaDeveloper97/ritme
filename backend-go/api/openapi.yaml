@@ -18834,6 +18834,53 @@ paths:
                       alert: {$ref: "#/components/schemas/PregnancyV2Alert"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/ModelNotFound"}
+  /api/v1/companion/calendar:
+    get:
+      tags: [Companion]
+      summary: Companion calendar overlay — partner's likely period days (male account)
+      description: |
+        Go only. For a companion (male) account — **403** `not_companion_account` for any other account. One `partners`
+        entry per active partner/spouse link (parent links never appear). `period_days` lists the days in the window her
+        period is likely to fall on, **today onwards only** (never logged history), and is **null unless she turned on
+        `period_days` for this link and the cycle grant is readable** (family.Decide: paused, out-of-mode or revoked →
+        null). `[]` = shared, but nothing predicted in the window, or she is late (no honest prediction). No cycle day,
+        length, lateness or confidence ever. Each returned list is audited as a cycle read. The window is clamped to
+        today … today + 92 days. His own medications and appointments come from `/care/*`.
+      operationId: getCompanionCalendar
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: from, in: query, required: false, schema: {$ref: "#/components/schemas/Date"}, description: "Default today"}
+        - {name: to, in: query, required: false, schema: {$ref: "#/components/schemas/Date"}, description: "Default from + 41 days; ≥ from and at most 62 days after it"}
+      responses:
+        '200':
+          description: Partner overlay
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [from, to, partners]
+                    properties:
+                      from: {$ref: "#/components/schemas/Date"}
+                      to: {$ref: "#/components/schemas/Date"}
+                      partners:
+                        type: array
+                        items:
+                          type: object
+                          required: [link_id, partner_name, period_days]
+                          properties:
+                            link_id: {type: integer}
+                            partner_name: {type: [string, "null"]}
+                            period_days: {type: [array, "null"], items: {$ref: "#/components/schemas/Date"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/NotCompanionAccount"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
   /api/v1/companion/home:
     get:
       tags: [Companion]
@@ -19060,6 +19107,7 @@ paths:
                     mood: {type: [boolean, "null"]}
                     energy: {type: [boolean, "null"]}
                     sleep: {type: [boolean, "null"]}
+                period_days: {type: [boolean, "null"], description: "(Go only) consent to show the companion her likely period days in his calendar; default false"}
                 action_prefs: {type: [array, "null"], maxItems: 5, items: {type: string, enum: [food, gift, time, calm, help]}, description: "«ریتمی همراه» v2 (Go only): ordered, deduped; default []"}
             example: {type: spouse, display_name: علی, phone: "09121234567", grants: {meds: edit, appointments: edit, cycle: view, pregnancy: view}}
       responses:
@@ -31438,6 +31486,7 @@ components:
         goal: {$ref: "#/components/schemas/CompanionGoal"}
         goals: {$ref: "#/components/schemas/CompanionGoals"}
         signals: {$ref: "#/components/schemas/CompanionSignalScope"}
+        period_days: {type: boolean, description: "(Go only) the owner's consent to show this companion her likely period days in his calendar (GET /companion/calendar); false by default"}
         action_prefs: {$ref: "#/components/schemas/CompanionActionPrefs"}
     CompanionGoal:
       type: string
@@ -31485,6 +31534,7 @@ components:
             mood: {type: [boolean, "null"]}
             energy: {type: [boolean, "null"]}
             sleep: {type: [boolean, "null"]}
+        period_days: {type: [boolean, "null"], description: "Consent to show the companion her likely period days in his calendar"}
         action_prefs: {type: [array, "null"], maxItems: 5, items: {type: string, enum: [food, gift, time, calm, help]}}
     CompanionLink:
       type: object

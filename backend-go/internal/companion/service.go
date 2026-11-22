@@ -244,7 +244,8 @@ func (s *Service) CreateInvite(ctx context.Context, ownerID uint64, in InviteInp
 			OwnerID: ownerID, Type: string(in.Type), DisplayName: nstr(in.DisplayName), Now: nt(now),
 			Goal: goalColumn(in.Preferences.Goals), SharePain: in.Preferences.Signals.On(SignalPain),
 			ShareMood: in.Preferences.Signals.On(SignalMood), ShareEnergy: in.Preferences.Signals.On(SignalEnergy),
-			ShareSleep: in.Preferences.Signals.On(SignalSleep), ActionPrefs: actionsColumn(in.Preferences.Actions),
+			ShareSleep: in.Preferences.Signals.On(SignalSleep), SharePeriodDays: in.Preferences.PeriodDays,
+			ActionPrefs: actionsColumn(in.Preferences.Actions),
 		})
 		if err != nil {
 			return fmt.Errorf("companion: create: %w", err)

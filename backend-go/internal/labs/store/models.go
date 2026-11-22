@@ -864,6 +864,7 @@ type Companion struct {
 	ShareSleep       bool
 	ActionPrefs      sql.NullString
 	Goal             sql.NullString
+	SharePeriodDays  bool
 }
 
 type CompanionAuditLog struct {

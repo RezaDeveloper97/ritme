@@ -111,6 +111,7 @@ export const ROUTE_NAMESPACES = {
   companion: ['children', 'common', 'companionHome', 'companions', 'nav', 'teen'], // B-N4-05 /companion (Hamdam_Home, companion nav; companions = entities/companion barrel); CB-TEEN-03 linked teen cards
   companionLinks: ['children', 'common', 'companionHome', 'companions', 'nav', 'teen'], // B-N4-05 /companion/links (code entry + leave a link, Me «کد همدم»); CB-TEEN-03 same slice as /companion; companion v2 join + confirm (features/join-companion)
   companionActions: ['common', 'companionHome', 'companions', 'nav'], // companion v2 /companion/actions (compCards; widgets/companion-support, companion nav)
+  companionCalendar: ['common', 'companionHome', 'companions', 'nav'], // /companion/calendar: his reminders (care = shell) + her likely period days
   companionLearn: ['common', 'companionHome', 'companions', 'nav'], // companion v2 /companion/learn (compLearn; widgets/companion-support, companion nav)
   profileSupport: ['common', 'me'], // B-N1-12 /profile/support
   insurance: ['common', 'insurance', 'me', 'nav'], // B-N10-06 /insurance (info copy under me.insurance); CB-INS-03 tracker home + setup (insurance namespace, nav for the home state)

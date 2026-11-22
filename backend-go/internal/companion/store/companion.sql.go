@@ -99,23 +99,24 @@ func (q *Queries) CountOpenLinks(ctx context.Context, arg CountOpenLinksParams) 
 
 const createCompanion = `-- name: CreateCompanion :execlastid
 INSERT INTO ` + "`" + `companions` + "`" + ` (owner_id, type, status, display_name, invited_at, goal, share_pain, share_mood, share_energy,
-  share_sleep, action_prefs, created_at, updated_at)
+  share_sleep, share_period_days, action_prefs, created_at, updated_at)
 VALUES (?, ?, 'invited', ?, ?, ?,
-  ?, ?, ?, ?, ?,
-  ?, ?)
+  ?, ?, ?, ?,
+  ?, ?, ?, ?)
 `
 
 type CreateCompanionParams struct {
-	OwnerID     uint64
-	Type        string
-	DisplayName sql.NullString
-	Now         sql.NullTime
-	Goal        sql.NullString
-	SharePain   bool
-	ShareMood   bool
-	ShareEnergy bool
-	ShareSleep  bool
-	ActionPrefs sql.NullString
+	OwnerID         uint64
+	Type            string
+	DisplayName     sql.NullString
+	Now             sql.NullTime
+	Goal            sql.NullString
+	SharePain       bool
+	ShareMood       bool
+	ShareEnergy     bool
+	ShareSleep      bool
+	SharePeriodDays bool
+	ActionPrefs     sql.NullString
 }
 
 // goal / share_* / action_prefs are the owner's «ریتمی همراه» v2 preferences (goose 00117; validated in Go).
@@ -130,6 +131,7 @@ func (q *Queries) CreateCompanion(ctx context.Context, arg CreateCompanionParams
 		arg.ShareMood,
 		arg.ShareEnergy,
 		arg.ShareSleep,
+		arg.SharePeriodDays,
 		arg.ActionPrefs,
 		arg.Now,
 		arg.Now,
@@ -292,7 +294,7 @@ func (q *Queries) GetAccess(ctx context.Context, arg GetAccessParams) (GetAccess
 }
 
 const getCompanion = `-- name: GetCompanion :one
-SELECT id, owner_id, companion_user_id, type, status, display_name, invited_at, accepted_at, revoked_at, revoked_by, created_at, updated_at, role, template, expires_at, urgent_sms, owner_confirmed_at, share_pain, share_mood, share_energy, share_sleep, action_prefs, goal FROM ` + "`" + `companions` + "`" + ` WHERE id = ? LIMIT 1
+SELECT id, owner_id, companion_user_id, type, status, display_name, invited_at, accepted_at, revoked_at, revoked_by, created_at, updated_at, role, template, expires_at, urgent_sms, owner_confirmed_at, share_pain, share_mood, share_energy, share_sleep, action_prefs, goal, share_period_days FROM ` + "`" + `companions` + "`" + ` WHERE id = ? LIMIT 1
 `
 
 func (q *Queries) GetCompanion(ctx context.Context, id uint64) (Companion, error) {
@@ -322,6 +324,7 @@ func (q *Queries) GetCompanion(ctx context.Context, id uint64) (Companion, error
 		&i.ShareSleep,
 		&i.ActionPrefs,
 		&i.Goal,
+		&i.SharePeriodDays,
 	)
 	return i, err
 }
@@ -531,7 +534,7 @@ func (q *Queries) InsertUserNotification(ctx context.Context, arg InsertUserNoti
 }
 
 const listCompanionLinks = `-- name: ListCompanionLinks :many
-SELECT id, owner_id, companion_user_id, type, status, display_name, invited_at, accepted_at, revoked_at, revoked_by, created_at, updated_at, role, template, expires_at, urgent_sms, owner_confirmed_at, share_pain, share_mood, share_energy, share_sleep, action_prefs, goal FROM ` + "`" + `companions` + "`" + ` WHERE companion_user_id = ? AND status = 'active' ORDER BY id
+SELECT id, owner_id, companion_user_id, type, status, display_name, invited_at, accepted_at, revoked_at, revoked_by, created_at, updated_at, role, template, expires_at, urgent_sms, owner_confirmed_at, share_pain, share_mood, share_energy, share_sleep, action_prefs, goal, share_period_days FROM ` + "`" + `companions` + "`" + ` WHERE companion_user_id = ? AND status = 'active' ORDER BY id
 `
 
 // The active links in which the user is the companion, oldest first.
@@ -568,6 +571,7 @@ func (q *Queries) ListCompanionLinks(ctx context.Context, companionUserID sql.Nu
 			&i.ShareSleep,
 			&i.ActionPrefs,
 			&i.Goal,
+			&i.SharePeriodDays,
 		); err != nil {
 			return nil, err
 		}
@@ -828,7 +832,7 @@ func (q *Queries) ListOwnerAudit(ctx context.Context, arg ListOwnerAuditParams) 
 }
 
 const listOwnerCompanions = `-- name: ListOwnerCompanions :many
-SELECT id, owner_id, companion_user_id, type, status, display_name, invited_at, accepted_at, revoked_at, revoked_by, created_at, updated_at, role, template, expires_at, urgent_sms, owner_confirmed_at, share_pain, share_mood, share_energy, share_sleep, action_prefs, goal FROM ` + "`" + `companions` + "`" + ` WHERE owner_id = ? AND status <> 'revoked' ORDER BY id
+SELECT id, owner_id, companion_user_id, type, status, display_name, invited_at, accepted_at, revoked_at, revoked_by, created_at, updated_at, role, template, expires_at, urgent_sms, owner_confirmed_at, share_pain, share_mood, share_energy, share_sleep, action_prefs, goal, share_period_days FROM ` + "`" + `companions` + "`" + ` WHERE owner_id = ? AND status <> 'revoked' ORDER BY id
 `
 
 // The owner's invited and active links, oldest first.
@@ -865,6 +869,7 @@ func (q *Queries) ListOwnerCompanions(ctx context.Context, ownerID uint64) ([]Co
 			&i.ShareSleep,
 			&i.ActionPrefs,
 			&i.Goal,
+			&i.SharePeriodDays,
 		); err != nil {
 			return nil, err
 		}
@@ -1060,21 +1065,22 @@ func (q *Queries) SetFamilySpouse(ctx context.Context, arg SetFamilySpouseParams
 const updateCompanionPreferences = `-- name: UpdateCompanionPreferences :execrows
 UPDATE ` + "`" + `companions` + "`" + `
 SET goal = ?, share_pain = ?, share_mood = ?,
-  share_energy = ?, share_sleep = ?, action_prefs = ?,
-  updated_at = ?
+  share_energy = ?, share_sleep = ?,
+  share_period_days = ?, action_prefs = ?, updated_at = ?
 WHERE id = ? AND owner_id = ? AND status <> 'revoked'
 `
 
 type UpdateCompanionPreferencesParams struct {
-	Goal        sql.NullString
-	SharePain   bool
-	ShareMood   bool
-	ShareEnergy bool
-	ShareSleep  bool
-	ActionPrefs sql.NullString
-	Now         sql.NullTime
-	ID          uint64
-	OwnerID     uint64
+	Goal            sql.NullString
+	SharePain       bool
+	ShareMood       bool
+	ShareEnergy     bool
+	ShareSleep      bool
+	SharePeriodDays bool
+	ActionPrefs     sql.NullString
+	Now             sql.NullTime
+	ID              uint64
+	OwnerID         uint64
 }
 
 // The owner's preferences of one of her invited or active links (the caller merged the partial update); scoped by the
@@ -1086,6 +1092,7 @@ func (q *Queries) UpdateCompanionPreferences(ctx context.Context, arg UpdateComp
 		arg.ShareMood,
 		arg.ShareEnergy,
 		arg.ShareSleep,
+		arg.SharePeriodDays,
 		arg.ActionPrefs,
 		arg.Now,
 		arg.ID,

@@ -180,6 +180,47 @@ export function SignalSwitches({ value, onChange, disabled }: SignalSwitchesProp
   );
 }
 
+interface PeriodDaysSwitchProps {
+  value: boolean;
+  onChange: (on: boolean) => void;
+  disabled?: boolean;
+}
+
+/**
+ * «روزهای احتمالی پریود در تقویمش» — her separate consent (off by default) to show the companion the days her
+ * period is likely to fall on. Predicted days only, never her logged history or cycle numbers; he also needs the
+ * cycle section shared.
+ */
+export function PeriodDaysSwitch({ value, onChange, disabled }: PeriodDaysSwitchProps) {
+  const t = useTranslations('companions');
+  const baseId = useId();
+  const titleId = `${baseId}-t`;
+  const descId = `${baseId}-d`;
+  return (
+    <ul className="cmp2-toggles">
+      <li className="nb-card cmp2-toggle">
+        <IconCircle icon="calendar" tone="bloom" />
+        <span className="cmp2-toggle-text">
+          <b id={titleId} className="cmp2-toggle-title">
+            {t('periodDays.title')}
+          </b>
+          <span id={descId} className="cmp2-toggle-desc">
+            {t('periodDays.desc')}
+          </span>
+        </span>
+        <Switch
+          checked={value}
+          labelledBy={titleId}
+          describedBy={descId}
+          disabled={disabled}
+          pilot={pilot('companion.period-days')}
+          onCheckedChange={onChange}
+        />
+      </li>
+    </ul>
+  );
+}
+
 interface ActionPickerProps {
   value: readonly CompanionAction[];
   onChange: (prefs: CompanionAction[]) => void;

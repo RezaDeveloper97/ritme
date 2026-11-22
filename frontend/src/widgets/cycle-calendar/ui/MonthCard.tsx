@@ -15,6 +15,8 @@ export interface CalendarDayInfo {
   tone: DayTone | null;
   /** Estimated ovulation — the TTC variant marks it with a turquoise dot. */
   ovulation: boolean;
+  /** Something of the viewer's own is on this day (an appointment) — a small brand dot under the digit. */
+  event?: boolean;
   /** Spoken label (date + state); the visible digit is aria-hidden. */
   label: string;
 }
@@ -133,6 +135,7 @@ export function MonthCard({
                       {formatDay(cell.day)}
                     </span>
                     {showOvulation && info.ovulation ? <span aria-hidden className="cc-ov-dot" /> : null}
+                    {info.event ? <span aria-hidden className="cc-ev-dot" /> : null}
                   </button>
                 );
               })}

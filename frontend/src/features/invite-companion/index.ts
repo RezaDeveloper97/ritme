@@ -16,4 +16,4 @@ export { DisconnectSheet } from './ui/DisconnectSheet';
 export { InviteCodeBox } from './ui/InviteCodeBox';
 export { InviteCodeCard } from './ui/InviteCodeCard';
 export { InviteCompanionFlow } from './ui/InviteCompanionFlow';
-export { ActionPicker, GoalPicker, SignalSwitches } from './ui/PreferenceFields';
+export { ActionPicker, GoalPicker, PeriodDaysSwitch, SignalSwitches } from './ui/PreferenceFields';
