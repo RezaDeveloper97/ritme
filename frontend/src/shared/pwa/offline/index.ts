@@ -8,6 +8,7 @@ export {
   offlineSupported,
   purgeOffline,
   saveOffline,
+  wipeOffline,
   type OfflineErrorCode,
   type OfflineItem,
   type OfflineKind,

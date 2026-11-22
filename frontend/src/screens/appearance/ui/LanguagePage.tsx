@@ -18,6 +18,9 @@ import {
   SkeletonGroup,
   SkyLayer,
 } from '@/shared/ui';
+import '@/shared/ui/styles/lang.css';
+import '@/shared/ui/styles/me.css';
+import './lngp.css';
 
 /**
  * Language & calendar (B-N1-10) at `/profile/language` — no artboard; built

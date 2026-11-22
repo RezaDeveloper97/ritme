@@ -14,6 +14,7 @@ import { BottomNav } from '@/widgets/bottom-nav';
 import { ChartCard, ReportFrame, SeriesBars, StripRows } from '@/widgets/charts';
 
 import { activeKeys, highlightKey, labelsOf, patternTone, toggleKey, toneOf } from '../model/symptoms';
+import '@/shared/ui/styles/anr.css';
 
 type Range = (typeof REPORT_RANGES.symptoms)[number];
 

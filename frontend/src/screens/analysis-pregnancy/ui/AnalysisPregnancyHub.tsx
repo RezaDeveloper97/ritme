@@ -15,6 +15,8 @@ import { gainUntilWeek, tileItems, weekdayKeyOf, weightNote } from '../model/cha
 import { BpChartView } from './BpChartView';
 import { GainChartView } from './GainChartView';
 import { PregCard } from './PregCard';
+import '@/shared/ui/styles/an.css';
+import '@/shared/ui/styles/apg.css';
 
 type T = ReturnType<typeof useTranslations<'analysisPregnancy.hub'>>;
 

@@ -3,6 +3,7 @@ package main
 import (
 	"io"
 	"log/slog"
+	"net"
 	nethttp "net/http"
 	"net/http/httptest"
 	"strings"
@@ -161,18 +162,71 @@ func TestCORS_SingleOrigin(t *testing.T) {
 	assert.Equal(t, "Access-Control-Request-Method, Access-Control-Request-Headers", resp.Header.Get("Vary"))
 }
 
-func TestClientIPFromForwardedFor(t *testing.T) {
+func ipRegistry() *apihttp.Registry {
 	reg := apihttp.NewRegistry()
 	reg.Register("ip", func(r fiber.Router, _ *apihttp.Deps) {
 		r.Get("/ip", func(c fiber.Ctx) error { return c.SendString(c.IP()) })
 	})
-	app := newApp(reg, testDeps())
+	return reg
+}
 
-	req := httptest.NewRequest(fiber.MethodGet, "/ip", nil)
-	req.Header.Set("X-Forwarded-For", "5.6.7.8, 172.18.0.5")
-	resp := do(t, app, req)
+// serveIP runs newApp on a real 127.0.0.1 listener (app.Test's in-memory peer is 0.0.0.0, never a proxy) and returns
+// what c.IP() saw for a request carrying xff.
+func serveIP(t *testing.T, xff string) string {
+	t.Helper()
+	app := newApp(ipRegistry(), testDeps())
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	go func() { _ = app.Listener(ln, fiber.ListenConfig{DisableStartupMessage: true}) }()
+	t.Cleanup(func() { _ = app.Shutdown() })
+
+	req, err := nethttp.NewRequest(fiber.MethodGet, "http://"+ln.Addr().String()+"/ip", nil)
+	require.NoError(t, err)
+	req.Header.Set("X-Forwarded-For", xff)
+	resp, err := nethttp.DefaultClient.Do(req)
+	require.NoError(t, err)
+	defer func() { _ = resp.Body.Close() }()
 	body, _ := io.ReadAll(resp.Body)
-	assert.Equal(t, "5.6.7.8", string(body))
+	return string(body)
+}
+
+// T-M12-02 (S-03): behind the trusted nginx (a loopback / docker-network peer) c.IP() is the address nginx forwarded.
+func TestClientIP_TrustedProxyForwardsClient(t *testing.T) {
+	t.Setenv("TRUSTED_PROXIES", "")
+	assert.Equal(t, "5.6.7.8", serveIP(t, "5.6.7.8"))
+}
+
+// A peer that is NOT a trusted proxy (here app.Test's 0.0.0.0 — what 0.0.0.0/0 used to trust) cannot choose its own
+// rate-limit key: a forged X-Forwarded-For, single or chained, IPv4 or IPv6, leaves c.IP() on the peer.
+func TestClientIP_ForgedForwardedForFromUntrustedPeerIgnored(t *testing.T) {
+	t.Setenv("TRUSTED_PROXIES", "")
+	app := newApp(ipRegistry(), testDeps())
+	for _, xff := range []string{"5.6.7.8", "5.6.7.8, 172.18.0.5", "2001:db8::1", "127.0.0.1", ""} {
+		req := httptest.NewRequest(fiber.MethodGet, "/ip", nil)
+		if xff != "" {
+			req.Header.Set("X-Forwarded-For", xff)
+		}
+		body, _ := io.ReadAll(do(t, app, req).Body)
+		assert.Equal(t, "0.0.0.0", string(body), "X-Forwarded-For %q", xff)
+	}
+}
+
+// TRUSTED_PROXIES narrows the trust to the given network: loopback is then untrusted too, so the forged header from a
+// 127.0.0.1 peer is ignored (boundary of the configured list).
+func TestClientIP_TrustedProxiesEnvNarrowsTrust(t *testing.T) {
+	t.Setenv("TRUSTED_PROXIES", "172.30.0.0/16")
+	assert.Equal(t, "127.0.0.1", serveIP(t, "5.6.7.8"))
+}
+
+func TestTrustedProxies_Parse(t *testing.T) {
+	assert.Equal(t, defaultTrustedProxies, trustedProxies("", nil))
+	assert.Equal(t, []string{"172.30.0.0/16", "10.1.2.3/32", "fd00::/8"},
+		trustedProxies("172.30.1.0/16, 10.1.2.3 fd00::/8", nil))
+	// Never a public or catch-all range: each is dropped; nothing valid left = the defaults, not "trust all".
+	for _, bad := range []string{"0.0.0.0/0", "::/0", "8.8.8.0/24", "1.2.3.4", "10.0.0.0/7", "172.0.0.0/8", "nope", "300.1.1.1"} {
+		assert.Equal(t, defaultTrustedProxies, trustedProxies(bad, nil), bad)
+	}
+	assert.Equal(t, []string{"192.168.5.0/24"}, trustedProxies("0.0.0.0/0,192.168.5.0/24,::/0", nil))
 }
 
 func TestBodyLimit(t *testing.T) {

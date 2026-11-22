@@ -37,6 +37,8 @@ var Manifest = map[string]Entry{
 	"healthlog.InsertLogEntry":               {Bumps: "TestBump_HealthLogV2"},
 	"healthlog.DeleteLogEntriesOn":           {Bumps: "TestBump_HealthLogV2"},
 	"healthlog.DeleteLogEntryParam":          {Bumps: "TestBump_HealthLogV2"},
+	"healthlog.DeleteLogEntryParams":         {Bumps: "TestBump_HealthLogV2"}, // T-M12-31 batched day save
+	"healthlog.InsertLogEntriesBatch":        {Bumps: "TestBump_HealthLogV2"}, // T-M12-31 batched day save
 	"healthlog.DeleteLogEntrySlot":           {Bumps: "TestBump_HealthLogV1"},
 	"healthlog.InsertCycleHistory":           {Bumps: "TestBump_HealthLogV1"},
 	"healthlog.UpdateBleedingLogPeriod":      {Bumps: "TestBump_HealthLogV1"},

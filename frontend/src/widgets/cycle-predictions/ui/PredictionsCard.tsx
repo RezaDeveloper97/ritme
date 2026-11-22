@@ -10,6 +10,7 @@ import { formatNumber } from '@/shared/lib/date';
 import { Card, Icon, IconCircle, StatusPill, type IconName, type Tone } from '@/shared/ui';
 
 import type { LimitNote } from '../model/limits';
+import '@/shared/ui/styles/ch.css';
 
 /** One predicted event: its display dates and the days from today to its start / end. */
 export interface PredictionSlot {

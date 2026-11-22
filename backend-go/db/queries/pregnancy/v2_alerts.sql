@@ -13,3 +13,34 @@ ORDER BY item_key, locale;
 SELECT * FROM `pregnancy_weekly_logs`
 WHERE user_id = sqlc.arg(user_id) AND log_date >= sqlc.arg(date_from)
 ORDER BY log_date, pregnancy_week;
+
+-- name: GetV2AlertInputStamp :one
+-- T-M12-30c: the content digest of the pregnancy alert inputs that no user_revisions bump covers, for the
+-- evaluate-before-Today skip (pregnancyalerts.Handlers.EvaluateFirst). data_stamp digests the kick sessions the
+-- detectors read (the running one + those started since `kicks_since`; starting a session and counting kicks bump
+-- nothing), the contractions of the running contraction session, and the appointments (reminders) from
+-- `appointments_since` on (the next visit). inbox_stamp digests the open preg.* inbox rows (an ack, a dismiss, a sweep
+-- or another evaluation changes it). Each part is COUNT + the XOR of a 64-bit MD5 prefix per row: any change to a
+-- row's content moves it, and the read is one indexed scan per table.
+SELECT
+  CAST(CONCAT_WS(':',
+    (SELECT CONCAT(COUNT(*), '.', COALESCE(BIT_XOR(CAST(CONV(SUBSTRING(MD5(CONCAT_WS('|', k.id, k.started_at,
+        IFNULL(k.ended_at, '-'), k.kicks, IFNULL(k.tenth_kick_at, '-'), IFNULL(k.active_lock, '-'))), 1, 16), 16, 10) AS UNSIGNED)), 0))
+      FROM `pregnancy_kick_sessions` k
+      WHERE k.user_id = sqlc.arg(user_id) AND (k.active_lock = 1 OR k.started_at >= sqlc.arg(kicks_since))),
+    (SELECT CONCAT(COUNT(*), '.', COALESCE(BIT_XOR(CAST(CONV(SUBSTRING(MD5(CONCAT_WS('|', c.id, c.session_id, c.started_at,
+        IFNULL(c.ended_at, '-'))), 1, 16), 16, 10) AS UNSIGNED)), 0))
+      FROM `pregnancy_contractions` c
+      JOIN `pregnancy_contraction_sessions` cs ON cs.id = c.session_id
+      WHERE c.user_id = sqlc.arg(user_id) AND cs.user_id = sqlc.arg(user_id) AND cs.active_lock = 1),
+    (SELECT CONCAT(COUNT(*), '.', COALESCE(BIT_XOR(CAST(CONV(SUBSTRING(MD5(CONCAT_WS('|', r.id, r.scheduled_at,
+        IFNULL(CAST(r.meta AS CHAR), '-'))), 1, 16), 16, 10) AS UNSIGNED)), 0))
+      FROM `reminders` r
+      WHERE r.user_id = sqlc.arg(user_id) AND r.`type` = 'appointment' AND r.scheduled_at >= sqlc.arg(appointments_since))
+  ) AS CHAR) AS data_stamp,
+  CAST((SELECT CONCAT(COUNT(*), '.', COALESCE(BIT_XOR(CAST(CONV(SUBSTRING(MD5(CONCAT_WS('|', mi.id, mi.rule_id, mi.state,
+      mi.level, IFNULL(mi.evidence_key, '-'), IFNULL(mi.acked_at, '-'))), 1, 16), 16, 10) AS UNSIGNED)), 0))
+    FROM `message_inbox` mi
+    WHERE mi.user_id = sqlc.arg(user_id) AND mi.open_flag = 1 AND mi.rule_key LIKE 'preg.%') AS CHAR) AS inbox_stamp
+FROM `users` u
+WHERE u.id = sqlc.arg(user_id);

@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 
 import { PrimaryButton, SecondaryButton } from '@/shared/ui';
 import { CycleDotRing } from '@/widgets/intro-carousel';
+import '@/shared/ui/styles/ib.css';
 
 interface Props {
   onStart: () => void;

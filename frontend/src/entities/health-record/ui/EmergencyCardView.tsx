@@ -8,6 +8,7 @@ import { formatNumber } from '@/shared/lib/date';
 
 import type { EmergencyCard } from '../api/emergency';
 import { CHRONIC_ILLNESSES } from '../model/types';
+import './ecard.css';
 
 function isChronic(code: string): code is (typeof CHRONIC_ILLNESSES)[number] {
   return (CHRONIC_ILLNESSES as readonly string[]).includes(code);

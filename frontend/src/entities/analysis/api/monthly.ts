@@ -19,7 +19,7 @@ import { analysisKeys } from './keys';
 import { phraseSchema } from './schema';
 
 /** Output type `T`, any input (the transforms rename snake_case keys). */
-type Parser<T> = z.ZodType<T, z.ZodTypeDef, unknown>;
+type Parser<T> = z.ZodType<T, unknown>;
 
 const bpSchema: Parser<BloodPressureValue> = z.object({ systolic: z.number(), diastolic: z.number() });
 const metricValue = z.union([z.number(), bpSchema]).nullable().catch(null);

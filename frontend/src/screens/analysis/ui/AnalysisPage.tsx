@@ -12,6 +12,7 @@ import { BottomNav, useNavMode } from '@/widgets/bottom-nav';
 import { hubVariant } from '../model/hub';
 import type { AnalysisTab } from '../model/tab';
 import { AnalysisHub } from './AnalysisHub';
+import '@/shared/ui/styles/an.css';
 
 
 /**

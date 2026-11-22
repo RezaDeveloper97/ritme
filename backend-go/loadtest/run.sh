@@ -18,7 +18,7 @@ runner="${K6_RUNNER:-docker}"
 image="${K6_IMAGE:-grafana/k6:1.3.0}"
 metrics="${METRICS_URL:-http://127.0.0.1:9090/metrics}"
 base="${BASE_URL:-http://127.0.0.1:8020}"
-scenarios=(app_open calendar_browse log_burst analysis_tab fertility_tab soak)
+scenarios=(app_open web_home calendar_browse log_burst analysis_tab fertility_tab soak)
 
 k6run() { # k6run <k6 args...>; scripts live in loadtest/, mounted at /loadtest in docker
   if [[ "$runner" == local ]]; then

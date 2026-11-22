@@ -11,6 +11,7 @@ import (
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/platform/clock"
+	"github.com/ritme/backend-go/internal/platform/etag"
 	"github.com/ritme/backend-go/internal/platform/ratelimit"
 	"github.com/ritme/backend-go/internal/teen"
 )
@@ -30,7 +31,7 @@ func init() {
 			throttle = ratelimit.New(d.Cache, clock.Real{}).
 				NamedWith("banner-events", BannerEventsMax, time.Minute, auth.ThrottleIdentity, writeThrottled)
 		}
-		r.Get("/api/v1/banners/ads", locale, guard, h.List)
+		r.Get("/api/v1/banners/ads", locale, guard, etag.ByBody(), h.List) // T-M12-34: ETag / 304
 		r.Post("/api/v1/banners/:id/events", locale, guard, throttle, h.Event)
 	})
 }

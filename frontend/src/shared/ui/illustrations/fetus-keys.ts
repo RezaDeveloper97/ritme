@@ -1,3 +1,4 @@
+import '@/shared/ui/styles/pg2.css';
 /**
  * The fetus-size illustration keys — the contract between the admin week
  * editor's illustration picker (T-M7-06/07, `pregnancy_week_details.illustration_key`)

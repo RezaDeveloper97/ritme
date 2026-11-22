@@ -1,0 +1,109 @@
+/* `cdb-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.cdb-sec { display: flex; flex-direction: column; gap: 10px; }
+
+.cdb-list { display: flex; flex-direction: column; gap: 8px; }
+
+.cdb-opt,
+.cdb-child {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--r-card); border: 1.5px solid var(--line);
+  background: var(--surface); color: var(--text-1); font: inherit; text-align: start; text-decoration: none; cursor: pointer; min-block-size: 56px;
+}
+
+.cdb-opt.on,
+.cdb-child.on { border-color: var(--brand); background: var(--brand-soft); }
+
+.cdb-opt-main { display: flex; flex-direction: column; gap: 2px; min-inline-size: 0; }
+
+.cdb-opt-main strong { font-size: 14px; font-weight: 800; }
+
+.cdb-opt-main small { font-size: 12px; font-weight: 600; color: var(--text-2); }
+
+.cdb-radio { flex-shrink: 0; inline-size: 20px; block-size: 20px; border-radius: 50%; border: 2px solid var(--line-strong); background: var(--surface); }
+
+.cdb-opt.on .cdb-radio { border-color: var(--brand-fill); background: radial-gradient(circle, var(--brand-fill) 45%, var(--surface) 50%); }
+
+.cdb-chips { display: flex; gap: 8px; overflow-x: auto; padding-block-end: 4px; }
+
+.cdb-child { flex-shrink: 0; }
+
+.cdb-add { border-style: dashed; color: var(--brand-strong); font-size: 13px; font-weight: 800; }
+
+.cdb-av { display: grid; place-items: center; inline-size: 34px; block-size: 34px; border-radius: 50%; background: var(--avatar-grad); color: var(--text-1); font-weight: 800; }
+
+.cdb-days { display: flex; gap: 8px; overflow-x: auto; padding-block-end: 4px; }
+
+.cdb-day {
+  flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 2px; min-inline-size: 62px; min-block-size: 56px; padding: 8px 10px;
+  border-radius: var(--r-card); border: 1.5px solid var(--line); background: var(--surface); color: var(--text-1); font: inherit; cursor: pointer;
+}
+
+.cdb-day small { font-size: 11px; font-weight: 700; color: var(--text-3); }
+
+.cdb-day strong { font-size: 13px; font-weight: 800; }
+
+.cdb-day.on { background: var(--brand-fill); border-color: var(--brand-fill); color: var(--on-brand); }
+
+.cdb-day.on small { color: var(--on-brand); }
+
+.cdb-sum { display: flex; flex-direction: column; gap: 8px; }
+
+.cdb-sum-t { margin: 0; font-size: 13px; font-weight: 800; color: var(--text-1); }
+
+.cdb-sum dl { margin: 0; display: flex; flex-direction: column; }
+
+.cdb-sum dl > div { display: flex; justify-content: space-between; gap: 12px; padding-block: 8px; border-block-start: 1px solid var(--line); font-size: 13px; }
+
+.cdb-sum dt { font-weight: 700; color: var(--text-2); }
+
+.cdb-sum dd { margin: 0; font-weight: 800; color: var(--text-1); }
+
+.cdb-hero { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding-block: 8px; }
+
+.cdb-hero-ic { display: grid; place-items: center; inline-size: 76px; block-size: 76px; border-radius: 50%; background: var(--brand-soft); color: var(--brand-ink); }
+
+.cdb-hero-ic.is-confirmed,
+.cdb-hero-ic.is-completed { background: var(--success-soft); color: var(--success); }
+
+.cdb-hero-ic.is-rejected,
+.cdb-hero-ic.is-cancelled { background: var(--danger-soft); color: var(--danger-deep); }
+
+.cdb-hero-t { margin: 4px 0 0; font-family: var(--font-display); font-size: 22px; color: var(--text-1); }
+
+.cdb-hero-s { margin: 0; font-size: 13px; font-weight: 600; line-height: 1.9; color: var(--text-2); }
+
+.cdb-code { margin: 0; font-size: 12px; font-weight: 800; color: var(--text-3); }
+
+.cdb-rows { display: flex; flex-direction: column; padding-block: 4px; padding-inline: 16px; }
+
+.cdb-row { display: flex; align-items: center; gap: 12px; padding-block: 10px; border-block-start: 1px solid var(--line); }
+
+.cdb-row:first-child { border-block-start: 0; }
+
+.cdb-row-ic { display: grid; place-items: center; flex-shrink: 0; inline-size: 38px; block-size: 38px; border-radius: 50%; background: var(--brand-soft); color: var(--brand-ink); }
+
+.cdb-actions,
+.cdb-btns { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.cdb-tabs { display: flex; padding: 4px; gap: 4px; border-radius: var(--r-pill); border: 1px solid var(--line); background: var(--surface); }
+
+.cdb-tab { flex: 1; min-block-size: 44px; border: 0; border-radius: var(--r-pill); background: transparent; color: var(--text-2); font: inherit; font-size: 14px; font-weight: 800; cursor: pointer; }
+
+.cdb-tab.on { background: var(--brand-fill); color: var(--on-brand); }
+
+.cdb-review { display: flex; flex-direction: column; gap: 10px; margin-block-start: 8px; }
+
+.cdb-stars { display: flex; gap: 4px; }
+
+.cdb-star { display: grid; place-items: center; inline-size: 44px; block-size: 44px; border: 0; background: transparent; color: var(--text-4); cursor: pointer; }
+
+.cdb-star.on { color: var(--warm-deep); }
+
+.cdb-linkbtn { background: none; border: 0; padding: 0; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+
+.cdb-opt:focus-visible,
+.cdb-child:focus-visible,
+.cdb-day:focus-visible,
+.cdb-tab:focus-visible,
+.cdb-star:focus-visible,
+.cdb-linkbtn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }

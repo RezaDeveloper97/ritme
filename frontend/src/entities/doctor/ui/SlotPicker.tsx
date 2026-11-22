@@ -12,6 +12,7 @@ import { Card, EmptyState, Icon, Skeleton, SkeletonGroup } from '@/shared/ui';
 import { useDoctorSlots } from '../api/queries';
 import type { VisitMode } from '../api/schema';
 import { formatClock } from '../model/format';
+import '@/shared/ui/styles/dr.css';
 
 export interface PickedSlot {
   date: string;

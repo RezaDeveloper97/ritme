@@ -1,0 +1,7 @@
+/* `wheel-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.wheel-band {
+  position: absolute; top: 88px; inset-inline-start: 0; inset-inline-end: 0; height: 44px;
+  border-radius: 12px; background: color-mix(in srgb, var(--brand) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--brand) 30%, transparent); pointer-events: none; z-index: 0;
+}

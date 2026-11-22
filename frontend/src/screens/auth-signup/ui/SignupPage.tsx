@@ -8,6 +8,7 @@ import { Checkbox, Icon } from '@/shared/ui';
 import { isValidMobile, normalizeMobile } from '@/shared/lib/phone';
 import { useOnboardingStore } from '@/entities/user';
 import { authErrorKey, OnbFrame, OTP_LENGTH, SIGNUP_CONSENT_VERSIONS, useSendOtp } from '@/features/auth';
+import '@/shared/ui/styles/onb.css';
 
 /** `09123456789` → `912 345 6789` (the +98 box carries the country code). */
 function displayNational(mobile: string): string {

@@ -1,6 +1,7 @@
 'use client';
 
 import { Art3d, Icon } from '@/shared/ui';
+import './vorb.css';
 
 export type OrbState = 'idle' | 'listening' | 'thinking';
 

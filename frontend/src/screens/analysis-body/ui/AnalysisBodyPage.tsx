@@ -19,6 +19,7 @@ import { BottomNav } from '@/widgets/bottom-nav';
 import { ChartCard, ColumnChart, ReportFrame, TrendLine } from '@/widgets/charts';
 
 import { headlineWeight, maxIndex, signed, weekdayValues } from '../model/body';
+import '@/shared/ui/styles/anr.css';
 
 type Range = (typeof REPORT_RANGES.body)[number];
 

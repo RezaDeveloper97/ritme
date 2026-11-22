@@ -8,6 +8,7 @@ import { EmergencyCardView, usePublicEmergencyCard } from '@/entities/health-rec
 import { ApiError } from '@/shared/api';
 import { replaceUrlPath, usePageHide } from '@/shared/lib/page-hide';
 import { EmptyState, InfoNote, PrimaryButton, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
+import '@/shared/ui/styles/rem.css';
 
 /**
  * `/emergency/[token]` — the public emergency card (CB-REC-05, D-72): no session, no navigation into the app, not

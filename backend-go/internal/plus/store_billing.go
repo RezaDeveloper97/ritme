@@ -196,6 +196,13 @@ func (s *Service) StoreVerify(ctx context.Context, userID uint64, storeName, sig
 
 		// Claim the token (first account wins), serialising concurrent verifies of it.
 		row, err := q.LockStorePurchase(ctx, store.LockStorePurchaseParams{Store: storeName, PurchaseToken: p.PurchaseToken})
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return fmt.Errorf("plus: store purchase: %w", err)
+		}
+		// Then the user row, before any insert (see settle): the purchase row → user lock order of every settlement.
+		if lerr := lockUser(ctx, q, userID); lerr != nil {
+			return lerr
+		}
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			err = q.InsertStorePurchase(ctx, store.InsertStorePurchaseParams{

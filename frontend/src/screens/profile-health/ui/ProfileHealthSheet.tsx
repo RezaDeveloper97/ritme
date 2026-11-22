@@ -15,6 +15,9 @@ import { type DateParts, toApiDate, today, toParts, todayParts } from '@/shared/
 import { closeSheet } from '@/shared/sheet';
 import { pilot } from '@/shared/pilot';
 import { WheelPicker } from '@/shared/ui';
+import '@/shared/ui/styles/btn.css';
+import '@/shared/ui/styles/wheel.css';
+import '@/shared/ui/styles/prof.css';
 
 // API bounds for the two durations (POST /profile validation).
 const CYCLE_MIN = 15;

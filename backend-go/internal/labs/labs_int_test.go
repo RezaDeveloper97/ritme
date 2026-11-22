@@ -44,6 +44,7 @@ import (
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/labs"
 	"github.com/ritme/backend-go/internal/labs/files"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/config"
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
@@ -70,9 +71,14 @@ type env struct {
 	credits  *credits.Service
 	consents *consent.Service
 	storage  string
+	clk      clock.Clock // the clock every part of the env shares (Real unless a test pins it)
 }
 
-func setup(t *testing.T, sync bool) *env {
+func setup(t *testing.T, sync bool) *env { return setupAt(t, sync, clock.Real{}) }
+
+// setupAt builds the env on clk: the guard, the token issuer, the handlers and every user's trial read it, so a test
+// can pin the date (month edges) without depending on the wall clock.
+func setupAt(t *testing.T, sync bool, clk clock.Clock) *env {
 	t.Helper()
 	db := testdb.New(t)
 	_, err := db.Exec(`INSERT INTO oauth_clients (id, name, secret, provider, redirect_uris, grant_types, revoked, created_at, updated_at)
@@ -81,7 +87,7 @@ func setup(t *testing.T, sync bool) *env {
 	key, err := rsa.GenerateKey(rand.Reader, 2048)
 	require.NoError(t, err)
 	q := authstore.New(db)
-	guard := auth.NewGuardWith(&key.PublicKey, q, clock.Real{}, quiet).RequireUser
+	guard := auth.NewGuardWith(&key.PublicKey, q, clk, quiet).RequireUser
 	languages := i18n.NewRegistry(i18nstore.New(db), nil, quiet)
 	locale := i18n.Middleware(languages)
 
@@ -101,10 +107,10 @@ func setup(t *testing.T, sync bool) *env {
 	svc := labs.NewService(labs.Options{DB: db, Files: box, AI: client, Consents: consents, Credits: creditSvc,
 		Catalog: catalog.NewReader(catalogstore.New(db), nil, 0, quiet), Logger: quiet})
 	runner := labs.NewRunner(svc, labs.RunnerOptions{Sync: sync, Poll: 50 * time.Millisecond, StoragePath: storage})
-	h := labs.NewHandlers(svc, languages, clock.Real{})
+	h := labs.NewHandlers(svc, languages, clk)
 
 	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(quiet), BodyLimit: 25 << 20})
-	app.Use(clock.Middleware(clock.Real{}, true))
+	app.Use(clock.Middleware(clk, true))
 	const p = "/api/v1/labs"
 	upload := append([]any{guard}, g.Chain(ai.FeatureLabAnalysis)...)
 	app.Get(p, locale, guard, h.Index)
@@ -125,8 +131,8 @@ func setup(t *testing.T, sync bool) *env {
 	app.Post(p+"/:id/markers/:mid/confirm", locale, guard, h.ConfirmMarker)
 	app.Get(p+"/:id/files/:fid", locale, guard, h.File)
 	app.Delete(p+"/:id/files/:fid", locale, guard, h.DestroyFile)
-	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clock.Real{}, 365), svc: svc, runner: runner,
-		plus: plusSvc, credits: creditSvc, consents: consents, storage: storage}
+	return &env{db: db, app: app, iss: passport.NewIssuer(key, q, clk, 365), svc: svc, runner: runner,
+		plus: plusSvc, credits: creditSvc, consents: consents, storage: storage, clk: clk}
 }
 
 // user creates a user; trial = trial started (AI credits), consent = ai_lab_analysis accepted.
@@ -140,7 +146,7 @@ func (e *env) user(t *testing.T, mobile string, trial, consented bool) (uint64, 
 	_, err = e.db.Exec(`INSERT INTO user_profiles (user_id, birthday, last_period_start, cycle_duration, period_duration, user_goal, created_at, updated_at)
 		VALUES (?, '1995-03-01', DATE_SUB(CURDATE(), INTERVAL 20 DAY), 28, 5, 'ttc', NOW(), NOW())`, id)
 	require.NoError(t, err)
-	now := time.Now()
+	now := e.clk.Now()
 	if trial {
 		require.NoError(t, e.plus.StartTrial(context.Background(), id, now))
 	}
@@ -782,18 +788,23 @@ func TestCapsAndBusyChecks(t *testing.T) {
 	assert.Equal(t, before, usage(t, e, a), "the refused upload keeps no use")
 }
 
-func TestBlankRefundsAreCapped(t *testing.T) {
-	now := time.Now().In(time.FixedZone("IRST", 3*3600+1800))
-	if now.Day() < 3 {
-		t.Skip("needs two days of the month behind the daily window")
-	}
-	e := setup(t, true)
+// blankRefundCase pins the clock at pin, logs the allowance of extraction calls 30h before it and uploads a blank
+// sheet; it returns how many uses the user is left paying for.
+func blankRefundCase(t *testing.T, pin time.Time) (*env, uint64, string) {
+	t.Helper()
+	e := setupAt(t, true, clock.At(pin))
 	a, aTok := e.user(t, "09900006051", true, true)
 	for range labs.RefundableExtractCalls + 1 {
 		_, err := e.db.Exec(`INSERT INTO ai_usage_logs (user_id, feature, op, provider, model, ok, created_at)
-			VALUES (?, 'lab_analysis', 'extract', 'fake', 'x', 1, DATE_SUB(NOW(), INTERVAL 30 HOUR))`, a)
+			VALUES (?, 'lab_analysis', 'extract', 'fake', 'x', 1, ?)`, a, pin.Add(-30*time.Hour).Format(time.DateTime))
 		require.NoError(t, err)
 	}
+	return e, a, aTok
+}
+
+func TestBlankRefundsAreCapped(t *testing.T) {
+	// 3 June 00:30 Tehran: 30h back is 1 June 18:30, still this month, on any wall-clock date.
+	e, a, aTok := blankRefundCase(t, time.Date(2026, 6, 3, 0, 30, 0, 0, civildate.Tehran))
 	r := e.upload(t, aTok, nil, part{"files", "sheet.pdf", pdf("blank")})
 	require.Equal(t, http.StatusAccepted, r.status, string(r.raw))
 	assert.Equal(t, labs.CodeNothingRead, data(r)["error_code"])
@@ -803,10 +814,20 @@ func TestBlankRefundsAreCapped(t *testing.T) {
 	assert.Equal(t, 1, usage(t, e, a), "a provider failure is always refunded")
 }
 
+// The month edge: on the 1st at 01:00 the calls logged 30h earlier belong to last month, so they are not counted and a
+// blank sheet is given its use back.
+func TestBlankRefundsIgnoreLastMonthsCalls(t *testing.T) {
+	e, a, aTok := blankRefundCase(t, time.Date(2026, 6, 1, 1, 0, 0, 0, civildate.Tehran))
+	r := e.upload(t, aTok, nil, part{"files", "sheet.pdf", pdf("blank")})
+	require.Equal(t, http.StatusAccepted, r.status, string(r.raw))
+	assert.Equal(t, labs.CodeNothingRead, data(r)["error_code"])
+	assert.Equal(t, 0, usage(t, e, a), "calls of the previous month do not cap the refund")
+}
+
 func TestSweepFinishesStuckJobsAndLabs(t *testing.T) {
 	e := setup(t, false)
 	a, _ := e.user(t, "09900006061", true, true)
-	now := time.Now()
+	now := e.clk.Now()
 	at := now.In(time.FixedZone("IRST", 3*3600+1800)).Truncate(time.Second)
 	insertLab := func(status string, quota bool) uint64 {
 		var quotaAt sql.NullTime

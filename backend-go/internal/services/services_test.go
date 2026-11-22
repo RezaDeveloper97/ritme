@@ -15,6 +15,10 @@ import (
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 )
 
+// pinnedNow is the instant these tests run at: 23:59 Tehran on the last day of a Gregorian month and of the Gregorian
+// year, where a clock read from the wall used to flip day, month and week windows.
+var pinnedNow = time.Date(2026, 12, 31, 23, 59, 0, 0, time.FixedZone("IRST", 3*3600+1800))
+
 type fakeCatalog map[string][]catalog.Item
 
 func (f fakeCatalog) Items(_ context.Context, group string) ([]catalog.Item, error) {
@@ -130,7 +134,7 @@ func TestHub_TeenDoctorAndLabsOnlyWithParent(t *testing.T) {
 
 	failing := func(context.Context, uint64) (bool, error) { return false, errors.New("db down") }
 	_, err := NewService(cat, &fakeDocs{}, modeOf(enums.LifeModeTeen), nil).WithTeenParent(failing).
-		Hub(context.Background(), 7, time.Now(), loc)
+		Hub(context.Background(), 7, pinnedNow, loc)
 	require.Error(t, err)
 }
 
@@ -192,7 +196,7 @@ func TestHub_UpcomingBooking(t *testing.T) {
 func TestHub_ModeErrorPropagates(t *testing.T) {
 	boom := errors.New("db down")
 	svc := NewService(fakeCatalog{}, &fakeDocs{}, func(context.Context, uint64) (enums.LifeMode, error) { return "", boom }, nil)
-	_, err := svc.Hub(context.Background(), 1, time.Now(), loc)
+	_, err := svc.Hub(context.Background(), 1, pinnedNow, loc)
 	assert.ErrorIs(t, err, boom)
 }
 
@@ -227,6 +231,6 @@ func TestHub_MotherChildSectionGoesLiveWithCityListings(t *testing.T) {
 	assert.Equal(t, "/city-services", s["href"])
 	assert.Equal(t, "live", s["status"])
 	_, err := base().WithCityServices(func(context.Context) (bool, error) { return false, errors.New("db") }).
-		Hub(context.Background(), 1, time.Now(), loc)
+		Hub(context.Background(), 1, pinnedNow, loc)
 	assert.Error(t, err)
 }

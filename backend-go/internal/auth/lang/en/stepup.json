@@ -1,0 +1,5 @@
+{
+    "required": "Confirm it's you with a fresh code first.",
+    "verified": "Code confirmed",
+    "no_mobile": "This account has no mobile number to send a code to."
+}

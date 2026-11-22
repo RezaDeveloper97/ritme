@@ -5,6 +5,7 @@ import { useVoiceLocked, VoiceLogGated } from '@/widgets/voice-log-slot';
 import { useRouter } from '@/shared/i18n';
 import { SkyLayer } from '@/shared/ui';
 import { BodyMap } from '@/widgets/body-map';
+import '@/shared/ui/styles/lday.css';
 
 /**
  * `/pregnancy/log[?date=]` — the log sheet v2 on its pregnancy preset as a full page (B-N3-06,

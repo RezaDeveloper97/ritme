@@ -2,6 +2,11 @@ import 'fake-indexeddb/auto';
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+const session = vi.hoisted(() => ({ token: null as string | null }));
+vi.mock('@/shared/session/token', () => ({ getAuthToken: () => session.token }));
+
+const jwtFor = (sub: string) => `h.${btoa(JSON.stringify({ sub })).replace(/=+$/, '')}.s`;
+
 import {
   CHUNK_BYTES,
   MAX_DOWNLOAD_BYTES,
@@ -16,6 +21,7 @@ import {
   resetOfflineForTests,
   saveOffline,
   subscribeOffline,
+  wipeOffline,
   type OfflineMeta,
 } from './offline-media';
 
@@ -71,6 +77,7 @@ async function rawChunk(key: string): Promise<{ iv: Uint8Array; data: ArrayBuffe
 }
 
 beforeEach(() => {
+  session.token = jwtFor('1');
   resetOfflineForTests();
 });
 
@@ -177,5 +184,35 @@ describe('offline media store', () => {
     await saveOffline(meta(40), response(bytes(3, 1)));
     expect(await getOffline(40)).toMatchObject({ size: 3, chunks: 1 });
     expect(await rawChunk('40:1')).toBeUndefined();
+  });
+
+  it('never returns an item tagged with another user (list, get, read)', async () => {
+    await saveOffline(meta(50), response(bytes(10)));
+    session.token = jwtFor('2');
+    expect(await listOffline()).toEqual([]);
+    expect(await getOffline(50)).toBeNull();
+    expect(await readOfflineBlob(50)).toBeNull();
+    session.token = jwtFor('1');
+    expect((await listOffline()).map((i) => i.lessonId)).toEqual([50]);
+  });
+
+  it('returns nothing without a session, and refuses to save', async () => {
+    await saveOffline(meta(51), response(bytes(10)));
+    session.token = null;
+    expect(await listOffline()).toEqual([]);
+    await expect(saveOffline(meta(52), response(bytes(10)))).rejects.toMatchObject({ code: 'unsupported' });
+  });
+
+  it('wipeOffline empties the store and the key; the next user starts clean', async () => {
+    await saveOffline(meta(60), response(bytes(10)));
+    const postMessage = vi.fn();
+    vi.stubGlobal('navigator', { serviceWorker: { controller: { postMessage } } });
+    await wipeOffline();
+    expect(postMessage).toHaveBeenCalledWith({ type: 'CLEAR_OFFLINE_PAGES' });
+    expect((await indexedDB.databases()).some((d) => d.name === 'ritme-offline-media')).toBe(false);
+    vi.unstubAllGlobals();
+    expect(await listOffline()).toEqual([]);
+    // Same user id logging in again still sees nothing: the data is really gone.
+    expect(await getOffline(60)).toBeNull();
   });
 });

@@ -47,6 +47,7 @@ import {
   startClock,
   toggleTrigger,
 } from '../model/flash';
+import './mhf.css';
 
 /** Code of the `meno_tips` item placed on this screen (docs/canvas-build/menopause.md §5). */
 const BREATHING_TIP = 'hot_flash_breathing';

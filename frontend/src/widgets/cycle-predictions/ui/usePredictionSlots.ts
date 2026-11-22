@@ -5,6 +5,7 @@ import {
   hasFertileWindow,
   isFertilitySuppressed,
   serverFertileEvents,
+  shiftMonth,
   useCycleMonth,
   useCycleOverview,
   useCycleToday,
@@ -108,7 +109,7 @@ export function usePredictionSlots() {
     DEFAULT_PERIOD_DAYS;
   // v6: this month's and next month's server days + `future_cycles` (same cache as the week strip).
   const baseParts = gregYearMonth(base);
-  const nextMonthParts = gregYearMonth(addDays(base, 31));
+  const nextMonthParts = shiftMonth(baseParts, 1); // calendar month, not base+31 (Jan 31 + 31 days skipped February)
   const monthNow = useCycleMonth(baseParts.year, baseParts.month);
   const monthNext = useCycleMonth(nextMonthParts.year, nextMonthParts.month);
   const serverEvents = serverFertileEvents(

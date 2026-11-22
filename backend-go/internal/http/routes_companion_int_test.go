@@ -186,6 +186,13 @@ func (e *companionEnv) invite(token string, body map[string]any) (uint64, string
 	return idOf(comp["id"]), code
 }
 
+// confirm is the owner's confirmation of an accepted code-only invite that waits for her (awaiting_owner).
+func (e *companionEnv) confirm(owner string, linkID uint64) {
+	e.t.Helper()
+	r := e.do(fiber.MethodPost, fmt.Sprintf("/api/v1/family/members/%d/confirm", linkID), owner, nil)
+	require.Equal(e.t, fiber.StatusOK, r.Status, r.Raw)
+}
+
 func medBody(extra map[string]any) map[string]any {
 	b := map[string]any{"title": "Iron", "form": "tablet", "times": []string{"21:00"}}
 	for k, v := range extra {
@@ -521,13 +528,14 @@ func TestCompanionRoutes_DelegatedWriteAuditFailClosed(t *testing.T) {
 	sara := e.user("Sara", "09120008001")
 	ali := e.user("Ali", "09120008002")
 	saraID := e.ids["Sara"]
-	_, code := e.invite(sara, map[string]any{"type": "partner", "grants": map[string]any{"meds": "edit", "appointments": "edit"}})
+	linkID, code := e.invite(sara, map[string]any{"type": "partner", "grants": map[string]any{"meds": "edit", "appointments": "edit"}})
 
 	// L-5: the inbox insert fails → accept still 200 (link active).
 	_, err := e.db.Exec("RENAME TABLE user_notifications TO user_notifications_off")
 	require.NoError(t, err)
 	r := e.do(fiber.MethodPost, "/api/v1/companions/accept", ali, map[string]any{"code": code})
 	assert.Equal(t, fiber.StatusOK, r.Status, r.Raw)
+	e.confirm(sara, linkID)
 	// M-2: a failed owner notice after a committed write is not a 500.
 	r = e.do(fiber.MethodPost, "/api/v1/care/medications", ali, medBody(map[string]any{"for_user_id": saraID}))
 	assert.Equal(t, fiber.StatusCreated, r.Status, r.Raw)

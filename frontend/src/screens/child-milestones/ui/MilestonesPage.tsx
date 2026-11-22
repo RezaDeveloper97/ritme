@@ -28,6 +28,10 @@ import {
 import { isReadOnlyError, useCheckMilestone, useMilestones } from '../api/queries';
 import { chipUnit } from '../model/months';
 import type { MilestonesView } from '../model/types';
+import '@/shared/ui/styles/chd.css';
+import '@/shared/ui/styles/cgr.css';
+import '@/shared/ui/styles/cvx.css';
+import '@/shared/ui/styles/cms.css';
 
 type T = ReturnType<typeof useTranslations<'children'>>;
 

@@ -8,6 +8,7 @@ import { type Ad, type AdSlot as Slot, sendAdEvent, useAds } from '@/entities/ba
 import { Link } from '@/shared/i18n';
 
 import { capReached, pathAllowsAds, recordShown } from '../lib/frequency';
+import './ad.css';
 
 interface Props {
   slot: Slot;

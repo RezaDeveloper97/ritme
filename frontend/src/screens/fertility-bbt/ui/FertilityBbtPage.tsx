@@ -45,6 +45,8 @@ import {
   todayReading,
   trimPlusDetail,
 } from "../model/view";
+import '@/shared/ui/styles/ttc.css';
+import '@/shared/ui/styles/fert.css';
 
 const BACK_HREF = "/home";
 const INSIGHTS_HREF = "/fertility/insights";

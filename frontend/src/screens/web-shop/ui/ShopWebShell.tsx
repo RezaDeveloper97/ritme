@@ -10,6 +10,8 @@ import { Icon } from '@/shared/ui';
 import { WebShell } from '@/widgets/web-shell';
 
 import { STORE_HOME } from '../model/store';
+import '@/shared/ui/styles/shp.css';
+import './wsh.css';
 
 const useLocale = () => useIntlLocale() as Locale;
 

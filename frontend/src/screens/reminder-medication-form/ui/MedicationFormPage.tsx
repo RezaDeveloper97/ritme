@@ -65,6 +65,8 @@ import {
   validateForm,
 } from '../model/form';
 import { DateSheet, DeleteSheet, DosageSheet, DurationSheet, FrequencySheet, TimeSheet } from './Pickers';
+import '@/shared/ui/styles/rmd.css';
+import '@/shared/ui/styles/cfm.css';
 
 type OpenSheet =
   | { kind: 'time'; key: string }

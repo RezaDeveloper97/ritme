@@ -277,9 +277,11 @@ cases:
 
   # ---------------- export ----------------
   - name: export
+    doc: "D-213: Go needs a fresh step-up (X-Step-Up, minted by the runner); Laravel has none"
     persona: [no_profile, regular, pregnant_ultrasound_w26, engaged]
     method: GET
     path: /api/v1/profile/export
+    step_up: true
     status: 200
   - name: export_unauthenticated
     persona: anon
@@ -293,12 +295,12 @@ cases:
     persona: engaged
     locales: [none, fa, en]
     steps:
-      - {method: DELETE, path: /api/v1/account, status: 200}
+      - {method: DELETE, path: /api/v1/account, step_up: true, status: 200} # D-213
       - {method: GET, path: /api/v1/auth/user, status: 401}
   - name: destroy_account_pregnant
     persona: pregnant_ultrasound_w26
     steps:
-      - {method: DELETE, path: /api/v1/account, status: 200}
+      - {method: DELETE, path: /api/v1/account, step_up: true, status: 200} # D-213
       - {method: GET, path: /api/v1/profile, status: 401}
   - name: destroy_account_unauthenticated
     persona: anon

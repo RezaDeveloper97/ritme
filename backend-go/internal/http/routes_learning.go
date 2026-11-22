@@ -13,6 +13,7 @@ import (
 	"github.com/ritme/backend-go/internal/learning"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/clock"
+	"github.com/ritme/backend-go/internal/platform/etag"
 )
 
 // learningService wires the courses service (sms nil = no SMS: the signup claim only writes grants and inbox rows).
@@ -56,7 +57,7 @@ func init() {
 		}
 
 		s := "/api/v1/learning"
-		r.Get(s+"/courses", locale, guard, h.MyCourses)
+		r.Get(s+"/courses", locale, guard, etag.ByBody(), h.MyCourses) // T-M12-34: ETag / 304
 		r.Get(s+"/courses/:id", locale, guard, h.StudentCourse)
 		r.Get(s+"/lessons/:id", locale, guard, h.ShowLesson)
 		r.Put(s+"/lessons/:id/progress", locale, guard, writes, h.SaveProgress)

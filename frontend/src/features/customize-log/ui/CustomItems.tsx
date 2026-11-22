@@ -12,6 +12,7 @@ import { ChipGroup, Icon, PillChip, PrimaryButton, SecondaryButton } from '@/sha
 import { useAddLogCustomItem, useDeleteLogCustomItem, useRenameLogCustomItem } from '../api/mutations';
 import { CUSTOM_LABEL_MAX, labelProblem, normalizeLabel } from '../model/draft';
 import { customItemError, type CustomItemError } from '../model/errors';
+import '@/shared/ui/styles/lcz.css';
 
 interface CustomItemsProps {
   prefs: LogPreferences;

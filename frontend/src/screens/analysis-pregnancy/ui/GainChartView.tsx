@@ -8,6 +8,8 @@ import { ChartFigure } from '@/widgets/charts';
 
 import type { WeightGain } from '../api/schema';
 import { GAIN_W, bandAt, gainChart } from '../model/chart';
+import '@/shared/ui/styles/axc.css';
+import '@/shared/ui/styles/apg.css';
 
 const r1 = (n: number) => String(Math.round(n * 10) / 10);
 

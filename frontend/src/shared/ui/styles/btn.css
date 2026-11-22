@@ -1,0 +1,29 @@
+/* `btn-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.btn-primary {
+  background: var(--gradient-brand); color: var(--on-brand);
+  border: 1px solid var(--brand-line);
+  box-shadow: var(--shadow-cta);
+}
+
+.btn-primary:active { transform: translateY(1px); }
+
+.btn-primary:disabled { background: var(--brand-disabled); color: var(--on-brand); box-shadow: none; cursor: default; }
+
+.btn-ghost {
+  background: var(--surface); color: var(--brand);
+  border: 1.5px solid var(--brand-line-soft); height: 44px; border-radius: 24px;
+}
+
+.btn-soft {
+  background: var(--line); color: var(--steel);
+  height: 40px; border-radius: 24px; font-size: 13px;
+  border: 0; font-family: inherit; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+
+.btn-primary:focus-visible { box-shadow: var(--ring), var(--shadow-cta); }
+
+.btn-soft:hover:not(:disabled) { background: var(--line-2); filter: none; }
+
+.btn-ghost.ck-neutral { color: var(--ink); border-color: var(--line); }

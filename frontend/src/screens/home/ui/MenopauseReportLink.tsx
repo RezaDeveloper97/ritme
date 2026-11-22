@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 
 import { Link } from '@/shared/i18n';
 import { Icon } from '@/shared/ui';
+import './mh.css';
 
 /** «گزارش ۳ ماه برای پزشک» under the treatment card (CB-MENO-11, nbl_Meno_Home → Meno_Report). */
 export function MenopauseReportLink() {

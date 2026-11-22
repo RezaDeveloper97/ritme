@@ -12,6 +12,7 @@ import { asBool, asString, pickableOptions } from '../../model/draft';
 import { logPilotId } from '../../model/pilot-targets';
 import { ParamField } from '../ParamField';
 import { PanelCard } from './PanelCard';
+import '@/shared/ui/styles/lday.css';
 
 interface BleedingPanelProps {
   category: LogCategory;

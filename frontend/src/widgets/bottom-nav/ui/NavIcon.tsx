@@ -1,6 +1,7 @@
 import { Art3d, type Art3dPath } from '@/shared/ui';
 
 import type { NavIconName } from '../model/nav-items';
+import './nbnav.css';
 
 /** The 3D picture of each tab (public/art3d). The active tab is full colour; the others are muted in CSS. */
 const ART: Record<NavIconName, Art3dPath> = {

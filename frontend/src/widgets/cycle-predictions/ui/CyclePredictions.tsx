@@ -1,14 +1,19 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { CycleValuesCard } from '@/entities/cycle';
-import { QuickEditSheet } from '@/features/edit-profile';
 
 import { needsPeriodData } from '../model/cycle-data';
 import { PredictionsCard } from './PredictionsCard';
 import { usePredictionSlots } from './usePredictionSlots';
+
+// Lazy: the sheet is fetched only once the sync nudge is tapped (T-M12-27b).
+const QuickEditSheet = dynamic(() => import('@/features/edit-profile').then((m) => m.QuickEditSheet), {
+  loading: () => null,
+});
 
 /**
  * The «پیش‌بینی‌ها» card on its own (moved off «امروز» to `/analysis`): it reads the same cached
@@ -18,6 +23,8 @@ import { usePredictionSlots } from './usePredictionSlots';
 export function CyclePredictions({ hideFertility = false }: { hideFertility?: boolean }) {
   const t = useTranslations('home');
   const [cycleSheetOpen, setCycleSheetOpen] = useState(false);
+  // Mounted from the first open on, so it keeps its close animation.
+  const [cycleSheetEver, setCycleSheetEver] = useState(false);
   const {
     todayQuery,
     limits,
@@ -51,7 +58,10 @@ export function CyclePredictions({ hideFertility = false }: { hideFertility?: bo
         suggestion={{
           text: t('values.suggestion', { n: suggested }),
           ctaLabel: t('values.syncCta', { n: suggested }),
-          onSync: () => setCycleSheetOpen(true),
+          onSync: () => {
+            setCycleSheetEver(true);
+            setCycleSheetOpen(true);
+          },
         }}
         basedOnText={t('values.basedOn', {
           source: t(
@@ -82,11 +92,13 @@ export function CyclePredictions({ hideFertility = false }: { hideFertility?: bo
       />
       {/* Seeded with what recent cycles measured, so the wheel opens on the
           value the nudge proposes and saving is a single tap. */}
-      <QuickEditSheet
-        field={cycleSheetOpen ? 'cycleDuration' : null}
-        values={{ cycleDuration: suggested ?? logged ?? null }}
-        onClose={() => setCycleSheetOpen(false)}
-      />
+      {cycleSheetEver && (
+        <QuickEditSheet
+          field={cycleSheetOpen ? 'cycleDuration' : null}
+          values={{ cycleDuration: suggested ?? logged ?? null }}
+          onClose={() => setCycleSheetOpen(false)}
+        />
+      )}
     </>
   );
 }

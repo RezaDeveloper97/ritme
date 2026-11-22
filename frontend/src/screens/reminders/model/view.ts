@@ -1,6 +1,5 @@
 import {
   type Appointment,
-  type AppointmentKind,
   type DoseUnit,
   doseDetail,
   type FrequencySummary,
@@ -196,43 +195,26 @@ export function sortMedications(meds: readonly Medication[]): Medication[] {
 
 // ── Appointment list ─────────────────────────────────────────────
 
-/** Date-tile tint: amber for a visit, teal for a phone/online consultation. */
-export type AppointmentTone = 'amber' | 'teal';
-
-export function appointmentTone(kind: AppointmentKind): AppointmentTone {
-  return kind === 'in_person' ? 'amber' : 'teal';
-}
-
 export interface AppointmentRowState {
   id: number;
   title: string;
-  kind: AppointmentKind;
-  tone: AppointmentTone;
   /** `Y-m-d` of the visit (null when the server sent none). */
   date: string | null;
   /** `HH:MM`, or null. */
   time: string | null;
-  /** Who, appended to the title («{title} · {with}») — in-person visits only. */
+  /** Who, appended to the title («{title} · {with}»). */
   titleWith: string | null;
-  /**
-   * The third meta part. In person: the place (who is already in the title).
-   * Phone / online: who, since the "place" is a number or a link.
-   */
+  /** The place (address, number or link), shown after the time. */
   detail: string | null;
 }
 
 export function appointmentRowState(appt: Appointment): AppointmentRowState {
   const [date, clock] = (appt.scheduledAt ?? '').split(' ');
-  const who = appt.withWhom?.trim() || null;
-  const place = appt.location?.trim() || null;
-  const inPerson = appt.kind === 'in_person';
   return {
     id: appt.id,
     title: appt.title,
-    titleWith: inPerson ? who : null,
-    detail: inPerson ? place : (who ?? place),
-    kind: appt.kind,
-    tone: appointmentTone(appt.kind),
+    titleWith: appt.withWhom?.trim() || null,
+    detail: appt.location?.trim() || null,
     date: date ? date : null,
     time: clock ? clock.slice(0, 5) : null,
   };

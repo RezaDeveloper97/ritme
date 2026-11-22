@@ -22,6 +22,9 @@ import { Card, EmptyState, Icon, PrimaryButton, SecondaryButton, Skeleton, Skele
 
 import { APP_SHOP, STORE_HOME, storeProductHref } from '../model/store';
 import { isTeenRefusal, WebShopGate, WebShopTeen } from './WebShopGate';
+import '@/shared/ui/styles/shp.css';
+import './wsh.css';
+import './wsc.css';
 
 const MAX_QTY = 10;
 

@@ -14,6 +14,9 @@ import { formatNumber, toApiDate, today } from '@/shared/lib/date';
 import { Icon, ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
 import { SELF_EXAM_MINUTES, adherence, daysUntilWindow, doneThisMonth, findSelfExam } from '../model/view';
+import '@/shared/ui/styles/btn.css';
+import '@/shared/ui/styles/ck.css';
+import '@/shared/ui/styles/rmd.css';
 
 /** M3 AddAppointment (same target as the checkup detail «ثبت نوبت»). */
 const BOOK_HREF = '/reminders/appointment/new?kind=in_person';

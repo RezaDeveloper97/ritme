@@ -6,6 +6,7 @@ import { useId } from 'react';
 import { normalizeCompanionCode } from '../lib/code';
 import { COMPANION_CODE_LENGTH } from '../model/companion-side';
 import { pilot } from '@/shared/pilot';
+import '@/shared/ui/styles/cmh.css';
 
 interface CompanionCodeFieldProps {
   value: string;

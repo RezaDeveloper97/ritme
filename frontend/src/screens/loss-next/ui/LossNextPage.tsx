@@ -30,6 +30,7 @@ import {
   SkyLayer,
   type Tone,
 } from '@/shared/ui';
+import './lnx.css';
 
 const LOOK: Record<LossNextStep, { icon: IconName; tone: Tone }> = {
   cycle: { icon: 'drop', tone: 'period' },

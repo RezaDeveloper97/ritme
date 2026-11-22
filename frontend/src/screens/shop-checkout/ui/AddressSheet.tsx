@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { type ShopAddress, useDeleteAddress, useSaveAddress } from '@/entities/shop';
 import { AppSheet } from '@/shared/sheet';
 import { Checkbox, PrimaryButton, SecondaryButton } from '@/shared/ui';
+import '@/shared/ui/styles/shco.css';
 
 interface Props {
   addresses: ShopAddress[];

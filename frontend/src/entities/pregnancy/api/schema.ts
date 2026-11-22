@@ -83,7 +83,7 @@ export const pregnancyStatusSchema = z
     is_high_risk: z.boolean().default(false),
     fetal_movement_tracking_active: z.boolean().default(false),
     fetal_movement_required: z.boolean().default(false),
-    flags: z.record(z.union([bilingual, z.string()])).default({}),
+    flags: z.record(z.string(), z.union([bilingual, z.string()])).prefault({}),
   })
   .transform(
     (s): PregnancyStatus => ({

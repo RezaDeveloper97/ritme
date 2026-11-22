@@ -7,7 +7,7 @@ import { api, createResource, pagedSchema } from '@/shared/api';
 
 /** Instructors & courses moderation «مدرسین و دوره‌ها» (admin-api.md §20, B-N8-08). */
 
-const list = <T extends z.ZodTypeAny>(item: T) => z.preprocess((v) => (Array.isArray(v) ? v : []), z.array(item));
+const list = <T extends z.ZodType>(item: T) => z.preprocess((v) => (Array.isArray(v) ? v : []), z.array(item));
 const adminRefSchema = z.object({ id: z.number(), name: z.string().nullable() }).nullable().catch(null);
 const countsSchema = z.record(z.string(), z.number());
 

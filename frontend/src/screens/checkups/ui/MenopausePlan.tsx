@@ -10,6 +10,9 @@ import { Icon, Skeleton, SkeletonGroup } from '@/shared/ui';
 
 import { useMenoCheckupGroups, useMenoCheckupsIntro } from '../api/meno';
 import { MENO_CHIP_TONE, groupForMenopause, menoCadence, menoChip, menoWhen } from '../model/meno';
+import '@/shared/ui/styles/ck.css';
+import '@/shared/ui/styles/rmd.css';
+import './mck.css';
 
 /**
  * The checkups body in menopause mode (CB-MENO-09, nbl_Meno_Checkups): the

@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
 import { Icon, type IconName } from '@/shared/ui';
+import '@/shared/ui/styles/rad.css';
 
 
 interface Choice {

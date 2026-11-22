@@ -1,0 +1,55 @@
+/* `lst-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.lst-page { background: var(--page); }
+
+.lst-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; min-block-size: 100%; }
+
+.lst-scroll > :not(.nb-hdr):not(.lst-footer) { margin-inline: var(--gutter); }
+
+.lst-skel { display: flex; flex-direction: column; gap: 12px; }
+
+.lst-skel-card { block-size: 84px; border-radius: var(--r-card); }
+
+.lst-footer {
+  position: sticky; bottom: 0; z-index: 2; margin-top: auto; display: flex; flex-direction: column; gap: 8px;
+  padding: 12px var(--gutter) max(14px, env(safe-area-inset-bottom));
+  background: var(--surface-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+
+.lst-error { margin: 0; font-size: var(--fs-md); font-weight: 700; color: var(--danger-deep); }
+
+.lst-intro { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+
+.lst-title { margin: 0; font-size: 24px; line-height: 1.5; font-weight: 900; color: var(--text-1); }
+
+.lst-lead { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+
+.nb-card.lst-card { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+
+.lst-card-title { margin: 0; font-size: 14.5px; font-weight: 800; color: var(--text-1); }
+
+.nb-card.lst-settings { gap: 0; padding: 4px 16px; }
+
+.lst-settings > * + * { border-top: 1px solid var(--line); }
+
+.lst-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-block-size: 64px; padding-block: 10px; }
+
+.lst-date { width: 100%; border: 0; background: none; font: inherit; color: inherit; text-align: start; cursor: pointer; }
+
+.lst-date:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 12px; }
+
+.lst-row-label { font-size: 13px; font-weight: 700; color: var(--text-2); }
+
+.lst-date-value { font-size: 14.5px; font-weight: 800; color: var(--text-1); }
+
+.lst-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+.lst-row-title { font-size: 13.5px; font-weight: 800; color: var(--text-1); }
+
+.lst-row-sub { font-size: var(--fs-sm); font-weight: 600; color: var(--text-2); }
+
+.nb-switch.lst-fixed:disabled { opacity: 1; }
+
+.lst-sheet-btns { display: flex; gap: 10px; }
+
+.lst-sheet-btns > * { flex: 1 1 0; }

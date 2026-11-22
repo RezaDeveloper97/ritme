@@ -9,6 +9,7 @@ import { Icon, InfoNote, ListGroup, ListRow, ScreenHeader, SkyLayer, StatusPill,
 import { pilot } from '@/shared/pilot';
 
 import { DEVICE_KINDS, readInterest, writeInterest, type DeviceKind } from '../model/interest';
+import './dvc.css';
 
 const ICON: Record<DeviceKind, IconName> = {
   watch: 'watch',

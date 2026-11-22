@@ -18,6 +18,14 @@ never "token".
 5. **One use of a feature costs a fixed number of credits** (`ai_features.credit_cost`), whatever the token count.
    Tokens and the provider cost are still logged per call (`ai_usage_logs`) for the admin's margin report.
 6. Credits are **reserved before** the provider runs and **refunded** when the call fails.
+7. **Boundaries** (T-M12-19, user decision 2026-11-18): a period is the half-open range `[starts_at, ends_at)` — at
+   `ends_at` exactly the subscription is over (same as `/plus/status`). Back-to-back periods hand over at that second;
+   unused period credits never carry over. A refund always goes back to the bucket it was taken from: the extra share
+   is usable again (locked if no period is running), the period share returns to its own period — if that period has
+   ended, it ends with it (never moved to the current period, never turned into extra credits). A refund is idempotent.
+8. **Plan purchases stack** (queued after the running period); each period gets exactly one credit bucket, and only
+   the running period's credits count. Settling several invoices of one user at once never overlaps periods (the user
+   row is locked while a period is placed).
 
 A period without a plan (admin / challenge gift) has no credits of its own; the admin can gift extra credits.
 

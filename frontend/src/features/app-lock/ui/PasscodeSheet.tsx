@@ -9,6 +9,7 @@ import { SegmentedTabs } from '@/shared/ui';
 import { PASSCODE_MAX, PASSCODE_MIN } from '../model/passcode';
 import { getLockController } from '../model/store';
 import { PasscodePad } from './PasscodePad';
+import './lk.css';
 
 type Mode = 'create' | 'verify';
 

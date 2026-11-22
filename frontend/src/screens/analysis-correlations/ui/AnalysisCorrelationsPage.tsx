@@ -13,6 +13,8 @@ import { BottomNav, useNavMode } from '@/widgets/bottom-nav';
 import { ChartCard, ColumnChart, ReportFrame } from '@/widgets/charts';
 
 import { isPairGroup, isPhaseGroup, PAIR_STYLE, strengthTone, TEASER } from '../model/correlations';
+import '@/shared/ui/styles/axc.css';
+import '@/shared/ui/styles/anr.css';
 
 type Range = (typeof REPORT_RANGES.correlations)[number];
 type Item = NonNullable<CorrelationsReport['data']>['items'][number];

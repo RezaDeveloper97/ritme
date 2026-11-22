@@ -24,6 +24,9 @@ import { NAME_MAX, NOTE_MAX } from '../model/form';
 import { bookable } from '../model/place';
 import { CsSkeleton } from './ListSkeleton';
 import { usePrice } from './PlaceSections';
+import '@/shared/ui/styles/csv.css';
+import '@/shared/ui/styles/cdp.css';
+import '@/shared/ui/styles/cdb.css';
 
 /**
  * CB-DIR-09 — the slot booking request (nbl_Dir_Book): service, her own child, day strip, time grid, note, summary.

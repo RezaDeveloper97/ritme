@@ -6,6 +6,7 @@ import type { CycleFertilityLevel } from '@/entities/cycle';
 import { Icon } from '@/shared/ui';
 
 import { chanceFraction } from '../model/ttc';
+import '@/shared/ui/styles/ttc.css';
 
 /** Donut geometry (`v19_Main`: 76 px, 9 px stroke). */
 const R = 33.5;

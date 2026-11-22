@@ -56,6 +56,8 @@ import {
 import { BottomNav } from '@/widgets/bottom-nav';
 
 import { BOOK_HREF, REPORT_DAYS, bookPrefill, directionsHref, monthKey, nextStage, stageProgress } from '../model/view';
+import '@/shared/ui/styles/preg.css';
+import '@/shared/ui/styles/pgn.css';
 
 const NEW_VISIT_HREF = '/reminders/appointment/new?kind=in_person&return_to=/pregnancy/calendar';
 

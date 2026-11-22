@@ -19,6 +19,8 @@ import {
   SkeletonGroup,
   SkyLayer,
 } from '@/shared/ui';
+import '@/shared/ui/styles/onb.css';
+import '@/shared/ui/styles/cmh.css';
 
 /**
  * `/companion/links` — «افزودن همراه» (companion v2 `join` → `joinConfirm`): enter a code, see whose

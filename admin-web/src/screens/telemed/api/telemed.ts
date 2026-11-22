@@ -7,7 +7,7 @@ import { api, createResource, pagedSchema, translationsSchema } from '@/shared/a
 
 /** Doctors directory, bookings, refunds and the doctor inbox (admin-api.md §19, §19b, §19c; B-N7-08). */
 
-const list = <T extends z.ZodTypeAny>(item: T) => z.preprocess((v) => (Array.isArray(v) ? v : []), z.array(item));
+const list = <T extends z.ZodType>(item: T) => z.preprocess((v) => (Array.isArray(v) ? v : []), z.array(item));
 const nullableNumber = z.number().nullable().catch(null);
 
 export const visitTypeSchema = z.object({

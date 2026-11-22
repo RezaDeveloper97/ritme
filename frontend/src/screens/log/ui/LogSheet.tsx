@@ -1,9 +1,10 @@
 'use client';
 
 import { LogDay, LogDaySheetTitle } from '@/features/log-day';
-import { useVoiceLocked, VoiceLogGated } from '@/widgets/voice-log-slot';
+
 import { closeSheet, type SheetContentProps } from '@/shared/sheet';
 import { BodyMap } from '@/widgets/body-map';
+import { useVoiceLocked, VoiceLogGated } from '@/widgets/voice-log-slot';
 import { LogSheet as CompanionLogSheet, LogSheetTitle as CompanionLogSheetTitle, useNavMode } from '@/widgets/bottom-nav';
 import { LogLater } from '@/widgets/log-later';
 

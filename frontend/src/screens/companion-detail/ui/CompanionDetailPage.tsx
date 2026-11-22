@@ -35,6 +35,7 @@ import {
   sameGoals,
   sameSignals,
   storedGoals,
+  PeriodDaysSwitch,
   SignalSwitches,
 } from '@/features/invite-companion';
 import { pilot } from '@/shared/pilot';
@@ -52,6 +53,7 @@ import {
   SkeletonGroup,
   SkyLayer,
 } from '@/shared/ui';
+import '@/shared/ui/styles/cmp.css';
 
 const ACTIVITY_LIMIT = 5;
 
@@ -229,12 +231,14 @@ function PreferencesSection({ companion }: { companion: OwnerCompanion }) {
   const [goals, setGoals] = useState<CompanionGoal[] | null>(null);
   const [signals, setSignals] = useState<CompanionSignalScope | null>(null);
   const [actions, setActions] = useState<CompanionAction[] | null>(null);
+  const [periodDays, setPeriodDays] = useState<boolean | null>(null);
   const [saved, setSaved] = useState(false);
 
   const goalDirty = goals !== null && !sameGoals(storedGoals(goals), server.goals);
   const signalsDirty = signals !== null && !sameSignals(signals, server.signals);
   const actionsDirty = actions !== null && !sameActions(actions, server.actionPrefs);
-  const dirty = goalDirty || signalsDirty || actionsDirty;
+  const periodDirty = periodDays !== null && periodDays !== (server.periodDays ?? false);
+  const dirty = goalDirty || signalsDirty || actionsDirty || periodDirty;
 
   const touch = () => setSaved(false);
   const onSave = () => {
@@ -244,12 +248,14 @@ function PreferencesSection({ companion }: { companion: OwnerCompanion }) {
         ...(goalDirty && goals ? { goals: storedGoals(goals) } : {}),
         ...(signalsDirty && signals ? { signals } : {}),
         ...(actionsDirty && actions ? { actionPrefs: actions } : {}),
+        ...(periodDirty && periodDays !== null ? { periodDays } : {}),
       },
       {
         onSuccess: () => {
           setGoals(null);
           setSignals(null);
           setActions(null);
+          setPeriodDays(null);
           setSaved(true);
         },
       },
@@ -279,6 +285,18 @@ function PreferencesSection({ companion }: { companion: OwnerCompanion }) {
           setSignals(s);
         }}
       />
+      <h3 className="cmp2-label">{t('periodDays.label')}</h3>
+      <PeriodDaysSwitch
+        value={periodDays ?? server.periodDays ?? false}
+        disabled={save.isPending}
+        onChange={(on) => {
+          touch();
+          setPeriodDays(on);
+        }}
+      />
+      {(periodDays ?? server.periodDays) && companion.grants.cycle === 'none' ? (
+        <p className="cmp-lead">{t('periodDays.needsCycle')}</p>
+      ) : null}
       <h3 className="cmp2-label">{t('detail.actionsTitle')}</h3>
       <ActionPicker
         value={actions ?? server.actionPrefs}

@@ -16,6 +16,7 @@ import {
 import { pilot } from '@/shared/pilot';
 import { useRouter } from '@/shared/i18n';
 import { Card, InfoNote, PrimaryButton, ScreenHeader, SkyLayer, Switch } from '@/shared/ui';
+import '@/shared/ui/styles/as.css';
 
 const GROUPS = [
   { id: 'basic', keys: ['age', 'life_mode', 'basics'] },

@@ -121,3 +121,117 @@ entries:
     where: "**.onboarding_last_period_start"
     deviation: D-123
     reason: a changed last_period_start is a new declaration → onboarding anchor column (Laravel null)
+  # D-96 extended (task T-M12-14, the export covers every user-owned table): the Go-only sections
+  # T-M12-14 added after `postpartum`; first visible once D-213's step-up let the export case reach a 200 again.
+  # Additive like the D-96 keys above; the deviation row still needs these names (flagged in the T-M12-06 report).
+  - case: "export*"
+    where: data.account_records
+    deviation: D-96
+    reason: Go-only `account_records` section of the full account export (T-M12-14)
+  - case: "export*"
+    where: data.activity
+    deviation: D-96
+    reason: Go-only `activity` section of the full account export (T-M12-14)
+  - case: "export*"
+    where: data.ai_credits
+    deviation: D-96
+    reason: Go-only `ai_credits` section of the full account export (T-M12-14)
+  - case: "export*"
+    where: data.assistant
+    deviation: D-96
+    reason: Go-only `assistant` section of the full account export (T-M12-14)
+  - case: "export*"
+    where: data.care
+    deviation: D-96
+    reason: Go-only `care` section of the full account export (T-M12-14)
+  - case: "export*"
+    where: data.challenges
+    deviation: D-96
+    reason: Go-only `challenges` section of the full account export (T-M12-14)
+  - case: "export*"
+    where: data.checkups
+    deviation: D-96
+    reason: Go-only `checkups` section of the full account export (T-M12-14)
+  - case: "export*"
+    where: data.children
+    deviation: D-96
+    reason: Go-only `children` section of the full account export (T-M12-14)
+  - case: "export*"
+    where: data.cycle
+    deviation: D-96
+    reason: Go-only `cycle` section of the full account export (T-M12-14)
+  - case: "export*"
+    where: data.family
+    deviation: D-96
+    reason: Go-only `family` section of the full account export (T-M12-14)
+  - case: "export*"
+    where: data.fertility
+    deviation: D-96
+    reason: Go-only `fertility` section of the full account export (T-M12-14)
+  - case: "export*"
+    where: data.health_log
+    deviation: D-96
+    reason: Go-only `health_log` section of the full account export (T-M12-14)
+  - case: "export*"
+    where: data.health_record
+    deviation: D-96
+    reason: Go-only `health_record` section of the full account export (T-M12-14)
+  - case: "export*"
+    where: data.labs
+    deviation: D-96
+    reason: Go-only `labs` section of the full account export (T-M12-14)
+  - case: "export*"
+    where: data.learning
+    deviation: D-96
+    reason: Go-only `learning` section of the full account export (T-M12-14)
+  - case: "export*"
+    where: data.notifications
+    deviation: D-96
+    reason: Go-only `notifications` section of the full account export (T-M12-14)
+  - case: "export*"
+    where: data.plus
+    deviation: D-96
+    reason: Go-only `plus` section of the full account export (T-M12-14)
+  - case: "export*"
+    where: data.pregnancy_tools
+    deviation: D-96
+    reason: Go-only `pregnancy_tools` section of the full account export (T-M12-14)
+  - case: "export*"
+    where: data.teen
+    deviation: D-96
+    reason: Go-only `teen` section of the full account export (T-M12-14)
+  - case: "export*"
+    where: data.telemed
+    deviation: D-96
+    reason: Go-only `telemed` section of the full account export (T-M12-14)
+  - case: "export*"
+    where: data.todo
+    deviation: D-96
+    reason: Go-only `todo` section of the full account export (T-M12-14)
+  - case: "export*"
+    where: data.vitals
+    deviation: D-96
+    reason: Go-only `vitals` section of the full account export (T-M12-14)
+  # D-213 (task T-M12-06, S-10/S-11): GET /profile/export and DELETE /account sit behind a named per-user limiter
+  # (3/hour) and a step-up (the runner sends X-Step-Up via `step_up: true`; Laravel has neither), so Go adds the
+  # X-RateLimit-* headers Laravel's unthrottled routes never send. Bodies and statuses still match the goldens.
+  - case: "export.*"
+    step: 1
+    where: "header:x-ratelimit-limit"
+    deviation: D-213
+    reason: Go-only 3/hour/user throttle on the data export
+  - case: "export.*"
+    step: 1
+    where: "header:x-ratelimit-remaining"
+    deviation: D-213
+    reason: Go-only 3/hour/user throttle on the data export
+  - case: "destroy_account*"
+    step: 1
+    where: "header:x-ratelimit-limit"
+    deviation: D-213
+    reason: Go-only 3/hour/user throttle on account deletion
+  - case: "destroy_account*"
+    step: 1
+    where: "header:x-ratelimit-remaining"
+    deviation: D-213
+    reason: Go-only 3/hour/user throttle on account deletion

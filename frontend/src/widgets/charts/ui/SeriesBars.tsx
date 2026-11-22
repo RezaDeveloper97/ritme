@@ -2,6 +2,7 @@ import type { Tone } from '@/shared/ui';
 
 import { heightShare, maxOf, slot } from '../lib/geometry';
 import { ChartFigure, type DataTable } from './ChartFigure';
+import '@/shared/ui/styles/axc.css';
 
 export interface BarSeries {
   key: string;

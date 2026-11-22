@@ -3,6 +3,7 @@ import { setRequestLocale } from 'next-intl/server';
 import { ManagePage } from '@/screens/plus-manage';
 
 import { RouteMessages } from '../../../RouteMessages';
+import '@/shared/ui/styles/plus.css';
 
 interface Props {
   params: Promise<{ locale: string }>;

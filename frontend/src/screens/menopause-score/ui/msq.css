@@ -1,0 +1,39 @@
+/* `msq-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.msq-page { background: var(--page); }
+
+.msq-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; min-block-size: 100%; }
+
+.msq-scroll > :not(.nb-hdr):not(.msq-footer) { margin-inline: var(--gutter); }
+
+.msq-skel { display: flex; flex-direction: column; gap: 12px; }
+
+.msq-intro { display: flex; flex-direction: column; gap: 12px; }
+
+.msq-lead { margin: 0; font-size: var(--fs-base); font-weight: 700; line-height: var(--lh-body); color: var(--text-1); }
+
+.msq-group { display: flex; flex-direction: column; gap: 10px; }
+
+.msq-group-title { margin: 0; font-size: 15px; font-weight: 800; color: var(--text-1); }
+
+.nb-card.msq-card { display: flex; flex-direction: column; padding-block: 4px; }
+
+.msq-q { padding-block: 14px; }
+
+.msq-q + .msq-q { border-top: 1px solid var(--line); }
+
+.msq-q-label { display: flex; flex-direction: column; gap: 2px; }
+
+.msq-q-title { font-weight: 800; color: var(--text-1); }
+
+.msq-q-body { font-size: var(--fs-sm); font-weight: 600; line-height: 1.7; color: var(--text-3); }
+
+.msq-progress { margin: 0; text-align: center; font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); }
+
+.msq-error { margin: 0; font-size: var(--fs-md); font-weight: 700; color: var(--danger-deep); }
+
+.msq-footer {
+  position: sticky; bottom: 0; z-index: 2; margin-top: auto; display: flex; flex-direction: column; gap: 8px;
+  padding: 12px var(--gutter) max(14px, env(safe-area-inset-bottom));
+  background: var(--surface-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}

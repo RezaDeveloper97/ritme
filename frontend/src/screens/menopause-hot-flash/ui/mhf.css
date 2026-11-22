@@ -1,0 +1,79 @@
+/* `mhf-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.mhf-page { background: var(--page); }
+
+.mhf-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; padding-bottom: 32px; }
+
+.mhf-scroll > :not(.nb-hdr) { margin-inline: var(--gutter); }
+
+.mhf-skel { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+
+.mhf-skel > * { align-self: stretch; }
+
+.mhf-skel > .mhf-skel-ring { align-self: center; inline-size: 220px; block-size: 220px; border-radius: 50%; }
+
+.mhf-timer { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+
+.mhf-ring-btn {
+  display: inline-flex; padding: 0; border: 0; border-radius: 50%; background: none; color: inherit; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; transition: transform .15s ease;
+}
+
+.mhf-ring-btn:active:not(:disabled) { transform: scale(.97); }
+
+.mhf-ring-btn:disabled { cursor: progress; }
+
+.mhf-ring-btn:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.mhf-ring-btn:not(.is-running) .nb-countdown-value { color: var(--text-2); }
+
+.mhf-ring-btn:not(.is-running) .nb-ring-arc { display: none; }
+
+.mhf-ring-cap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+
+.mhf-ring-icon { color: var(--bloom-deep); }
+
+.mhf-hint { margin: 0; text-align: center; font-size: var(--fs-md); font-weight: 700; line-height: var(--lh-body); color: var(--text-2); }
+
+.mhf-error { margin: 0; text-align: center; font-size: var(--fs-md); font-weight: 700; color: var(--danger-deep); }
+
+.nb-card.mhf-card { display: flex; flex-direction: column; gap: 14px; }
+
+.mhf-causes { display: flex; flex-direction: column; gap: 10px; }
+
+.mhf-label { margin: 0; font-size: var(--fs-base); font-weight: 800; color: var(--text-1); }
+
+.mhf-sec { display: flex; flex-direction: column; gap: 10px; }
+
+.nb-card.mhf-today { display: flex; flex-direction: column; gap: 4px; }
+
+.mhf-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding-bottom: 8px; }
+
+.mhf-tile {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  min-block-size: 84px; padding: 10px 4px; border-radius: var(--r-xl); border: 1px solid var(--line); background: var(--surface-2);
+  text-align: center;
+}
+
+.mhf-tile-value { font-family: var(--font-display); font-weight: 400; font-size: 24px; line-height: 1.1; white-space: nowrap; color: var(--nb-tone-ink); }
+
+.mhf-tile-label { font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); }
+
+.mhf-empty { margin: 0; padding: 14px 4px 8px; text-align: center; font-size: var(--fs-md); font-weight: 600; color: var(--text-3); }
+
+.mhf-list { list-style: none; margin: 0; padding: 0 4px; }
+
+.mhf-row { display: flex; align-items: center; gap: 12px; min-block-size: 64px; padding-block: 10px; border-top: 1px solid var(--line); }
+
+.mhf-time {
+  flex-shrink: 0; min-inline-size: 3.2em; font-family: var(--font-display); font-weight: 400; font-size: var(--fs-lg);
+  color: var(--text-1); font-variant-numeric: tabular-nums;
+}
+
+.mhf-dot { flex-shrink: 0; inline-size: 10px; block-size: 10px; border-radius: 50%; background: var(--nb-tone); }
+
+.mhf-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; text-align: start; }
+
+.mhf-row-title { font-size: var(--fs-base); font-weight: 800; line-height: 1.6; color: var(--text-1); }
+
+.mhf-row-sub { font-size: var(--fs-sm); font-weight: 600; color: var(--text-3); }

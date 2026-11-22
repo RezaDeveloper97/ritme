@@ -7,6 +7,7 @@ import { PrimaryButton } from '@/shared/ui';
 
 import type { LogEntry } from '../model/draft';
 import { logPilotId } from '../model/pilot-targets';
+import '@/shared/ui/styles/lday.css';
 
 interface SummaryFooterProps {
   entries: readonly LogEntry[];

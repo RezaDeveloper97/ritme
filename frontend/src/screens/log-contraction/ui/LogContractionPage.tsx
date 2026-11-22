@@ -15,6 +15,7 @@ import {
   SkeletonGroup,
   SkyLayer,
 } from '@/shared/ui';
+import '@/shared/ui/styles/ptl.css';
 
 /**
  * `/pregnancy/contractions` — «زمان‌سنج انقباض» (B-N5-08, nbl_/nbd_Log_Contraction). A flow

@@ -1,0 +1,21 @@
+/* `tone-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.me-mode-pill.tone-period { --tone: var(--period); }
+
+.me-mode-pill.tone-warm { --tone: var(--warm); }
+
+.me-mode-pill.tone-bloom { --tone: var(--bloom); }
+
+.me-mode-pill.tone-data { --tone: var(--data); }
+
+.sup-tile-disc.tone-data { background: var(--data-soft); color: var(--data-deep); }
+
+.sup-tile-disc.tone-warm { background: var(--warm-soft); color: var(--warm-deep); }
+
+.mchip.tone-period { --tone: var(--period); }
+
+.mchip.tone-warm { --tone: var(--warm); }
+
+.mchip.tone-bloom { --tone: var(--bloom); }
+
+.mchip.tone-data { --tone: var(--data); }

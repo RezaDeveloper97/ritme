@@ -21,6 +21,7 @@ import { Link, useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { Card, EmptyState, Icon, IconCircle, ScreenHeader, SectionTitle, SkyLayer, UrgentCard } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
+import '@/shared/ui/styles/as.css';
 
 /**
  * `/assistant` — «کلینیک دستیار ریتمی» (nbl_/nbd_v18_AssistantHub): question box, what the assistant knows about her,

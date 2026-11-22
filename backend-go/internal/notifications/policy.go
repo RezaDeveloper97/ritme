@@ -24,31 +24,33 @@ type Decision struct {
 	DeferUntil time.Time
 }
 
-// minuteOfDay is t's Tehran wall-clock minute.
-func minuteOfDay(t time.Time) int {
-	t = t.In(civildate.Tehran)
+// minuteOfDay is t's wall-clock minute in loc.
+func minuteOfDay(t time.Time, loc *time.Location) int {
+	t = t.In(loc)
 	return t.Hour()*60 + t.Minute()
 }
 
-// InQuietHours reports whether now falls in the window [start, end). start > end wraps midnight; start == end
-// is an empty window (nothing is silenced).
+// InQuietHours reports whether now falls in the window [start, end) on the user's clock (p.Location()). start > end
+// wraps midnight; start == end is an empty window (nothing is silenced).
 func (p Preferences) InQuietHours(now time.Time) bool {
 	if !p.QuietEnabled || p.QuietStart == p.QuietEnd {
 		return false
 	}
-	m := minuteOfDay(now)
+	m := minuteOfDay(now, p.Location())
 	if p.QuietStart < p.QuietEnd {
 		return m >= p.QuietStart && m < p.QuietEnd
 	}
 	return m >= p.QuietStart || m < p.QuietEnd
 }
 
-// QuietEndsAt is the first moment after now at which the quiet window is over (only meaningful inside it).
+// QuietEndsAt is the first moment after now at which the quiet window is over (only meaningful inside it), on the
+// user's clock: the end time today, else tomorrow (WallTime: an end inside a skipped DST hour is the transition).
 func (p Preferences) QuietEndsAt(now time.Time) time.Time {
-	t := now.In(civildate.Tehran)
-	end := time.Date(t.Year(), t.Month(), t.Day(), p.QuietEnd/60, p.QuietEnd%60, 0, 0, civildate.Tehran)
-	if !end.After(t) {
-		end = end.AddDate(0, 0, 1)
+	loc := p.Location()
+	day := civildate.FromTime(now.In(loc))
+	end := WallTime(day, p.QuietEnd, loc)
+	if !end.After(now) {
+		end = WallTime(day.AddDays(1), p.QuietEnd, loc)
 	}
 	return end
 }
