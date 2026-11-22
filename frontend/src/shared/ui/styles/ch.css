@@ -65,7 +65,7 @@
 .ch-log-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 
 .nb-card.ch-log-tile {
-  position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
   min-height: 128px; padding: 16px 8px 12px;
   color: var(--text-1); text-decoration: none; font-family: inherit; text-align: center; cursor: pointer;
 }
@@ -80,32 +80,6 @@
   max-width: 100%; font-size: 11px; font-weight: 600; color: var(--text-2); line-height: 1.5;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
 }
-
-.ch-log-tile > .ch-log-add,
-.ch-log-tile > .ch-log-count { position: absolute; top: 8px; inset-inline-end: 8px; }
-
-.ch-log-add {
-  width: 24px; height: 24px; border-radius: 12px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  border: 1.5px solid var(--line); color: var(--nb-tone-ink);
-}
-
-.ch-log-add.is-period { color: var(--period-deep); }
-
-.ch-log-add.is-brand { color: var(--brand); }
-
-.ch-log-add.is-data { color: var(--data-deep); }
-
-.ch-log-count {
-  min-width: 24px; height: 24px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums;
-}
-
-.ch-log-count.is-period { color: var(--period-deep); }
-
-.ch-log-count.is-brand { color: var(--brand); }
-
-.ch-log-count.is-data { color: var(--data-deep); }
 
 .nb-card.ch-pred { display: flex; flex-direction: column; gap: 4px; }
 

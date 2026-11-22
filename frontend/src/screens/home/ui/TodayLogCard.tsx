@@ -9,7 +9,7 @@ import { Link, type Locale } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
 import { formatNumber, toApiDate, today } from '@/shared/lib/date';
 import { openSheet } from '@/shared/sheet';
-import { Icon, IconCircle, type IconName, type Tone } from '@/shared/ui';
+import { IconCircle, type IconName, type Tone } from '@/shared/ui';
 
 import { summarizeTodayLog } from '../model/today-log';
 import '@/shared/ui/styles/ch.css';
@@ -20,7 +20,7 @@ interface Tile {
   tone: Tone;
   title: string;
   sub: string;
-  /** Items logged (shown as a count); 0 = empty (a + disc), null = logged without a count (a tick). */
+  /** Items logged; 0 = nothing yet, null = logged without a count. Only the accessible name reads it. */
   count: number | null;
 }
 
@@ -28,7 +28,7 @@ interface Tile {
  * «ثبت امروز» (nbl_Cycle_Home): three cards — «ثبت پریود», «علائم», «حال و روحیه» — with the logging
  * streak (user request, 2026-11-22). «ثبت پریود» opens the calendar's period editor (`/calendar?editDates=1`);
  * the other two open the log sheet (`?sheet=log`, B-N3-03) on their own section. Each card is one
- * target, so the + disc / count is decoration.
+ * target.
  */
 export function TodayLogCard({ streakDays }: { streakDays: number | null }) {
   const t = useTranslations('home.nb.log');
@@ -74,28 +74,15 @@ export function TodayLogCard({ streakDays }: { streakDays: number | null }) {
     },
   ];
 
-  // Centred card (user request, 2026-11-22): the 3D icon on top, then title and summary; the + / count / tick
-  // sits in the top corner.
+  // Centred card (user request, 2026-11-22): the 3D icon on top, then title and summary — no corner badge.
   const body = (tile: Tile) => (
     <>
-      {tile.count === 0 ? (
-        <span className={`ch-log-add is-${tile.tone}`} aria-hidden>
-          <Icon name="plus" size={14} strokeWidth={2.4} />
-        </span>
-      ) : tile.count === null ? (
-        <span className={`ch-log-count is-${tile.tone}`} aria-hidden>
-          <Icon name="check" size={16} strokeWidth={2.4} />
-        </span>
-      ) : (
-        <span className={`ch-log-count is-${tile.tone}`} aria-hidden>
-          {formatNumber(tile.count, loc)}
-        </span>
-      )}
       <IconCircle icon={tile.icon} tone={tile.tone} size="lg" outlined className="ch-log-icon" />
       <span className="ch-log-title">{tile.title}</span>
       <span className="ch-log-sub">{tile.sub}</span>
     </>
   );
+
   // «ثبت پریود» already says what it does; the empty sections read «ثبت علائم» / «ثبت حال و روحیه».
   const label = (tile: Tile) =>
     tile.count !== 0 ? `${tile.title} · ${tile.sub}` : tile.key === 'period' ? tile.title : t('add', { name: tile.title });
