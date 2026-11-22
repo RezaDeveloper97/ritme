@@ -68,6 +68,12 @@
   --warm-deep: #B45309;  /* amber as text */
   --warm-soft: #FFF3DF;  /* amber surface */
 
+  /* Fertility (cycle ring + calendar): one green, graded by conception chance —
+     the lightest step opens the window, the full green is ovulation. */
+  --fertile:      #1E9E57;  /* ovulation / peak chance fill */
+  --fertile-deep: #11683A;  /* green as text on the light steps */
+  --on-fertile:   #FFFFFF;  /* label on the two strong steps */
+
   --period:      #E8436F;  /* period marker / fill — red means menstruation */
   --period-deep: #B82A52;  /* period text, hero numbers */
   --period-soft: #FDE4EB;  /* period day cell */
@@ -248,6 +254,12 @@
   --data-soft-strong:   color-mix(in srgb, var(--data) 30%, var(--data-soft));
   --period-soft-faint:  color-mix(in srgb, var(--period-soft) 45%, var(--surface));
   --period-soft-strong: color-mix(in srgb, var(--period) 30%, var(--period-soft));
+  /* Fertile-window chance steps 1 (low) → 4 (ovulation). Derived from --fertile. */
+  --fertile-1:    color-mix(in srgb, var(--fertile) 28%, var(--surface));
+  --fertile-2:    color-mix(in srgb, var(--fertile) 52%, var(--surface));
+  --fertile-3:    color-mix(in srgb, var(--fertile) 78%, var(--surface));
+  --fertile-4:    var(--fertile);
+  --fertile-soft: color-mix(in srgb, var(--fertile) 14%, var(--surface));
 }
 
 /* Dark appearance — the same names, flipped via <html data-theme="dark">
@@ -289,6 +301,10 @@
   --warm:      #FFB86B;
   --warm-deep: #FFC98A;
   --warm-soft: #3A2F1E;
+
+  --fertile:      #6EDC9E;
+  --fertile-deep: #BFF3D5;
+  --on-fertile:   #17112B;
 
   --period:      #FF6B8B;
   --period-deep: #FF6B8B;
@@ -992,9 +1008,14 @@ body {
 /* Keeps the number at the same height on days without a marker. */
 .home-wday-dot.is-none      { visibility: hidden; }
 .home-wday-dot.is-period    { background: var(--period); }
-.home-wday-dot.is-fertile   { background: var(--amber); }
-.home-wday-dot.is-ovulation { background: var(--data-deep); }
+.home-wday-dot.is-fertile   { background: var(--fertile-2); }
+.home-wday-dot.is-ovulation { background: var(--fertile-4); }
 .home-wday-dot.is-pms       { background: var(--violet); }
+/* Fertile window: one green, deeper as the chance rises toward ovulation. */
+.home-wday-dot.is-lv1 { background: var(--fertile-1); }
+.home-wday-dot.is-lv2 { background: var(--fertile-2); }
+.home-wday-dot.is-lv3 { background: var(--fertile-3); }
+.home-wday-dot.is-lv4 { background: var(--fertile-4); }
 .home-wday.is-today .home-wday-name { color: var(--ink); }
 .home-wday.is-today .home-wday-cell { background: var(--ink); border-color: var(--ink); color: var(--page); }
 .home-wday.is-today .home-wday-dot  { visibility: visible; background: var(--brand-line-soft); }
@@ -1014,20 +1035,29 @@ body {
 .home-ring-svg   { position: relative; display: block; width: 300px; max-width: 100%; height: auto; aspect-ratio: 1; }
 .home-ring-track { fill: none; stroke: var(--line); stroke-width: 1; stroke-dasharray: 2 6; }
 .home-ring-dot              { fill: var(--brand-line-soft); stroke: none; }
-.home-ring-dot.is-period    { fill: var(--period);    stroke: var(--period); }
-.home-ring-dot.is-fertile   { fill: var(--amber);     stroke: var(--amber); }
-.home-ring-dot.is-ovulation { fill: var(--data-deep); stroke: var(--data-deep); }
-.home-ring-dot.is-pms       { fill: var(--violet);    stroke: var(--violet); }
-/* A day still ahead is a prediction: a hollow ring, as on the calendar. */
-.home-ring-dot.is-ahead     { fill: none; stroke-width: 1.6; opacity: .9; }
+/* Every day that marks a state is a solid dot in that state's colour —
+   predicted days included; nothing on the ring is hollow. */
+.home-ring-dot.is-period    { fill: var(--period); }
+.home-ring-dot.is-fertile   { fill: var(--fertile-2); }
+.home-ring-dot.is-ovulation { fill: var(--fertile-4); }
+.home-ring-dot.is-pms       { fill: var(--violet); }
+/* Fertile window: one green, deeper as the chance rises toward ovulation. */
+.home-ring-dot.is-lv1 { fill: var(--fertile-1); }
+.home-ring-dot.is-lv2 { fill: var(--fertile-2); }
+.home-ring-dot.is-lv3 { fill: var(--fertile-3); }
+.home-ring-dot.is-lv4 { fill: var(--fertile-4); }
 /* The selected day: a soft halo under a larger dot ringed in white. */
 .home-ring-halo { opacity: .35; }
-.home-ring-now  { stroke: var(--on-accent); stroke-width: 2.5; }
+.home-ring-now  { stroke: var(--on-accent); stroke-width: 3; }
 .home-ring-halo.is-none, .home-ring-now.is-none { fill: var(--brand); }
 .home-ring-halo.is-period,    .home-ring-now.is-period    { fill: var(--period); }
-.home-ring-halo.is-fertile,   .home-ring-now.is-fertile   { fill: var(--amber); }
-.home-ring-halo.is-ovulation, .home-ring-now.is-ovulation { fill: var(--data-deep); }
+.home-ring-halo.is-fertile,   .home-ring-now.is-fertile   { fill: var(--fertile-2); }
+.home-ring-halo.is-ovulation, .home-ring-now.is-ovulation { fill: var(--fertile-4); }
 .home-ring-halo.is-pms,       .home-ring-now.is-pms       { fill: var(--violet); }
+.home-ring-halo.is-lv1, .home-ring-now.is-lv1 { fill: var(--fertile-1); }
+.home-ring-halo.is-lv2, .home-ring-now.is-lv2 { fill: var(--fertile-2); }
+.home-ring-halo.is-lv3, .home-ring-now.is-lv3 { fill: var(--fertile-3); }
+.home-ring-halo.is-lv4, .home-ring-now.is-lv4 { fill: var(--fertile-4); }
 .home-ring-center {
   position: absolute; inset: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
@@ -1400,6 +1430,37 @@ body {
 
 /* Inactive weeks fade while the month slides up behind the fold; visibility
    flips only after the fade so they leave the tab order without popping. */
+.cal-cell {
+  --cal-accent: var(--brand);
+  position: relative; width: 40px; height: 40px; justify-self: center;
+  display: flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 50%; background: transparent; color: var(--ink);
+  font-family: inherit; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums;
+  cursor: pointer; transition: box-shadow .15s ease;
+}
+.cal-cell:focus-visible { outline: none; box-shadow: var(--ring); }
+/* Every day that marks a state is a solid fill in that state's colour. */
+.cal-cell.is-period    { --cal-accent: var(--period); background: var(--period); color: var(--page); }
+.cal-cell.is-predicted { --cal-accent: var(--period); background: color-mix(in srgb, var(--period) 42%, var(--surface)); color: var(--text-1); }
+.cal-cell.is-pms       { --cal-accent: var(--violet); background: var(--violet); color: var(--on-brand); }
+/* Fertile window: one green, deeper as the chance rises toward ovulation. */
+.cal-cell.is-fertile, .cal-cell.is-ovulation { --cal-accent: var(--fertile); }
+.cal-cell.is-lv1 { background: var(--fertile-1); color: var(--fertile-deep); }
+.cal-cell.is-lv2 { background: var(--fertile-2); color: var(--fertile-deep); }
+.cal-cell.is-lv3 { background: var(--fertile-3); color: var(--on-fertile); }
+.cal-cell.is-lv4 { background: var(--fertile-4); color: var(--on-fertile); }
+.cal-cell.is-selected {
+  box-shadow: 0 0 0 2px var(--cal-accent), 0 4px 12px color-mix(in srgb, var(--cal-accent) 35%, transparent);
+}
+/* On a filled day a thin canvas gap keeps the selection ring apart from the fill. */
+.cal-cell.is-selected:is(.is-period, .is-predicted, .is-pms, .is-fertile, .is-ovulation) {
+  box-shadow: inset 0 0 0 2px var(--page), 0 0 0 2px var(--cal-accent), 0 4px 12px color-mix(in srgb, var(--cal-accent) 35%, transparent);
+}
+.cal-cell-today {
+  position: absolute; bottom: 4px; width: 4px; height: 4px; border-radius: 50%;
+  background: currentColor;
+}
+.cal-cell:not(:is(.is-period, .is-predicted, .is-pms, .is-fertile, .is-ovulation)) .cal-cell-today { background: var(--brand); }
 .cal-week-row { transition: opacity .28s ease, visibility 0s; }
 .cal-week-row.is-off { opacity: 0; visibility: hidden; transition: opacity .28s ease, visibility 0s .42s; }
 

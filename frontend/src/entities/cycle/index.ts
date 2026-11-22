@@ -30,7 +30,7 @@ export {
   MAX_FUTURE_CYCLES,
 } from './model/monthPaint';
 export type { MonthDayPaint } from './model/monthPaint';
-export { cycleMarkerStyle, cycleMarkerBg, markerIntensityByDate } from './model/markers';
+export { cycleMarkerStyle, fertileLevel, fertileLevelAt } from './model/markers';
 export { CycleValuesCard } from './ui/CycleValuesCard';
 export type { CycleValuesCardProps, CycleValuesSuggestion } from './ui/CycleValuesCard';
 export type {
@@ -38,7 +38,7 @@ export type {
   CycleDayInfo,
   CyclePhase,
   CycleDayMarker,
-  MarkerIntensity,
+  FertileLevel,
   PregnancyChance,
   CycleCalculation,
   CycleDailyTip,

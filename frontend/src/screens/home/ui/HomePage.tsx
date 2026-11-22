@@ -18,6 +18,7 @@ import {
   daysUntilNextPeriod,
   deriveCycleSchedule,
   deriveCyclePredictions,
+  fertileLevelAt,
   futureCycleDayMap,
   hasFertileWindow,
   isFertilitySuppressed,
@@ -34,6 +35,7 @@ import {
   type CycleMonthDay,
   type CycleDayMarker,
   type CyclePhase,
+  type FertileLevel,
   type CycleSchedule,
 } from '@/entities/cycle';
 import { useFertilityToday } from '@/entities/fertility';
@@ -243,13 +245,15 @@ function useDayMarks(
 // The current week in the locale's grid order, each day a tall tile with its
 // cycle-marker dot. Tapping a day points the ring and the phase card at it.
 function WeekStrip({
-  days, loc, selectedIso, onSelect, markOf,
+  days, loc, selectedIso, onSelect, markOf, levelOf,
 }: {
   days: Date[];
   loc: Locale;
   selectedIso: string;
   onSelect: (date: Date) => void;
   markOf: (date: Date) => CycleDayMarker | null;
+  /** Chance step of a fertile-window day — the green deepens toward ovulation. */
+  levelOf: (date: Date) => FertileLevel | null;
 }) {
   const todayIso = toApiDate(today());
   const letters = weekdayLabels(loc);
@@ -259,6 +263,7 @@ function WeekStrip({
         const iso = toApiDate(date);
         const isToday = iso === todayIso;
         const isSelected = iso === selectedIso && !isToday;
+        const level = levelOf(date);
         return (
           <button
             key={iso}
@@ -272,7 +277,7 @@ function WeekStrip({
             <span className="home-wday-name" aria-hidden>{letters[i]}</span>
             <span className="home-wday-cell" aria-hidden>
               {formatNumber(toParts(date, loc).day, loc)}
-              <span className={clsx('home-wday-dot', `is-${markOf(date) ?? 'none'}`)} />
+              <span className={clsx('home-wday-dot', `is-${markOf(date) ?? 'none'}`, level && `is-lv${level}`)} />
             </span>
           </button>
         );
@@ -287,19 +292,18 @@ function WeekStrip({
 const RING_CENTER = 150;
 const RING_RADIUS = 128;
 /** Dot radius per marker — the notable days sit larger than the quiet ones. */
-const DOT_RADIUS: Record<CycleDayMarker | 'none' | 'ahead', number> = {
+const DOT_RADIUS: Record<CycleDayMarker | 'none', number> = {
   period: 7,
   fertile: 7,
   ovulation: 8,
-  pms: 6,
+  pms: 7,
   none: 5,
-  ahead: 6,
 };
 
 interface RingDay {
   marker: CycleDayMarker | null;
-  /** The day is still ahead of today — drawn hollow, as a prediction. */
-  ahead: boolean;
+  /** Chance step of a fertile-window day (null elsewhere) — picks its green. */
+  level: FertileLevel | null;
 }
 
 function CycleRing({
@@ -328,6 +332,7 @@ function CycleRing({
   };
   const now = nowIndex != null ? days[nowIndex] : undefined;
   const nowKind = now?.marker ?? 'none';
+  const nowLevel = now?.level ? `is-lv${now.level}` : null;
 
   return (
     <>
@@ -340,21 +345,20 @@ function CycleRing({
         <circle className="home-ring-track" cx={RING_CENTER} cy={RING_CENTER} r={RING_RADIUS} />
         {days.map((day, i) => {
           if (i === nowIndex) return null;
-          const hollow = day.ahead && day.marker !== null;
-          const kind = hollow ? 'ahead' : (day.marker ?? 'none');
+          // Every marked day is a solid dot in its state's colour — predicted or not.
           return (
             <circle
               key={i}
               {...at(i)}
-              r={DOT_RADIUS[kind] * scale}
-              className={clsx('home-ring-dot', day.marker && `is-${day.marker}`, hollow && 'is-ahead')}
+              r={DOT_RADIUS[day.marker ?? 'none'] * scale}
+              className={clsx('home-ring-dot', day.marker && `is-${day.marker}`, day.level && `is-lv${day.level}`)}
             />
           );
         })}
         {nowIndex != null && (
           <>
-            <circle {...at(nowIndex)} r={16 * scale} className={clsx('home-ring-halo', `is-${nowKind}`)} filter={`url(#${glowId})`} />
-            <circle {...at(nowIndex)} r={10 * scale} className={clsx('home-ring-now', `is-${nowKind}`)} />
+            <circle {...at(nowIndex)} r={19 * scale} className={clsx('home-ring-halo', `is-${nowKind}`, nowLevel)} filter={`url(#${glowId})`} />
+            <circle {...at(nowIndex)} r={12.5 * scale} className={clsx('home-ring-now', `is-${nowKind}`, nowLevel)} />
           </>
         )}
       </svg>
@@ -932,9 +936,11 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
     const mark = rawMarkOf(date);
     return teen && (mark === 'fertile' || mark === 'ovulation') ? null : mark;
   };
+  const levelOf = (date: Date): FertileLevel | null =>
+    fertileLevelAt((offset) => markOf(addDays(date, offset)));
   const ringDays = ringDates.map(date => ({
     marker: markOf(date),
-    ahead: diffInDays(date, base) > 0,
+    level: levelOf(date),
   }));
   const ringNowIndex = ringStart && !loadingInfo ? diffInDays(selectedDate, ringStart) : null;
 
@@ -1225,6 +1231,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
             selectedIso={selApiDate}
             onSelect={setSelectedDate}
             markOf={markOf}
+            levelOf={levelOf}
           />
           <section className={clsx('home-ring', loadingInfo && 'is-loading')}>
             <div
