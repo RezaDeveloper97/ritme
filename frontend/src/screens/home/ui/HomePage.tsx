@@ -1354,6 +1354,18 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
           {limits.promptPregnancy && isToday && !pregnancyPromptDismissed && !loadFailed && (
             <PregnancyPromptCard onDismiss={() => dismiss('pregnancy')} />
           )}
+          {/* «توصیه‌های امروز» — under «ثبت امروز» and right above the phase card (user request,
+              2026-11-23; it used to sit near the end of the feed). */}
+          {!loadFailed && !booting && (
+            <Recommendations
+              t={t}
+              tips={calc?.dailyTips ?? []}
+              dos={dos}
+              phase={todayPhase}
+              advice={dailyAdvice(feed)}
+              loc={loc}
+            />
+          )}
           {loadFailed ? (
             <Card as="section" className="ch-error" role="alert">
               <IconCircle icon="warning" tone="danger" />
@@ -1456,14 +1468,6 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
                 onDismiss={() => dismissFeedItem(feedTip)}
               />
             )}
-            <Recommendations
-              t={t}
-              tips={calc?.dailyTips ?? []}
-              dos={dos}
-              phase={todayPhase}
-              advice={dailyAdvice(feed)}
-              loc={loc}
-            />
             {!teen && <BannerSlideshow position="home_middle" />}
             {!teen && <HomeLabCards />}
             <TodayChallengeCard pick={feed?.dailyChallenge ?? null} />
