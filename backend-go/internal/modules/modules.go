@@ -157,6 +157,7 @@ var routePrefixes = []struct{ prefix, module string }{
 	{"/api/v1/fertility", TTC},
 	{"/api/v1/analysis/fertility", TTC},
 	{"/api/v1/analysis/ttc", TTC},
+	{"/api/v1/analysis/postpartum", Postpartum}, // also checked in the handler (T-M12-18: it was gated only there)
 	{"/api/v1/ivf", IVF},
 	{"/api/v1/menopause", Menopause},
 	{"/api/v1/teen", Teen},
@@ -173,6 +174,19 @@ var routePrefixes = []struct{ prefix, module string }{
 	{"/api/v1/telemed", Doctors},
 	{"/api/v1/todo", Todo},
 }
+
+// Prefixes lists every gated path prefix with its module (a copy), so tests can walk the router against the gate
+// instead of repeating the table (T-M12-18).
+func Prefixes() map[string]string {
+	out := make(map[string]string, len(routePrefixes))
+	for _, r := range routePrefixes {
+		out[r.prefix] = r.module
+	}
+	return out
+}
+
+// AlwaysOpen lists the path prefixes under a gated prefix that no switch closes (a copy).
+func AlwaysOpen() []string { return slices.Clone(alwaysOpen) }
 
 // alwaysOpen are paths under a gated prefix that stay reachable whatever the switches: the emergency card (and its
 // lock-screen view) is safety information, never hidden with the rest of the health record.

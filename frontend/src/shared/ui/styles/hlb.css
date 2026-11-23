@@ -1,0 +1,70 @@
+/* `hlb-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.hlb-view { position: relative; }
+
+.hlb-body { display: flex; flex-direction: column; gap: 14px; padding: 8px var(--gutter) 24px; }
+
+.hlb-stack { display: flex; flex-direction: column; gap: 10px; }
+
+.hlb-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+
+.hlb-row {
+  display: flex; align-items: center; gap: 12px; min-block-size: 64px; padding: 12px 14px; text-decoration: none;
+  color: var(--text-1); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card);
+}
+
+.hlb-row:focus-visible,
+.hlb-card-link:focus-visible,
+.hlb-link:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.hlb-row-art,
+.hlb-card-art {
+  flex-shrink: 0; inline-size: 44px; block-size: 44px; border-radius: 14px; display: flex; align-items: center;
+  justify-content: center; background: var(--brand-soft); color: var(--brand);
+}
+
+.hlb-row-main,
+.hlb-card-main { display: flex; flex-direction: column; gap: 3px; flex: 1; min-inline-size: 0; }
+
+.hlb-row-title { font-size: 14px; font-weight: 800; line-height: 1.6; color: var(--text-1); }
+
+.hlb-row-sub { font-size: 11.5px; font-weight: 600; color: var(--text-2); }
+
+.hlb-row-go { flex-shrink: 0; color: var(--text-3); }
+
+.hlb-svc { display: flex; align-items: center; gap: 12px; }
+
+.hlb-area { block-size: auto; align-items: flex-start; padding-block: 10px; }
+
+.hlb-area textarea { inline-size: 100%; resize: none; font-family: inherit; line-height: 1.8; background: none; border: 0; color: inherit; outline: none; }
+
+.hlb-days { flex-wrap: nowrap; overflow-x: auto; padding-block-end: 4px; }
+
+.hlb-days .chip { flex-shrink: 0; min-block-size: 44px; }
+
+.hlb-err { margin: 0; text-align: start; font-size: 12px; font-weight: 700; color: var(--danger-deep); }
+
+.hlb-note { margin: 0; font-size: 12px; font-weight: 600; line-height: 1.9; color: var(--text-2); text-align: start; }
+
+.hlb-link { display: inline-flex; align-items: center; min-block-size: 44px; font-size: 13px; font-weight: 800; color: var(--brand-strong); text-decoration: none; }
+
+.hlb-dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 12.5px; }
+
+.hlb-dl dt { font-weight: 700; color: var(--text-2); }
+
+.hlb-dl dd { margin: 0; font-weight: 700; color: var(--text-1); overflow-wrap: anywhere; }
+
+.hlb-cards { display: flex; flex-direction: column; gap: 10px; }
+
+.hlb-card-link { display: block; text-decoration: none; color: var(--text-1); }
+
+.hlb-card { display: flex; align-items: center; gap: 12px; }
+
+.hlb-card-title { font-size: 14px; font-weight: 800; line-height: 1.6; }
+
+.hlb-card-sub { font-size: 11.5px; font-weight: 600; color: var(--text-2); }
+
+.hlb-card-cta {
+  flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; min-block-size: 44px; padding-inline: 16px;
+  border-radius: var(--r-pill); background: var(--brand-fill); color: var(--on-brand); font-size: 12.5px; font-weight: 800;
+}

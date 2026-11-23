@@ -6,6 +6,8 @@ import { type IvfOutcome, type IvfOutcomeResult, useRecordIvfOutcome } from '@/e
 import { pilot } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { PrimaryButton, SecondaryButton } from '@/shared/ui';
+import '@/shared/ui/styles/ivf.css';
+import './tww.css';
 
 /**
  * Confirm before the outcome closes the cycle (`POST /ivf/cycles/current/outcome`):

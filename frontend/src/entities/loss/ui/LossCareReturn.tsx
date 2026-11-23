@@ -10,6 +10,7 @@ import { Icon, IconCircle, ListRow } from '@/shared/ui';
 
 import { useLossState } from '../api/queries';
 import { hideLossCareRow, isLossCareOpen, isLossCareRowHidden } from '../model/care-return';
+import './lcr.css';
 
 interface LossCareReturnProps {
   /**

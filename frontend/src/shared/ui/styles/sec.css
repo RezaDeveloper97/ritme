@@ -1,0 +1,11 @@
+/* `sec-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.sec-tight { padding: 14px 16px 0; }
+
+.sec-head { padding: 14px 16px 8px; }
+
+.sec-head-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+
+.sec-head-t { font-size: 16px; font-weight: 800; color: var(--ink); }
+
+.ch-feed > .sec-tight { padding: 0; margin: 0; }

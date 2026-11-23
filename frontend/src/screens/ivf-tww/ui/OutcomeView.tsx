@@ -9,6 +9,8 @@ import { pilot } from '@/shared/pilot';
 import { IconCircle, InfoNote, ListGroup, ListRow, PrimaryButton, SecondaryButton } from '@/shared/ui';
 
 import { FOLLOW_UP_HREF, followUps } from '../model/tww';
+import '@/shared/ui/styles/ivf.css';
+import './tww.css';
 
 /**
  * After the outcome is saved. Calm on every result — no celebration, no

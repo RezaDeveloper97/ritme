@@ -8,6 +8,8 @@ import { isPattern, isTargetId, matchesAny } from '@/shared/pilot';
 
 import en from '../../../messages/en/autopilot-catalog.json';
 import fa from '../../../messages/fa/autopilot-catalog.json';
+import { AUTOPILOT_CONFIG } from '@/shared/autopilot/config';
+
 import { PILOT_CATALOG } from './catalog';
 
 /**
@@ -113,6 +115,44 @@ function catalogDoc(): string {
   ];
   return lines.join('\n');
 }
+
+/** Ids whose name says share/invite/consent/send/export/join/delete/pay. */
+const SENSITIVE = /share|invite|consent|send|export|join|delete|pay/;
+/**
+ * Reviewed, inert matches: they only fill a field or move through a form (nothing leaves the app until the
+ * confirmed submit/create id). `city-join.` is the whole business-registration form; its submit is a confirm target.
+ */
+const INERT = new Set([
+  'teen.invite-open', 'teen.invite-phone', 'teen.invite-name',
+  'invite.next', 'invite.contact-toggle', 'invite.name', 'invite.phone', 'invite.preview', 'invite.done',
+]);
+const isInert = (id: string) => INERT.has(id) || (id.startsWith('city-join.') && id !== 'city-join.submit');
+
+/** Sensitive ids no safety list covers. Uses the engine's own matcher (wildcards included). */
+export function uncoveredSensitive(ids: readonly string[], confirm: readonly string[], blocked: readonly string[]): string[] {
+  return ids.filter((id) => SENSITIVE.test(id) && !isInert(id) && !matchesAny(confirm, id) && !matchesAny(blocked, id));
+}
+
+describe('autopilot safety guard', () => {
+  const { confirmTargets, blockedTargets } = AUTOPILOT_CONFIG.safety;
+  const ids = PILOT_CATALOG.targets.map((t) => t.id);
+
+  it('covers every share/invite/consent/send/export/join/delete/pay id by confirmTargets or blockedTargets', () => {
+    expect(uncoveredSensitive(ids, confirmTargets, blockedTargets)).toEqual([]);
+  });
+
+  it('keeps the named sensitive ids in the lists', () => {
+    for (const id of ['invite.create', 'invite.consent', 'companion.join-submit', 'teen.share:*', 'report.send', 'privacy.export']) {
+      expect(matchesAny([...confirmTargets, ...blockedTargets], id), id).toBe(true);
+    }
+  });
+
+  it('reports a new uncovered id (negative case) and accepts wildcard coverage', () => {
+    expect(uncoveredSensitive([...ids, 'fake.share-everything'], confirmTargets, blockedTargets)).toEqual(['fake.share-everything']);
+    expect(uncoveredSensitive(['teen.share:cycle'], ['teen.share:*'], [])).toEqual([]);
+    expect(uncoveredSensitive(['teen.share:cycle'], [], [])).toEqual(['teen.share:cycle']);
+  });
+});
 
 describe('autopilot catalog', () => {
   const marks = marksInSource();

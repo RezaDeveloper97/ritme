@@ -5,6 +5,7 @@ import { AnalysisPostpartumHub } from '@/screens/analysis-postpartum';
 import { AnalysisPregnancyHub } from '@/screens/analysis-pregnancy';
 import { AnalysisTtcHub } from '@/screens/analysis-ttc';
 import { CycleHistoryPanel } from '@/screens/cycle';
+import { CyclePredictions } from '@/widgets/cycle-predictions';
 
 import { RouteMessages } from '../../RouteMessages';
 
@@ -24,10 +25,11 @@ export default async function AnalysisRoute({ params, searchParams }: Props) {
   return (
     <RouteMessages route="analysisHub">
       <AnalysisPage
-        ttcHub={<AnalysisTtcHub />}
+        ttcHub={<AnalysisTtcHub predictions={<CyclePredictions />} />}
         pregnancyHub={<AnalysisPregnancyHub />}
         postpartumHub={<AnalysisPostpartumHub />}
         historyPanel={<CycleHistoryPanel />}
+        predictions={<CyclePredictions />}
         initialTab={analysisTabOf(tab)}
       />
     </RouteMessages>

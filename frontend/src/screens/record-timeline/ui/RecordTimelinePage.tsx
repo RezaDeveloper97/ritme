@@ -34,6 +34,7 @@ import {
   StatusPill,
 } from '@/shared/ui';
 import { pilot, pilotOption } from '@/shared/pilot';
+import '@/shared/ui/styles/rec.css';
 
 const isKind = (v: string | null): v is TimelineKind => (TIMELINE_KINDS as readonly string[]).includes(v ?? '');
 

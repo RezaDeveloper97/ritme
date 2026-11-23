@@ -1,0 +1,43 @@
+/* `cal-cell` — one day of the calendar grid. Only the key days — period (logged or
+   predicted) and ovulation — are a solid fill; PMS and the rest of the fertile
+   window colour just the digit, so the grid stays calm. */
+
+.cal-cell {
+  --cal-accent: var(--brand);
+  position: relative; width: 40px; height: 40px; justify-self: center;
+  display: flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 50%; background: transparent; color: var(--ink);
+  font-family: inherit; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums;
+  cursor: pointer; transition: box-shadow .15s ease;
+}
+
+.cal-cell:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.cal-cell.is-period { --cal-accent: var(--period); background: var(--period); color: var(--page); }
+
+/* The engine's prediction: still filled, in a lighter red than a logged period. */
+.cal-cell.is-predicted { --cal-accent: var(--period); background: color-mix(in srgb, var(--period) 42%, var(--surface)); color: var(--text-1); }
+
+.cal-cell.is-pms { --cal-accent: var(--violet); color: var(--violet); }
+
+/* Fertile window: a green digit; only the ovulation (peak-chance, level 4) day is filled. */
+.cal-cell.is-fertile,
+.cal-cell.is-ovulation { --cal-accent: var(--fertile); color: var(--fertile-deep); }
+
+.cal-cell.is-lv4 { background: var(--fertile-4); color: var(--on-fertile); }
+
+.cal-cell.is-selected {
+  box-shadow: 0 0 0 2px var(--cal-accent), 0 4px 12px color-mix(in srgb, var(--cal-accent) 35%, transparent);
+}
+
+/* On a filled day a thin canvas gap keeps the selection ring apart from the fill. */
+.cal-cell.is-selected:is(.is-period, .is-predicted, .is-lv4) {
+  box-shadow: inset 0 0 0 2px var(--page), 0 0 0 2px var(--cal-accent), 0 4px 12px color-mix(in srgb, var(--cal-accent) 35%, transparent);
+}
+
+.cal-cell-today {
+  position: absolute; bottom: 4px; width: 4px; height: 4px; border-radius: 50%;
+  background: currentColor;
+}
+
+.cal-cell:not(:is(.is-period, .is-predicted, .is-pms, .is-fertile, .is-ovulation)) .cal-cell-today { background: var(--brand); }

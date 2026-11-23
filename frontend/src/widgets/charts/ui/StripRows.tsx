@@ -2,6 +2,7 @@ import type { Tone } from '@/shared/ui';
 
 import { axisTicks, cellOpacity } from '../lib/geometry';
 import { ChartFigure, type DataTable } from './ChartFigure';
+import '@/shared/ui/styles/axc.css';
 
 export interface StripRow {
   key: string;

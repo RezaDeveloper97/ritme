@@ -33,7 +33,7 @@ const paginationSchema = z
     per_page: z.number().default(50),
     total: z.number().default(0),
   })
-  .default({});
+  .prefault({});
 
 /** Boundary parser for GET /home/notifications (CLAUDE.md §10). */
 export const notificationListSchema = z

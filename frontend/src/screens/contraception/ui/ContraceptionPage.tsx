@@ -42,6 +42,7 @@ import {
   SkeletonGroup,
   SkyLayer,
 } from '@/shared/ui';
+import '@/shared/ui/styles/ctr.css';
 
 /**
  * «قرص پیشگیری» (`/contraception`, CB-CONTRA-02, nbl_Contra_Pill): today's

@@ -8,6 +8,8 @@ import { pilot } from '@/shared/pilot';
 import { Card, EmptyState, Icon, PrimaryButton, ScreenHeader, SectionTitle, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
 import { StatusBadge } from './StatusBadge';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/hlb.css';
 
 /**
  * `/services/home-lab` — «آزمایش و چکاپ در منزل»: the services that can be requested and my requests with their

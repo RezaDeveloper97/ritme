@@ -46,6 +46,8 @@ import {
   parseLogDate,
   toggleSymptom,
 } from '../model/form';
+import '@/shared/ui/styles/ttc.css';
+import '@/shared/ui/styles/fert.css';
 
 const INSIGHTS_HREF = '/fertility/insights';
 /** `v19_TTC_Log` chance bars: 10 → 30 px in 5 px steps. */

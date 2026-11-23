@@ -36,6 +36,8 @@ import {
   validateDraft,
 } from '../model/validation';
 import { DateSheet } from './DateSheet';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/lab.css';
 
 interface LabUploadFormProps {
   limits: UploadLimits;

@@ -16,6 +16,7 @@ import { ChartCard, ColumnChart, CycleDots, PhaseBar, ReportFrame, StatTiles, ty
 
 import { flagHintKind } from '../model/flag-hint';
 import { chronological, cycleVerdict, dayLayout, excludedCycles, MIN_CYCLES, periodVerdict, variationVerdict, type Verdict } from '../model/cycle';
+import '@/shared/ui/styles/anr.css';
 
 type Range = (typeof REPORT_RANGES.cycle)[number];
 

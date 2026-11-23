@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/ritme/backend-go/db"
 	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
@@ -331,56 +332,58 @@ func (q *Queries) LatestOpenShoppingList(ctx context.Context, userID uint64) (To
 	return i, err
 }
 
-const listBoardTasks = `-- name: ListBoardTasks :many
-SELECT t.id, t.user_id, t.title, t.note, t.category, t.due_date, t.due_time, t.remind, t.done_at, t.suggestion_key, t.created_at, t.updated_at, t.created_by, t.updated_by, t.scope, t.assigned_to,
+const listBoard = `-- name: ListBoard :many
+SELECT np.categories AS notification_categories,
+  t.id AS task_id, t.title, t.note, t.category, t.due_date, t.due_time, t.remind, t.done_at, t.suggestion_key,
+  t.created_at,
   (SELECT COUNT(*) FROM ` + "`" + `todo_items` + "`" + ` i WHERE i.task_id = t.id) AS items_total,
   (SELECT COUNT(*) FROM ` + "`" + `todo_items` + "`" + ` i WHERE i.task_id = t.id AND i.done_at IS NULL) AS items_open
-FROM ` + "`" + `todo_tasks` + "`" + ` t
-WHERE t.user_id = ? AND (t.done_at IS NULL OR t.done_at >= ?)
+FROM ` + "`" + `users` + "`" + ` u
+LEFT JOIN ` + "`" + `notification_preferences` + "`" + ` np ON np.user_id = u.id
+LEFT JOIN ` + "`" + `todo_tasks` + "`" + ` t ON t.user_id = u.id AND (t.done_at IS NULL OR t.done_at >= ?)
+WHERE u.id = ?
 ORDER BY t.id
 LIMIT ?
 `
 
-type ListBoardTasksParams struct {
-	UserID    uint64
+type ListBoardParams struct {
 	DoneSince sql.NullTime
+	UserID    uint64
 	Limit     int32
 }
 
-type ListBoardTasksRow struct {
-	ID            uint64
-	UserID        uint64
-	Title         string
-	Note          sql.NullString
-	Category      string
-	DueDate       civildate.NullDate
-	DueTime       sql.NullString
-	Remind        bool
-	DoneAt        sql.NullTime
-	SuggestionKey sql.NullString
-	CreatedAt     sql.NullTime
-	UpdatedAt     sql.NullTime
-	CreatedBy     sql.NullInt64
-	UpdatedBy     sql.NullInt64
-	Scope         string
-	AssignedTo    sql.NullInt64
-	ItemsTotal    int64
-	ItemsOpen     int64
+type ListBoardRow struct {
+	NotificationCategories db.NullRawJSON
+	TaskID                 sql.NullInt64
+	Title                  sql.NullString
+	Note                   sql.NullString
+	Category               sql.NullString
+	DueDate                civildate.NullDate
+	DueTime                sql.NullString
+	Remind                 sql.NullBool
+	DoneAt                 sql.NullTime
+	SuggestionKey          sql.NullString
+	CreatedAt              sql.NullTime
+	ItemsTotal             int64
+	ItemsOpen              int64
 }
 
-// The board of GET /todo: every open task plus the tasks ticked since done_since, with the item counts of each list.
-func (q *Queries) ListBoardTasks(ctx context.Context, arg ListBoardTasksParams) ([]ListBoardTasksRow, error) {
-	rows, err := q.db.QueryContext(ctx, listBoardTasks, arg.UserID, arg.DoneSince, arg.Limit)
+// The board of GET /todo in one statement (T-M12-30b): every open task plus the tasks ticked since done_since, with
+// the item counts of each list, and the user's notification categories (notification_preferences.categories, NULL =
+// no settings row) for the board's reminder switch. Driven by the user's own row, so an empty board is still one row
+// (task_id NULL) carrying the categories; with tasks, every row repeats them.
+func (q *Queries) ListBoard(ctx context.Context, arg ListBoardParams) ([]ListBoardRow, error) {
+	rows, err := q.db.QueryContext(ctx, listBoard, arg.DoneSince, arg.UserID, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []ListBoardTasksRow{}
+	items := []ListBoardRow{}
 	for rows.Next() {
-		var i ListBoardTasksRow
+		var i ListBoardRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
+			&i.NotificationCategories,
+			&i.TaskID,
 			&i.Title,
 			&i.Note,
 			&i.Category,
@@ -390,11 +393,6 @@ func (q *Queries) ListBoardTasks(ctx context.Context, arg ListBoardTasksParams) 
 			&i.DoneAt,
 			&i.SuggestionKey,
 			&i.CreatedAt,
-			&i.UpdatedAt,
-			&i.CreatedBy,
-			&i.UpdatedBy,
-			&i.Scope,
-			&i.AssignedTo,
 			&i.ItemsTotal,
 			&i.ItemsOpen,
 		); err != nil {

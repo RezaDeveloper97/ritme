@@ -1,12 +1,15 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { useState } from 'react';
 
-import { getApiErrorMessage } from '@/shared/api';
+import { getApiErrorMessage, getApiErrorStatus, isStepUpRequired } from '@/shared/api';
 import { useRouter } from '@/shared/i18n';
 import { Icon } from '@/shared/ui';
 
 import { useDeleteAccount } from '../api/mutations';
+import { StepUpPanel } from './StepUpPanel';
+import '@/shared/ui/styles/del.css';
 
 interface DeleteAccountConfirmProps {
   open: boolean;
@@ -16,18 +19,21 @@ interface DeleteAccountConfirmProps {
 /**
  * Confirmation sheet for permanent account deletion. Deliberately explicit and
  * calm (§11): it spells out that everything is erased and cannot be undone,
- * and the safe action (cancel) is the visually primary one.
+ * and the safe action (cancel) is the visually primary one. Confirming moves to
+ * the step-up (T-M12-06): a fresh SMS code, and only then the deletion.
  */
 export function DeleteAccountConfirm({ open, onClose }: DeleteAccountConfirmProps) {
   const t = useTranslations('account');
+  const ts = useTranslations('profile.stepUp');
   const router = useRouter();
   const deleteAccount = useDeleteAccount();
+  const [step, setStep] = useState<'confirm' | 'code'>('confirm');
 
   if (!open) return null;
 
-  const handleConfirm = () => {
+  const handleVerified = (token: string) => {
     if (deleteAccount.isPending) return;
-    deleteAccount.mutate(undefined, {
+    deleteAccount.mutate(token, {
       onSuccess: () => router.replace('/signup'),
     });
   };
@@ -35,8 +41,19 @@ export function DeleteAccountConfirm({ open, onClose }: DeleteAccountConfirmProp
   const handleClose = () => {
     if (deleteAccount.isPending) return;
     deleteAccount.reset();
+    setStep('confirm');
     onClose();
   };
+
+  // A refused deletion in the code step: an expired / spent step-up asks for a new code, the hourly cap says so,
+  // anything else is the server's message or the generic error.
+  const actionError = !deleteAccount.isError
+    ? null
+    : isStepUpRequired(deleteAccount.error)
+      ? ts('again')
+      : getApiErrorStatus(deleteAccount.error) === 429
+        ? ts('throttled')
+        : getApiErrorMessage(deleteAccount.error) ?? t('delete.error');
 
   return (
     <div
@@ -54,32 +71,29 @@ export function DeleteAccountConfirm({ open, onClose }: DeleteAccountConfirmProp
           <Icon name="trash" size={22} />
         </span>
 
-        <div className="del-title">
-          {t('delete.title')}
-        </div>
-        <p className="del-body">
-          {t('delete.warning')}
-        </p>
+        {step === 'code' ? (
+          <StepUpPanel
+            body={ts('deleteBody')}
+            onVerified={handleVerified}
+            onCancel={handleClose}
+            busy={deleteAccount.isPending}
+            actionError={actionError}
+          />
+        ) : (
+          <>
+            <div className="del-title">{t('delete.title')}</div>
+            <p className="del-body">{t('delete.warning')}</p>
 
-        {deleteAccount.isError ? (
-          <p className="del-error" role="alert">
-            {getApiErrorMessage(deleteAccount.error) ?? t('delete.error')}
-          </p>
-        ) : null}
-
-        <div className="del-btns">
-          <button
-            type="button"
-            className="del-confirm"
-            onClick={handleConfirm}
-            disabled={deleteAccount.isPending}
-          >
-            {deleteAccount.isPending ? t('delete.deleting') : t('delete.confirm')}
-          </button>
-          <button type="button" className="del-cancel" onClick={handleClose} disabled={deleteAccount.isPending}>
-            {t('delete.cancel')}
-          </button>
-        </div>
+            <div className="del-btns">
+              <button type="button" className="del-confirm" onClick={() => setStep('code')}>
+                {t('delete.confirm')}
+              </button>
+              <button type="button" className="del-cancel" onClick={handleClose}>
+                {t('delete.cancel')}
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

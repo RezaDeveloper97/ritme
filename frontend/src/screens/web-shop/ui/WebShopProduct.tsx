@@ -21,6 +21,8 @@ import { Card, EmptyState, Icon, InfoNote, Skeleton, SkeletonGroup } from '@/sha
 
 import { APP_SHOP, STORE_HOME, storeCategoryHref } from '../model/store';
 import { ShopWebShell, useRating, WebTile } from './ShopWebShell';
+import '@/shared/ui/styles/shp.css';
+import './wsh.css';
 
 type Dim = 'size' | 'color' | 'volume';
 type Selection = Record<Dim, string | null>;

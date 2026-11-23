@@ -42,6 +42,8 @@ import {
 } from '../model/view';
 import { MenopausePlan } from './MenopausePlan';
 import { PlanSettingsSheet } from './PlanSettingsSheet';
+import '@/shared/ui/styles/ck.css';
+import '@/shared/ui/styles/rmd.css';
 
 const PANEL_ID = 'ck-panel';
 

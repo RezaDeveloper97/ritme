@@ -9,6 +9,7 @@ import { IconCircle, StatusPill, type IconName, type Tone } from '@/shared/ui';
 import { uiTone } from '../model/classify';
 import type { GlucoseUnit, VitalClass, VitalReading, VitalType } from '../model/types';
 import { useVitalFormat } from './useVitalFormat';
+import '@/shared/ui/styles/vt.css';
 
 /** Icon + accent of each type (nbl_Vitals_Hub: BP violet dial, heart rate rose, glucose amber drop). */
 export const VITAL_LOOK: Record<VitalType, { icon: IconName; tone: Tone }> = {

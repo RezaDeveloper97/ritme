@@ -2598,6 +2598,46 @@ LOCK TABLES `epds_checks` WRITE;
 /*!40000 ALTER TABLE `epds_checks` DISABLE KEYS */;
 /*!40000 ALTER TABLE `epds_checks` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `engine_daily_snapshots`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `engine_daily_snapshots` (
+  `user_id` bigint(20) unsigned NOT NULL,
+  `day` date NOT NULL,
+  `main_phase` varchar(24) NOT NULL,
+  `subphase` varchar(32) NOT NULL,
+  `confidence` varchar(8) NOT NULL,
+  `data_quality` varchar(16) NOT NULL,
+  `warnings_mask` int(10) unsigned NOT NULL DEFAULT 0,
+  `days_late` smallint(6) DEFAULT NULL,
+  `mode` varchar(16) NOT NULL,
+  `engine_rev` bigint(20) unsigned NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`user_id`,`day`),
+  KEY `engine_daily_snapshots_day_index` (`day`),
+  CONSTRAINT `engine_daily_snapshots_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `engine_prediction_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `engine_prediction_log` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `cycle_start` date NOT NULL,
+  `kind` enum('first','last') NOT NULL,
+  `predicted_next` date NOT NULL,
+  `basis_cycles` tinyint(3) unsigned NOT NULL,
+  `ovulation_source` varchar(16) NOT NULL,
+  `confidence` varchar(8) NOT NULL,
+  `actual_start` date DEFAULT NULL,
+  `error_days` smallint(6) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `engine_prediction_log_user_id_cycle_start_kind_unique` (`user_id`,`cycle_start`,`kind`),
+  CONSTRAINT `engine_prediction_log_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `failed_jobs`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -5748,6 +5788,21 @@ INSERT INTO `pregnancy_symptom_logs` VALUES
 (101503,1015,'2026-09-23',NULL,NULL,NULL,NULL,NULL,NULL,1,'severe',1,'severe',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,1,'severe',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'contract','2026-09-23 09:00:00','2026-09-23 09:00:00');
 /*!40000 ALTER TABLE `pregnancy_symptom_logs` ENABLE KEYS */;
 UNLOCK TABLES;
+DROP TABLE IF EXISTS `pregnancy_week_user_state`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `pregnancy_week_user_state` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `week` tinyint(3) unsigned NOT NULL,
+  `done_task_keys` json DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `pregnancy_week_user_state_user_id_week_unique` (`user_id`,`week`),
+  CONSTRAINT `pregnancy_week_user_state_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `pregnancy_weekly_content`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8mb4 */;
@@ -7556,6 +7611,35 @@ LOCK TABLES `vital_targets` WRITE;
 /*!40000 ALTER TABLE `vital_targets` DISABLE KEYS */;
 /*!40000 ALTER TABLE `vital_targets` ENABLE KEYS */;
 UNLOCK TABLES;
+-- Go-side twin of Laravel 2026_11_11_000123 (goose 00123), added after the data so the dump's positional INSERTs
+-- keep their arity; rows that exist are marked handled, as the migration does.
+ALTER TABLE `user_notifications` ADD COLUMN IF NOT EXISTS `pushed_at` datetime DEFAULT NULL,
+  ADD KEY IF NOT EXISTS `user_notifications_pushed_at_id_index` (`pushed_at`,`id`);
+UPDATE `user_notifications` SET `pushed_at` = COALESCE(`created_at`, NOW()) WHERE `pushed_at` IS NULL;
+-- Go-side twin of goose 00096 / Laravel 2026_10_21_000096 (operational backup table; the account export reads it).
+CREATE TABLE IF NOT EXISTS `user_profiles_dedupe_backup` (
+  `id` bigint(20) unsigned NOT NULL,
+  `user_id` bigint(20) unsigned NOT NULL,
+  `birthday` date DEFAULT NULL,
+  `weight` decimal(5,2) DEFAULT NULL,
+  `height` smallint(5) unsigned DEFAULT NULL,
+  `period_duration` tinyint(3) unsigned DEFAULT NULL,
+  `cycle_duration` tinyint(3) unsigned DEFAULT NULL,
+  `last_period_start` date DEFAULT NULL,
+  `user_goal` varchar(255) NOT NULL DEFAULT 'non_ttc',
+  `pregnancy_intention` varchar(255) DEFAULT NULL,
+  `chronic_conditions` json DEFAULT NULL,
+  `subscription_type` varchar(255) NOT NULL DEFAULT 'free',
+  `calculation_status` varchar(255) NOT NULL DEFAULT 'pending',
+  `calculation_started_at` timestamp NULL DEFAULT NULL,
+  `calculation_completed_at` timestamp NULL DEFAULT NULL,
+  `calculation_version` int(11) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `removed_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `user_profiles_dedupe_backup_user_id_index` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

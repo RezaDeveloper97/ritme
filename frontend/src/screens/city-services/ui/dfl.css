@@ -1,0 +1,22 @@
+/* `dfl-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.dfl-note { margin: 0; font-size: 12px; font-weight: 600; line-height: 1.8; color: var(--text-2); }
+
+.dfl-count { margin: 0; font-size: 12px; font-weight: 700; color: var(--text-2); }
+
+.dfl-filter { display: inline-flex; align-items: center; gap: 6px; }
+
+.dfl-badge {
+  display: inline-flex; align-items: center; justify-content: center; min-inline-size: 18px; block-size: 18px; padding-inline: 4px;
+  border-radius: var(--r-pill); background: var(--brand-fill); color: var(--on-brand); font-size: 11px; font-weight: 800;
+}
+
+.csv-chip.on .dfl-badge { background: var(--on-brand); color: var(--brand); }
+
+.dfl-map-fab {
+  position: absolute; inset-inline-end: var(--gutter); inset-block-end: calc(var(--gutter) + env(safe-area-inset-bottom, 0px));
+  display: inline-flex; align-items: center; gap: 8px; min-block-size: 48px; padding-inline: 18px; border-radius: var(--r-pill);
+  background: var(--brand-fill); color: var(--on-brand); font-size: 14px; font-weight: 800; text-decoration: none; box-shadow: var(--shadow-cta);
+}
+
+.dfl-map-fab:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }

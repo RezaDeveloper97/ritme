@@ -48,6 +48,8 @@ import {
   sortForInventory,
   stockState,
 } from '../model/schedule';
+import '@/shared/ui/styles/ivf.css';
+import '@/shared/ui/styles/ivfm.css';
 
 type T = ReturnType<typeof useTranslations<'ivf'>>;
 

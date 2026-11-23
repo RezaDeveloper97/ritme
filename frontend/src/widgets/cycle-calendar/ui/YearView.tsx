@@ -7,6 +7,7 @@ import { diffInDays, formatYear, monthMatrix, monthName, today } from '@/shared/
 import { HeaderButton } from '@/shared/ui';
 
 import type { DayTone } from '../model/tones';
+import './cc.css';
 
 interface YearViewProps {
   year: number;

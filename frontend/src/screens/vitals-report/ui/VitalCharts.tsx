@@ -6,6 +6,8 @@ import type { Tone } from '@/shared/ui';
 import { ChartFigure, type DataTable } from '@/widgets/charts';
 
 import { CHART_W, PAD_X, labelIndexes, linePath, makeScale, slotX, type Scale } from '../model/chart';
+import '@/shared/ui/styles/axc.css';
+import './vtc.css';
 
 function Grid({ scale, fmt }: { scale: Scale; fmt: (n: number) => string }) {
   return (

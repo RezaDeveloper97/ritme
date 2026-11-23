@@ -602,6 +602,21 @@ func (q *Queries) ListUserRewards(ctx context.Context, userID uint64) ([]ListUse
 	return items, nil
 }
 
+const lockUser = `-- name: LockUser :one
+SELECT id FROM users WHERE id = ? FOR UPDATE
+`
+
+// Serialises the Plus-period writes of one user (T-M12-19b), taken right after LockUserEnrollment and before any
+// insert: an insert's foreign-key check takes a shared lock on the users row, and two runs of one user both holding
+// it while plus.GrantDays asks for the exclusive one deadlock (1213). Lock order: enrollment row, then this one
+// (the same as plus: invoice / store purchase row, then the user).
+func (q *Queries) LockUser(ctx context.Context, id uint64) (uint64, error) {
+	row := q.db.QueryRowContext(ctx, lockUser, id)
+	var id_2 uint64
+	err := row.Scan(&id_2)
+	return id_2, err
+}
+
 const lockUserEnrollment = `-- name: LockUserEnrollment :one
 SELECT id, user_id, challenge_id, started_on, status, completed_at, created_at, updated_at FROM ` + "`" + `challenge_enrollments` + "`" + ` WHERE user_id = ? AND challenge_id = ? LIMIT 1 FOR UPDATE
 `

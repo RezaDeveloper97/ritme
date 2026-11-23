@@ -153,7 +153,7 @@
               "missing_period_end": true
             },
             "daily_card": {
-              "title": "پایان پریود هنوز ثبت نشده",
+              "title": "پایان پریود ثبت نشده",
               "subtitle": "برای دقیق‌تر شدن تقویم، مشخص کن خون‌ریزی چه زمانی تمام شده است.",
               "data_status": "incomplete",
               "fertility_level": "low",

@@ -14,6 +14,7 @@ import {
 } from '@/entities/lab';
 import type { Locale } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
+import '@/shared/ui/styles/lab.css';
 
 /**
  * One marker of the result: name, value + unit in the state's tone, the state pill, the range bar and «مرجع: …»

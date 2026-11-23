@@ -18,6 +18,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/civildate"
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 	"github.com/ritme/backend-go/internal/platform/metrics"
+	"github.com/ritme/backend-go/internal/platform/racedet"
 )
 
 func TestMain(m *testing.M) { testdb.Main(m) }
@@ -284,6 +285,9 @@ func seedBudget(t *testing.T, db *sql.DB) uint64 {
 }
 
 func TestLoad_Budget(t *testing.T) {
+	if racedet.Enabled {
+		t.Skip("latency budget is meaningless under -race")
+	}
 	db := testdb.New(t)
 	q := store.New(db)
 	uid := seedBudget(t, db)

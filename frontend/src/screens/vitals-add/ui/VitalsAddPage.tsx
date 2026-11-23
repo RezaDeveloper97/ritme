@@ -6,6 +6,7 @@ import { AddVitalForm } from '@/features/add-vital';
 import { useVitalsHub, type VitalType } from '@/entities/vital';
 import { useRouter } from '@/shared/i18n';
 import { ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
+import '@/shared/ui/styles/vt.css';
 
 /**
  * `/vitals/bp/new`, `/vitals/glucose/new`, `/vitals/heart-rate/new`

@@ -11,6 +11,173 @@ import (
 )
 
 type Querier interface {
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportAiCreditGrants(ctx context.Context, uid int64) ([]AiCreditGrant, error)
+	AcctExportAiCreditSpends(ctx context.Context, uid int64) ([]AiCreditSpend, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportAnalyticsEvents(ctx context.Context, uid int64) ([]AnalyticsEvent, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportAssistantConversations(ctx context.Context, uid int64) ([]AssistantConversation, error)
+	AcctExportAssistantHandoffs(ctx context.Context, uid int64) ([]AssistantHandoff, error)
+	AcctExportAssistantMessages(ctx context.Context, uid int64) ([]AssistantMessage, error)
+	AcctExportAssistantProfileSettings(ctx context.Context, uid int64) ([]AssistantProfileSetting, error)
+	AcctExportBabyDiapers(ctx context.Context, uid int64) ([]BabyDiaper, error)
+	AcctExportBabyFeeds(ctx context.Context, uid int64) ([]BabyFeed, error)
+	AcctExportBabyMedDoses(ctx context.Context, uid int64) ([]BabyMedDose, error)
+	AcctExportBabySleeps(ctx context.Context, uid int64) ([]BabySleep, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportChallengeEnrollments(ctx context.Context, uid int64) ([]ChallengeEnrollment, error)
+	AcctExportChallengeRewardGrants(ctx context.Context, uid int64) ([]ChallengeRewardGrant, error)
+	AcctExportChallengeTaskCompletions(ctx context.Context, uid int64) ([]ChallengeTaskCompletion, error)
+	AcctExportCheckupRecords(ctx context.Context, uid int64) ([]CheckupRecord, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportCheckupTypes(ctx context.Context, uid int64) ([]AcctExportCheckupTypesRow, error)
+	AcctExportChildGuardians(ctx context.Context, arg AcctExportChildGuardiansParams) ([]ChildGuardian, error)
+	AcctExportChildMeasurements(ctx context.Context, uid int64) ([]ChildMeasurement, error)
+	AcctExportChildMilestoneChecks(ctx context.Context, uid int64) ([]ChildMilestoneCheck, error)
+	AcctExportChildVaccineDoses(ctx context.Context, uid int64) ([]ChildVaccineDose, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportChildren(ctx context.Context, uid int64) ([]Child, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportCityServiceListings(ctx context.Context, uid int64) ([]CityServiceListing, error)
+	AcctExportCityServiceServices(ctx context.Context, uid int64) ([]CityServiceService, error)
+	AcctExportCityServiceSlots(ctx context.Context, uid int64) ([]CityServiceSlot, error)
+	AcctExportCompanionAuditLogs(ctx context.Context, uid int64) ([]AcctExportCompanionAuditLogsRow, error)
+	AcctExportCompanionGrants(ctx context.Context, arg AcctExportCompanionGrantsParams) ([]CompanionGrant, error)
+	AcctExportCompanionInvites(ctx context.Context, uid int64) ([]AcctExportCompanionInvitesRow, error)
+	AcctExportCompanions(ctx context.Context, arg AcctExportCompanionsParams) ([]AcctExportCompanionsRow, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportConsentEvents(ctx context.Context, uid int64) ([]ConsentEvent, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportCyclePreferences(ctx context.Context, uid int64) ([]CyclePreference, error)
+	AcctExportCycleSkips(ctx context.Context, uid int64) ([]CycleSkip, error)
+	AcctExportEmergencyCards(ctx context.Context, uid int64) ([]AcctExportEmergencyCardsRow, error)
+	AcctExportEnginePredictionLog(ctx context.Context, uid int64) ([]EnginePredictionLog, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportFamilies(ctx context.Context, arg AcctExportFamiliesParams) ([]Family, error)
+	AcctExportFamilyAttendance(ctx context.Context, uid int64) ([]FamilyAttendance, error)
+	AcctExportFamilyChildren(ctx context.Context, uid int64) ([]FamilyChild, error)
+	AcctExportFamilyMemberAlerts(ctx context.Context, uid int64) ([]FamilyMemberAlert, error)
+	AcctExportFamilyMemberNotices(ctx context.Context, uid int64) ([]FamilyMemberNotice, error)
+	AcctExportFamilyNudges(ctx context.Context, arg AcctExportFamilyNudgesParams) ([]FamilyNudge, error)
+	AcctExportFamilyOwnerState(ctx context.Context, uid int64) ([]FamilyOwnerState, error)
+	AcctExportFamilyProposals(ctx context.Context, arg AcctExportFamilyProposalsParams) ([]AcctExportFamilyProposalsRow, error)
+	AcctExportFamilyShareRequests(ctx context.Context, arg AcctExportFamilyShareRequestsParams) ([]FamilyShareRequest, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportFertilityLogs(ctx context.Context, uid int64) ([]FertilityLog, error)
+	AcctExportFiles(ctx context.Context, uid int64) ([]AcctExportFilesRow, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportHealthLogCustomItems(ctx context.Context, uid int64) ([]HealthLogCustomItem, error)
+	AcctExportHealthLogPreferences(ctx context.Context, uid int64) ([]HealthLogPreference, error)
+	AcctExportHealthRecordPregnancies(ctx context.Context, uid int64) ([]HealthRecordPregnancy, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportHealthRecords(ctx context.Context, uid int64) ([]AcctExportHealthRecordsRow, error)
+	AcctExportHealthShareLinkViews(ctx context.Context, uid int64) ([]HealthShareLinkView, error)
+	AcctExportHealthShareLinks(ctx context.Context, uid int64) ([]AcctExportHealthShareLinksRow, error)
+	AcctExportLabFiles(ctx context.Context, uid int64) ([]AcctExportLabFilesRow, error)
+	AcctExportLabMarkers(ctx context.Context, uid int64) ([]LabMarker, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportLabReports(ctx context.Context, uid int64) ([]LabReport, error)
+	AcctExportLearningGrants(ctx context.Context, uid int64) ([]AcctExportLearningGrantsRow, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportLearningInstructors(ctx context.Context, uid int64) ([]LearningInstructor, error)
+	AcctExportLearningProgress(ctx context.Context, uid int64) ([]LearningProgress, error)
+	AcctExportMessageEvents(ctx context.Context, uid int64) ([]AcctExportMessageEventsRow, error)
+	AcctExportMessageInbox(ctx context.Context, uid int64) ([]MessageInbox, error)
+	AcctExportPartnerLabRequests(ctx context.Context, uid int64) ([]PartnerLabRequest, error)
+	AcctExportPlusInvoices(ctx context.Context, uid int64) ([]AcctExportPlusInvoicesRow, error)
+	AcctExportPlusReceipts(ctx context.Context, uid int64) ([]PlusReceipt, error)
+	AcctExportPlusStorePurchases(ctx context.Context, uid int64) ([]AcctExportPlusStorePurchasesRow, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportPlusSubscriptions(ctx context.Context, uid int64) ([]PlusSubscription, error)
+	AcctExportPlusTrials(ctx context.Context, uid int64) ([]PlusTrial, error)
+	AcctExportPlusUsageCounters(ctx context.Context, uid int64) ([]PlusUsageCounter, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportPregnancyAlerts(ctx context.Context, uid int64) ([]PregnancyAlert, error)
+	AcctExportPregnancyContractionSessions(ctx context.Context, uid int64) ([]PregnancyContractionSession, error)
+	AcctExportPregnancyContractions(ctx context.Context, uid int64) ([]PregnancyContraction, error)
+	AcctExportPregnancyDailyExtras(ctx context.Context, uid int64) ([]PregnancyDailyExtra, error)
+	AcctExportPregnancyKickSessions(ctx context.Context, uid int64) ([]PregnancyKickSession, error)
+	AcctExportPregnancyWeekUserState(ctx context.Context, uid int64) ([]PregnancyWeekUserState, error)
+	AcctExportRecordDocumentFiles(ctx context.Context, uid int64) ([]RecordDocumentFile, error)
+	AcctExportRecordDocumentLinks(ctx context.Context, uid int64) ([]RecordDocumentLink, error)
+	AcctExportRecordDocuments(ctx context.Context, uid int64) ([]RecordDocument, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportReminderIntakes(ctx context.Context, uid int64) ([]ReminderIntake, error)
+	AcctExportShopCartItems(ctx context.Context, uid int64) ([]ShopCartItem, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportShopCarts(ctx context.Context, uid int64) ([]ShopCart, error)
+	AcctExportTeenKitChecks(ctx context.Context, uid int64) ([]TeenKitCheck, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportTeenProfiles(ctx context.Context, uid int64) ([]TeenProfile, error)
+	AcctExportTelemedBookingConsents(ctx context.Context, uid int64) ([]TelemedBookingConsent, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportTelemedBookings(ctx context.Context, uid int64) ([]AcctExportTelemedBookingsRow, error)
+	AcctExportTelemedMessages(ctx context.Context, uid int64) ([]TelemedMessage, error)
+	AcctExportTelemedPrescriptionItems(ctx context.Context, uid int64) ([]TelemedPrescriptionItem, error)
+	AcctExportTelemedReviews(ctx context.Context, uid int64) ([]TelemedReview, error)
+	AcctExportTodoItems(ctx context.Context, uid int64) ([]TodoItem, error)
+	AcctExportTodoSuggestionEvents(ctx context.Context, uid int64) ([]TodoSuggestionEvent, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportTodoTasks(ctx context.Context, uid int64) ([]TodoTask, error)
+	AcctExportUserActivityDays(ctx context.Context, uid int64) ([]UserActivityDay, error)
+	AcctExportUserChallengeCompletions(ctx context.Context, uid int64) ([]UserChallengeCompletion, error)
+	AcctExportUserCheckupSettings(ctx context.Context, uid int64) ([]UserCheckupSetting, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportUserNotifications(ctx context.Context, uid int64) ([]UserNotification, error)
+	AcctExportUserTaskCompletions(ctx context.Context, uid int64) ([]UserTaskCompletion, error)
+	// T-M12-14b: the account export reads each table with an explicit column list (an allow-list):
+	// a column the export must not carry (hash, token, path, sealed blob) is simply not selected here.
+	// Generated once from the schema, kept by hand; TestAccountExport_ColumnGuard fails when a table gains a column.
+	AcctExportVitalPlanItems(ctx context.Context, uid int64) ([]VitalPlanItem, error)
+	AcctExportVitalReadings(ctx context.Context, uid int64) ([]VitalReading, error)
+	AcctExportVitalTargets(ctx context.Context, uid int64) ([]VitalTarget, error)
 	// Per-user flood guard: reports created since `since`.
 	CountRecentSupportReports(ctx context.Context, arg CountRecentSupportReportsParams) (int64, error)
 	// Support reports (B-N1-12, goose 00012): «گزارش مشکل» from the Support screen, Go only.

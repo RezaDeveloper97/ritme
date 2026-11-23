@@ -9,7 +9,11 @@
 //
 // Environment:
 //
-//	TEST_DB_DSN        DSN of the test server (make test-int sets it). Unset → tests t.Skip().
+//	TEST_DB_DSN        DSN of the test server (make test-int sets it). Unset → tests t.Skip(),
+//	                   except under CI (CI=true): there an unset DSN fails the test, so a broken
+//	                   service config cannot turn the integration suite into a green run of skips.
+//	TESTDB_OPTIONAL    set to 1 in a CI job that deliberately runs without a database (unit-only
+//	                   jobs): integration tests skip again instead of failing.
 //	TEST_DB_ADMIN_DSN  optional DSN of a user allowed to CREATE/DROP DATABASE (make test-int
 //	                   passes root); defaults to TEST_DB_DSN.
 //
@@ -131,6 +135,10 @@ func Main(m *testing.M) {
 func get(t testing.TB) *state {
 	t.Helper()
 	if !Enabled() {
+		if missingIsFatal(os.Getenv) {
+			t.Fatal("testdb: TEST_DB_DSN is not set but CI=true — the integration suite would skip silently; " +
+				"fix the job's database service/env, or set TESTDB_OPTIONAL=1 in a job that is unit-only on purpose")
+		}
 		t.Skip("testdb: TEST_DB_DSN is not set (run `make test-int`)")
 	}
 	once.Do(func() {
@@ -142,6 +150,14 @@ func get(t testing.TB) *state {
 		t.Fatalf("testdb: %v", setupErr)
 	}
 	return shared
+}
+
+// missingIsFatal reports whether a missing TEST_DB_DSN must fail the test instead of skipping it:
+// true under CI (CI parses as true, as GitHub Actions sets it) unless TESTDB_OPTIONAL is true.
+func missingIsFatal(getenv func(string) string) bool {
+	ci, _ := strconv.ParseBool(strings.TrimSpace(getenv("CI")))
+	optional, _ := strconv.ParseBool(strings.TrimSpace(getenv("TESTDB_OPTIONAL")))
+	return ci && !optional
 }
 
 func setup(ctx context.Context) (*state, error) {

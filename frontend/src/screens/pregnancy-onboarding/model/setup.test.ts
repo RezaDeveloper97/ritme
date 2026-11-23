@@ -1,15 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import {
-  EMPTY_DATING,
-  EMPTY_HISTORY,
-  finishPregnancySetup,
-  isDatingComplete,
-  noneFirst,
-  toggleCondition,
-  toOnboardingInput,
-  toPreviewInput,
-} from './setup';
+import { EMPTY_HISTORY, finishPregnancySetup, noneFirst, toggleCondition, withHistory } from './setup';
 
 describe('toggleCondition', () => {
   it('makes «none» exclusive', () => {
@@ -20,28 +11,17 @@ describe('toggleCondition', () => {
   });
 });
 
-describe('dating payloads', () => {
-  it('requires the inputs of the chosen source', () => {
-    expect(isDatingComplete(EMPTY_DATING)).toBe(false);
-    expect(isDatingComplete({ ...EMPTY_DATING, source: 'manual', manualWeeks: 8 })).toBe(true);
-    expect(toPreviewInput(EMPTY_DATING, 'en')).toBeNull();
-  });
+describe('withHistory', () => {
+  const body = { age_source: 'manual' as const, manual_weeks: 10, manual_days: 2 };
 
-  it('builds the preview and onboarding bodies (Gregorian ISO)', () => {
-    const d = { ...EMPTY_DATING, lmp: { year: 2026, month: 8, day: 1 } };
-    expect(toPreviewInput(d, 'en')).toEqual({ source: 'lmp', lmp_date: '2026-08-01' });
-    expect(toOnboardingInput(d, null, 'en')).toEqual({ age_source: 'lmp', lmp_date: '2026-08-01' });
+  it('keeps the dating body as is without history', () => {
+    expect(withHistory(body, null)).toEqual(body);
+    expect(withHistory(body, EMPTY_HISTORY)).toEqual(body);
   });
 
   it('adds only the history the user gave', () => {
-    const d = { ...EMPTY_DATING, source: 'manual' as const, manualWeeks: 10, manualDays: 2 };
-    expect(toOnboardingInput(d, EMPTY_HISTORY, 'en')).toEqual({ age_source: 'manual', manual_weeks: 10, manual_days: 2 });
-    expect(
-      toOnboardingInput(d, { ...EMPTY_HISTORY, highRisk: true, conditions: ['none'], rhFactor: 'negative' }, 'en'),
-    ).toEqual({
-      age_source: 'manual',
-      manual_weeks: 10,
-      manual_days: 2,
+    expect(withHistory(body, { ...EMPTY_HISTORY, highRisk: true, conditions: ['none'], rhFactor: 'negative' })).toEqual({
+      ...body,
       has_high_risk_history: true,
       pre_existing_conditions: ['none'],
       rh_factor: 'negative',

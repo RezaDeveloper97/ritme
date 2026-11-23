@@ -9,6 +9,8 @@ import { PrimaryButton, SecondaryButton } from '@/shared/ui';
 import { pilot } from '@/shared/pilot';
 
 import { isValidLast4, isValidPhone, normalizeLast4, normalizePhone } from '../model/forms';
+import '@/shared/ui/styles/rem.css';
+import '@/shared/ui/styles/hrec.css';
 
 interface SheetProps {
   open: boolean;

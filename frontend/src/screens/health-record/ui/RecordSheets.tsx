@@ -44,6 +44,7 @@ import {
 import { pilot, pilotOption } from '@/shared/pilot';
 
 import { manualEntries } from '../model/format';
+import '@/shared/ui/styles/hrec.css';
 
 interface SheetProps {
   open: boolean;

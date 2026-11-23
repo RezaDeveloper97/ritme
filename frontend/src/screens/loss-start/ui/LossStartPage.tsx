@@ -36,6 +36,7 @@ import {
 } from '@/shared/ui';
 
 import { LossDateSheet } from './LossDateSheet';
+import './lst.css';
 
 const LOOK: Record<LossType, { icon: IconName; tone: Tone }> = {
   early_miscarriage: { icon: 'heart', tone: 'period' },

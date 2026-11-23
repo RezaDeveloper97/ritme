@@ -13,6 +13,7 @@ import {
 import { pilot, pilotOption } from '@/shared/pilot';
 import { useDirection } from '@/shared/i18n';
 import { IconCircle, type IconName, type Tone } from '@/shared/ui';
+import '@/shared/ui/styles/cmp.css';
 
 /** Icon + tone of each section row (Hamdam_Access). */
 const SECTION_LOOK: Record<CompanionSection, { icon: IconName; tone: Tone }> = {

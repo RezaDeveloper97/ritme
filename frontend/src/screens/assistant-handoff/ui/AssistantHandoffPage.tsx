@@ -10,6 +10,7 @@ import { pilot } from '@/shared/pilot';
 import { getApiErrorCode } from '@/shared/api';
 import { Link, useRouter, type Locale } from '@/shared/i18n';
 import { Card, CheckTick, EmptyState, Icon, InfoNote, PrimaryButton, ScreenHeader, SecondaryButton, SkyLayer } from '@/shared/ui';
+import '@/shared/ui/styles/as.css';
 
 /**
  * `/assistant/chat/[id]/handoff` — «ارسال به پزشک» (nbl_/nbd_v18_Handoff): pick one of HER OWN upcoming bookings; the

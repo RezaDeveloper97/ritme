@@ -19,6 +19,7 @@ import {
 import { pilot } from '@/shared/pilot';
 import { useRouter } from '@/shared/i18n';
 import { Card, EmptyState, Icon, PrimaryButton, ScreenHeader, SecondaryButton, SkyLayer, InfoNote } from '@/shared/ui';
+import '@/shared/ui/styles/as.css';
 
 /**
  * `/assistant/chat/[id]/summary` — «خلاصه گفت‌وگو» (nbl_/nbd_v18_Summary): the triage scale, what she said, self-care

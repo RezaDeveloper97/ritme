@@ -1,0 +1,34 @@
+/* `vlog-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.vlog-sec { display: flex; flex-direction: column; gap: 10px; }
+
+.vlog-sec-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+
+.nb-card.vlog-hero { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 18px 20px; text-align: center; }
+
+.vlog-hero-title { margin: 0; font-size: 22px; font-weight: 800; color: var(--text-1); }
+
+.vlog-lead { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+
+.vlog-hint { margin: 0; min-block-size: 20px; font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); }
+
+.vlog-timer { margin: 0; font-family: var(--font-display); font-size: var(--fs-num-l); line-height: 1.1; color: var(--text-1); }
+
+.vlog-cancel { min-height: 44px; padding-inline: 16px; border: 0; background: none; font: inherit; font-size: var(--fs-md); font-weight: 800; color: var(--text-2); cursor: pointer; border-radius: var(--r-xs); }
+
+.vlog-cancel:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.vlog-exs { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+
+.vlog-ex {
+  padding: 9px 14px; border-radius: var(--r-pill); border: 1px solid var(--line-strong); background: var(--surface);
+  font-size: var(--fs-md); font-weight: 700; line-height: 1.6; color: var(--text-2);
+}
+
+.nb-card.vlog-card { padding: 16px; }
+
+.vlog-heard { margin: 0; font-size: 12px; font-weight: 600; line-height: 1.8; color: var(--text-2); overflow-wrap: anywhere; }
+
+.vlog-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; }
+
+.vlog-actions .nb-btn { min-height: 44px; }

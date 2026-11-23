@@ -31,6 +31,7 @@ import (
 	"github.com/ritme/backend-go/internal/platform/config"
 	"github.com/ritme/backend-go/internal/platform/db/testdb"
 	"github.com/ritme/backend-go/internal/platform/httpx"
+	"github.com/ritme/backend-go/internal/platform/usertz"
 	profilestore "github.com/ritme/backend-go/internal/profile/store"
 	"github.com/ritme/backend-go/internal/reminder"
 )
@@ -109,6 +110,7 @@ func setup(t *testing.T) *env {
 
 	app := fiber.New(fiber.Config{ErrorHandler: httpx.ErrorHandler(quiet)})
 	app.Use(clock.Middleware(clock.Real{}, true))
+	app.Use(usertz.New(profilestore.New(db), quiet).Handler()) // X-Timezone → stored zone → Tehran, as in cmd/api
 	app.Get("/api/v1/care/enums", locale, guard, h.Enums)
 	app.Get("/api/v1/care/today", locale, guard, h.Today)
 	app.Get("/api/v1/care/upcoming", locale, guard, h.Upcoming)

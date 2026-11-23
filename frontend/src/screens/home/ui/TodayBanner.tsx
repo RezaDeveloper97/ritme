@@ -8,6 +8,7 @@ import { formatNumber } from '@/shared/lib/date';
 import { IconCircle } from '@/shared/ui';
 
 import { bannerActions, type BannerAction, type LatenessTier, type TodayBannerKind } from '../model/today-ui';
+import '@/shared/ui/styles/ch.css';
 
 export interface TodayBannerProps {
   banner: TodayBannerKind;

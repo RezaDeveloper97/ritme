@@ -25,6 +25,8 @@ import {
   type RowLevel,
 } from '../../model/mode-presets';
 import { linkHref, type PanelKind } from '../../model/presentation';
+import '@/shared/ui/styles/has.css';
+import '../mpre.css';
 
 export interface ModePresetProps {
   kind: ModePresetKind;

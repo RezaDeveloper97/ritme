@@ -1,0 +1,41 @@
+/* `mal-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.mal-page { background: var(--page); }
+
+.mal-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; min-block-size: 100%; }
+
+.mal-body { display: flex; flex-direction: column; gap: 16px; padding: 4px var(--gutter) 40px; }
+
+.nb-urgent.mal-card { padding: 18px; border-color: color-mix(in srgb, var(--danger) 55%, transparent); }
+
+.mal-card .nb-urgent-title { font-size: var(--fs-xl); }
+
+.mal-card-body { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-1); }
+
+.mal-actions { display: flex; flex-direction: column; gap: 10px; }
+
+.nb-btn.is-primary.mal-book { background: var(--danger); color: var(--on-danger); box-shadow: none; text-decoration: none; }
+
+.nb-btn.is-primary.mal-book:focus-visible { box-shadow: var(--ring); }
+
+.mal-sec { display: flex; flex-direction: column; gap: 10px; }
+
+.mal-sec-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+
+.nb-list.mal-list { padding: 14px 16px; }
+
+.mal-list .nb-row { align-items: flex-start; }
+
+.mal-list .nb-list-rows > * + * { border-radius: 0; }
+
+.mal-list .nb-row-desc { line-height: 1.7; }
+
+.nb-hotline.mal-call { flex-shrink: 0; min-block-size: 40px; padding-inline: 12px; }
+
+.nb-hotline.mal-call:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.nb-card.mal-error { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 16px; }
+
+.mal-error-text { margin: 0; font-size: var(--fs-md); font-weight: 700; color: var(--danger-deep); }
+
+.nb-btn.is-outline.mal-report { text-decoration: none; font-size: var(--fs-md); }

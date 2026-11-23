@@ -60,3 +60,8 @@ Files: `LOG.md` = status transitions (append-only, written by `next.sh`), `PROGR
   epochs, member projections, invites v6, proposals, nudges, child co-guardianship with undo, urgent-alert relay,
   member home and notifications, household list, admin family tab. Decisions F in T-M11-01; `docs/engine-v6/family.md`.
   Gap → task map for M9–M11: `docs/engine-v6/GAP-ANALYSIS.md`.
+- **M12** — Quality pass 2026-11: security fixes (OTP brute force, trusted client IP, auto-deploy supply chain,
+  vulnerable deps, offline-download leak, export/delete throttle, secrets hygiene), logic/routine tests (integration +
+  `-race` in CI, schema-driven delete/export completeness, end-to-end flow tests, credits/Jalali/timezone edges,
+  deterministic clocks, Playwright smoke) and speed (per-screen CSS, lazy bundles, i18n payload, query budgets, log
+  write batching, indexes, ETag). Evidence: `docs/quality-2026-11/findings.md`. T-M12-09 is blocked (production).

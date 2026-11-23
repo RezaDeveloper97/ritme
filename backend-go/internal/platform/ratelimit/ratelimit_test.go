@@ -216,3 +216,50 @@ func TestNamedWith_CustomRejection(t *testing.T) {
 		"Retry-After": "60", "X-RateLimit-Limit": "1", "X-RateLimit-Remaining": "0", "X-RateLimit-Reset": "1790145060",
 	}, got.Headers())
 }
+
+func TestClientNet(t *testing.T) {
+	for in, want := range map[string]string{
+		"2001:db8:1:2::1":               "2001:db8:1:2::/64",
+		"2001:db8:1:2:ffff:ffff:ffff:1": "2001:db8:1:2::/64",
+		"2001:db8:1:3::1":               "2001:db8:1:3::/64", // the next /64 is another bucket
+		"fe80::1%eth0":                  "fe80::/64",
+		"203.0.113.7":                   "203.0.113.7", // IPv4 stays one address
+		"::ffff:203.0.113.7":            "203.0.113.7", // IPv4-mapped = the IPv4 client
+		"not-an-ip":                     "not-an-ip",
+		"":                              "",
+	} {
+		assert.Equal(t, want, ratelimit.ClientNet(in), in)
+	}
+}
+
+func TestNamedNet_IPv6SlashSixtyFourSharesABucket(t *testing.T) {
+	l, _ := newLimiter(t)
+	app := fiber.New(fiber.Config{
+		ErrorHandler:     httpx.ErrorHandler(nil),
+		ProxyHeader:      fiber.HeaderXForwardedFor,
+		TrustProxy:       true,
+		TrustProxyConfig: fiber.TrustProxyConfig{Proxies: []string{"0.0.0.0/0", "::/0"}},
+	})
+	app.Use(clock.Middleware(clock.Real{}, true))
+	app.Post("/n", l.NamedNet("otp_send", 2, time.Minute, nil), func(c fiber.Ctx) error { return c.SendString("ok") })
+	app.Post("/p", l.Named("plain", 2, time.Minute, nil), func(c fiber.Ctx) error { return c.SendString("ok") })
+	status := func(path, ip string) int {
+		r := httptest.NewRequest(fiber.MethodPost, path, nil)
+		r.Header.Set(fiber.HeaderXForwardedFor, ip)
+		resp, err := app.Test(r)
+		require.NoError(t, err)
+		_ = resp.Body.Close()
+		return resp.StatusCode
+	}
+	assert.Equal(t, 200, status("/n", "2001:db8:1:2::1"))
+	assert.Equal(t, 200, status("/n", "2001:db8:1:2::2"))
+	assert.Equal(t, 429, status("/n", "2001:db8:1:2:abcd::9"), "a rotated address in the same /64 shares the bucket")
+	assert.Equal(t, 200, status("/n", "2001:db8:1:3::1"), "another /64 has its own bucket")
+	assert.Equal(t, 200, status("/n", "203.0.113.7"))
+
+	// Named (not Net) keeps one bucket per address.
+	assert.Equal(t, 200, status("/p", "2001:db8:9:9::1"))
+	assert.Equal(t, 200, status("/p", "2001:db8:9:9::1"))
+	assert.Equal(t, 200, status("/p", "2001:db8:9:9::2"))
+	assert.Panics(t, func() { l.NamedNet("", 1, time.Minute, nil) })
+}

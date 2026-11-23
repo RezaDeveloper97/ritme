@@ -1,0 +1,17 @@
+/* `aplab-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.aplab-body { display: flex; flex-direction: column; gap: 14px; padding: 16px var(--gutter) 40px; }
+
+.aplab-title { margin: 0; font-size: var(--fs-2xl); font-weight: 800; color: var(--text-1); }
+
+.aplab-row { display: flex; gap: 10px; }
+
+.aplab-note { margin: 0; font-size: var(--fs-md); font-weight: 600; color: var(--text-2); }
+
+.aplab-code {
+  box-sizing: border-box; width: 100%; min-height: 220px; margin: 0; padding: 12px; overflow: auto;
+  border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); color: var(--text-1);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; line-height: 1.5; text-align: start; white-space: pre; resize: vertical;
+}
+
+.aplab-code.is-out { min-height: 0; max-height: 60vh; -webkit-user-select: text; user-select: text; }

@@ -2,6 +2,7 @@ import { clsx } from 'clsx';
 import type { ReactNode } from 'react';
 
 import type { Tone } from '@/shared/ui';
+import '@/shared/ui/styles/axc.css';
 
 /** A report card (flat surface, 24px radius): title row with an optional aside, then the body. */
 export function ChartCard({

@@ -13,6 +13,7 @@ import { Icon, Skeleton, SkeletonGroup, Switch } from '@/shared/ui';
 
 import { type MedicationRowState, medicationRowState, sectionStatus, sortMedications } from '../model/view';
 import { SectionHead } from './SectionHead';
+import '@/shared/ui/styles/rmd.css';
 
 type T = ReturnType<typeof useTranslations<'care'>>;
 

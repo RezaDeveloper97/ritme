@@ -3,6 +3,8 @@
 import { ChartFigure, type DataTable } from '@/widgets/charts';
 
 import { GAIN_W, bpChart } from '../model/chart';
+import '@/shared/ui/styles/axc.css';
+import '@/shared/ui/styles/apg.css';
 
 /** Systolic line with the 140 mmHg threshold dashed across (An_Hub_Preg «فشار خون»). */
 export function BpChartView({

@@ -37,6 +37,7 @@ import {
 import { pilot } from '@/shared/pilot';
 
 import { MarkerSheet } from './MarkerSheet';
+import '@/shared/ui/styles/lab.css';
 
 type Editing = { kind: 'new' } | { kind: 'edit'; marker: LabMarker } | null;
 

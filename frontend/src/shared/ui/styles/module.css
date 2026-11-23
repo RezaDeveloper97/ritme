@@ -1,0 +1,9 @@
+/* `module-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.module-off {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}

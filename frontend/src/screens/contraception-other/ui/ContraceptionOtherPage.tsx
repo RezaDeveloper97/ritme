@@ -52,6 +52,8 @@ import {
 } from '@/shared/ui';
 
 import { DateSheet } from './DateSheet';
+import '@/shared/ui/styles/ctr.css';
+import './ctro.css';
 
 /**
  * «یادآورهای روش پیشگیری» (`/contraception/other`, CB-CONTRA-03,

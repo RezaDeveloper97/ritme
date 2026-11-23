@@ -19,6 +19,8 @@ import { formatLongDate, formatNumber, fromApiDate } from '@/shared/lib/date';
 import { AppSheet } from '@/shared/sheet';
 import { ChipGroup, Icon, PillChip, PrimaryButton, SecondaryButton } from '@/shared/ui';
 import { pilot, pilotOption } from '@/shared/pilot';
+import '@/shared/ui/styles/hrec.css';
+import '@/shared/ui/styles/rec.css';
 
 export type ExtrasSection = 'surgeries' | 'family_history';
 

@@ -40,6 +40,7 @@ import {
   markerPercent,
   QUESTIONNAIRE_PATH,
 } from '../model/score';
+import './msc.css';
 
 const MONTHS = 6;
 

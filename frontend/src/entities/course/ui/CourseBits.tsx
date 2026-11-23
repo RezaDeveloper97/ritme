@@ -10,6 +10,7 @@ import { Icon, type Tone } from '@/shared/ui';
 
 import { KIND_LOOK, minutesOf } from '../model/format';
 import type { CourseAccess, LessonKind, StudentCourse, StudentLesson } from '../model/types';
+import '@/shared/ui/styles/lrn.css';
 
 const toneClass = (tone: Tone) => `nb-tone-${tone}`;
 

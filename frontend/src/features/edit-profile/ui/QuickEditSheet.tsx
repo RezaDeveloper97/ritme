@@ -23,6 +23,9 @@ import { RulerPicker, WheelPicker } from '@/shared/ui';
 import { useUpdateProfile, type UpdateProfileInput } from '../api/mutations';
 import { datePartsToApiDate } from '../lib/datePartsToApiDate';
 import { DateWheels } from './DateWheels';
+import '@/shared/ui/styles/btn.css';
+import '@/shared/ui/styles/wheel.css';
+import '@/shared/ui/styles/prof.css';
 
 /** The single profile value a quick-edit sheet is opened for. */
 export type QuickEditField =

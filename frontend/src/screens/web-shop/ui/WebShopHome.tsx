@@ -9,6 +9,8 @@ import { Card, EmptyState, Icon, Skeleton, SkeletonGroup } from '@/shared/ui';
 
 import { APP_SHOP, heroKey, storeCategoryHref } from '../model/store';
 import { ShopWebShell, WebTile } from './ShopWebShell';
+import '@/shared/ui/styles/shp.css';
+import './wsh.css';
 
 /** One root (baby or beauty): its category chips and best-seller sections. The first root arrives server-rendered. */
 function RootBlock({ slug, initial }: { slug: string; initial?: ShopCatalogHome }) {

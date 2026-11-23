@@ -13,7 +13,7 @@ const findingSchema = z.object({
   exclusive: z.boolean().optional().default(false),
   label: translationsSchema,
 });
-const listOf = <T extends z.ZodTypeAny>(item: T) =>
+const listOf = <T extends z.ZodType>(item: T) =>
   z.preprocess((v) => (Array.isArray(v) ? v : []), z.array(item));
 
 /** `CheckupType` — one shared catalog row (admin-api.md §12). */

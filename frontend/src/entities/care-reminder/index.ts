@@ -42,6 +42,7 @@ export { applyIntake, type IntakeChange } from './model/intake';
 export {
   doseDetail,
   frequencySummary,
+  isDoseDay,
   medicationSchedule,
   nextDoseAt,
   relativeDose,

@@ -10,6 +10,7 @@ import { useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { HeaderButton, Icon, PrimaryButton, SecondaryButton, SkyLayer } from '@/shared/ui';
 import { useNavMode } from '@/widgets/bottom-nav';
+import '@/shared/ui/styles/plus.css';
 
 type FeatureKey = 'analysis' | 'prediction' | 'credits' | 'pdf' | 'sms' | 'tracking' | 'todo';
 

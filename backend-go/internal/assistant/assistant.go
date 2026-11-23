@@ -87,7 +87,8 @@ var DefaultShared = []string{ProfileAge, ProfileLifeMode, ProfileCycle}
 // Limits.
 const (
 	MaxMessageRunes = 2000
-	// HistoryTurns is how many stored turns go back to the model with a new message.
+	// HistoryTurns is the default of how many stored turns go back to the model with a new message
+	// (AI_ASSISTANT_HISTORY_TURNS → Options.HistoryTurns); only those are read from the database (T-M12-32).
 	HistoryTurns = 20
 	// MaxPhotoBytes bounds one photo upload (files purpose assistant_photo).
 	MaxPhotoBytes = 5 << 20

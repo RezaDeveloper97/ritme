@@ -39,6 +39,12 @@ import {
   StepTimeline,
   type TimelineStep,
 } from '@/shared/ui';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/shp.css';
+import './shord.css';
+import '@/shared/ui/styles/shco.css';
+import '@/shared/ui/styles/shcart.css';
+import './shrev.css';
 
 type Shipment = ShopOrder['shipments'][number];
 

@@ -1,0 +1,35 @@
+/* `tob-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.tob-page { background: var(--page); }
+
+.tob-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; min-block-size: 100%; }
+
+.tob-scroll > :not(.nb-hdr):not(.tob-footer) { margin-inline: var(--gutter); }
+
+.tob-skel { display: flex; flex-direction: column; gap: 14px; }
+
+.tob-skel-card { block-size: 104px; border-radius: var(--r-card); }
+
+.tob-skel-card.is-tall { block-size: 280px; }
+
+.tob-intro { display: flex; flex-direction: column; gap: 8px; }
+
+.tob-title { margin: 0; font-size: 26px; line-height: 1.45; font-weight: 900; color: var(--text-1); }
+
+.tob-lead { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+
+.nb-card.tob-card { display: flex; flex-direction: column; gap: 14px; padding: 18px 16px; }
+
+.tob-q { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+
+.tob-ages { gap: 8px; }
+
+.tob-ages .nb-chip { min-inline-size: 64px; justify-content: center; }
+
+.tob-error { margin: 0; font-size: var(--fs-md); font-weight: 700; color: var(--danger-deep); }
+
+.tob-footer {
+  position: sticky; bottom: 0; z-index: 2; margin-top: auto; display: flex; flex-direction: column; gap: 8px;
+  padding: 12px var(--gutter) max(14px, env(safe-area-inset-bottom));
+  background: var(--surface-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}

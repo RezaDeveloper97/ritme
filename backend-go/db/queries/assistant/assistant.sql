@@ -77,6 +77,15 @@ WHERE c.user_id = sqlc.arg(user_id) AND (sqlc.arg(conversation_id) = 0 OR c.id =
 -- name: ListMessages :many
 SELECT * FROM `assistant_messages` WHERE conversation_id = ? ORDER BY id;
 
+-- name: ListRecentChatMessages :many
+-- The newest user / assistant turns of a conversation that go back to the model (newest first; the caller reverses):
+-- cards and empty assistant replies (a failed stream) never do, so they do not take a slot (T-M12-32).
+SELECT * FROM `assistant_messages`
+WHERE conversation_id = ?
+  AND (role = 'user' OR (role = 'assistant' AND body <> ''))
+ORDER BY id DESC
+LIMIT ?;
+
 -- name: ListUserPhotoIDs :many
 -- Photos of the user's conversations (one, or all when conversation_id = 0), removed with them (hard delete).
 SELECT m.photo_file_id FROM `assistant_messages` m

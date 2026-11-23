@@ -37,6 +37,7 @@ import {
   Switch,
   type Tone,
 } from '@/shared/ui';
+import '@/shared/ui/styles/plus.css';
 
 const INVOICE_TONE: Record<string, Tone> = { paid: 'success', pending: 'warm', failed: 'danger', expired: 'neutral', refunded: 'neutral' };
 const INVOICE_STATUSES = ['paid', 'pending', 'failed', 'expired', 'refunded'] as const;

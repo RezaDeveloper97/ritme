@@ -2,7 +2,6 @@ import type { LogCategory, LogParam, LogTaxonomy } from '@/entities/health-log';
 import type { ManifestTarget, PilotValueType } from '@/shared/pilot';
 
 import { isGraded, pickableOptions } from './draft';
-import { panelOf } from './presentation';
 
 /**
  * The log sheet's autopilot names (frontend/CLAUDE.md §11.6). The ids are built from taxonomy codes —
@@ -20,9 +19,9 @@ export const logPilotId = {
   param: (category: string, param: string) => `log.param:${category}.${param}`,
   /** The severity row of a graded `items` param. */
   level: (category: string, param: string) => `log.level:${category}.${param}`,
-  /** The link that opens a detail panel (`bleeding` | `pain` | `measure`). */
+  /** The link that opens a detail panel (`pain`). */
   panel: (kind: string) => `log.panel:${kind}`,
-  /** One control inside a detail panel. */
+  /** One control inside a detail panel, or of the inline bleeding form. */
   panelParam: (category: string, param: string) => `log.panel-param:${category}.${param}`,
   /** The footer button of a detail panel («تأیید» / «ذخیره»). */
   panelConfirm: 'log.panel-confirm',
@@ -46,10 +45,15 @@ const VALUE_TYPE: Partial<Record<LogParam['type'], PilotValueType>> = {
   bool: 'bool',
 };
 
-/** Params the accordion body doesn't render: they live in a detail panel (bleeding / pain / measurements). */
+/**
+ * Params without a `log.param` control: pain details live in the pain panel. Bleeding and measurements
+ * have no panel — their accordion is the whole form — except the bleeding clots row, one choice over
+ * `clots` + `clot_size` catalogued as `log.panel-param:bleeding.clots`.
+ */
 function inPanel(category: LogCategory, param: LogParam): boolean {
-  if (!panelOf(category.code)) return false;
-  return param.detail || (category.code === 'pain' && param.code === 'relief');
+  if (category.code === 'bleeding') return param.code === 'clots' || param.code === 'clot_size';
+  if (category.code === 'pain') return param.detail || param.code === 'relief';
+  return false;
 }
 
 /**

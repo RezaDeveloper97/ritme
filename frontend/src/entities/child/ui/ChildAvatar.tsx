@@ -5,6 +5,7 @@ import { clsx } from 'clsx';
 import { childTone } from '../model/format';
 import { useChildPhoto } from '../model/photo';
 import type { ChildSex } from '../model/types';
+import '@/shared/ui/styles/chd.css';
 
 interface ChildAvatarProps {
   id: number;

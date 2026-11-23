@@ -11,6 +11,7 @@ import { useBillingChannel } from '@/shared/billing';
 import { useRouter, type Locale } from '@/shared/i18n';
 import { EmptyState, Icon, InfoNote, PrimaryButton, ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 import { useNavMode } from '@/widgets/bottom-nav';
+import '@/shared/ui/styles/plus.css';
 
 /**
  * «تأیید و پرداخت» for a credit pack (`/plus/checkout?pack=<id>`): the server-priced summary (preview), the bank

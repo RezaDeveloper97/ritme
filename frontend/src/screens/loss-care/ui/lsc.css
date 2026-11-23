@@ -1,0 +1,79 @@
+/* `lsc-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.lsc-page { background: var(--page); }
+
+.lsc-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; min-block-size: 100%; }
+
+.lsc-scroll > :not(.nb-hdr):not(.lsc-footer) { margin-inline: var(--gutter); }
+
+.lsc-skel { display: flex; flex-direction: column; gap: 12px; }
+
+.lsc-footer {
+  position: sticky; bottom: 0; z-index: 2; margin-top: auto; display: flex; flex-direction: column; gap: 8px;
+  padding: 12px var(--gutter) max(14px, env(safe-area-inset-bottom));
+  background: var(--surface-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+
+.lsc-error { margin: 0; font-size: var(--fs-md); font-weight: 700; color: var(--danger-deep); }
+
+.lsc-danger-body { margin: 0; }
+
+.nb-btn.is-primary.lsc-call { gap: 8px; background: var(--danger); color: var(--on-danger); box-shadow: none; text-decoration: none; }
+
+.lsc-sec { display: flex; flex-direction: column; gap: 10px; }
+
+.lsc-sec-title { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+
+.lsc-link {
+  flex-shrink: 0; min-block-size: 44px; padding-inline: 8px; border: 0; background: none; cursor: pointer;
+  font: inherit; font-size: 13px; font-weight: 800; color: var(--brand-strong);
+}
+
+.lsc-pill {
+  flex-shrink: 0; min-block-size: 36px; padding-inline: 12px; border-radius: var(--r-pill); cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--text-1);
+  font: inherit; font-size: 12px; font-weight: 800;
+}
+
+.lsc-pill.is-brand { border-color: var(--brand); color: var(--brand-strong); }
+
+.lsc-link:focus-visible,
+.lsc-pill:focus-visible { outline: none; box-shadow: var(--ring); border-radius: var(--r-pill); }
+
+.lsc-done { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; font-size: 12px; font-weight: 800; color: var(--text-2); }
+
+.nb-card.lsc-mood { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+
+.lsc-mood-q { margin: 0; font-size: 14px; font-weight: 800; color: var(--text-1); }
+
+.lsc-mood-note { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+
+.lsc-status { margin: 0; font-size: var(--fs-sm); font-weight: 700; color: var(--text-3); }
+
+.lsc-status:empty { display: none; }
+
+.nb-urgent.is-note.lsc-crisis { background: transparent; border-color: transparent; padding-inline: 4px; }
+
+.lsc-sheet { display: flex; flex-direction: column; gap: 12px; }
+
+.lsc-sheet-body { margin: 0; font-size: 13px; font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+
+.lsc-sheet-hint { margin: 0; font-size: var(--fs-sm); font-weight: 600; line-height: 1.8; color: var(--text-3); }
+
+.lsc-sheet-label { margin: 0; font-size: 13px; font-weight: 800; color: var(--text-1); }
+
+.lsc-sheet-actions { display: flex; flex-direction: column; gap: 4px; }
+
+.lsc-sheet-btns { display: flex; gap: 10px; }
+
+.lsc-sheet-btns > * { flex: 1 1 0; }
+
+.lsc-times .nb-chip { font-variant-numeric: tabular-nums; }
+
+.lsc-note {
+  width: 100%; min-height: 180px; resize: vertical; border-radius: 20px; border: 1px solid var(--line);
+  background: var(--surface-2); padding: 14px 16px; text-align: start;
+  font-family: inherit; font-size: var(--fs-base); line-height: 1.9; color: var(--text-1); outline: none;
+}
+
+.lsc-note:focus-visible { box-shadow: var(--ring); }

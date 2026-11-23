@@ -1,0 +1,98 @@
+/* `fert-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.fert-page { background: var(--page); }
+
+.fert-tone-amber { --fert-ink: var(--fert-amber); }
+
+.fert-tone-teal { --fert-ink: var(--fert-teal); }
+
+.fert-tone-rose { --fert-ink: var(--fert-rose); }
+
+.fert-tone-green { --fert-ink: var(--success); }
+
+.fert-tone-violet { --fert-ink: var(--brand-strong); }
+
+.fert-disc {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  color: var(--fert-ink, var(--ink-3));
+  background: color-mix(in srgb, var(--fert-ink, var(--ink-3)) 13%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fert-ink, var(--ink-3)) 33%, transparent);
+}
+
+.fert-tone-muted { --fert-ink: var(--muted); }
+
+.fert-tone-brand { --fert-ink: var(--brand); }
+
+.fert-tone-period { --fert-ink: var(--period); }
+
+.fert-card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 18px 16px;
+}
+
+.fert-pill {
+  display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; height: 28px; padding: 0 11px;
+  border-radius: 14px; background: var(--fert-field); white-space: nowrap;
+  border: 1px solid var(--fert-ink, var(--ink-3)); color: var(--fert-ink, var(--ink-3));
+  font-size: 11.5px; font-weight: 800;
+}
+
+.fert-pill.is-on { background: var(--fert-ink, var(--ink-3)); border-color: transparent; color: var(--page); }
+
+.fert-overline { margin: 0; font-size: 11px; font-weight: 800; letter-spacing: .12em; color: var(--fert-amber); }
+
+.fert-disclaimer {
+  margin: 0; padding: 12px 14px; border-radius: 16px; text-align: start;
+  background: var(--fert-note-bg); border: 1px solid var(--fert-note-line);
+  color: var(--amber-deep); font-size: 12.5px; line-height: 1.9; font-weight: 600;
+}
+
+.fert-cal-day {
+  width: 36px; height: 36px; margin-inline: auto; border-radius: 18px; box-sizing: border-box;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: var(--ink-3);
+}
+
+.fert-cal-day.is-window { border: 1.5px dashed var(--fert-amber); color: var(--fert-amber); }
+
+.fert-cal-day.is-ovulation { background: var(--fert-teal); color: var(--surface); font-weight: 800; }
+
+.fert-cal-day.is-today { background: var(--ink); color: var(--surface); }
+
+.fert-cal-swatch { width: 12px; height: 12px; border-radius: 6px; box-sizing: border-box; flex-shrink: 0; }
+
+.fert-cal-swatch.is-window { border: 1.5px dashed var(--fert-amber); }
+
+.fert-cal-swatch.is-ovulation { background: var(--fert-teal); }
+
+.fert-cal-swatch.is-today { background: var(--ink); }
+
+.fert-strip { flex: 1; min-width: 0; display: flex; gap: 2px; direction: ltr; }
+
+.fert-strip-dot { flex: 1 1 0; max-width: 7px; aspect-ratio: 1; border-radius: 50%; background: var(--fert-bar-off); }
+
+.fert-strip-dot.is-period { background: var(--period); }
+
+.fert-strip-dot.is-fertile { background: var(--fert-amber); }
+
+.fert-strip-dot.is-ovulation { background: var(--fert-teal); box-shadow: 0 0 6px var(--fert-teal); }
+
+.fert-strip-dot.is-pms { background: var(--violet); }
+
+.fert-improve {
+  height: 54px; border: 0; border-radius: 27px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--fert-chip-on-bg); color: var(--brand);
+  font-family: inherit; font-size: 15px; font-weight: 800;
+}
+
+.fert-improve:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.fert-overline { color: var(--warm-deep); }
+
+.fert-cal-day.is-window { color: var(--warm-deep); }
+
+.ttc-stat.fert-tone-teal .ttc-stat-hint { color: var(--data-deep); }
+
+.ttc-stat.fert-tone-amber .ttc-stat-hint { color: var(--warm-deep); }
+
+.nb-btn.fert-improve { background: var(--brand-soft); color: var(--brand-ink); border: 0; }

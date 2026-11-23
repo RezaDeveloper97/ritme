@@ -34,6 +34,7 @@ import {
 import { useNavMode } from '@/widgets/bottom-nav';
 
 import { costRows, dayRows, extraKept, featureRows, usageStateOf } from '../model/view';
+import '@/shared/ui/styles/cr.css';
 
 function Hero({ credits }: { credits: AiCredits }) {
   const t = useTranslations('credits.usage');

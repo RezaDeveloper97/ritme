@@ -52,6 +52,14 @@ type Querier interface {
 	// PregnancyProfile (App\Models\PregnancyProfile). One row per user (unique user_id).
 	GetProfileByUser(ctx context.Context, userID uint64) (PregnancyProfile, error)
 	GetSymptomLog(ctx context.Context, arg GetSymptomLogParams) (PregnancySymptomLog, error)
+	// T-M12-30c: the content digest of the pregnancy alert inputs that no user_revisions bump covers, for the
+	// evaluate-before-Today skip (pregnancyalerts.Handlers.EvaluateFirst). data_stamp digests the kick sessions the
+	// detectors read (the running one + those started since `kicks_since`; starting a session and counting kicks bump
+	// nothing), the contractions of the running contraction session, and the appointments (reminders) from
+	// `appointments_since` on (the next visit). inbox_stamp digests the open preg.* inbox rows (an ack, a dismiss, a sweep
+	// or another evaluation changes it). Each part is COUNT + the XOR of a 64-bit MD5 prefix per row: any change to a
+	// row's content moves it, and the read is one indexed scan per table.
+	GetV2AlertInputStamp(ctx context.Context, arg GetV2AlertInputStampParams) (GetV2AlertInputStampRow, error)
 	// Pregnancy v2 day log (T-M7-03). Every query is scoped by user_id.
 	// The newest weekly log with a weight (value + the day it was logged).
 	GetV2LastWeight(ctx context.Context, userID uint64) (GetV2LastWeightRow, error)

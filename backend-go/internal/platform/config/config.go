@@ -19,6 +19,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/ritme/backend-go/internal/auth/passport"
 )
 
 // DefaultCORSOrigins mirrors the fallback list in backend/config/cors.php.
@@ -274,6 +276,37 @@ type SMS struct {
 	Provider  string
 	Kavenegar Kavenegar
 	SMSIR     SMSIR
+	// OTP are the per-number OTP guards (T-M12-01, S-01/S-02).
+	OTP OTPLimits
+}
+
+// OTPLimits are the OTP guards (T-M12-01, T-M12-01b): send caps, the failure budget across codes and the send lock.
+//
+// The send caps and the failure budget count per (number, client network) — IPv4 /32, IPv6 /64, the bucket of
+// ratelimit.ClientNet — so a stranger on another network cannot use them up for the owner (R-02). The *Global*
+// ceilings count per number across every network: the anti-bombing / distributed-guessing backstop.
+type OTPLimits struct {
+	// SendShortMax codes per SendShortWindow per (number, network) (OTP_SEND_MAX_SHORT 3 / OTP_SEND_SHORT_WINDOW_MINUTES 15).
+	SendShortMax    int
+	SendShortWindow time.Duration
+	// SendDailyMax codes per SendDailyWindow per (number, network) (OTP_SEND_MAX_DAILY 10 / OTP_SEND_DAILY_WINDOW_HOURS 24).
+	SendDailyMax    int
+	SendDailyWindow time.Duration
+	// SendGlobalMax codes per SendDailyWindow per number, every network combined (OTP_SEND_MAX_DAILY_GLOBAL 30).
+	// 0 = no global send ceiling (tests only; config validation requires >= SendDailyMax).
+	SendGlobalMax int
+	// FailureMax wrong codes per FailureWindow per (number, network) lock that network out of the number for LockFor
+	// (OTP_FAILURE_MAX 10 / OTP_FAILURE_WINDOW_HOURS 24 / OTP_LOCK_MINUTES 60).
+	FailureMax    int
+	FailureWindow time.Duration
+	LockFor       time.Duration
+	// FailureGlobalMax wrong codes per FailureGlobalWindow per number, every network combined, lock the number on
+	// every network for LockFor (OTP_FAILURE_MAX_GLOBAL 50 / OTP_FAILURE_GLOBAL_WINDOW_HOURS 24). It bounds
+	// distributed guessing of the 4-digit code (D-211). 0 = no global failure ceiling (tests only).
+	FailureGlobalMax    int
+	FailureGlobalWindow time.Duration
+	// SendLock is the per-number send lock (SET NX) around delete/insert/dispatch (OTP_SEND_LOCK_SECONDS 60).
+	SendLock time.Duration
 }
 
 // Kavenegar holds KAVENEGAR_*.
@@ -399,8 +432,11 @@ type AI struct {
 	// `model=input/output[/audio]` in USD per 1M tokens (audio = audio input tokens; default = input). A model
 	// missing from the table is priced at the table's highest rates (never free). The fake is always free.
 	Prices map[string]AIPrice
-	Gemini Gemini
-	Arvan  Arvan
+	// AssistantHistoryTurns (AI_ASSISTANT_HISTORY_TURNS, default 20, 1..200) is how many of the newest stored turns
+	// of an assistant conversation go back to the model with a new message; only those are read (T-M12-32).
+	AssistantHistoryTurns int
+	Gemini                Gemini
+	Arvan                 Arvan
 }
 
 // Arvan holds ARVAN_AI_* — the ArvanCloud AI gateway (docs.arvancloud.ir/fa/aiaas/gateway). Empty key or base URL =
@@ -692,6 +728,20 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 				TemplateID: e.integer("SMSIR_TEMPLATE_ID", 511293),
 				LineNumber: e.str("SMSIR_LINE_NUMBER", ""),
 			},
+			OTP: OTPLimits{
+				SendShortMax:    e.integer("OTP_SEND_MAX_SHORT", 3),
+				SendShortWindow: time.Duration(e.integer("OTP_SEND_SHORT_WINDOW_MINUTES", 15)) * time.Minute,
+				SendDailyMax:    e.integer("OTP_SEND_MAX_DAILY", 10),
+				SendDailyWindow: time.Duration(e.integer("OTP_SEND_DAILY_WINDOW_HOURS", 24)) * time.Hour,
+				FailureMax:      e.integer("OTP_FAILURE_MAX", 10),
+				FailureWindow:   time.Duration(e.integer("OTP_FAILURE_WINDOW_HOURS", 24)) * time.Hour,
+				LockFor:         time.Duration(e.integer("OTP_LOCK_MINUTES", 60)) * time.Minute,
+				SendLock:        time.Duration(e.integer("OTP_SEND_LOCK_SECONDS", 60)) * time.Second,
+				// T-M12-01b (R-02): per-number ceilings across every network.
+				SendGlobalMax:       e.integer("OTP_SEND_MAX_DAILY_GLOBAL", 30),
+				FailureGlobalMax:    e.integer("OTP_FAILURE_MAX_GLOBAL", 50),
+				FailureGlobalWindow: time.Duration(e.integer("OTP_FAILURE_GLOBAL_WINDOW_HOURS", 24)) * time.Hour,
+			},
 		},
 		Telegram: Telegram{
 			BotToken: e.str("TELEGRAM_BOT_TOKEN", ""),
@@ -730,7 +780,8 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 			Timeout:         time.Duration(e.integer("AI_HTTP_TIMEOUT_SECONDS", 30)) * time.Second,
 			DailyCostCapUSD: e.float("AI_DAILY_COST_CAP_USD", 5),
 			// B-N6-05b: per-user daily cost cap.
-			UserDailyCostCapUSD: e.float("AI_USER_DAILY_COST_CAP_USD", 0.25),
+			UserDailyCostCapUSD:   e.float("AI_USER_DAILY_COST_CAP_USD", 0.25),
+			AssistantHistoryTurns: e.integer("AI_ASSISTANT_HISTORY_TURNS", 20),
 			Gemini: Gemini{
 				APIKey:  e.str("GEMINI_API_KEY", ""),
 				Model:   e.str("GEMINI_MODEL", "gemini-flash-latest"),
@@ -861,6 +912,9 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 	if cfg.AI.DailyCostCapUSD < 0 {
 		e.fail("AI_DAILY_COST_CAP_USD: must be 0 or more")
 	}
+	if n := cfg.AI.AssistantHistoryTurns; n < 1 || n > 200 {
+		e.fail("AI_ASSISTANT_HISTORY_TURNS: must be between 1 and 200")
+	}
 	if cfg.AI.UserDailyCostCapUSD < 0 {
 		e.fail("AI_USER_DAILY_COST_CAP_USD: must be 0 or more")
 	}
@@ -894,6 +948,13 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 		}
 	default:
 		e.fail("REMINDER_SMS_PROVIDER: %q is not one of none, fake, gateway", cfg.ReminderSMS.Provider)
+	}
+	if o := cfg.SMS.OTP; o.SendShortMax < 1 || o.SendDailyMax < 1 || o.FailureMax < 1 || o.SendShortWindow <= 0 ||
+		o.SendDailyWindow <= 0 || o.FailureWindow <= 0 || o.LockFor <= 0 || o.SendLock <= 0 {
+		e.fail("OTP_*: every OTP send cap, failure budget, window and lock must be positive")
+	}
+	if o := cfg.SMS.OTP; o.SendGlobalMax < o.SendDailyMax || o.FailureGlobalMax < o.FailureMax || o.FailureGlobalWindow <= 0 {
+		e.fail("OTP_*_GLOBAL: the per-number global ceilings must be at least the per-network caps, with a positive window")
 	}
 	if cfg.ReminderSMS.DailyCap < 1 || cfg.ReminderSMS.DailyCap > 48 {
 		e.fail("REMINDER_SMS_DAILY_CAP: %d is not between 1 and 48", cfg.ReminderSMS.DailyCap)
@@ -982,6 +1043,10 @@ func LoadFrom(lookup func(string) (string, bool)) (*Config, error) {
 	cfg.CycleEngine = loadCycleEngine(e)
 	if cfg.App.IsProduction() && cfg.App.Debug {
 		e.fail("APP_DEBUG must be false when APP_ENV=production")
+	}
+	// S-13 (T-M12-07): the committed contract key pair is public; production refuses to start on it.
+	if err := passport.CheckStorageKey(cfg.StoragePath, cfg.App.Env); err != nil {
+		e.fail("STORAGE_PATH: %v", err)
 	}
 
 	if len(e.errs) > 0 {

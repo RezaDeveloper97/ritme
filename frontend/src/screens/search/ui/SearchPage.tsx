@@ -36,6 +36,7 @@ import {
   type SearchScope,
 } from '../model/types';
 import { useDebouncedValue } from '../model/use-debounced-value';
+import './srch.css';
 
 type T = ReturnType<typeof useTranslations<'search'>>;
 

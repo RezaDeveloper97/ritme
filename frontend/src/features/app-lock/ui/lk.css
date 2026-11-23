@@ -1,0 +1,93 @@
+/* `lk-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+html[data-app-locked] .app-shell > :not(.lk-page):not(.app-veil) { visibility: hidden; }
+
+.lk-page { background: var(--page); }
+
+.lk-body {
+  position: relative; z-index: 1; min-height: 100%;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: max(56px, env(safe-area-inset-top)) var(--gutter-form) max(24px, env(safe-area-inset-bottom));
+  text-align: center;
+}
+
+.lk-icon { margin-bottom: 8px; }
+
+.lk-title { margin: 0; font-size: 20px; font-weight: 800; color: var(--text-1); }
+
+.lk-sub { margin: 0; font-size: 13px; font-weight: 600; line-height: 1.8; color: var(--text-2); }
+
+.lk-forgot { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; max-width: 360px; }
+
+.lk-pad { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; max-width: 320px; margin-top: 16px; }
+
+.lk-dots { display: flex; gap: 14px; justify-content: center; direction: ltr; }
+
+.lk-dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--line-strong); background: transparent; transition: background-color .15s, border-color .15s; }
+
+.lk-dot.is-on { background: var(--brand-fill); border-color: var(--brand-fill); }
+
+.lk-dot.is-error { border-color: var(--danger); }
+
+.lk-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.lk-error { min-height: 22px; margin: 0; font-size: 12.5px; font-weight: 700; line-height: 1.7; color: var(--danger); }
+
+.lk-error.is-empty { visibility: hidden; }
+
+.lk-keys { display: grid; grid-template-columns: repeat(3, 72px); gap: 14px 28px; justify-content: center; direction: ltr; }
+
+.lk-key {
+  width: 72px; height: 72px; border-radius: 50%; border: 1px solid var(--line);
+  background: var(--surface); color: var(--text-1); cursor: pointer;
+  font-family: var(--font-display); font-size: 28px; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+
+.lk-key.is-ghost { background: transparent; border-color: transparent; color: var(--brand); }
+
+.lk-key:active:not(:disabled) { background: var(--brand-soft); }
+
+.lk-key:disabled { opacity: .45; cursor: default; }
+
+.lk-key:focus-visible,
+.lk-link:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+
+.lk-key-slot { display: inline-flex; width: 72px; height: 72px; }
+
+.lk-erase { transform: scaleX(-1); }
+
+.lk-link {
+  min-height: 44px; margin-top: 8px; padding: 0 12px; border: 0; background: transparent; border-radius: 12px;
+  font: inherit; font-size: 13px; font-weight: 800; color: var(--brand); cursor: pointer;
+}
+
+.lk-sheet-body { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-bottom: 12px; }
+
+.lk-sheet-h { margin: 0; font-size: 15px; font-weight: 800; color: var(--text-1); text-align: center; }
+
+.lk-length { width: 100%; max-width: 280px; }
+
+.lk-sheet-note { margin: 4px 0 0; font-size: 11.5px; font-weight: 600; line-height: 1.8; color: var(--text-3); text-align: center; }
+
+.lk-ec-link {
+  display: inline-flex; align-items: center; gap: 10px; min-height: 48px; margin-top: 4px; padding: 6px 16px;
+  border: 1px solid var(--danger-line); border-radius: 999px; background: var(--danger-soft);
+  font: inherit; color: var(--danger-deep); cursor: pointer; text-align: start;
+}
+
+.lk-ec-link:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+
+.lk-ec-link-text { display: flex; flex-direction: column; }
+
+.lk-ec-link-title { font-size: 13px; font-weight: 800; }
+
+.lk-ec-link-hint { font-size: 11px; font-weight: 600; color: var(--text-2); }
+
+.lk-ec { display: flex; flex-direction: column; gap: 14px; padding: 0 var(--gutter) 24px; }
+
+.lk-ec-note { display: flex; align-items: flex-start; gap: 10px; padding: 14px 16px; }
+
+.lk-ec-note p { margin: 0; font-size: 12.5px; font-weight: 700; line-height: 1.9; color: var(--text-2); }
+
+.lk-ec-note-icon { flex-shrink: 0; margin-top: 3px; color: var(--data-deep); }

@@ -26,6 +26,7 @@ import { Checkbox, Icon, InfoNote, PrimaryButton, ProgressBar, type RadioCardOpt
 import { fileProblem, groupErrors, type JoinStep, step4Body, step4From } from '../model/join';
 import { useAutosave } from '../model/use-autosave';
 import { SaveHint, useErrorText } from './parts';
+import '@/shared/ui/styles/cjn.css';
 
 /** The per-field `errors` of a 422 `application_incomplete`. */
 function incompleteErrors(error: unknown): Record<string, string[]> | null {

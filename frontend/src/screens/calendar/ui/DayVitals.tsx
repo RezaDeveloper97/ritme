@@ -8,6 +8,7 @@ import { pilot } from '@/shared/pilot';
 import { toApiDate } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { IconCircle } from '@/shared/ui';
+import '@/shared/ui/styles/log.css';
 
 /**
  * The selected day's vitals (BP, heart rate, glucose — timed readings and log-sheet values, newest first) under the

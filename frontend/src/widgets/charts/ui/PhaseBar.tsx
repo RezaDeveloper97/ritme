@@ -4,6 +4,7 @@ import type { Tone } from '@/shared/ui';
 
 import { stackSegments } from '../lib/geometry';
 import { ChartFigure } from './ChartFigure';
+import '@/shared/ui/styles/axc.css';
 
 export interface PhasePart {
   key: string;
