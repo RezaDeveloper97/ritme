@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 
 import { useLogDay, useLogPreferences, useLogTaxonomy } from '@/entities/health-log';
-import { Link, type Locale } from '@/shared/i18n';
+import type { Locale } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
 import { formatNumber, toApiDate, today } from '@/shared/lib/date';
 import { openSheet } from '@/shared/sheet';
@@ -26,11 +26,12 @@ interface Tile {
 
 /**
  * «ثبت امروز» (nbl_Cycle_Home): three cards — «ثبت پریود», «علائم», «حال و روحیه» — with the logging
- * streak (user request, 2026-11-22). «ثبت پریود» opens the calendar's period editor (`/calendar?editDates=1`);
+ * streak (user request, 2026-11-22). «ثبت پریود» opens the period date editor in place via `onEditPeriod`
+ * (the same editor as the ring's edit button — the user stays on Today);
  * the other two open the log sheet (`?sheet=log`, B-N3-03) on their own section. Each card is one
  * target.
  */
-export function TodayLogCard({ streakDays }: { streakDays: number | null }) {
+export function TodayLogCard({ streakDays, onEditPeriod }: { streakDays: number | null; onEditPeriod: () => void }) {
   const t = useTranslations('home.nb.log');
   const tSheet = useTranslations('logSheet');
   const loc = useLocale() as Locale;
@@ -96,30 +97,20 @@ export function TodayLogCard({ streakDays }: { streakDays: number | null }) {
         )}
       </div>
       <div className="ch-log-grid">
-        {tiles.map((tile) =>
-          tile.key === 'period' ? (
-            <Link
-              key={tile.key}
-              href="/calendar?editDates=1"
-              className="nb-card ch-log-tile"
-              {...pilot(`home.log-card:${tile.key}`)}
-              aria-label={label(tile)}
-            >
-              {body(tile)}
-            </Link>
-          ) : (
+        {tiles.map((tile) => (
             <button
               key={tile.key}
               type="button"
-              onClick={() => openSheet('log', `${toApiDate(today())}:${tile.key}`)}
+              onClick={() =>
+                tile.key === 'period' ? onEditPeriod() : openSheet('log', `${toApiDate(today())}:${tile.key}`)
+              }
               className="nb-card ch-log-tile"
               {...pilot(`home.log-card:${tile.key}`)}
               aria-label={label(tile)}
             >
               {body(tile)}
             </button>
-          ),
-        )}
+        ))}
       </div>
     </section>
   );

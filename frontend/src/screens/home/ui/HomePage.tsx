@@ -1177,7 +1177,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
           {/* «ثبت امروز» + streak (nbl_Cycle_Home), right under the cycle ring: three cards — «ثبت پریود»
               (→ calendar editor), «علائم», «حال و روحیه» (user request, 2026-11-22; «دسترسی سریع» removed).
               The TTC home logs through its tiles. */}
-          {!noPeriodData && !loadFailed && !isTtc && <TodayLogCard streakDays={overview?.streakDays ?? null} />}
+          {!noPeriodData && !loadFailed && !isTtc && <TodayLogCard streakDays={overview?.streakDays ?? null} onEditPeriod={() => setDateEditorOpen(true)} />}
           {feedBanner ? (
             // M-14: the engine's `status_banner` copy and CTA win over the built-in banner below.
             <FeedBanner
