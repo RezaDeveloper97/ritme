@@ -1,0 +1,125 @@
+/* `cdh-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.cdh-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+.cdh-city {
+  display: inline-flex; align-items: center; gap: 6px; min-block-size: 44px; padding-inline: 14px; border-radius: var(--r-pill);
+  border: 1px solid var(--line); background: var(--surface); color: var(--text-1); font-size: 13px; font-weight: 800; cursor: pointer;
+}
+
+.cdh-bk {
+  display: inline-flex; align-items: center; justify-content: center; inline-size: var(--size-icon-btn); block-size: var(--size-icon-btn);
+  border-radius: var(--r-pill); border: 1px solid var(--line); background: var(--surface); color: var(--brand); text-decoration: none;
+}
+
+.cdh-city:focus-visible,
+.cdh-bk:focus-visible,
+.cdh-rail-card:focus-visible,
+.cdh-next:focus-visible,
+.cdh-join:focus-visible,
+.cdh-sec-all:focus-visible,
+.cdh-toggle:focus-visible,
+.cdh-search:focus-within { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.cdh-for { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; font-weight: 800; color: var(--text-1); }
+
+.cdh-find { display: flex; align-items: center; gap: 8px; }
+
+.cdh-map-btn {
+  flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; inline-size: 48px; block-size: 48px;
+  border-radius: var(--r-pill); background: var(--brand-fill); color: var(--on-brand); text-decoration: none;
+}
+
+.cdh-map-btn:focus-visible,
+.cdh-cat:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.cdh-cats { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px 8px; }
+
+.cdh-cat { inline-size: 100%; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0; border: 0; background: none; cursor: pointer; color: var(--text-1); }
+
+.cdh-cat-ic { display: flex; align-items: center; justify-content: center; inline-size: 56px; block-size: 56px; border-radius: 18px; border: 1px solid var(--line); background: var(--surface); color: var(--brand); }
+
+.cdh-cat-name { font-size: 11px; font-weight: 700; line-height: 1.5; text-align: center; }
+
+.cdh-search {
+  flex: 1; min-inline-size: 0;
+  display: flex; align-items: center; gap: 8px; min-block-size: 48px; padding-inline: 14px; border-radius: var(--r-pill);
+  border: 1px solid var(--line); background: var(--surface); color: var(--text-3);
+}
+
+.cdh-search input {
+  flex: 1; min-inline-size: 0; border: 0; outline: 0; background: transparent; color: var(--text-1);
+  font: inherit; font-size: 14px; font-weight: 600;
+}
+
+.cdh-search input::placeholder { color: var(--text-4); }
+
+.cdh-next {
+  display: flex; flex-direction: column; gap: 2px; padding: 14px; border-radius: var(--r-card); text-decoration: none;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--data) 18%, var(--surface)) 0%, var(--surface) 70%);
+  border: 1px solid var(--line); color: var(--text-1);
+}
+
+.cdh-next-k { font-size: 11.5px; font-weight: 800; color: var(--data-deep); }
+
+.cdh-next-title { font-size: 15px; font-weight: 800; }
+
+.cdh-next-day { font-size: 12.5px; font-weight: 600; color: var(--text-2); }
+
+.cdh-sec { display: flex; flex-direction: column; gap: 10px; }
+
+.cdh-sec-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+
+.cdh-sec-title { margin: 0; font-size: 15px; font-weight: 800; color: var(--text-1); }
+
+.cdh-sec-sub { margin: 2px 0 0; font-size: 11.5px; font-weight: 600; color: var(--text-2); }
+
+.cdh-sec-links { display: inline-flex; align-items: center; gap: 4px; }
+
+.cdh-sec-all {
+  min-block-size: 44px; display: inline-flex; align-items: center; padding: 0 6px; border: 0; background: none; cursor: pointer;
+  font: inherit; font-size: 12.5px; font-weight: 800; color: var(--brand); text-decoration: none;
+}
+
+.cdh-rail { list-style: none; margin: 0; padding: 0; display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none; }
+
+.cdh-rail::-webkit-scrollbar { display: none; }
+
+.cdh-rail-item { flex: 0 0 72%; max-inline-size: 240px; scroll-snap-align: start; }
+
+.cdh-rail-card {
+  display: flex; flex-direction: column; gap: 4px; padding: 8px 8px 12px; text-decoration: none; color: var(--text-1);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); min-inline-size: 0;
+}
+
+.cdh-rail-art {
+  display: flex; align-items: center; justify-content: center; aspect-ratio: 16 / 10; overflow: hidden; margin-block-end: 4px;
+  border-radius: 16px; background: var(--surface-2); color: var(--text-3);
+}
+
+.cdh-rail-art img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+
+.cdh-card-title { font-size: 13.5px; font-weight: 800; line-height: 1.6; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.cdh-rail-card .cdh-meta { flex-wrap: wrap; row-gap: 0; }
+
+.cdh-meta { display: inline-flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 600; color: var(--text-2); }
+
+.cdh-rating { display: inline-flex; align-items: center; gap: 3px; font-weight: 800; color: var(--warm-deep); }
+
+.cdh-ages { font-size: 11.5px; font-weight: 700; color: var(--brand-ink); }
+
+.cdh-open { font-weight: 800; color: var(--success); }
+
+.cdh-empty { margin: 0; font-size: 12.5px; font-weight: 600; color: var(--text-2); }
+
+.cdh-join {
+  display: flex; flex-direction: column; gap: 4px; padding: 16px; border-radius: var(--r-card); text-decoration: none;
+  background: var(--brand-soft); color: var(--brand-ink); border: 1px solid var(--line);
+}
+
+.cdh-join-title { font-size: 14.5px; font-weight: 800; }
+
+.cdh-join-sub { font-size: 12px; font-weight: 600; line-height: 1.8; }
+
+.cdh-toggle { display: flex; min-block-size: 44px; padding: 0 4px; border: 0; background: none; cursor: pointer; font: inherit; font-weight: 800; color: var(--brand); }

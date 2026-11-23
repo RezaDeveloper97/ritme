@@ -22,6 +22,10 @@ import (
 	"github.com/ritme/backend-go/resources/translations"
 )
 
+// pinnedNow is the instant these tests run at: 23:59 Tehran on the last day of a Gregorian month and of the Gregorian
+// year, where a clock read from the wall used to flip day, month and week windows.
+var pinnedNow = time.Date(2026, 12, 31, 23, 59, 0, 0, time.FixedZone("IRST", 3*3600+1800))
+
 // webm is the EBML magic of a Chrome MediaRecorder file followed by filler.
 func webm(extra string) []byte {
 	return append([]byte("\x1a\x45\xdf\xa3\x9f\x42\x86\x81\x01webm-opus-data "), []byte(extra)...)
@@ -176,7 +180,7 @@ func TestProcess_AudioWipedAfterTranscription(t *testing.T) {
 			buf := make([]byte, 64, 128)
 			copy(buf, webm(""))
 			audio := &ai.Audio{Data: buf, MIME: "audio/webm"}
-			res, err := svc.Process(context.Background(), 1, "fa", ns(t, "fa"), audio, time.Now())
+			res, err := svc.Process(context.Background(), 1, "fa", ns(t, "fa"), audio, pinnedNow)
 			require.NotEmpty(t, spy.seen)
 			assert.True(t, allZero(spy.seen), "the recording buffer is zeroed right after transcription")
 			assert.True(t, allZero(buf[:cap(buf)]))
@@ -197,7 +201,7 @@ func TestProcess_AudioWipedAfterTranscription(t *testing.T) {
 
 func TestProcess_Unavailable(t *testing.T) {
 	audio := &ai.Audio{Data: webm("")}
-	_, err := NewService(nil, stubLogs{mode: "cycle"}).Process(context.Background(), 1, "fa", nil, audio, time.Now())
+	_, err := NewService(nil, stubLogs{mode: "cycle"}).Process(context.Background(), 1, "fa", nil, audio, pinnedNow)
 	require.ErrorIs(t, err, ai.ErrUnavailable)
 	assert.Nil(t, audio.Data)
 }

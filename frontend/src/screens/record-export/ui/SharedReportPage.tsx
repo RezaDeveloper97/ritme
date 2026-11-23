@@ -14,6 +14,7 @@ import { EmptyState, InfoNote, PrimaryButton, SecondaryButton, Skeleton, Skeleto
 import { ReportPaper } from './ReportPaper';
 import { SharedDocuments } from './SharedDocuments';
 import { usePaperModel, usePdfDownload } from './usePaper';
+import './rx.css';
 
 /**
  * The public, read-only doctor report behind a share link (bloom B-N6-04): no session, no navigation into the app,

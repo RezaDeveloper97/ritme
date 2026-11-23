@@ -1,0 +1,62 @@
+/* `wcp-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.wcp-skel { display: flex; flex-direction: column; gap: 12px; }
+
+.wcp-crumbs { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-block: 4px 14px; font-size: var(--fs-md); color: var(--text-3); }
+
+.wcp-crumbs a { color: var(--brand); font-weight: 700; text-decoration: none; }
+
+.wcp-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-block-end: 18px; }
+
+.wcp-h1 { margin: 6px 0; font-family: var(--font-display); font-size: var(--fs-num-m); line-height: 1.4; color: var(--text-1); }
+
+.wcp-actions { margin: 0; display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; }
+
+.wcp-actions .cdp-action { flex-direction: row; min-block-size: 44px; padding-inline: 16px; }
+
+.wcp-gallery { display: grid; gap: 10px; margin-block-end: 24px; }
+
+.wcp-hero { display: grid; place-items: center; block-size: 420px; border-radius: var(--r-card); overflow: hidden; background: var(--brand-soft); color: var(--brand); }
+
+.wcp-hero img { inline-size: 100%; block-size: 100%; object-fit: cover; }
+
+.wcp-thumbs { list-style: none; margin: 0; padding: 0; display: flex; gap: 10px; align-items: center; }
+
+.wcp-thumbs .csv-strip-btn { inline-size: 96px; block-size: 72px; }
+
+.wcp-more { font-size: var(--fs-md); font-weight: 800; color: var(--brand); }
+
+.wcp-cols { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 28px; align-items: start; }
+
+.wcp-main { display: flex; flex-direction: column; gap: 16px; min-inline-size: 0; }
+
+.wcp-panel { position: sticky; inset-block-start: 84px; display: flex; flex-direction: column; gap: 12px; }
+
+.wcp-price { display: flex; align-items: baseline; gap: 8px; margin: 8px 0 12px; }
+
+.wcp-price small { font-size: var(--fs-md); color: var(--text-3); }
+
+.wcp-price strong { font-size: var(--fs-2xl); font-weight: 800; color: var(--text-1); }
+
+.wcp-svcs { display: flex; flex-direction: column; gap: 8px; margin-block-end: 14px; }
+
+.wcp-svc { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); color: var(--text-1); font: inherit; font-size: var(--fs-base); font-weight: 700; text-align: start; cursor: pointer; }
+
+.wcp-svc small { color: var(--text-3); font-weight: 700; }
+
+.wcp-svc.on { border-color: var(--brand); background: var(--brand-soft); color: var(--brand-ink); }
+
+.wcp-svc:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.wcp-go { inline-size: 100%; margin-block: 12px 4px; }
+
+.wcp-login { display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: var(--r-md); background: var(--surface-3); }
+
+.wcp-login p { margin: 0; font-size: var(--fs-md); line-height: 1.8; color: var(--text-2); }
+
+@media (max-width: 1023px) {
+  .wcp-cols { grid-template-columns: minmax(0, 1fr); }
+  .wcp-panel { position: static; }
+  .wcp-head { flex-direction: column; align-items: flex-start; }
+  .wcp-hero { block-size: 240px; }
+}

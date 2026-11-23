@@ -92,9 +92,10 @@ describe('monthMatrix (jalali)', () => {
 
   it('lays a month out on its own days, not the current one', () => {
     const esfand = cellsOf(1404, 12);
-    expect(esfand).toHaveLength(30); // 1404 is a leap year → Esfand has 30 days
+    expect(esfand).toHaveLength(29); // 1404 is a common year (1403 was leap) → Esfand has 29 days
     expect(toParts(esfand[0]!.date, 'fa')).toEqual({ year: 1404, month: 12, day: 1 });
-    expect(toParts(esfand.at(-1)!.date, 'fa')).toEqual({ year: 1404, month: 12, day: 30 });
+    expect(toParts(esfand.at(-1)!.date, 'fa')).toEqual({ year: 1404, month: 12, day: 29 });
+    expect(toApiDate(esfand.at(-1)!.date)).toBe('2026-03-20');
   });
 
   it('gives adjacent months across a year boundary distinct days', () => {
@@ -104,7 +105,7 @@ describe('monthMatrix (jalali)', () => {
     const farvardin = cellsOf(1405, 1);
     expect(farvardin).toHaveLength(31);
     expect(toApiDate(farvardin[0]!.date)).toBe('2026-03-21');
-    expect(toApiDate(esfand[0]!.date)).toBe('2026-02-19');
+    expect(toApiDate(esfand[0]!.date)).toBe('2026-02-20');
     const overlap = new Set(esfand.map((c) => toApiDate(c.date)));
     expect(farvardin.some((c) => overlap.has(toApiDate(c.date)))).toBe(false);
   });
@@ -113,7 +114,7 @@ describe('monthMatrix (jalali)', () => {
     const firstWeek = monthMatrix(1405, 1, 'fa')[0]!;
     // 1405/01/01 = 2026-03-21, a Saturday → no leading blanks.
     expect(firstWeek[0]?.day).toBe(1);
-    expect(monthMatrix(1404, 12, 'fa')[0]!.findIndex((c) => c !== null)).toBe(5); // 2026-02-19 is a Thursday
+    expect(monthMatrix(1404, 12, 'fa')[0]!.findIndex((c) => c !== null)).toBe(6); // 2026-02-20 is a Friday
   });
 });
 
@@ -135,8 +136,8 @@ describe('monthMatrix (gregorian)', () => {
 
 describe('daysInCalendarMonth (jalali)', () => {
   it('knows Esfand is 29 days in a common year and 30 in a leap year', () => {
-    expect(daysInCalendarMonth(1403, 12, 'fa')).toBe(29);
-    expect(daysInCalendarMonth(1404, 12, 'fa')).toBe(30);
+    expect(daysInCalendarMonth(1403, 12, 'fa')).toBe(30);
+    expect(daysInCalendarMonth(1404, 12, 'fa')).toBe(29);
   });
 });
 
@@ -154,9 +155,9 @@ describe('partsToDate / convertParts', () => {
   });
 
   it('clamps a day that overflows the month instead of rolling over', () => {
-    // Esfand 1403 has 29 days; 31 must clamp to the 29th, not spill into Farvardin.
-    expect(toParts(partsToDate({ year: 1403, month: 12, day: 31 }, 'fa'), 'fa'))
-      .toEqual({ year: 1403, month: 12, day: 29 });
+    // Esfand 1404 has 29 days; 31 must clamp to the 29th, not spill into Farvardin.
+    expect(toParts(partsToDate({ year: 1404, month: 12, day: 31 }, 'fa'), 'fa'))
+      .toEqual({ year: 1404, month: 12, day: 29 });
     expect(toParts(partsToDate({ year: 2023, month: 2, day: 31 }, 'en'), 'en'))
       .toEqual({ year: 2023, month: 2, day: 28 });
   });

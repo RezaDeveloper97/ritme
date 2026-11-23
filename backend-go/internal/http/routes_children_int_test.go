@@ -34,7 +34,17 @@ func TestChildrenRoutes_SharedThroughCompanionLink(t *testing.T) {
 	assert.Contains(t, r.Raw, `"child_ids"`)
 
 	link, code := e.invite(sara, map[string]any{"type": "spouse", "child_ids": []uint64{ava}})
-	require.Equal(t, fiber.StatusOK, e.do(fiber.MethodPost, "/api/v1/companions/accept", ali, map[string]any{"code": code}).Status)
+	r = e.do(fiber.MethodPost, "/api/v1/companions/accept", ali, map[string]any{"code": code})
+	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
+	// A code-only spouse invite with shared children waits for the owner (F-11 child write; spouse = co-guardian, F-17):
+	// before she confirms, the member sees no child.
+	require.Equal(t, "awaiting_owner", r.data()["status"], r.Raw)
+	r = e.do(fiber.MethodGet, "/api/v1/children", ali, nil)
+	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
+	pending, _ := r.data()["children"].([]any)
+	assert.Empty(t, pending, "nothing is shared before the owner confirms")
+	r = e.do(fiber.MethodPost, fmt.Sprintf("/api/v1/family/members/%d/confirm", link), sara, nil)
+	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
 
 	r = e.do(fiber.MethodGet, "/api/v1/children", ali, nil)
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)

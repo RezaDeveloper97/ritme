@@ -16,6 +16,7 @@ import { useVoicePilot, type VoicePilotResult } from '../api/voice';
 import { voiceScript } from '../model/pilot';
 import { formatElapsed, useVoiceRecorder, type RecorderStatus } from '../model/recorder';
 import { VoiceOrb, type OrbState } from './VoiceOrb';
+import './vlog.css';
 
 /**
  * What the log sheet hands the recorder — a subset of the `VoiceLogSlotProps` of `features/log-day`

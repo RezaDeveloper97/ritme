@@ -3,6 +3,7 @@ package rules_test
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"slices"
 	"sync/atomic"
 	"testing"
@@ -62,12 +63,23 @@ func insertRule(t *testing.T, db *sql.DB, prio, capCount int, period string, coo
 	return uint64(id) //nolint:gosec // test id
 }
 
+// ensureUsers inserts users rows with fixed ids: message_events.user_id is a foreign key since goose 00129 (T-M12-13).
+func ensureUsers(t *testing.T, db *sql.DB, ids ...uint64) {
+	t.Helper()
+	for _, id := range ids {
+		_, err := db.Exec(`INSERT INTO users (id, mobile, created_at, updated_at) VALUES (?, ?, NOW(), NOW())`,
+			id, fmt.Sprintf("0912%07d", id))
+		require.NoError(t, err)
+	}
+}
+
 // /messages/selected's history read is constant: 50 active rules, every one capped or cooling down, cost one query.
 func TestSelect_FiftyRulesOneHistoryQuery(t *testing.T) {
 	db := testdb.New(t)
 	ctx := context.Background()
 	now := time.Date(2026, 10, 21, 12, 0, 0, 0, noon.Location())
 	const uid = 42
+	ensureUsers(t, db, uid)
 	periods := []string{"day", "week", "cycle"}
 	mine := map[uint64]bool{}
 	var first uint64
@@ -161,6 +173,7 @@ func TestLoadHistory_OneQuery(t *testing.T) {
 	db := testdb.New(t)
 	ctx := context.Background()
 	const uid = 43
+	ensureUsers(t, db, uid, 999)                             // 999 = the other user whose event must not count
 	berlinNow := time.Date(2026, 10, 21, 9, 0, 0, 0, berlin) // 11:30 Tehran
 	tip := insertRule(t, db, 300, 0, "", 0)                  // smart_tip, product kind
 	res, err := db.Exec(`INSERT INTO message_rules (title, level, kind, priority, placement, content, conditions, exceptions,

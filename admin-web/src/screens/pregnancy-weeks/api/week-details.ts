@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 import { api, translationsSchema } from '@/shared/api';
 
-const list = <T extends z.ZodTypeAny>(item: T) => z.preprocess((v) => (Array.isArray(v) ? v : []), z.array(item));
+const list = <T extends z.ZodType>(item: T) => z.preprocess((v) => (Array.isArray(v) ? v : []), z.array(item));
 const nullableText = z.string().nullable().catch(null);
 
 const highlightSchema = z.object({

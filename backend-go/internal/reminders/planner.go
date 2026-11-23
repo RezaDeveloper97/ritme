@@ -4,9 +4,11 @@
 // There is no push sender yet: a sender (cron, web-push worker) asks Plan for the occurrences of a day and sends
 // only those whose Decision says Send, rendered through notifications.Render. Every occurrence has already gone
 // through notifications.Decide, so a switched-off category, quiet hours and the category's time are honoured in
-// one place:
+// one place. The times are wall-clock on the user's clock (T-M12-21c): the sender sets her zone on the preferences
+// (stored zone for a job, the request's for a handler; none = Asia/Tehran), and day is her local day:
 //
 //	prefs, _ := notifications.Load(ctx, q, userID)
+//	prefs = prefs.InZone(zone) // usertz.Zones.For(ctx, userID) in a job
 //	for _, o := range reminders.Plan(prefs, reminders.CycleFrom(engineState, today), today) {
 //	    if o.Decision.Send { … } else if !o.Decision.DeferUntil.IsZero() { … retry then … }
 //	}
@@ -71,11 +73,13 @@ func PMSCycleDayOf(cycleLength, pmsDays int) int {
 // Occurrence is one reminder due on the planned day.
 type Occurrence struct {
 	Category notifications.Category
-	At       time.Time // Tehran wall-clock
+	At       time.Time // the wall-clock time on the user's clock (Preferences.Location())
 	Decision notifications.Decision
 }
 
-// Plan lists the reminders due on day, in screen order, each gated by notifications.Decide at its own time.
+// Plan lists the reminders due on day, in screen order, each gated by notifications.Decide at its own time. The
+// category's time is read on p's clock (notifications.WallTime: a time inside a skipped DST hour fires at the
+// transition, a repeated hour once), so «۹ صبح» stays 09:00 local across daylight-saving changes.
 // Cycle-bound reminders need a known cycle; daily log and pill fire every day. Switched-off categories are
 // still listed (Decision.Reason = category_off) so a sender can log why nothing went out.
 func Plan(p notifications.Preferences, c Cycle, day civildate.Date) []Occurrence {
@@ -85,7 +89,7 @@ func Plan(p notifications.Preferences, c Cycle, day civildate.Date) []Occurrence
 			continue
 		}
 		minute, _ := p.TimeOf(cat)
-		at := day.TehranMidnight().Add(time.Duration(minute) * time.Minute)
+		at := notifications.WallTime(day, minute, p.Location())
 		out = append(out, Occurrence{Category: cat, At: at, Decision: notifications.Decide(p, cat, at, time.Time{})})
 	}
 	return out

@@ -15,6 +15,7 @@ import { useInsurancePage } from '../api/insurance';
 import { splitInsurance } from '../model/insurance';
 import { InsuranceHome } from './InsuranceHome';
 import { PolicySetup } from './PolicySetup';
+import '@/shared/ui/styles/ins.css';
 
 function InsuranceBody() {
   const t = useTranslations('me.insurance');

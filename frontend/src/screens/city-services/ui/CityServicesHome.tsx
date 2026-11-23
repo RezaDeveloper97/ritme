@@ -22,6 +22,9 @@ import { Card, Icon, ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/s
 import { BottomNav } from '@/widgets/bottom-nav';
 
 import { CsError } from './ListSkeleton';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/csv.css';
+import '@/shared/ui/styles/cdh.css';
 
 /** What the home hands to the list view: a category, a search text, or «suitable for the child's age» (months). */
 export interface BrowseQuery {

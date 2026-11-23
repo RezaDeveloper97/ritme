@@ -13,6 +13,7 @@ import { CheckTick, Icon, Skeleton } from '@/shared/ui';
 
 import { cardStatus, doseRowState, type DoseRowState } from '../model/dose-row';
 import { showRemindChip } from '../model/remind-chip';
+import '@/shared/ui/styles/trm.css';
 
 
 type T = ReturnType<typeof useTranslations<'care'>>;

@@ -8,6 +8,7 @@ import { PlusBadge } from '@/shared/ui/plus-gate';
 
 import { usePlusStatus } from '../api/queries';
 import { detailLocked, rangeLocked } from '../lib/gates';
+import '@/shared/ui/styles/an.css';
 
 /** Whether the 1-year / all range is locked now — skip the request when true. */
 export function usePlusRangeLocked(range: string): boolean {

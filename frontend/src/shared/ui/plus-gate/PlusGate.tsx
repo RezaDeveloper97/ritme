@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { Icon } from '../Icon';
 import { PlusLock, StatusPill } from '../nb';
 import type { PlusDenial } from './denial';
+import '@/shared/ui/styles/plus.css';
 
 /** The amber «پلاس» crown pill that marks a Plus feature (list rows, card headers, tiles). */
 export function PlusBadge({ label, className }: { label: ReactNode; className?: string }) {

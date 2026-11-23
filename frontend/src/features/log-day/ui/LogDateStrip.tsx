@@ -20,6 +20,7 @@ import {
 } from '@/shared/lib/date';
 
 import { logPilotId } from '../model/pilot-targets';
+import '@/shared/ui/styles/lday.css';
 
 /** Days shown before / after the selected one (nbl_Log_Sheet_Cycle: ۷ … ۱۲ … ۱۳). */
 const BEFORE = 5;

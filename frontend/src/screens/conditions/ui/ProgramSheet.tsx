@@ -11,6 +11,7 @@ import { AppSheet } from '@/shared/sheet';
 import { IconCircle, PrimaryButton, SecondaryButton } from '@/shared/ui';
 
 import type { ProgramCard } from '../model/cards';
+import '@/shared/ui/styles/cnd.css';
 
 /**
  * One program: what it logs and whether she is in it. Not in it → «شروع برنامه» (POST /conditions/enrolments); in

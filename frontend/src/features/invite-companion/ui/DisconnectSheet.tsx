@@ -7,6 +7,7 @@ import { useRevokeCompanion } from '@/entities/companion';
 import { getApiErrorMessage, getApiErrorStatus } from '@/shared/api';
 import { AppSheet } from '@/shared/sheet';
 import { Icon, SecondaryButton } from '@/shared/ui';
+import '@/shared/ui/styles/cmp.css';
 
 interface DisconnectSheetProps {
   /** The companion to cut off; `null` keeps the sheet closed. */

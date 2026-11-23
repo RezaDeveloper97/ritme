@@ -24,6 +24,7 @@ import { Link, type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { pilot } from '@/shared/pilot';
 import { Card, EmptyState, HeaderButton, Icon, PrimaryButton, SkyLayer } from '@/shared/ui';
+import '@/shared/ui/styles/dr.css';
 
 const clock = (iso: string, locale: Locale) => {
   const d = new Date(iso);

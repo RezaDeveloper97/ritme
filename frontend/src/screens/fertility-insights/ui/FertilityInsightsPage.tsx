@@ -46,6 +46,8 @@ import {
   gridMonths,
   windowWeeks,
 } from "../model/view";
+import '@/shared/ui/styles/ttc.css';
+import '@/shared/ui/styles/fert.css';
 
 const BACK_HREF = "/home";
 const LOG_HREF = "/fertility/log";

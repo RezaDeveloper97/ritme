@@ -10,6 +10,8 @@ import { Card, EmptyState, Icon, PrimaryButton, Skeleton, SkeletonGroup } from '
 
 import { APP_SHOP, STORE_HOME } from '../model/store';
 import { isTeenRefusal, WebShopGate, WebShopTeen } from './WebShopGate';
+import './wsh.css';
+import './wsc.css';
 
 const STATUS_KEYS = ['placed', 'confirmed', 'shipped', 'delivered', 'cancelled', 'awaiting_seller'] as const;
 

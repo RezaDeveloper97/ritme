@@ -1,0 +1,118 @@
+/* `tc-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+@keyframes tc-forge { 0% { transform: scale(.55); } 60% { transform: scale(1.18); } 100% { transform: scale(1); } }
+
+.tc-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+
+.tc-mark {
+  width: 30px; height: 30px; border-radius: 50%; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--pink-bg); color: var(--brand);
+}
+
+.tc-title { font-size: 15px; font-weight: 800; color: var(--ink); }
+
+.tc-day-chip {
+  flex: 0 0 auto; white-space: nowrap;
+  font-size: 11px; font-weight: 800;
+  color: var(--data-deep); background: var(--data-soft-faint);
+  border-radius: 999px; padding: 3px 9px;
+}
+
+.tc-spacer { flex: 1; }
+
+.tc-item {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; gap: 10px; text-align: start; cursor: pointer; font-family: inherit;
+  border: 1.5px solid var(--line-2); background: var(--surface-2);
+  border-radius: 14px; padding: 12px 14px;
+  transition: background .2s ease, border-color .2s ease,
+              transform .18s cubic-bezier(.22,.61,.36,1);
+}
+
+.tc-item:active { transform: scale(.98); }
+
+.tc-item:disabled { cursor: default; opacity: .7; }
+
+.tc-item:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.tc-item.is-done { background: var(--green-tint); border-color: var(--green); }
+
+.tc-item-l { display: flex; align-items: center; gap: 12px; min-width: 0; }
+
+.tc-item-ic {
+  flex: 0 0 auto; width: 38px; height: 38px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--pink-bg); color: var(--brand);
+  transition: background .2s ease, color .2s ease;
+}
+
+.tc-item.is-done .tc-item-ic { background: var(--surface); color: var(--green-deep); }
+
+.tc-item-b { min-width: 0; }
+
+.tc-item-t { display: block; font-size: 14px; font-weight: 700; color: var(--ink); line-height: 1.5; transition: color .2s ease; }
+
+.tc-item.is-done .tc-item-t { text-decoration: line-through; color: var(--muted); }
+
+.tc-item.is-done .cbx { animation: tc-forge .45s cubic-bezier(.22, 1.4, .36, 1); }
+
+.tc-caption { margin-top: 14px; background: linear-gradient(90deg, var(--pink-bg), var(--violet-soft)); border-radius: 12px; padding: 10px 12px; text-align: center; font-size: 12px; font-weight: 600; color: var(--steel); line-height: 1.7; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tc-item { transition: background .2s ease, border-color .2s ease; }
+  .tc-item:active { transform: none; }
+  .tc-item.is-done .cbx { animation: none; }
+}
+
+.nb-card.tc-nb {
+  display: flex; flex-direction: column; gap: 8px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--warm) 15%, var(--surface)), var(--surface) 70%);
+}
+
+.tc-nb-head { display: flex; align-items: center; gap: 8px; }
+
+.tc-nb-head .nb-icircle { width: 36px; height: 36px; }
+
+.tc-nb-title { flex: 1; margin: 0; font-size: 15px; font-weight: 800; color: var(--text-1); text-align: start; }
+
+.tc-nb-count { font-size: 12px; font-weight: 800; color: var(--warm-deep); }
+
+.tc-nb-bar { height: 6px; border-radius: 3px; overflow: hidden; background: var(--line); }
+
+.tc-nb-bar-fill { display: block; height: 100%; background: var(--warm); transition: width .3s ease; }
+
+.tc-nb-row {
+  display: flex; align-items: center; gap: 12px; min-height: 50px; padding: 4px 0; width: 100%;
+  background: none; border: 0; font-family: inherit; color: var(--text-1); cursor: pointer; text-align: start;
+}
+
+.tc-nb-row:disabled { cursor: default; }
+
+.tc-nb-row:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 12px; }
+
+.tc-nb-check {
+  width: 26px; height: 26px; border-radius: 13px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--line-strong); color: var(--page);
+}
+
+.tc-nb-row.is-done .tc-nb-check { background: var(--data); border-color: var(--data); }
+
+.tc-nb-body { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+
+.tc-nb-name { font-size: 13.5px; font-weight: 700; }
+
+.tc-nb-row.is-done .tc-nb-name { color: var(--text-2); text-decoration: line-through; }
+
+.tc-nb-sub { font-size: 11px; font-weight: 600; color: var(--text-2); }
+
+.tc-nb-chip {
+  display: inline-flex; align-items: center; gap: 4px; height: 32px; padding: 0 12px; border-radius: 16px; flex-shrink: 0;
+  border: 1.5px solid color-mix(in srgb, var(--brand) 33%, transparent); color: var(--brand);
+  font-size: 12px; font-weight: 800; white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tc-nb-bar-fill { transition: none; }
+}

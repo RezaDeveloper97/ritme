@@ -7,6 +7,7 @@ import { pilot } from '@/shared/pilot';
 import { Icon, IconCircle, type IconName, Switch, type Tone } from '@/shared/ui';
 
 import type { ReorderHandle } from '../model/use-reorder';
+import '@/shared/ui/styles/lcz.css';
 
 export interface CategoryLook {
   icon: IconName;

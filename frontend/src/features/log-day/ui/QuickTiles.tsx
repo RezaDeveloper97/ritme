@@ -10,6 +10,7 @@ import { TileButton } from '@/shared/ui';
 import { categoryEntries, paramEntries, parseTileKey, type LabelContext } from '../model/draft';
 import { logPilotId } from '../model/pilot-targets';
 import { linkHref, tileLook } from '../model/presentation';
+import '@/shared/ui/styles/lday.css';
 
 interface QuickTilesProps {
   tiles: readonly string[];

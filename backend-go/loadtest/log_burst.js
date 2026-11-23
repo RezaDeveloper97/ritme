@@ -1,6 +1,8 @@
-// log_burst: POST a health log, then read it back at once. Asserts read-your-write (zero stale reads): the
-// saved log is returned by GET /health-logs/:date and the engine's /cycle/today still answers.
-// A unique marker goes into `notes`, so a stale (cached) read cannot pass by accident.
+// log_burst: save a day the way the app does (PUT /logs/days/:date, the log sheet's route — T-M12-31, P-06; it
+// measured the legacy POST /health-logs before), then read it back at once. Asserts read-your-write (zero stale
+// reads): the saved note is returned by GET /logs/days/:date and the engine's /cycle/today still answers.
+// A unique marker goes into the note, so a stale (cached) read cannot pass by accident. The body is a 10-param
+// change like querybudget.LogSaveBody (no flow: no period bridge).
 import http from 'k6/http';
 import { check } from 'k6';
 import { Counter } from 'k6/metrics';
@@ -30,19 +32,26 @@ export function burst() {
   const day = today();
   const marker = `lt-${__VU}-${__ITER}-${Date.now()}`;
   const body = JSON.stringify({
-    log_date: day,
-    notes: marker,
-    energy_level: ['low', 'medium', 'high'][__ITER % 3],
-    weight: 55 + (__ITER % 300) / 10,
+    categories: {
+      bleeding: { spotting: false },
+      pain: { relief: ['heat', 'rest'] },
+      mood: { moods: [['calm'], ['calm', 'energetic'], ['happy']][__ITER % 3] },
+      sleep: { duration: '6_9', quality: ['great', 'good', 'fair'][__ITER % 3] },
+      appetite_energy: { energy: ['low', 'medium', 'high'][__ITER % 3] },
+      measurements: { weight: 55 + (__ITER % 300) / 10 },
+      discharge: { amount: 'light' },
+      activity: { duration: 30 + (__ITER % 60) },
+      note: { text: marker },
+    },
   });
-  const h = Object.assign({ 'Content-Type': 'application/json', 'Idempotency-Key': marker }, headers(u));
-  const save = http.post(`${API}/health-logs`, body, { headers: h, tags: { endpoint: 'log_save', phase: 'warm' } });
-  check(save, { 'log_save 200/201': (r) => r.status === 200 || r.status === 201 }, { endpoint: 'log_save' });
+  const h = Object.assign({ 'Content-Type': 'application/json' }, headers(u));
+  const save = http.put(`${API}/logs/days/${day}`, body, { headers: h, tags: { endpoint: 'log_save', phase: 'warm' } });
+  check(save, { 'log_save 200': (r) => r.status === 200 }, { endpoint: 'log_save' });
 
-  const read = http.get(`${API}/health-logs/${day}`, { headers: headers(u), tags: { endpoint: 'log_read', phase: 'warm' } });
+  const read = http.get(`${API}/logs/days/${day}`, { headers: headers(u), tags: { endpoint: 'log_read', phase: 'warm' } });
   let fresh = false;
   try {
-    fresh = read.status === 200 && read.json('data.notes') === marker;
+    fresh = read.status === 200 && read.json('data.categories.note.text') === marker;
   } catch (e) {
     fresh = false;
   }

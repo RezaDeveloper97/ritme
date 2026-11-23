@@ -55,6 +55,36 @@ function dayStart(value: string | null): Date | null {
   return m ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])) : null;
 }
 
+/** Whether `day` (any time on it) is on the medication's calendar — the day rules of {@link nextDoseAt}, slots aside. */
+function isScheduledDay(
+  med: Pick<Medication, 'weekdays' | 'frequency' | 'startsOn' | 'endsOn'>,
+  day: Date,
+): boolean {
+  const day0 = new Date(day.getFullYear(), day.getMonth(), day.getDate());
+  const start = dayStart(med.startsOn);
+  const end = dayStart(med.endsOn);
+  if (start && day0 < start) return false;
+  if (end && day0 > end) return false;
+  const everyDays = med.frequency && med.frequency.unit === 'day' && med.frequency.every > 1 ? med.frequency.every : 1;
+  if (everyDays > 1 && start) {
+    const since = Math.round((day0.getTime() - start.getTime()) / 86_400_000);
+    if (since % everyDays !== 0) return false;
+  }
+  const weekdays = med.frequency ? [] : [...new Set(med.weekdays)];
+  return !(weekdays.length > 0 && weekdays.length < 7 && !weekdays.includes(((day0.getDay() + 1) % 7) as Weekday));
+}
+
+/**
+ * Whether an active medication with at least one time slot has a dose on `day` (the calendar's day list). Same day
+ * rules as {@link nextDoseAt}: start/end dates, «every N days» from the start, else the weekdays.
+ */
+export function isDoseDay(
+  med: Pick<Medication, 'isActive' | 'times' | 'weekdays' | 'frequency' | 'startsOn' | 'endsOn'>,
+  day: Date,
+): boolean {
+  return med.isActive && med.times.length > 0 && isScheduledDay(med, day);
+}
+
 /**
  * The next moment a medication is due, or null when there is none within ~31
  * days (inactive, ended, no slots). Pure wall-clock arithmetic on `now`'s own
@@ -77,21 +107,13 @@ export function nextDoseAt(
     .sort((a, b) => a.h - b.h || a.min - b.min);
   if (slots.length === 0) return null;
 
-  const start = dayStart(med.startsOn);
   const end = dayStart(med.endsOn);
-  const everyDays = med.frequency && med.frequency.unit === 'day' && med.frequency.every > 1 ? med.frequency.every : 1;
-  const weekdays = med.frequency ? [] : [...new Set(med.weekdays)];
   const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   for (let i = 0; i <= LOOKAHEAD_DAYS; i++) {
     const day = new Date(today0.getFullYear(), today0.getMonth(), today0.getDate() + i);
-    if (start && day < start) continue;
     if (end && day > end) return null;
-    if (everyDays > 1 && start) {
-      const since = Math.round((day.getTime() - start.getTime()) / 86_400_000);
-      if (since % everyDays !== 0) continue;
-    }
-    if (weekdays.length > 0 && weekdays.length < 7 && !weekdays.includes(((day.getDay() + 1) % 7) as Weekday)) continue;
+    if (!isScheduledDay(med, day)) continue;
     for (const s of slots) {
       const at = new Date(day.getFullYear(), day.getMonth(), day.getDate(), s.h, s.min);
       if (at.getTime() >= now.getTime()) return at;

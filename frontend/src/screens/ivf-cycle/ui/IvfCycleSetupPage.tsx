@@ -23,6 +23,7 @@ import {
 } from '../model/cycle';
 import { ChoiceRow, DateSheet, FieldButton, FieldError } from './Fields';
 import { protocolCodes, useProtocolLabel } from './protocols';
+import '@/shared/ui/styles/ivfm.css';
 
 function Shell({ children }: { children: React.ReactNode }) {
   const t = useTranslations('ivf.cycle');

@@ -9,6 +9,7 @@ import { Link, useRouter, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { AppSheet } from '@/shared/sheet';
 import { Card, Icon, PrimaryButton, Skeleton, SkeletonGroup, StatusPill } from '@/shared/ui';
+import '@/shared/ui/styles/plus.css';
 
 /** The Plus-only actions that open this sheet; each has its own title + lead under `plus.requiredSheet`. */
 export type PlusRequiredFeature = 'companion';

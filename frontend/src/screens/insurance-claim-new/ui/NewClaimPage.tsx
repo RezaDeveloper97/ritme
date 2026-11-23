@@ -36,6 +36,7 @@ import {
 import { ClaimDocPicker } from '@/widgets/claim-documents';
 
 import { type ClaimDraft, type DraftDoc, DOC_SLOTS, draftProblems, draftToPayload, MAX_AMOUNT, MAX_CENTRE, withDoc } from '../model/draft';
+import '@/shared/ui/styles/ins.css';
 
 function DateSheet({ value, onClose, onPick }: { value: string; onClose: () => void; onPick: (api: string) => void }) {
   const t = useTranslations('insurance.claimNew');

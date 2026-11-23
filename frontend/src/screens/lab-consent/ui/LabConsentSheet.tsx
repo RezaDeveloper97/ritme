@@ -18,6 +18,7 @@ import {
   SkeletonGroup,
   type Tone,
 } from '@/shared/ui';
+import '@/shared/ui/styles/lab.css';
 
 /** Icons of the consent points, in the order the catalog lists them (sent · stored · control · limits). */
 const POINT_LOOKS: readonly { icon: IconName; tone: Tone }[] = [

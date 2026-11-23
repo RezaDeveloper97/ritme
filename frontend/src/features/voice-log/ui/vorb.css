@@ -1,0 +1,35 @@
+/* `vorb-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+@keyframes vorbSpin { to { transform: rotate(360deg); } }
+
+@keyframes vorbBreath { 50% { transform: scale(1.04); } }
+
+@keyframes vorbPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.12); opacity: .55; } }
+
+.vorb-wrap { position: relative; display: inline-flex; align-items: center; justify-content: center; margin-block: 14px 8px; }
+
+.vorb-ring {
+  position: absolute; inset: -14px; border-radius: 50%; pointer-events: none;
+  background: color-mix(in srgb, var(--brand-soft) 70%, transparent);
+  box-shadow: 0 0 0 14px color-mix(in srgb, var(--brand-soft) 40%, transparent);
+}
+
+.vorb-art { position: absolute; inset: 0; inline-size: 100%; block-size: 100%; border-radius: 50%; pointer-events: none; }
+
+.vorb-glyph { position: relative; display: flex; align-items: center; justify-content: center; }
+
+.vorb-stop { inline-size: 34px; block-size: 34px; border-radius: 9px; background: var(--on-accent); }
+
+.vorb-wrap[data-state="listening"] .vorb-ring { animation: vorbPulse 1.6s ease-in-out infinite; }
+
+.vorb-wrap[data-state="listening"] .vorb { animation: vorbBreath 1.6s ease-in-out infinite; }
+
+.vorb-wrap[data-state="thinking"] .vorb-ring { animation: vorbPulse 1s ease-in-out infinite; opacity: .7; }
+
+.vorb-spin { animation: vorbSpin 1s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .vorb-wrap[data-state] .vorb,
+  .vorb-wrap[data-state] .vorb-ring,
+  .vorb-spin { animation: none; transition: none; }
+}

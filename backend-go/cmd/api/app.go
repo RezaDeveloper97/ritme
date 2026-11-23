@@ -3,6 +3,9 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"net/netip"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v3"
@@ -42,13 +45,13 @@ func newApp(reg *apihttp.Registry, deps *apihttp.Deps) *fiber.App {
 		ReadTimeout:  timeouts.Read,
 		WriteTimeout: timeouts.Write,
 		IdleTimeout:  timeouts.Idle,
-		// Laravel trusts every proxy (bootstrap/app.php trustProxies(at: '*')): the
-		// container port is only reachable through nginx. c.IP() returns the first
-		// valid address of X-Forwarded-For, like Symfony's getClientIp() does when
-		// all hops are trusted.
+		// T-M12-02 (S-03): X-Forwarded-For is believed only from a trusted proxy — the nginx container on the docker
+		// network (TRUSTED_PROXIES, default loopback + private ranges; never 0.0.0.0/0). nginx resolves the real
+		// client itself (deploy/cdn-real-ip.inc trusts only the CDN edges) and forwards exactly one address, its
+		// $remote_addr, so c.IP() is that address. Any other peer's X-Forwarded-For is ignored and c.IP() is the peer.
 		ProxyHeader:        fiber.HeaderXForwardedFor,
 		TrustProxy:         true,
-		TrustProxyConfig:   fiber.TrustProxyConfig{Proxies: []string{"0.0.0.0/0", "::/0"}},
+		TrustProxyConfig:   fiber.TrustProxyConfig{Proxies: trustedProxies(os.Getenv("TRUSTED_PROXIES"), deps.Logger)},
 		EnableIPValidation: true,
 		ErrorHandler:       httpx.ErrorHandler(deps.Logger),
 	})
@@ -88,6 +91,63 @@ func newApp(reg *apihttp.Registry, deps *apihttp.Deps) *fiber.App {
 
 	reg.Mount(app, deps)
 	return app
+}
+
+// defaultTrustedProxies is where the nginx proxy reaches the API from when TRUSTED_PROXIES is unset: loopback (local
+// dev, the container's own healthcheck) and the private ranges Docker allocates bridge networks from. The API port is
+// never published on the host (docker-compose.{stage,beta,prod}.yml), so a peer in these ranges is a container on a
+// docker network; set TRUSTED_PROXIES to the exact proxy network CIDR to narrow it further.
+var defaultTrustedProxies = []string{"127.0.0.0/8", "::1/128", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "fc00::/7"}
+
+// trustedProxies parses TRUSTED_PROXIES (comma- or space-separated IPs / CIDRs) into Fiber's proxy allow-list. An
+// entry that does not parse, or that is not a private / loopback range (0.0.0.0/0, ::/0, any public network), is
+// dropped with a warning: trusting a public peer would let it forge the client IP every per-IP limit keys on. Empty
+// (or nothing valid left) means defaultTrustedProxies.
+func trustedProxies(raw string, logger *slog.Logger) []string {
+	var out []string
+	for _, entry := range strings.FieldsFunc(raw, func(r rune) bool { return r == ',' || r == ' ' || r == '\t' || r == '\n' }) {
+		prefix, err := netip.ParsePrefix(entry)
+		if err != nil {
+			addr, aerr := netip.ParseAddr(entry)
+			if aerr != nil {
+				warnProxy(logger, entry, "not an IP or CIDR")
+				continue
+			}
+			prefix = netip.PrefixFrom(addr, addr.BitLen())
+		}
+		if !internalPrefix(prefix) {
+			warnProxy(logger, entry, "not a private or loopback range")
+			continue
+		}
+		out = append(out, prefix.Masked().String())
+	}
+	if len(out) == 0 {
+		return append([]string(nil), defaultTrustedProxies...)
+	}
+	return out
+}
+
+// internalPrefix reports whether every address of p is loopback or private (RFC 1918 / RFC 4193): the network's first
+// address must be one, and the prefix may not be wider than the range it sits in (10/8, 172.16/12, 192.168/16, fc00::/7,
+// 127/8, ::1/128).
+func internalPrefix(p netip.Prefix) bool {
+	a := p.Masked().Addr().Unmap()
+	if !a.IsLoopback() && !a.IsPrivate() {
+		return false
+	}
+	for _, r := range defaultTrustedProxies {
+		rp := netip.MustParsePrefix(r)
+		if rp.Contains(a) && p.Bits() >= rp.Bits() {
+			return true
+		}
+	}
+	return false
+}
+
+func warnProxy(logger *slog.Logger, entry, why string) {
+	if logger != nil {
+		logger.Warn("TRUSTED_PROXIES entry ignored", slog.String("entry", entry), slog.String("reason", why))
+	}
 }
 
 // mediaTimeouts is the fasthttp HeaderReceived hook: the media upload chunks and the playback stream, which nginx

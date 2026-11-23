@@ -5,8 +5,6 @@ import { useTranslations } from 'next-intl';
 import type { ComponentType } from 'react';
 
 import { isInfoGroup } from '@/entities/info';
-import { ArticleSheet } from '@/screens/article';
-import { MarkDoneTitle } from '@/screens/checkup-mark-done';
 import type { SheetContentProps, SheetSize } from '@/shared/sheet';
 
 export interface SheetDefinition {
@@ -63,6 +61,15 @@ function LanguageTitle() {
   return <>{useTranslations('profile')('rows.language')}</>;
 }
 
+const ArticleSheetLazy = dynamic(() => import('@/screens/article').then((m) => m.ArticleSheet), {
+  ssr: false,
+});
+
+/** Called once on idle by the host: article opens from inside other sheets, where a loading gap reads as a stall. */
+export function warmSheets() {
+  void import('@/screens/article');
+}
+
 /**
  * Every screen in this app that is neither a bottom-nav tab nor part of signing
  * up. They have no routes of their own: each is a panel that rises over
@@ -116,13 +123,12 @@ export const SHEET_REGISTRY: Record<string, SheetDefinition> = {
    * One article — `arg` is its slug. The article's own headline is the heading,
    * so it declares no `Title`.
    *
-   * Statically imported rather than lazy: it is the sheet most often opened
-   * from *inside* another sheet, where a loading gap reads as a stall rather
-   * than as a transition.
+   * Lazy like the rest (a static import pulled the article CSS into every route). It is the sheet
+   * most often opened from *inside* another sheet, so `warmSheets()` preloads its chunk on idle.
    */
   article: {
     size: 'full',
-    Component: ArticleSheet,
+    Component: ArticleSheetLazy,
   },
 
   // ── Profile editors ──
@@ -181,7 +187,7 @@ export const SHEET_REGISTRY: Record<string, SheetDefinition> = {
    */
   'checkup-mark-done': {
     size: 'half',
-    Title: MarkDoneTitle,
+    Title: dynamic(() => import('@/screens/checkup-mark-done').then((m) => m.MarkDoneTitle), { ssr: false }),
     Component: dynamic(
       () => import('@/screens/checkup-mark-done').then((m) => m.MarkDoneSheet),
       { ssr: false },
@@ -229,13 +235,6 @@ export const SHEET_REGISTRY: Record<string, SheetDefinition> = {
     size: 'half',
     Title: dynamic(() => import('@/screens/todo-add').then((m) => m.TodoAddTitle), { ssr: false }),
     Component: dynamic(() => import('@/screens/todo-add').then((m) => m.TodoAddSheet), { ssr: false }),
-  },
-
-  /** CB-NAV-03: Today «دسترسی سریع» edit sheet (pick shortcuts; saved on this device). Strings: `nav` (shell). */
-  'quick-access': {
-    size: 'half',
-    Title: dynamic(() => import('@/widgets/quick-access').then((m) => m.QuickAccessSheetTitle), { ssr: false }),
-    Component: dynamic(() => import('@/widgets/quick-access').then((m) => m.QuickAccessSheet), { ssr: false }),
   },
 };
 

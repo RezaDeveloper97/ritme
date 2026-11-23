@@ -10,6 +10,7 @@ import { AppSheet } from '@/shared/sheet';
 import { ChipGroup, EmptyState, Icon, InfoNote, PillChip, PrimaryButton, SecondaryButton, Skeleton, SkeletonGroup } from '@/shared/ui';
 
 import { ALL_DAYS, nextFreeItem, planIssues, toggleDay, withType } from '../model/plan';
+import '@/shared/ui/styles/vt.css';
 
 /** The weekly measuring plan editor (PUT /vitals/plan), a full sheet over the hub. */
 export function PlanEditorSheet({ onClose }: { onClose: () => void }) {

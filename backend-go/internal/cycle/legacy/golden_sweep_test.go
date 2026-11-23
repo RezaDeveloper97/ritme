@@ -68,9 +68,7 @@ var monthURL = regexp.MustCompile(`/cycle/month/(\d+)/(\d+)`)
 func TestLegacyGoldenSweep(t *testing.T) {
 	files, err := filepath.Glob(filepath.Join(goldenDir, "*.json"))
 	require.NoError(t, err)
-	if len(files) == 0 {
-		t.Skip("cycle-sweep goldens not recorded (T-M2-05)")
-	}
+	require.NotEmpty(t, files, "cycle-sweep goldens are recorded in contract/golden/cycle-sweep (T-M2-05); a missing set must fail, not skip")
 	fx := loadFixture(t)
 	ctx := context.Background()
 	days, months, rewritten := 0, 0, 0

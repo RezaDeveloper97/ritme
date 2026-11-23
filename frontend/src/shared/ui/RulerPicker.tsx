@@ -6,6 +6,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { Locale } from '@/shared/i18n';
 import type { PilotAttrs } from '@/shared/pilot';
 import { formatNumber } from '@/shared/lib/date';
+import '@/shared/ui/styles/ruler.css';
+import '@/shared/ui/styles/rp.css';
 
 interface RulerPickerProps {
   min: number;

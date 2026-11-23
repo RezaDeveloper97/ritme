@@ -23,11 +23,3 @@ export function VoiceLogGated({ mode, ...props }: SlotProps) {
   const manifest = useMemo(() => (taxonomy.data ? logSheetManifest(logTargetsOf(taxonomy.data)) : null), [taxonomy.data]);
   return <VoiceLogPanel {...props} ai={ai} manifest={manifest} />;
 }
-
-/**
- * Whether the voice entry should wear «پلاس»: the user has no running subscription. Unknown (loading, a failed
- * read) is not locked — the gate fails open and the server decides.
- */
-export function useVoiceLocked(): boolean {
-  return useAiGate('voice_log').status === 'no_subscription';
-}

@@ -1,0 +1,7 @@
+/* `legend-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.legend-item { display: inline-flex; align-items: center; gap: 6px; }
+
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+.legend-label { font-size: 11.5px; font-weight: 600; color: var(--muted); }

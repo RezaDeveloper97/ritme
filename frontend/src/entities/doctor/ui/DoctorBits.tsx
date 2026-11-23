@@ -7,6 +7,7 @@ import { getApiErrorCode, getApiErrorMessage } from '@/shared/api';
 import { Avatar, Card, Icon, EmptyState, PrimaryButton, Skeleton, SkeletonGroup, type IconName } from '@/shared/ui';
 
 import type { VisitMode } from '../api/schema';
+import '@/shared/ui/styles/dr.css';
 
 export const MODE_ICON: Record<VisitMode, IconName> = { video: 'video', phone: 'phone', in_person: 'mapPin' };
 const MODE_TONE: Record<VisitMode, string> = { video: 'nb-tone-data', phone: 'nb-tone-brand', in_person: 'nb-tone-warm' };

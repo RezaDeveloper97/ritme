@@ -9,6 +9,8 @@ import { OnbFrame } from '@/features/auth';
 import { useSaveOnboardingStep } from '../api/onboarding';
 import type { OnboardingGender } from '../model/flow';
 import { StepScreen, type StepContext } from './StepScreen';
+import '@/shared/ui/styles/onb.css';
+import '@/shared/ui/styles/cmp.css';
 
 /** companion-v2 `ob-gender`: «ترجیح می‌دهم نگویم» takes the full (woman-path) experience. */
 const OPTIONS: readonly { value: OnboardingGender; icon: IconName; tone: Tone }[] = [

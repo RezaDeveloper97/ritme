@@ -1,6 +1,8 @@
 import clsx from 'clsx';
 
 import { type IllustrationProps, svgA11y } from './svg-a11y';
+import '@/shared/ui/styles/pg2.css';
+import '@/shared/ui/styles/on.css';
 
 /**
  * The fetus-in-a-disc drawing of the Setup result (step 3/3) and the Today

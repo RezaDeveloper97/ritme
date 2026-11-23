@@ -23,6 +23,7 @@ import {
 } from '@/shared/ui';
 
 import { signsCard } from '../model/signs';
+import './tnh.css';
 
 /**
  * Teen home (CB-TEEN-02, nbl_Teen_Home) — replaces bloom's simplified teen
@@ -35,7 +36,7 @@ import { signsCard } from '../model/signs';
  */
 /**
  * `actions`: the Today header buttons (bell + light/dark), composed in by screens/home (a widget can't import a widget).
- * `today` (CB-NAV-04b): «برای امروز» + «دسترسی سریع», composed in the same way, under the signs card.
+ * `today` (CB-NAV-04b): «برای امروز», composed in the same way, under the signs card.
  */
 export function TeenHome({ actions, today }: { actions?: ReactNode; today?: ReactNode } = {}) {
   const t = useTranslations('teen.home');

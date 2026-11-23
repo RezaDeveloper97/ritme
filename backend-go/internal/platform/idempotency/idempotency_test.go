@@ -168,7 +168,7 @@ func TestInFlight_ReleasedWhileWaiting_RunsTheHandler(t *testing.T) {
 	pending, _ := json.Marshal(map[string]any{"state": "pending", "fp": fp, "owner": "someone"})
 	require.NoError(t, h.mr.Set(key, string(pending)))
 	go func() {
-		time.Sleep(200 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond) //nolint:sleep // releases the pending key while the request polls; the wait loop has no hook
 		h.mr.Del(key)
 	}()
 

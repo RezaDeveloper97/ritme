@@ -25,7 +25,7 @@ const enrolmentSchema = z.object({
   enrolled_on: date,
 });
 
-function rows<S extends z.ZodTypeAny>(list: unknown[], schema: S): z.output<S>[] {
+function rows<S extends z.ZodType>(list: unknown[], schema: S): z.output<S>[] {
   return list.flatMap((raw) => {
     const parsed = schema.safeParse(raw);
     return parsed.success ? [parsed.data] : [];
@@ -70,7 +70,7 @@ const nudgeSchema = z
     title: z.string().trim().min(1),
     body: z.string().catch(''),
     action: z.string().catch(''),
-    link: z.unknown(),
+    link: z.unknown().optional(),
     doctor: z
       .object({ action: z.string().trim().min(1), link: z.unknown() })
       .nullable()

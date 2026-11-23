@@ -1,0 +1,5 @@
+/* `lngp-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.lngp-skel .nb-skel.is-card { height: 72px; }
+
+.lngp-hint { margin: 0; padding-inline: 4px; font-size: var(--fs-sm); font-weight: 600; color: var(--text-3); line-height: var(--lh-body); }

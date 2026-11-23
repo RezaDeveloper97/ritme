@@ -19,6 +19,7 @@ import {
 
 import { useMenoAlerts } from '../api/alerts';
 import { type MenoAlert, alertLook, primaryAlert, tellEarlyAlerts } from '../model/alerts';
+import './mal.css';
 
 /** The M3 appointment form — the doctors directory (N7) doesn't exist yet. */
 const BOOK_HREF = '/reminders/appointment/new?kind=in_person';

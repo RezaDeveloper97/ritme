@@ -281,21 +281,79 @@ func Facts(ctx context.Context, src facts.PregnancySource, day civildate.Date) (
 	return rules.Facts(fs.Values()), nil
 }
 
-// box is an inbox service over the snapshot's rules and the user's pregnancy facts read through q.
-// week, when set, gets the pregnancy week the evaluation loaded (0 = no dating), for the alerts whose texts carry no
-// {preg_week}.
-func (s *Service) box(snap *snapshot, q pstore.Querier, extra []pregnancyalerts.Reading, week *int) *inbox.Service {
+// evalLoad is what one evaluation's fact source read: the pregnancy week (0 = no dating), for the alerts whose texts
+// carry no {preg_week}, and the alert input (nil = not pregnant or not read), for the next due instant.
+type evalLoad struct {
+	week  int
+	input *facts.PregnancyAlertInput
+	read  bool
+}
+
+// box is an inbox service over the snapshot's rules and the user's pregnancy facts read through q; out, when set,
+// gets what the evaluation loaded.
+func (s *Service) box(snap *snapshot, q pstore.Querier, extra []pregnancyalerts.Reading, out *evalLoad) *inbox.Service {
 	return inbox.New(s.mq, nil, s.logger).
 		WithLoader(func(context.Context) (*compiled.Compiled, error) { return snap.comp, nil }).
 		WithFacts(func(ctx context.Context, userID uint64, at time.Time) (rules.Facts, time.Time, error) {
 			local := at.In(civildate.Tehran)
 			src := &source{q: q, mq: s.mq, userID: userID, now: local, extra: extra}
 			f, err := Facts(ctx, src, civildate.FromTime(local))
-			if week != nil && src.dating != nil {
-				*week = src.dating.CurrentWeek()
+			if out != nil {
+				out.read = err == nil && src.loaded && src.err == nil
+				out.input = src.input
+				if src.dating != nil {
+					out.week = src.dating.CurrentWeek()
+				}
 			}
 			return f, local, err
 		})
+}
+
+// RulesVersion implements pregnancyalerts.RulesVersioner: the fingerprint of the process rule snapshot the preg.*
+// rules come from (it moves on every admin rule edit, in every process alike).
+func (s *Service) RulesVersion(ctx context.Context) (string, error) {
+	snap, err := s.snapshot(ctx)
+	if err != nil {
+		return "", err
+	}
+	if snap.base == nil || snap.base.Fingerprint == "" {
+		return "", errors.New("pregnancy alerts: rule snapshot without fingerprint")
+	}
+	return snap.base.Fingerprint, nil
+}
+
+// nextDue is the next due instant of one evaluation at now (Tehran): pregnancyalerts.NextDue over the input (the
+// next local midnight when not pregnant), then the selection gates of the served rules that read the clock — an hour
+// window (or the slot's quiet hours) can flip at the next local hour, a schedule at its start or end.
+func (snap *snapshot) nextDue(in *facts.PregnancyAlertInput, now time.Time) time.Time {
+	var due time.Time
+	if in != nil {
+		due = pregnancyalerts.NextDue(in.Facts, in.NextVisit, now)
+	} else {
+		due = pregnancyalerts.NextDue(pregnancyalerts.Facts{}, time.Time{}, now)
+	}
+	earlier := func(t time.Time) {
+		if t.After(now) && t.Before(due) {
+			due = t
+		}
+	}
+	nextHour := time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), 0, 0, 0, now.Location()).Add(time.Hour)
+	if sl, ok := rules.Slots[rules.SlotAlertsInbox]; ok && sl.QuietHours != nil {
+		earlier(nextHour)
+	}
+	for i := range snap.list {
+		r := &snap.list[i]
+		if len(r.EffectiveHourWindows()) > 0 {
+			earlier(nextHour)
+		}
+		start, end := r.EffectiveSchedule()
+		for _, t := range []time.Time{start, end} {
+			if !t.IsZero() { // Tehran wall clock, read in the evaluation's zone as compiled.Select does
+				earlier(time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), 0, now.Location()))
+			}
+		}
+	}
+	return due
 }
 
 // ---- Backend ----
@@ -308,10 +366,14 @@ func (s *Service) Evaluate(ctx context.Context, q pstore.Querier, userID uint64,
 	if err != nil {
 		return nil, err
 	}
-	week := 0
-	open, err := s.box(snap, q, opt.Readings, &week).EvaluateUser(ctx, userID, now)
+	var ld evalLoad
+	open, err := s.box(snap, q, opt.Readings, &ld).EvaluateUser(ctx, userID, now)
 	if err != nil {
 		return nil, err
+	}
+	week := ld.week
+	if opt.Due != nil && ld.read {
+		*opt.Due = snap.nextDue(ld.input, now.In(civildate.Tehran))
 	}
 	changed := map[uint64]bool{}
 	for _, o := range open {

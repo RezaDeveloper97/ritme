@@ -8,6 +8,7 @@ import { useUserProfile } from '@/entities/user';
 import type { Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { Icon } from '@/shared/ui';
+import '@/shared/ui/styles/cmp.css';
 
 /** The phase keys the preview can name; anything else reads as «not clear yet». */
 const PREVIEW_PHASES = ['menstrual', 'follicular', 'fertile', 'luteal', 'period_expected'] as const;

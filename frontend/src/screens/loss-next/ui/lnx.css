@@ -1,0 +1,27 @@
+/* `lnx-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.lnx-page { background: var(--page); }
+
+.lnx-scroll { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; min-block-size: 100%; }
+
+.lnx-scroll > :not(.nb-hdr):not(.lnx-footer) { margin-inline: var(--gutter); }
+
+.lnx-skel { display: flex; flex-direction: column; gap: 12px; }
+
+.lnx-skel-card { block-size: 84px; border-radius: var(--r-card); }
+
+.lnx-footer {
+  position: sticky; bottom: 0; z-index: 2; margin-top: auto; display: flex; flex-direction: column; gap: 8px;
+  padding: 12px var(--gutter) max(14px, env(safe-area-inset-bottom));
+  background: var(--surface-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+
+.lnx-error { margin: 0; font-size: var(--fs-md); font-weight: 700; color: var(--danger-deep); }
+
+.lnx-intro { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+
+.lnx-title { margin: 0; font-size: 24px; line-height: 1.5; font-weight: 900; color: var(--text-1); }
+
+.lnx-lead { margin: 0; font-size: var(--fs-md); font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+
+.lnx-note { margin-top: 4px; }

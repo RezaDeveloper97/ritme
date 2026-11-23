@@ -1,0 +1,25 @@
+/* `ad-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.ad-row { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+
+.ad-row::-webkit-scrollbar { display: none; }
+
+.ad-card { position: relative; flex: 0 0 auto; scroll-snap-align: start; border-radius: var(--r-xl); overflow: hidden; border: 1px solid var(--line); background: var(--surface); }
+
+.ad-ad_slider { inline-size: 100%; aspect-ratio: 342 / 170; }
+
+.ad-ad_square { inline-size: calc(50% - 6px); aspect-ratio: 1 / 1; }
+
+.ad-ad_strip { inline-size: 100%; aspect-ratio: 342 / 76; }
+
+.ad-link { display: block; inline-size: 100%; block-size: 100%; min-block-size: 44px; color: inherit; text-decoration: none; }
+
+.ad-link:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.ad-img { display: block; inline-size: 100%; block-size: 100%; object-fit: cover; background: var(--surface-3); }
+
+.ad-label { position: absolute; inset-block-start: 8px; inset-inline-start: 8px; padding: 2px 8px; border-radius: var(--r-pill); font-size: 10px; font-weight: 800; background: var(--surface); color: var(--text-2); border: 1px solid var(--line); }
+
+.ad-cta { position: absolute; inset-block-end: 8px; inset-inline-end: 8px; padding: 6px 12px; border-radius: var(--r-pill); font-size: 11px; font-weight: 800; background: var(--surface); color: var(--text-2); border: 1px solid var(--line); }
+
+.ad-row-ad_square { flex-wrap: nowrap; }

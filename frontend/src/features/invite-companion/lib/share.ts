@@ -1,3 +1,4 @@
+import '@/shared/ui/styles/cmp.css';
 export type ShareOutcome = 'shared' | 'copied' | 'cancelled' | 'failed';
 
 /** Copy text to the clipboard (async API, else the legacy selection fallback). */

@@ -13,6 +13,7 @@ import { logPilotId } from '../model/pilot-targets';
 import { categoryLook, panelOf, type PanelKind } from '../model/presentation';
 import { ParamField } from './ParamField';
 import { BleedingPanel } from './panels/BleedingPanel';
+import '@/shared/ui/styles/lday.css';
 
 export interface CategorySectionProps {
   category: LogCategory;

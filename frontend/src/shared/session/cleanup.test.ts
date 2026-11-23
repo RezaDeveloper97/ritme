@@ -1,3 +1,5 @@
+import 'fake-indexeddb/auto';
+
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 async function load() {
@@ -74,5 +76,22 @@ describe('session cleanups', () => {
     runSessionCleanups();
 
     expect(readHandoff(id)).toBeNull();
+  });
+
+  it('runs the offline wipe at session end (save -> cleanups -> empty list)', async () => {
+    const token = `h.${btoa(JSON.stringify({ sub: '9' })).replace(/=+$/, '')}.s`;
+    vi.doMock('@/shared/session/token', () => ({ getAuthToken: () => token }));
+    vi.resetModules();
+    const { runSessionCleanups } = await import('./cleanup');
+    const offline = await import('@/shared/pwa/offline/offline-media');
+    const body = new Response(new Uint8Array(16), { headers: { 'content-type': 'video/mp4', 'content-length': '16' } });
+    await offline.saveOffline({ lessonId: 1, courseId: 1, courseTitle: 'IVF', title: 'L', kind: 'video' }, body);
+    expect(await offline.listOffline()).toHaveLength(1);
+
+    runSessionCleanups();
+    await new Promise((r) => setTimeout(r, 100));
+
+    expect(await offline.listOffline()).toEqual([]);
+    vi.doUnmock('@/shared/session/token');
   });
 });

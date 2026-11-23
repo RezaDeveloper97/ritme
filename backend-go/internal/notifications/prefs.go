@@ -23,6 +23,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ritme/backend-go/internal/profile/store"
 )
@@ -97,11 +98,14 @@ const (
 type Preferences struct {
 	Categories   map[Category]bool
 	QuietEnabled bool
-	QuietStart   int // minutes since midnight, Tehran wall-clock
+	QuietStart   int // minutes since midnight, wall-clock of Zone (T-M12-21c)
 	QuietEnd     int
 	NeutralCopy  bool
 	// Schedule is when the timed reminders fire (B-N1-09); explicit choices only (missing = default).
 	Schedule Schedule
+	// Zone is the user's zone the wall-clock times above are read in (zone.go); nil = Asia/Tehran. It is not
+	// stored with the settings: the sender sets it (InZone) from the request or the stored user_profiles.timezone.
+	Zone *time.Location
 }
 
 // Defaults are the settings of a user without a row.
@@ -219,7 +223,7 @@ func dbClock(min int) string { return FormatClock(min) + ":00" }
 // Timed are the categories with a time of day, in cycle-settings screen order.
 var Timed = []Category{BeforePeriod, PMS, FertileWindow, DailyLog, Pill}
 
-// defaultTimes are the board's times (nbl_Cycle_Settings), minutes since midnight Tehran.
+// defaultTimes are the board's times (nbl_Cycle_Settings), minutes since midnight on the user's clock (Preferences.Zone).
 var defaultTimes = map[Category]int{
 	BeforePeriod:  9 * 60,
 	PMS:           9 * 60,

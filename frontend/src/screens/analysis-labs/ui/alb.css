@@ -1,0 +1,72 @@
+/* `alb-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.alb-card.nb-card { padding: 8px 16px; }
+
+.alb-card .nb-empty { padding-block: 24px; }
+
+.alb-action { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+
+.alb-cta {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-block-size: 48px; padding: 0 18px;
+  border-radius: 24px; border: 1.5px solid var(--line-strong); background: var(--surface); color: var(--text-1);
+  font: inherit; font-size: 14px; font-weight: 800; cursor: default;
+}
+
+.alb-cta > svg,
+.alb-cta-label { opacity: .75; }
+
+.alb-cta:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.alb-plus { margin: 0; display: inline-flex; align-items: center; flex-wrap: wrap; justify-content: center; gap: 8px; font-size: 12px; font-weight: 600; color: var(--text-2); }
+
+.alb-cta.is-live { cursor: pointer; }
+
+.alb-cta.is-live > svg,
+.alb-cta.is-live .alb-cta-label { opacity: 1; }
+
+.alb-error { margin: 0 0 10px; font-size: var(--fs-md); font-weight: 700; color: var(--danger-deep); }
+
+.alb-list.nb-card { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px 6px; }
+
+.alb-list-title { margin: 0 0 4px; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); text-align: start; }
+
+.alb-rows { margin: 0; padding: 0; list-style: none; }
+
+.alb-rows > li { border-block-start: 1px solid var(--line); }
+
+.alb-row {
+  display: flex; flex-direction: column; gap: 6px; inline-size: 100%; min-block-size: 56px; padding: 12px 0; border: 0;
+  background: none; font: inherit; color: inherit; text-align: start; cursor: pointer;
+}
+
+.alb-row:focus-visible { outline: none; box-shadow: var(--ring); border-radius: var(--r-md); }
+
+.alb-row-top { display: flex; align-items: center; gap: 10px; }
+
+.alb-row-name { flex: 1; min-inline-size: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-1); }
+
+.alb-row-value { display: inline-flex; align-items: baseline; gap: 4px; font-size: var(--fs-lg); font-weight: 800; color: var(--nb-tone-ink); direction: ltr; }
+
+.alb-row-unit { font-size: 11.5px; font-weight: 700; color: var(--text-2); }
+
+.alb-row .nb-pill { background: transparent; border: 1.5px solid var(--nb-tone); }
+
+.alb-row-sub { font-size: 12px; font-weight: 600; line-height: var(--lh-body); color: var(--text-2); }
+
+.alb-row { display: grid; grid-template-columns: minmax(0, 1fr) 120px auto; align-items: center; gap: 12px; flex-direction: unset; }
+
+.alb-row-main { display: flex; flex-direction: column; gap: 4px; min-inline-size: 0; }
+
+.alb-row-name { flex: none; }
+
+.alb-row-ref { font-size: 12px; font-weight: 600; color: var(--text-2); }
+
+.alb-row-trend { display: block; inline-size: 120px; }
+
+.alb-row-trend .axc-fig { margin: 0; }
+
+.alb-row-trend .axc-line { vector-effect: non-scaling-stroke; stroke-width: 2.4; }
+
+.alb-row-trend .axc-line-end { r: 9px; stroke-width: 4; }
+
+.alb-row-end { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }

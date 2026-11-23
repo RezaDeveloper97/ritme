@@ -12,6 +12,7 @@ import (
 
 	"github.com/ritme/backend-go/internal/admin/content/admintest"
 	"github.com/ritme/backend-go/internal/admin/users"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
 const (
@@ -20,6 +21,12 @@ const (
 	clinicalID uint64 = 4
 	doctorID   uint64 = 7
 )
+
+// pinnedNow is the instant the directory test runs at: the last minute of a Tehran month, where a cohort computed from
+// the wall clock (or a UTC/Tehran mismatch) used to flip. Users join at this instant, the activity rebuild runs at it.
+var pinnedNow = time.Date(2026, 6, 30, 23, 59, 0, 0, civildate.Tehran)
+
+const joinedAt = "2026-06-30 23:59:00" // pinnedNow as the Tehran wall time the DB stores
 
 func newV2Env(t *testing.T) *admintest.Env {
 	t.Helper()
@@ -39,7 +46,7 @@ func newV2Env(t *testing.T) *admintest.Env {
 		(8, 'Sup', 'sup@ritme.test', ?, 'support', 1, NOW(), NOW()),
 		(9, 'Ana', 'ana@ritme.test', ?, 'analyst', 1, NOW(), NOW())`, pw, pw, pw, pw)
 	e.Exec(`INSERT INTO users (id, name, mobile, email, created_at, updated_at) VALUES
-		(10, 'Sara', '09121234567', 'sara@example.com', NOW(), NOW()), (11, 'Mina', '09350000011', NULL, NOW(), NOW())`)
+		(10, 'Sara', '09121234567', 'sara@example.com', ?, ?), (11, 'Mina', '09350000011', NULL, ?, ?)`, joinedAt, joinedAt, joinedAt, joinedAt)
 	e.Exec(`INSERT INTO user_profiles (user_id, subscription_type, user_goal, cycle_duration, last_period_start,
 		created_at, updated_at) VALUES (10, 'free', 'ttc', 29, '2026-09-20', NOW(), NOW())`)
 	e.Exec(`INSERT INTO user_consents (user_id, consent, granted, version, granted_at, created_at, updated_at)
@@ -67,10 +74,10 @@ func TestDirectory_MaskedFiltersAndNoHealth(t *testing.T) {
 
 	// Projection filters read admin_user_activity (nightly); before the first run nobody matches them.
 	assert.Len(t, sup.Get("/users/directory?plan=free").Items(), 0)
-	require.NoError(t, users.NewActivity(e.DB, admintest.Quiet).Rebuild(t.Context(), time.Now()))
+	require.NoError(t, users.NewActivity(e.DB, admintest.Quiet).Rebuild(t.Context(), pinnedNow))
 	assert.Len(t, sup.Get("/users/directory?plan=plus").Items(), 0)
 	assert.Len(t, sup.Get("/users/directory?plan=free&churn=new").Items(), 2)
-	assert.Len(t, sup.Get("/users/directory?cohort="+time.Now().Format("2006-01")).Items(), 2)
+	assert.Len(t, sup.Get("/users/directory?cohort="+pinnedNow.Format("2006-01")).Items(), 2)
 	assert.Len(t, sup.Get("/users/directory?q=Mina").Items(), 1)
 	assert.Equal(t, 422, sup.Get("/users/directory?plan=gold").Status)
 	assert.Equal(t, 422, sup.Get("/users/directory?cohort=2026-13").Status)

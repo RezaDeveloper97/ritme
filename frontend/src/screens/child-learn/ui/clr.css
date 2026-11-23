@@ -1,0 +1,45 @@
+/* `clr-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.clr-featured {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 10px; inline-size: 100%; padding: 18px; text-align: start;
+  border-radius: 26px; border: 1px solid var(--line); background: linear-gradient(135deg, color-mix(in srgb, var(--brand-fill) 14%, transparent), var(--surface) 72%);
+  color: var(--text-1); font-family: inherit; cursor: pointer;
+}
+
+.clr-featured:focus-visible,
+.clr-row:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.clr-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.clr-chip {
+  display: inline-flex; align-items: center; gap: 5px; min-block-size: 28px; padding: 0 10px; border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--brand-fill) 8%, transparent); border: 1px solid var(--line-strong);
+  font-size: var(--fs-sm); font-weight: 700; color: var(--text-1);
+}
+
+.clr-featured-title { font-family: var(--font-display); font-size: 26px; line-height: 1.35; color: var(--text-1); }
+
+.clr-featured-body { font-size: var(--fs-md); font-weight: 600; line-height: 1.9; color: var(--text-2); }
+
+.clr-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+
+.clr-row {
+  display: flex; align-items: center; gap: 12px; inline-size: 100%; min-block-size: 72px; padding: 12px 14px; text-align: start;
+  border-radius: var(--r-card); border: 1px solid var(--line); background: var(--surface); color: var(--text-1); font-family: inherit; cursor: pointer;
+}
+
+.clr-row-icon { flex-shrink: 0; }
+
+.clr-row-text { flex: 1; min-inline-size: 0; display: flex; flex-direction: column; gap: 2px; }
+
+.clr-row-title { font-size: 14px; font-weight: 800; color: var(--text-1); }
+
+.clr-row-meta { font-size: var(--fs-sm); font-weight: 600; color: var(--text-3); }
+
+.clr-row-chev { flex-shrink: 0; color: var(--text-3); }
+
+.clr-empty { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px 16px; text-align: center; }
+
+.clr-sheet { display: flex; flex-direction: column; gap: 12px; padding-block-end: 8px; }
+
+.clr-sheet-body { margin: 0; font-size: 14px; font-weight: 600; line-height: 2; color: var(--text-1); }

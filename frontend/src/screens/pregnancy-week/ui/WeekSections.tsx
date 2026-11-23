@@ -11,6 +11,7 @@ import { FetusSize } from '@/shared/ui/illustrations';
 import { PregnancyCareChecklist } from '@/widgets/pregnancy-care-checklist';
 
 import { parseWeekStat, type WeekStat } from '../model/stats';
+import '@/shared/ui/styles/pgn.css';
 
 const TONE: Record<HighlightTone, Tone> = { brand: 'brand', pink: 'bloom', teal: 'data' };
 

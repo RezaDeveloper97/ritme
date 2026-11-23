@@ -234,4 +234,77 @@ describe('apiClient', () => {
       expect(getApiErrorMessage(error)).toBe('Invalid weight');
     });
   });
+  describe('many requests at once (T-M12-23)', () => {
+    const dispatched = () =>
+      (window.dispatchEvent as unknown as ReturnType<typeof vi.fn>).mock.calls
+        .map(([e]) => (e as Event).type)
+        .filter((t) => t === 'ritme:session-cleared');
+
+    async function fiveAtOnce(body: Response | (() => Response)) {
+      const env = fakeBrowser(() => Promise.resolve(typeof body === 'function' ? body() : body.clone()));
+      const mod = await load();
+      const session = await import('@/shared/session');
+      const cleanup = vi.fn();
+      session.onSessionEnd(cleanup);
+      const results = await Promise.all(
+        ['/a', '/b', '/c', '/d', '/e'].map((p) => mod.apiClient.get(p).catch((e: unknown) => e)),
+      );
+      return { env, mod, cleanup, results };
+    }
+
+    it('five parallel session-ending 401s tear the session down once and signal one redirect', async () => {
+      const { env, mod, cleanup, results } = await fiveAtOnce(() => json(401, { error_code: 'token_expired' }));
+      expect(results.map((r) => mod.getApiErrorStatus(r))).toEqual([401, 401, 401, 401, 401]);
+      expect(env.store.has('ritme_token')).toBe(false);
+      expect(cleanup).toHaveBeenCalledTimes(1);
+      expect(dispatched()).toHaveLength(1);
+    });
+
+    it.each(['token_revoked', 'unauthenticated'])('the same holds for %s', async (code) => {
+      const { cleanup } = await fiveAtOnce(() => json(401, { error_code: code }));
+      expect(cleanup).toHaveBeenCalledTimes(1);
+      expect(dispatched()).toHaveLength(1);
+    });
+
+    it('five parallel 401s with a non-session error_code never log out', async () => {
+      const { env, cleanup } = await fiveAtOnce(() => json(401, { error_code: 'otp_invalid' }));
+      expect(env.store.get('ritme_token')).toBe(TOKEN);
+      expect(cleanup).not.toHaveBeenCalled();
+      expect(dispatched()).toHaveLength(0);
+    });
+
+    it('five parallel non-JSON (proxy) 401s never log out', async () => {
+      const { env, cleanup } = await fiveAtOnce(() =>
+        new Response('<html>401</html>', { status: 401, headers: { 'Content-Type': 'text/html' } }),
+      );
+      expect(env.store.get('ritme_token')).toBe(TOKEN);
+      expect(cleanup).not.toHaveBeenCalled();
+      expect(dispatched()).toHaveLength(0);
+    });
+
+    it.each([
+      [402, { error_code: 'ai_subscription_required' }],
+      [402, { error_code: 'ai_credits_exhausted', required: 3, balance: 1 }],
+      [403, { error_code: 'ai_feature_disabled' }],
+      [403, { error_code: 'consent_required' }],
+    ])('AI gate %i %j never touches the session', async (status, body) => {
+      const { env, cleanup, results, mod } = await fiveAtOnce(() => json(status, body));
+      expect(results.map((r) => mod.getApiErrorStatus(r))).toEqual(Array(5).fill(status));
+      expect(env.store.get('ritme_token')).toBe(TOKEN);
+      expect(cleanup).not.toHaveBeenCalled();
+      expect(dispatched()).toHaveLength(0);
+    });
+
+    it('a mix of 401-session and 200 keeps teardown at exactly one', async () => {
+      const replies = [200, 401, 200, 401, 401];
+      const env = fakeBrowser(() => {
+        const st = replies.shift() as number;
+        return Promise.resolve(st === 200 ? json(200, { ok: 1 }) : json(401, { error_code: 'token_revoked' }));
+      });
+      const mod = await load();
+      await Promise.all(['/a', '/b', '/c', '/d', '/e'].map((p) => mod.apiClient.get(p).catch(() => undefined)));
+      expect(env.store.has('ritme_token')).toBe(false);
+      expect(dispatched()).toHaveLength(1);
+    });
+  });
 });

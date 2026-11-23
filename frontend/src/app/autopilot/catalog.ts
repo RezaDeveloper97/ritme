@@ -39,7 +39,6 @@ export const PILOT_CATALOG: PilotCatalog = {
     { route: '/log', titleKey: 'routes.log' },
     { route: '/log/customize', titleKey: 'routes.logCustomize' },
     { route: '/profile', titleKey: 'routes.profile' },
-    { route: '/profile/appearance', titleKey: 'routes.profileAppearance' },
     { route: '/profile/notifications', titleKey: 'routes.profileNotifications' },
     { route: '/profile/credits', titleKey: 'routes.profileCredits' },
     { route: '/plus/credits', titleKey: 'routes.plusCredits' },

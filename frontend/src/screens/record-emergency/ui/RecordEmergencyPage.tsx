@@ -35,6 +35,7 @@ import { pilot } from '@/shared/pilot';
 
 import { emergencyLinkUrl } from '../model/forms';
 import { ContactSheet, InsuranceSheet } from './EmergencySheets';
+import '@/shared/ui/styles/rem.css';
 
 type SheetId = 'contact' | 'insurance' | null;
 

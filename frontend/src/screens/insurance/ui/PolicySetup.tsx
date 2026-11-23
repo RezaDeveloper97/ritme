@@ -33,6 +33,7 @@ import {
   MEMBER_KINDS,
   type PolicyDraft,
 } from '../model/setup';
+import '@/shared/ui/styles/ins.css';
 
 type DateField = 'validFrom' | 'validTo';
 

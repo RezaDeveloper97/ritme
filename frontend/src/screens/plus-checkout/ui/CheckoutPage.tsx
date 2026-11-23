@@ -38,6 +38,7 @@ import { useNavMode } from '@/widgets/bottom-nav';
 
 import { codeState } from '../lib/code-state';
 import { PackCheckout } from './PackCheckout';
+import '@/shared/ui/styles/plus.css';
 
 /** The server's localized `errors.discount_code[0]` of a rejected code (422 `discount_*`). */
 function discountError(error: unknown): string | null | undefined {

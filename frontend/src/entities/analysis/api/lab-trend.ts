@@ -11,7 +11,7 @@ import { analysisKeys } from './keys';
 import { phraseSchema } from './schema';
 
 /** Output type `T`, any input (the transforms rename snake_case keys). */
-type Parser<T> = z.ZodType<T, z.ZodTypeDef, unknown>;
+type Parser<T> = z.ZodType<T, unknown>;
 
 const direction = z.enum(['rising', 'falling', 'stable']).nullable().catch(null);
 

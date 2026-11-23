@@ -19,6 +19,7 @@ import (
 	"github.com/ritme/backend-go/internal/i18n"
 	"github.com/ritme/backend-go/internal/i18n/lang"
 	"github.com/ritme/backend-go/internal/notify"
+	"github.com/ritme/backend-go/internal/platform/cache"
 	"github.com/ritme/backend-go/internal/platform/clock"
 	"github.com/ritme/backend-go/internal/platform/httpx"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
@@ -63,6 +64,8 @@ type Options struct {
 	Logger      *slog.Logger
 	// ExportSections are appended to GET /profile/export after the built-in keys, in order (nil = none).
 	ExportSections []ExportSection
+	// Cache is Redis: DELETE /account removes the user's per-user keys (nil = none; T-M12-13).
+	Cache *cache.Client
 }
 
 // NewHandlers builds the controller.
@@ -78,7 +81,7 @@ func NewHandlers(o Options) *Handlers {
 		o.Logger = slog.Default()
 	}
 	return &Handlers{
-		svc:      &Service{DB: o.DB, Q: q, Telegram: o.Telegram, StoragePath: o.StoragePath, Logger: o.Logger},
+		svc:      &Service{DB: o.DB, Q: q, Telegram: o.Telegram, StoragePath: o.StoragePath, Logger: o.Logger, Cache: o.Cache},
 		sections: o.ExportSections,
 		bmi:      Bmi{Content: o.Content},
 		clock:    o.Clock,

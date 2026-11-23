@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 
 import { Icon } from '@/shared/ui';
+import '@/shared/ui/styles/ttc.css';
 
 /** `v19_Main` «امروز تست LH بزن» — shown by the home inside the fertile window while no LH test is logged today. */
 export function LhTipCard() {

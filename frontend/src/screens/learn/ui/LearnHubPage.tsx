@@ -17,6 +17,9 @@ import { Link, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { Avatar, Card, EmptyState, Icon, PrimaryButton, SegmentedTabs, Skeleton, SkeletonGroup, SkyLayer, StatusPill } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/has.css';
+import '@/shared/ui/styles/lrn.css';
 
 const FILTERS: readonly CourseFilter[] = ['learning', 'done', 'all'];
 

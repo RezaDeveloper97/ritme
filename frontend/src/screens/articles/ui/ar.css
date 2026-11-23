@@ -1,0 +1,55 @@
+/* `ar-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.ar-search { height: 46px; border-radius: 14px; color: var(--muted-2); }
+
+.ar-search input { font-size: 14px; }
+
+.ar-search input::-webkit-search-cancel-button { display: none; }
+
+.ar-search-clear {
+  border: 0; background: transparent; padding: 4px; cursor: pointer;
+  color: var(--muted-2); display: flex; align-items: center; border-radius: 8px;
+}
+
+.ar-search-clear:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.ar-chips-wrap { margin: 12px -18px 0; padding: 0 18px; }
+
+.ar-chips { display: flex; gap: 8px; min-width: min-content; padding-bottom: 2px; }
+
+.ar-chip {
+  flex: 0 0 auto; height: 34px; padding: 0 14px; border-radius: 999px;
+  border: 1px solid var(--line-2); background: var(--surface);
+  font-family: inherit; font-size: 12.5px; font-weight: 700; color: var(--muted-2);
+  cursor: pointer; white-space: nowrap;
+}
+
+.ar-chip.is-active { background: var(--brand-fill); border-color: var(--brand-line); color: var(--on-brand); }
+
+.ar-chip:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.ar-count { margin: 16px 2px 10px; font-size: 12px; font-weight: 700; color: var(--muted-3); text-align: start; }
+
+.ar-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 4px; }
+
+.ar-grid[aria-busy="true"] { opacity: .55; transition: opacity .2s ease; }
+
+.ar-more { margin: 18px 0 4px; }
+
+.ar-skel-card { display: flex; flex-direction: column; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 10px; }
+
+.ar-skel-cover { height: 118px; border-radius: 12px; }
+
+.ar-skel-line { height: 11px; }
+
+.ar-skel-line.is-short { width: 60%; }
+
+.ar-empty { padding: 44px 12px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+
+.ar-empty-icon { width: 62px; height: 62px; border-radius: 50%; background: var(--pink-bg); color: var(--brand); display: flex; align-items: center; justify-content: center; }
+
+.ar-empty-title { margin: 14px 0 0; font-size: 15px; font-weight: 800; color: var(--ink); }
+
+.ar-empty-text { margin: 8px 0 0; font-size: 13px; line-height: 1.9; color: var(--muted-2); max-width: 260px; }
+
+.ar-empty-cta { margin-top: 18px; width: auto; padding: 0 22px; }

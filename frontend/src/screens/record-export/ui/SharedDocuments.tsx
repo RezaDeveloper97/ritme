@@ -7,6 +7,7 @@ import { DOCUMENT_KINDS, downloadSignedFile, KIND_LOOK, type SharedDocument } fr
 import type { Locale } from '@/shared/i18n';
 import { formatDayMonth, formatNumber, fromApiDate } from '@/shared/lib/date';
 import { Card, IconCircle } from '@/shared/ui';
+import './rx.css';
 
 const isKind = (k: string): k is (typeof DOCUMENT_KINDS)[number] => (DOCUMENT_KINDS as readonly string[]).includes(k);
 

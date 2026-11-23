@@ -1,6 +1,7 @@
 import type { Tone } from '@/shared/ui';
 
 import { ChartFigure, type DataTable } from './ChartFigure';
+import '@/shared/ui/styles/axc.css';
 
 interface TrendLineProps {
   label: string;

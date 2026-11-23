@@ -1,4 +1,6 @@
-import type { CycleTodayUi, CycleView } from '@/entities/cycle';
+import type { CycleTodayUi } from '@/entities/cycle';
+
+import { isEnginePayload } from '@/widgets/cycle-predictions';
 
 import { heroState, NEAR_PERIOD_DAYS, type HeroInput, type HeroState } from './hero-state';
 
@@ -34,10 +36,8 @@ export interface TodayHeroInput extends HeroInput {
 
 const BANNERS: readonly string[] = ['end_missing', 'overdue', 'ask_last_period'];
 
-/** A v6 payload carries `today_ui` (today) or `limits` (any date). */
-export function isEnginePayload(view: Pick<CycleView, 'todayUi' | 'limits'> | null | undefined): boolean {
-  return view != null && (view.todayUi != null || view.limits != null);
-}
+// Lives with the predictions widget (it decides which dates the card shows); re-exported for the home.
+export { isEnginePayload };
 
 /**
  * With `today_ui` the ring action, the banner and the test button come from the engine; «هنوز نه» /

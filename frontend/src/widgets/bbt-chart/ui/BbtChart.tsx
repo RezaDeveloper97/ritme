@@ -16,6 +16,7 @@ import {
   linePath,
   yTickLabel,
 } from "../model/scale";
+import '@/shared/ui/styles/ttc.css';
 
 interface Props {
   /** `cycles[0]` is the current cycle; the rest are overlaid muted. */

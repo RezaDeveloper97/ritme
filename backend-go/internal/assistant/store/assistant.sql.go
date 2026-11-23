@@ -552,6 +552,57 @@ func (q *Queries) ListMessages(ctx context.Context, conversationID uint64) ([]As
 	return items, nil
 }
 
+const listRecentChatMessages = `-- name: ListRecentChatMessages :many
+SELECT id, conversation_id, role, body, photo_file_id, card, triage_level, guardrail, chips, status, created_at, updated_at FROM ` + "`" + `assistant_messages` + "`" + `
+WHERE conversation_id = ?
+  AND (role = 'user' OR (role = 'assistant' AND body <> ''))
+ORDER BY id DESC
+LIMIT ?
+`
+
+type ListRecentChatMessagesParams struct {
+	ConversationID uint64
+	Limit          int32
+}
+
+// The newest user / assistant turns of a conversation that go back to the model (newest first; the caller reverses):
+// cards and empty assistant replies (a failed stream) never do, so they do not take a slot (T-M12-32).
+func (q *Queries) ListRecentChatMessages(ctx context.Context, arg ListRecentChatMessagesParams) ([]AssistantMessage, error) {
+	rows, err := q.db.QueryContext(ctx, listRecentChatMessages, arg.ConversationID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []AssistantMessage{}
+	for rows.Next() {
+		var i AssistantMessage
+		if err := rows.Scan(
+			&i.ID,
+			&i.ConversationID,
+			&i.Role,
+			&i.Body,
+			&i.PhotoFileID,
+			&i.Card,
+			&i.TriageLevel,
+			&i.Guardrail,
+			&i.Chips,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listSafetyTerms = `-- name: ListSafetyTerms :many
 SELECT kind, locale, term FROM ` + "`" + `assistant_safety_terms` + "`" + ` WHERE is_active = 1 ORDER BY id
 `

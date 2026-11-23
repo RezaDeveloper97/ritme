@@ -25,7 +25,7 @@ import {
  */
 
 /** Output type `T`, any input (the transforms rename snake_case keys). */
-type Parser<T> = z.ZodType<T, z.ZodTypeDef, unknown>;
+type Parser<T> = z.ZodType<T, unknown>;
 
 const num = z.number();
 const nullableNum = z.number().nullable().catch(null);

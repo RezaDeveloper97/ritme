@@ -3,6 +3,7 @@ import { clsx } from 'clsx';
 import type { Tone } from '@/shared/ui';
 
 import { rangeGeometry } from '../model/range';
+import '@/shared/ui/styles/lab.css';
 
 interface RangeBarProps {
   value: number | null;

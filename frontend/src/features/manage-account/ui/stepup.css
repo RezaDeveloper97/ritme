@@ -1,0 +1,7 @@
+/* `stepup-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.stepup-form { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+
+.stepup-label { font-size: 13px; font-weight: 700; color: var(--text-2); }
+
+.otp-box.stepup-code { width: 100%; letter-spacing: .5em; text-align: center; }

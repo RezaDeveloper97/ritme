@@ -8,6 +8,7 @@ import type { Locale } from '@/shared/i18n';
 import { Card, IconCircle, SecondaryButton } from '@/shared/ui';
 
 import { useAiGate } from '../model/useAiGate';
+import './aigate.css';
 
 /**
  * Wraps an AI entry point. Usable → renders the children; otherwise a compact locked state whose button opens

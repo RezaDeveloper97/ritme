@@ -10,6 +10,7 @@ import { useRouter } from '@/shared/i18n';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { openSheet } from '@/shared/sheet';
 import { ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
+import '@/shared/ui/styles/lab.css';
 
 /**
  * `/labs/new` (nbl_Lab_Upload): the upload form (features/upload-lab) with the

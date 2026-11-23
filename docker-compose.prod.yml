@@ -107,6 +107,7 @@ services:
       # files are pulled in explicitly by the active config and never become
       # server blocks of their own.
       - ./deploy/proxy-params.inc:/etc/nginx/conf.d/proxy-params.inc:ro
+      - ./deploy/cdn-real-ip.inc:/etc/nginx/conf.d/cdn-real-ip.inc:ro
       - ./deploy/acme.inc:/etc/nginx/conf.d/acme.inc:ro
       - ./deploy/vhost-api.inc:/etc/nginx/conf.d/vhost-api.inc:ro
       - ./deploy/vhost-admin.inc:/etc/nginx/conf.d/vhost-admin.inc:ro

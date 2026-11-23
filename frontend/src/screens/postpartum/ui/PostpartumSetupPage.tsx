@@ -39,6 +39,7 @@ import {
 } from '@/shared/ui';
 
 import { birthDateProblem } from '../model/setup';
+import '@/shared/ui/styles/pp.css';
 
 type DeliveryChoice = DeliveryType | 'none';
 const DELIVERY_CHOICES: readonly DeliveryChoice[] = ['vaginal', 'cesarean', 'none'];

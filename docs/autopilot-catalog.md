@@ -13,7 +13,6 @@
 | `/log` | ثبت روزانه | — |
 | `/log/customize` | شخصی‌سازی ثبت | — |
 | `/profile` | من | — |
-| `/profile/appearance` | ظاهر برنامه | — |
 | `/profile/notifications` | اعلان‌ها | — |
 | `/profile/credits` | مصرف اعتبار | — |
 | `/plus/credits` | خرید اعتبار | — |
@@ -116,6 +115,7 @@
 | `/learn/downloads` | دانلودها | learning |
 | `/companion` | خانه‌ی همدم | companion |
 | `/companion/actions` | پیشنهادهای همدم | companion |
+| `/companion/calendar` | تقویم همدم | companion |
 | `/companion/links` | کد همدم | companion |
 | `/companions` | همدم‌ها | companion |
 | `/companions/new` | دعوت از همدم | companion |
@@ -146,7 +146,6 @@
 | `todo-add` | کار تازه | — | todo |
 | `vitals-add` | ثبت علائم حیاتی | — | — |
 | `phase` | جزئیات فاز | — | — |
-| `quick-access` | ویرایش دسترسی سریع | — | — |
 | `reminders-add` | افزودن یادآور | — | — |
 | `checkup-mark-done` | ثبت انجام چکاپ | "<typeId>" or "<typeId>-<recordId>" | — |
 | `lab-consent` | رضایت تحلیل آزمایش | upload (optional) | — |
@@ -238,10 +237,6 @@
 | `calendar.start-period-here` | action | پریودم از این روز شروع شد | route `/calendar` | — | — |
 | `calendar.log-day` | action | ثبت یا ویرایش روز انتخاب‌شده | route `/calendar` | — | — |
 | `calendar.vitals` | action | علائم حیاتی | route `/calendar` | — | — |
-| `home.quick:*` | action | — | route `/home` | — | — |
-| `home.quick-edit` | action | ویرایش دسترسی سریع | route `/home` | — | — |
-| `quick-access.pick:*` | bool | — | sheet `quick-access` | yes | — |
-| `quick-access.save` | action | ذخیره‌ی دسترسی سریع | sheet `quick-access` | yes | — |
 | `home.today-tasks` | action | کارهای امروز | route `/home` | — | — |
 | `home.later-vitals` | action | ثبت علائم حیاتی | route `/home` | — | — |
 | `home.later-appointment` | action | ثبت وقت پزشک | route `/home` | — | — |
@@ -260,8 +255,7 @@
 | `home.period-ended` | action | پریودم تموم شد | route `/home` | — | — |
 | `home.period-still-going` | action | هنوز ادامه داره | route `/home` | — | — |
 | `home.edit-period` | action | ویرایش پریود | route `/home` | — | — |
-| `home.log-row:*` | action | — | route `/home` | — | — |
-| `home.predictions-details` | action | جزئیات پیش‌بینی‌ها | route `/home` | — | — |
+| `home.log-card:*` | action | — | route `/home` | — | — |
 | `analysis.card:*` | action | — | route `/analysis` | — | — |
 | `analysis.report` | action | گزارش ماهانه | route `/analysis` | — | — |
 | `analysis.range:*` | action | — | route `/analysis` | — | — |
@@ -338,31 +332,25 @@
 | `preg.visit-result` | text | نتیجه‌ی ویزیت | route `/pregnancy/calendar` | yes | — |
 | `preg.visit-result-save` | action | ذخیره‌ی نتیجه‌ی ویزیت | route `/pregnancy/calendar` | yes | — |
 | `preg.report` | action | گزارش بارداری | route `/pregnancy/calendar` | — | — |
-| `preg.setup-start` | action | شروع تنظیم | route `/pregnancy/setup` | — | — |
-| `preg.setup-later` | action | بعداً | route `/pregnancy/setup` | — | — |
-| `preg.setup-source` | single | منبع تاریخ بارداری | route `/pregnancy/setup` | yes | `lmp` `ultrasound` `manual` |
-| `preg.setup-lmp` | date | اولین روز آخرین پریود | route `/pregnancy/setup` | yes | — |
-| `preg.setup-date-open:ultrasound` | action | تاریخ سونوگرافی | route `/pregnancy/setup` | yes | — |
-| `preg.setup-date:ultrasound` | date | تاریخ سونوگرافی | route `/pregnancy/setup` | yes | — |
-| `preg.setup-age-open:ultrasound` | action | باز کردن سن (سونوگرافی) | route `/pregnancy/setup` | yes | — |
-| `preg.setup-age-week:ultrasound` | single | هفته‌ی بارداری (سونوگرافی) | route `/pregnancy/setup` | yes | `1` `2` `3` `4` `5` `6` `7` `8` `9` `10` `11` `12` `13` `14` `15` `16` `17` `18` `19` `20` `21` `22` `23` `24` `25` `26` `27` `28` `29` `30` `31` `32` `33` `34` `35` `36` `37` `38` `39` `40` `41` `42` |
-| `preg.setup-age-day:ultrasound` | single | روز بارداری (سونوگرافی) | route `/pregnancy/setup` | yes | `0` `1` `2` `3` `4` `5` `6` |
-| `preg.setup-age-confirm:ultrasound` | action | تأیید سن (سونوگرافی) | route `/pregnancy/setup` | yes | — |
-| `preg.setup-age-cancel:ultrasound` | action | انصراف از سن (سونوگرافی) | route `/pregnancy/setup` | yes | — |
-| `preg.setup-age-open:manual` | action | باز کردن سن (سن بارداری) | route `/pregnancy/setup` | yes | — |
-| `preg.setup-age-week:manual` | single | هفته‌ی بارداری (سن بارداری) | route `/pregnancy/setup` | yes | `1` `2` `3` `4` `5` `6` `7` `8` `9` `10` `11` `12` `13` `14` `15` `16` `17` `18` `19` `20` `21` `22` `23` `24` `25` `26` `27` `28` `29` `30` `31` `32` `33` `34` `35` `36` `37` `38` `39` `40` `41` `42` |
-| `preg.setup-age-day:manual` | single | روز بارداری (سن بارداری) | route `/pregnancy/setup` | yes | `0` `1` `2` `3` `4` `5` `6` |
-| `preg.setup-age-confirm:manual` | action | تأیید سن (سن بارداری) | route `/pregnancy/setup` | yes | — |
-| `preg.setup-age-cancel:manual` | action | انصراف از سن (سن بارداری) | route `/pregnancy/setup` | yes | — |
+| `preg.setup-basis` | single | مبنای محاسبه‌ی بارداری | route `/pregnancy/setup` | — | `lmp` `ultrasound` `due` `week` |
+| `preg.setup-date-open:lmp` | action | باز کردن تاریخ آخرین پریود | route `/pregnancy/setup` | yes | — |
+| `preg.setup-date:lmp` | date | اولین روز آخرین پریود | route `/pregnancy/setup` | yes | — |
+| `preg.setup-date-open:scan` | action | باز کردن تاریخ سونوگرافی | route `/pregnancy/setup` | yes | — |
+| `preg.setup-date:scan` | date | تاریخ سونوگرافی | route `/pregnancy/setup` | yes | — |
+| `preg.setup-date-open:due` | action | باز کردن تاریخ زایمان | route `/pregnancy/setup` | yes | — |
+| `preg.setup-date:due` | date | تاریخ احتمالی زایمان | route `/pregnancy/setup` | yes | — |
+| `preg.setup-weeks:ultrasound` | integer | هفته در سونوگرافی | route `/pregnancy/setup` | yes | — |
+| `preg.setup-days:ultrasound` | integer | روز در سونوگرافی | route `/pregnancy/setup` | yes | — |
+| `preg.setup-weeks:week` | integer | هفته‌ی فعلی بارداری | route `/pregnancy/setup` | yes | — |
+| `preg.setup-days:week` | integer | روز فعلی بارداری | route `/pregnancy/setup` | yes | — |
 | `preg.setup-next` | action | ادامه‌ی مراحل تنظیم | route `/pregnancy/setup` | — | — |
-| `preg.setup-skip` | action | رد کردن سوابق | route `/pregnancy/setup` | — | — |
+| `preg.setup-skip` | action | رد کردن سوابق | route `/pregnancy/setup` | yes | — |
 | `preg.setup-miscarriage` | bool | سابقه‌ی سقط | route `/pregnancy/setup` | yes | — |
 | `preg.setup-high-risk` | bool | بارداری پرخطر | route `/pregnancy/setup` | yes | — |
 | `preg.setup-conditions` | multi | بیماری‌های زمینه‌ای | route `/pregnancy/setup` | yes | `none` `chronic_hypertension` `diabetes` `hypothyroidism` `hyperthyroidism` |
 | `preg.setup-blood` | single | گروه خونی | route `/pregnancy/setup` | yes | `A` `B` `AB` `O` |
 | `preg.setup-rh` | single | آر‌اچ | route `/pregnancy/setup` | yes | `positive` `negative` |
-| `preg.setup-finish` | action | ثبت و پایان تنظیم | route `/pregnancy/setup` | — | — |
-| `preg.setup-change` | action | تغییر منبع تاریخ | route `/pregnancy/setup` | — | — |
+| `preg.setup-finish` | action | ثبت و پایان تنظیم | route `/pregnancy/setup` | yes | — |
 | `preg.setup-continue` | action | ادامه به بارداری | route `/pregnancy/setup` | — | — |
 | `baby.feed-child` | single | انتخاب بچه | — | — | — |
 | `baby.feed-type:*` | action | — | — | — | — |
@@ -529,7 +517,6 @@
 | `med.duration-choice` | single | نوع مدت مصرف | route `/reminders/medication/new` | yes | `ongoing` `until_date` `pregnancy_end` |
 | `med.ends-on` | date | تاریخ پایان مصرف | route `/reminders/medication/new` | yes | — |
 | `med.duration-done` | action | تأیید مدت مصرف | route `/reminders/medication/new` | yes | — |
-| `appt.kind` | single | نوع نوبت | route `/reminders/appointment/new` | — | `in_person` `phone` `online` |
 | `appt.with` | text | نام دکتر | route `/reminders/appointment/new` | — | — |
 | `appt.specialty` | text | تخصص | route `/reminders/appointment/new` | — | — |
 | `appt.topic` | single | موضوع نوبت | route `/reminders/appointment/new` | — | `ultrasound` `checkup` `lab` `consult` `vaccine` `other` |
@@ -538,7 +525,6 @@
 | `appt.time` | action | ساعت نوبت | route `/reminders/appointment/new` | — | — |
 | `appt.location` | text | محل یا لینک | route `/reminders/appointment/new` | — | — |
 | `appt.remind` | single | یادآوری قبل از نوبت | route `/reminders/appointment/new` | — | `1h` `3h` `1d` `2d` |
-| `appt.calendar` | bool | افزودن به تقویم | route `/reminders/appointment/new` | — | — |
 | `appt.prep` | text | چیزهایی که باید ببرم | route `/reminders/appointment/new` | — | — |
 | `appt.save` | action | ذخیره‌ی نوبت | route `/reminders/appointment/new` | — | — |
 | `appt.date-pick` | date | روز نوبت | route `/reminders/appointment/new` | yes | — |
@@ -1006,7 +992,6 @@
 | `mode.contraception` | bool | پیگیری پیشگیری | route `/profile/mode` | — | — |
 | `mode.contraception-manage` | action | مدیریت پیشگیری | route `/profile/mode` | — | — |
 | `mode.confirm-go` | action | تایید تغییر حالت | — | — | — |
-| `me.open:profile-appearance` | action | باز کردن «ظاهر اپ» | route `/profile` | — | — |
 | `me.open:profile-account` | action | باز کردن «حساب من» | route `/profile` | — | — |
 | `me.open:profile-credits` | action | باز کردن «اعتبار هوش مصنوعی» | route `/profile` | — | — |
 | `me.open:companion-links` | action | باز کردن «کد همدم» | route `/profile` | — | — |
@@ -1031,7 +1016,7 @@
 | `me.open:profile-support-chat` | action | باز کردن «گفت‌وگو با پشتیبانی» | route `/profile` | — | — |
 | `me.open:profile-about` | action | باز کردن «درباره‌ی ریتمی» | route `/profile` | — | — |
 | `me.open:plus` | action | باز کردن «اشتراک ریتمی پلاس» | route `/profile` | — | — |
-| `me.header:appearance` | action | ظاهر اپ (بالای صفحه) | route `/profile` | — | — |
+| `me.header:theme` | action | تغییر حالت روز / شب (بالای صفحه) | route `/profile` | — | — |
 | `account.edit:name` | action | ویرایش نام | route `/profile/account` | — | — |
 | `account.edit:birthday` | action | ویرایش تاریخ تولد | route `/profile/account` | — | — |
 | `account.edit:cycleDuration` | action | ویرایش طول چرخه | route `/profile/account` | — | — |
@@ -1076,10 +1061,6 @@
 | `reminders.toggle:*` | bool | — | sheet `reminders` | — | — |
 | `notifications.history` | action | سابقه‌ی هشدارها | sheet `notifications` | — | — |
 | `notifications.mark-all` | action | همه خوانده شد | sheet `notifications` | — | — |
-| `appearance.theme` | single | تم اپ | route `/profile/appearance` | — | `light` `dark` `system` |
-| `appearance.follow-system` | bool | پیروی از تم سیستم | route `/profile/appearance` | — | — |
-| `appearance.text-size` | integer | اندازه‌ی نوشته | route `/profile/appearance` | — | — |
-| `appearance.reduce-motion` | bool | کاهش حرکت | route `/profile/appearance` | — | — |
 | `notif.category:*` | bool | — | route `/profile/notifications` | — | — |
 | `notif.quiet` | bool | ساعت سکوت | route `/profile/notifications` | — | — |
 | `notif.quiet-edit` | action | ویرایش بازه‌ی سکوت | route `/profile/notifications` | — | — |
@@ -1156,6 +1137,12 @@
 | `companion.open:companion-links` | action | کد همدم | route `/companion` | — | — |
 | `companion.add-for` | action | افزودن برای همسر | route `/companion` | — | — |
 | `companion.partner:*` | action | — | route `/companion` | — | — |
+| `companion-calendar.add-medication` | action | افزودن یادآور دارو از تقویم همدم | route `/companion/calendar` | — | — |
+| `companion-calendar.add-appointment` | action | افزودن نوبت پزشک از تقویم همدم | route `/companion/calendar` | — | — |
+| `companion-calendar.open:companion-links` | action | باز کردن اتصال همدم از تقویم | route `/companion/calendar` | — | — |
+| `companion-calendar.partner:*` | action | — | route `/companion/calendar` | — | — |
+| `companion-calendar.appointment:*` | action | — | route `/companion/calendar` | — | — |
+| `companion-calendar.medication:*` | action | — | route `/companion/calendar` | — | — |
 | `companion.add` | action | افزودن همدم | route `/companions` | — | — |
 | `companion.link:*` | action | — | route `/companions` | — | — |
 | `companion.open:companions-new` | action | دعوت از همدم | — | — | — |
@@ -1165,6 +1152,7 @@
 | `companion.signal:mood` | bool | نمایش «حال‌وهوا» به همدم | — | — | — |
 | `companion.signal:energy` | bool | نمایش «انرژی» به همدم | — | — | — |
 | `companion.signal:sleep` | bool | نمایش «خواب» به همدم | — | — | — |
+| `companion.period-days` | bool | نمایش «روزهای احتمالی پریود» به همدم | — | — | — |
 | `companion.access:*` | single | — | — | — | — |
 | `companion.child:*` | bool | — | — | — | — |
 | `companion.prefs-save` | action | ذخیره‌ی ترجیحات همراهی | — | — | — |

@@ -2754,3 +2754,465 @@ Nothing needed fixing.
 - querybudget green, v6 warm counts at §8 targets (cycle 1, home 8, messages 4, fertility 2, analysis 6); bench gate 62 benchmarks, 0 allocs regressions (1 sec/op warning from machine load); ceilings locked in T-M9-49c.
 - Accepted exceptions (user, 2026-11-04): §8 "cold ≤ 5" holds for a new user on a warm process (5), fresh process is 8 (per-process caches); 304 revalidation not measured.
 - Open: k6 not re-run after 49b/49c (they only removed queries/allocs).
+
+## T-M12-05 — Purge offline downloads on logout, delete and account switch
+- `shared/pwa/offline/offline-media.ts`: items carry `ownerId` (JWT `sub`); list/get/read/purge return only the current
+  user's rows; no session → nothing returned, save refused. `wipeOffline()` deletes the `ritme-offline-media` DB, resets
+  the cached connection/key and posts `CLEAR_OFFLINE_PAGES` to the SW; connection closes on `versionchange`.
+- `shared/session/cleanup.ts`: `onSessionEnd` → dynamic import of `wipeOffline` (static import would cycle with token.ts).
+- `scripts/sw.template.js`: `CLEAR_OFFLINE_PAGES` deletes only `ritme-offline-pages-v1`, same-origin window clients only.
+- Tests: ownership (user 2 never sees user 1's items), no-session, wipe; 3 tests go red when the fix is reverted.
+  `npx vitest run src/shared/pwa src/shared/session` → 91 passed.
+- Open: manual check on a built app (download → logout → other number → «دانلودها» empty; Cache Storage cleared).
+  Pre-existing downloads have no owner tag → hidden, cleaned at next session end. SW wipe needs a controller (first
+  load before SW takes control is not covered). Pre-existing red, not from this task: 7 `message-scopes` tests
+  (T-M12-12) and steiger `insignificant-slice` on `widgets/plus-required-sheet` (from 2026-11-14).
+
+## T-M12-04 — Patch vulnerable dependencies and add an audit gate
+- next 15.5.18/15.5.26 → 15.5.29 (frontend/admin-web), eslint-config-next 15.5.29, postcss override ^8.5.33,
+  `images: { unoptimized: true }` in both next.config.ts.
+- laravel-site: enshrined/svg-sanitize ^0.22 → ^1.1.1, symfony/* and laravel/framework updated; `composer audit --locked`
+  14 advisories → 0; `php artisan test` 1413 passed / 1 skipped.
+- npm audit `--omit=dev`: frontend 1 crit + 5 high + 1 mod → 1 high (zod) + 1 mod (next-intl); admin-web 1 crit + 6 high
+  → 3 high (zod, picomatch via @parcel/watcher via next-intl; no upstream fix).
+- CI (`claude-to-stage.yml`): npm audit for both apps at `--audit-level=critical` + `composer audit --locked`.
+- Checks: typecheck + build green in both apps, admin-web vitest 243/243; frontend vitest red only on the 7 pre-existing
+  message-scopes cases (T-M12-12).
+- Follow-up **T-M12-04b**: zod 4 (frontend ~292 type errors) + next-intl 4, then raise the gate to `high`.
+- Open: live `curl /_next/image` → 400/404 on a running build (checked only via required-server-files.json).
+- Not deployed: laravel-site (ritme.app) must be redeployed with deploy-betatest.sh to ship the composer fixes.
+
+## T-M12-01 — OTP brute-force and SMS-bombing hardening
+- New `internal/auth/otpguard.go` (Redis): per-number send lock (`SET NX`, 60 s), sliding send caps (3 / 15 min,
+  10 / 24 h), failure budget across codes (10 wrong / 24 h → number locked 1 h, `slog.Warn` masked +
+  `auth_otp_lockouts_total`). Decisions use the request clock (`X-Test-Now`); keys hold `sha256(mobile)`.
+- Named per-IP limiters `otp_send` (5/min) and `otp_verify` (10/min); IPv6 keyed on /64 (`ratelimit.ClientNet/NamedNet`).
+- Env: `OTP_SEND_MAX_SHORT`, `OTP_SEND_SHORT_WINDOW_MINUTES`, `OTP_SEND_MAX_DAILY`, `OTP_SEND_DAILY_WINDOW_HOURS`,
+  `OTP_FAILURE_MAX`, `OTP_FAILURE_WINDOW_HOURS`, `OTP_LOCK_MINUTES`, `OTP_SEND_LOCK_SECONDS` (defaults as above).
+- Code stays 4 digits (user decision). Deviation **D-211** proposed — needs user OK. OpenAPI 429 updated.
+- Tests: `otpguard_test.go` (miniredis), `otp_guard_int_test.go` (a–e from Acceptance), ratelimit /64 tests; each
+  fix was reverted once and the matching tests went red.
+- Verify: vet + lint clean, auth + ratelimit unit/int green. `internal/http` int: 10 tests red with
+  `companion_forbidden` — identical on a clean HEAD worktree → follow-up **T-M12-11b**.
+- Open: Redis error → send/verify fail closed (500) — a Redis outage blocks login; no guard without Redis (tests only).
+
+## T-M12-21 — Jalali and timezone edge tables
+- Tests only (no bug in touches): `cycle/engine/calendar_edges_test.go` (leap Esfand 1403/1404, period across
+  Esfand→Farvardin, cycle length across Nowruz incl. 21/20/45/46 bounds, predictions on Jalali boundaries, 23:30 vs
+  00:30 in Tehran/Berlin DST/Kathmandu/Kiritimati/Pago Pago), `care/medication_test.go` (Berlin DST daily dose,
+  midnight slots, quiet-hours edges), `reminders/planner_test.go` (cycle reminders across Nowruz, quiet hours,
+  Berlin DST), `platform/usertz/usertz_test.go` (local-day edges, header vs stored zone).
+- Sensitivity shown by mutation of planner/usertz/engine (each made tables red, then restored).
+- Found: frontend jalaliday shows all of 1404 one day off → **T-M12-21b**.
+- Open (user decision): medication doses, `/care/upcoming`, reminders and quiet hours run on Tehran time; DECISIONS
+  M-08 says local time for the message engine. Tests pin current behaviour.
+- Minor: `usertz.Parse` accepts lower-case zone names on macOS only (case-insensitive FS).
+
+## T-M12-21b — Frontend Jalali dates one day off for 1404
+- Root cause: jalaliday 2.3.0 made 1404 leap (official: 1403) → every day from Nowruz 1404 to 2026-03-20 rendered one
+  Jalali day off; Esfand 1404 built as 30 days from 2026-02-19.
+- Fix: `shared/lib/date/jalaali.ts` — line-by-line TS port of the backend converter
+  (`backend-go/internal/checkups/engine/jalali.go`, jalaali-js algorithm); `calendar.ts` uses it, dayjs only for
+  Gregorian math; `jalaliday` removed from package.json/lock. Public `shared/lib/date` API unchanged.
+- Tests: reference dates, leap years 1399–1410, invalid/clamped input, backend parity table 1399–1411 (generated from
+  Go), daily round-trip 2020–2033, monthly-analysis boundaries. On the old code: 22 of 88 red.
+- Open: screenshot Esfand 1404 (29 days, starts Friday) + a 1404 monthly analysis on the running app.
+
+## T-M12-11 — Integration tests with -race in CI
+- New `.github/workflows/ci.yml` (`backend-race`): MariaDB 11.4 + Redis 7 services, `go vet`, `make test-race`, guard that
+  `TestBaselineAppliedToFreshMariaDB` really PASSed. Triggers: push stage/main, PRs, workflow_call/dispatch.
+  `claude-to-stage.yml` backend job = `uses: ./.github/workflows/ci.yml` → auto-merge waits on it.
+- `testdb`: `CI=true` + empty `TEST_DB_DSN` → fail (opt out `TESTDB_OPTIONAL=1`, set on the nightly classifier step).
+- Makefile: cgo probe fallback, `test-race`, `test-race-docker` (DB `ritme_race`, build-cache volume).
+- Main session: `platform/racedet` + skip of 3 latency-budget tests under `-race`; backend-go/CLAUDE.md Commands line.
+- Race run (full, docker): 0 DATA RACE. Red on HEAD: 10 `internal/http` companion (T-M12-11b) + 6 in care/loss/
+  messages/notifications → **T-M12-11c**.
+- **Do not push `stage` before T-M12-11b and T-M12-11c are done** — CI would block every claude/** auto-merge.
+- Open: no real CI run yet (no push in this session).
+
+## T-M12-11b — 10 internal/http companion tests red since f91cb154
+- Root cause: T-M11-08 `needsOwner` (family/invites/service.go:467-500) puts code-only invites with any write level
+  (plus urgent/vitals/child write, spouse with children) into `awaiting_owner`; the tests expected an active link.
+- User decision 2026-11-18: keep the strict rule → new **F-27** in docs/engine-v6/DECISIONS.md (generalises F-11).
+- Tests: owner-confirm step (`POST /family/members/{id}/confirm`) after accept in `securityPair`, companion home,
+  delegated write, loss, children (children also asserts nothing is visible before confirmation).
+- `make test-int PKG=./internal/http/...` → ok. Note added to T-M11-08. Makefile `test-int` now honours `RUN=`.
+
+## T-M12-12 — message-scopes fixed, vitest blocking, admin-web in CI, coverage reports
+- `message-scopes.ts`: companions −teen; home +logSheet −log −search; ivf +home +notifications; postpartum,
+  postpartum/setup, services +home; pregnancy +home −search (each removal justified by the import graph).
+- CI: vitest blocking with coverage artifact (frontend); `ci.yml` admin-web job (typecheck + vitest + coverage);
+  Go coverage on the same race run via `COVER_FLAGS` → `coverage-go` artifact + summary. `@vitest/coverage-v8` 3.2.7.
+- Baseline: frontend statements 24.2 %, admin-web 12.5 % (report only, no thresholds).
+- frontend 2347/2347, admin-web 243/243, actionlint clean. Open: browser raw-key check; first real CI run.
+
+## T-M12-11c — six red integration tests (care, loss, messages, notifications)
+- care Upcoming: test body lacked required `kind`/`topic` (required since T-M3-02) → test fixed.
+- care Today fixture: doses gained `amount/unit/unit_label/meal` (2026-11-10 form redesign, used by frontend) → expected updated.
+- loss ×2: asserted the retired `pregnancy_alerts` table (T-M10-08c/D-165 moved alerts to message_inbox); every
+  privacy guarantee (pregnancy_mode 0, preg.* inbox archived, life_mode cycle, reminders paused, follow-ups erased,
+  moods deleted) re-checked green → dead assertions removed. No privacy regression.
+- notifications defaults: gained `sms_reminders: true` (OpenAPI required, used by the frontend) → expected updated.
+- messages BannerSeed: seed stale after the M8 copy pass → **T-M12-11d** (migration).
+
+## T-M12-15 — Routine flow test: signup → onboarding → period → today/calendar
+- `internal/http/testenv` (shared helper for T-M12-16/17/18): real app + middleware (test clock, usertz, module gate),
+  real test DB + Redis (random prefix), `SignUp()`, `OTP()`, consents from the server's own 422, `Mobile()` counter,
+  `Do/MustOK/Send`, `Reply.Data/List/ETag`, `User()`, `Count()`, `Path()`.
+- `routine_signup_int_test.go`: signup (wrong code, consent_required, spent code, 401), onboarding, today with concrete
+  day/phase/predictions/future_cycles, ETag/304 across every write, period start/end, calendar vs §2.36, period edit;
+  edge rows: skip onboarding, irregular, teen, Tehran 23:59/00:01, 30 Esfand 1403.
+- Mutation-checked (ETag revision, UTC "today", D-207 override). No production bug.
+- Note: by D-207 onboarding users keep declared lengths until «خودکار» is on — they never get median predictions by default.
+
+## T-M12-19 — AI credits at the boundaries (+ concurrent-settle overlap fix)
+- Tests: `credits_boundaries_int_test.go` (period end second `[starts_at, ends_at)`, back-to-back hand-over, refund
+  after expiry, spend+refund race conserves credits), `plus_credits_stack_int_test.go` (stacked purchase: one bucket
+  per period, only the running one counts; concurrent settles never overlap). Mutation-checked.
+- **Money bug fixed:** concurrent settles of two invoices of one user overlapped periods (4 paid months → 2 lost,
+  PlanTotal ×2–×3). Now `LockUser` (users row FOR UPDATE) before the first insert in settle, Checkout (free invoice),
+  store billing, `activate` and `GrantDays`; lock order row → user everywhere. Green natively and under -race (docker).
+- Rules 7–8 written in docs/ai-credits.md (user decision: refund goes back to its own bucket; expired period share ends).
+- sqlc output for plus copied from a scratch run because `make sqlc` is broken by 00128 → **T-M12-19c**.
+- Remaining lock-order risk in challenges rewards + admin period edits → **T-M12-19b**.
+
+## T-M12-23 — Frontend AI gate states and concurrent 401s
+- `features/ai-gate/model/gateDecision.ts` (pure, React-free): `denialFromBalance` moved here, new `guardDecision`;
+  `useAiGate` re-exports, behaviour unchanged.
+- `gateDecision.test.ts` (18): every gate error row of docs/ai-credits.md, cost-at-boundary, cost changed between render
+  and press, costs from API only, unknown balance fails open (server gate still enforces).
+- `apiClient.test.ts`: 5 parallel session 401s → one cleanup + one `ritme:session-cleared`; non-session 401, proxy
+  401, 402/403 gate answers never log out; mixed 200/401 → one teardown. Mutation-checked. No bug found.
+
+## T-M12-16 — Routine flow: buy plan → AI spend → pack → period end → renew
+- `routine_credits_int_test.go` (`TestRoutineCredits_BuySpendPackExpireRenew`) on the real voice-log AI route with the
+  fake provider and fake gateway; costs/credits from DB fixtures. 13 steps: no subscription 402, purchase grant,
+  spend, provider failure → refund to the period bucket, exhaustion 402 with full payload, credit pack, straddling
+  spend (plan then extra), half-open `ends_at`, gated route after expiry (provider never called), renewal (fresh
+  bucket, extra unlocked), replayed bank callbacks change nothing. Asserts ledger rows + `ai_usage_logs`.
+- testenv: `Request.Raw` / `ContentType` for multipart and form posts.
+- Mutation-checked (spend order, inclusive end, refund, extra without subscription). No bug found.
+
+## T-M12-18 — Every gated route honours its module kill-switch
+- `internal/http/modules_routes_int_test.go`: walks the Fiber route table, `modules.ModuleOf` per route; off → 403
+  `module_disabled` for every route of the module, on → never; fails on a named-but-ungated route, a prefix with no
+  route, or a module with no gated routes (4 UI-only modules allowed). 572 routes, 270 gated, 16 modules.
+- `internal/modules`: `Prefixes()` / `AlwaysOpen()` accessors; **fix:** `/api/v1/analysis/postpartum` was gated only in
+  its handler → now in the central gate.
+- Frontend `entities/app-module/model/kill-switch.test.ts` (20 cases, `moduleOfRoute` / `modeAvailable`).
+- Open (user): routes whose path names no module, ungated today — `/labs`, `/checkups`, `/partners/lab-requests`,
+  `/analysis/labs`, `/shared-reports` (record/doctors?), `/emergency-cards/:token` (likely stays open).
+
+## T-M12-13 — Account delete removes every user row, file and key
+- Leaking before: `message_events`, `admin_health_access_requests`, `lab_jobs`, `oauth_auth_codes`,
+  `oauth_device_codes`, `user_profiles_dedupe_backup` (no FK, no hand delete); OTP rows for her number (blocked
+  re-signup); Redis `cycle-engine:`, `idem:`, `msg:*`, `seen:/logged:`, `family:ra:` keys.
+- goose **00129_user_fk_cascades** (orphans deleted, FK CASCADE added in place) + Laravel twin
+  `2026_11_18_000129_add_user_fk_cascades.php`; `make schema-diff` OK (249 tables).
+- `DeleteAccount`: OTP rows deleted in the tx; `PurgeUserKeys` (SCAN+UNLINK) after commit; `Cache` wired in
+  `routes_profile.go` (main session).
+- Tests: schema-driven (every user column cascades or is on the allow-list in `docs/quality-2026-11/user-tables.md`)
+  and behaviour (447 rows / 177 tables seeded, control user untouched, files and keys gone, re-signup = fresh account).
+- Fixtures fixed for the new FKs: messages/rules (main session), admin/messages simulate (T-M12-20).
+- Follow-up **T-M12-13b** (admin delete path). Open (user): payment/order retention — currently deleted by cascade.
+
+## T-M12-17 — Routine flow: family invite → domain-limited reads → raise → revoke → mode change
+- `routine_family_int_test.go`: full domain table (404 before link / after link delete per F-21, 403 on denied domain,
+  200 granted only, no notes/topic in DTOs, `no-store`), view can't write, raise to write, domain removal beats
+  If-None-Match (no stale cache), F-27 code-only write invite waits `awaiting_owner`, owner confirm, F-23 mode change
+  pauses owner-data domains and keeps urgent alert, re-approve restores. Mutation-checked (Decide level, epoch pause,
+  404 vs 403, needsOwner, projection without Decide).
+- **Bug found** → **T-M12-17b**: owner grant edit drops v6-only grants incl. urgent alert (skipped test until fixed).
+- Known gap (T-M11-09): member writes to owner meds/appointments are direct (201), not proposals (202) per F-04/F-05.
+
+## T-M12-17b — Owner grant edit kept v6-only grants
+- `family.Change.Scope`: a scoped Apply only touches the named domains (nil = full set, old behaviour for invite /
+  accept / share request / mutual). `companion.SetGrants` passes `legacyScope` (domains the legacy sections map to),
+  so urgent_alert, vitals, household, fetal_activity, ttc_fertility survive edits and re-approve (F-23). Audit/diff
+  list only real changes; consent event counts kept rows.
+- Tests: `family/grants_test.go`, `companion/grant_edit_int_test.go`, unskipped `TestRoutineFamily_GrantEditKeepsUrgentAlert`
+  + urgent kept after review in the mode-change flow. Red on old code.
+- Open (user): a paused epoch-bound v6 grant (e.g. vitals) is not re-stamped by a legacy edit — stays paused until the
+  "keep as before" card (T-M11-07) re-stamps all.
+
+## T-M12-20 — Deterministic tests
+- Pinned clocks: labs (`setupAt`, self-skip removed, new month-boundary refund test), admin/users v2 (30 Jun 23:59),
+  safety scenarios (today + month/year end, 30 Esfand, 1 Farvardin), services, voicelog (31 Dec 23:59 Tehran).
+- admin/messages simulate: orphan grant inserted with FK checks off on a dedicated connection (FK from 00129).
+- Golden sweeps kept and now required (goldens exist; legacy engine still imported — delete with T-M9-51).
+- Sleeps: 5 annotated `//nolint:sleep // reason` (no hook to observe); `make lint-tests` fails on a bare sleep;
+  `LINT_TESTS_LEGACY` allow-lists 7 files outside touches (follow-up). Inbox/aicredits/cityservices left (relative offsets).
+- Unit packages 3× green, race via docker green. `TestFeedInt_BannerSeed` red → T-M12-11d (also fixed a `test`→`cta` typo).
+
+## T-M12-14 — Account export covers every user table
+- Before: 96 of 177 user tables were missing from «download my data» (cycle prefs/skips, fertility, pregnancy tools,
+  health record + documents + share links, labs, checkups, vitals, children/baby logs, family/companion, todo, teen,
+  challenges, assistant, telemed, learning progress, plus/credits ledger, notifications/inbox/events, consents, files).
+- `accountexport/tables.go`: 22 new top-level sections + shop/directory parts; sealed text (assistant, telemed,
+  partner-lab) opened with each domain's AD for the owner only, other accounts' seals → null; secrets hidden
+  (token/code hashes, purchase_token, gateway authority, file path/sha256, family sealed payloads). Link tables: only
+  rows where she is a party.
+- Exclusion list (22) in `docs/quality-2026-11/user-tables.md` (credentials, D-54 epds, admin-only, derived caches,
+  queues, delivery bookkeeping, instructor catalog).
+- Tests: coverage (schema-driven, export xor excluded, no stale rows) + behaviour (A's row per table present, B's
+  never; sealed text opened, no ciphertext). Mutation-checked.
+- Deviation: generic string-built loader (constants only) instead of sqlc → **T-M12-14b**.
+
+## T-M12-13b — Admin user delete = self-delete
+- `admin/users.Destroy` → `mustExist` → `RevokeUserTokens` (keeps `revoked_tokens` in response/audit) →
+  `profile.Service.DeleteAccount` (tokens deleted, OTP rows, companion notices, cascades, files, `PurgeUserKeys`) →
+  `user.delete` audit row. `WithCache` wired in `routes_admin_core.go` (main session).
+- `admin/users/delete_int_test.go`: through the real admin route; deleted user zero rows/keys/files, control user
+  untouched, audit kept, second delete 404; red with the old path.
+
+## T-M12-21c — Care on the user's local time zone
+- `notifications.Preferences.Zone` (nil = Tehran) + `WallTime` (DST: gap → first valid instant, overlap → first
+  occurrence); `usertz.Zones` per-user zone for jobs (15 min cache). `care.OccurrencesIn`, `Pusher.Tick` /
+  `TickNotices` per user zone; `/care/upcoming`, `/care/today` default day, `starts_on`, intake check on the local day;
+  `reminders.Plan` local. No migration (stored times are wall-clock). OpenAPI updated.
+- Tests: Berlin rows flipped to local, gap/overlap, Tehran-unchanged tables, `care/zone_int_test.go`; red on old code.
+- Docs (main session): engine-v6 README §5, DECISIONS M-08 note, frontend comment.
+- Open: SMS reminders → **T-M12-21d**; appointments `scheduled_at` still Tehran wall-clock (separate decision);
+  hourly chains double-fire in the spring gap by definition.
+
+## T-M12-11d — Status banner seed and cycle daily card follow the M8 copy
+- goose **00130_status_banner_copy_m8** (data-only, `go_only_seeds`): `banner.end_missing` title/body and
+  `banner.overdue` body → M8 fa text, only where the value still equals the 00112 text; Down symmetric.
+- `cycle/view/daily_card.go` title → «پایان پریود ثبت نشده»; 8 goldens patched for that string → deviation **D-212**.
+- `feed_int_test.go`: overdue CTA key is `test` (home.json) — reverts T-M12-20's `cta` change.
+- `TestFeedInt_BannerSeed` green; messages + cycle int green; `make contract ROUTES=cycle` 125 passed; contract-v6 80 passed.
+- Not checked: sqlc parse of 00130 (sqlc broken by 00128, T-M12-19c); 00130 uses only JSON_SET/EXTRACT/UNQUOTE.
+
+## T-M12-21d — SMS reminders on the user's local time zone
+- `remindersms.Worker`: per-user zone (`usertz.Zones`), `care.OccurrencesIn`, quiet hours via `prefs.InZone`; daily
+  cap counted from local midnight (`notifications.WallTime(day,0,loc)` → Tehran wall-clock for the existing
+  `CountReminderSMSSince`). Appointments unchanged. `NewWorker` takes `remindersms.Prefs` (Getter + usertz.Reader).
+- New `worker_int_test.go`: Berlin 08:00 once across both DST days (+02:30 gap/overlap), cap resets at local
+  midnight, quiet hours on her clock; Tehran/no-zone unchanged. Red on old code.
+
+## T-M12-19b — User-row lock in challenge rewards and admin period edits
+- `challenges.CompleteTask`: `LockUser` right after `LockUserEnrollment` (new sqlc query in db/queries/challenges;
+  generated in the scratchpad without 00128, T-M12-19c). Before: two challenges finishing together → 1213 deadlock.
+- `admin/billing.ExtendSubscription`: `inTxLocked` takes the user lock (plusstore.LockUser) before the subscription
+  row; owner re-checked → 404. Before: extend racing a settle overlapped periods.
+- Lock order audit: plus (invoice/purchase → user → insert), challenges (enrollment → user → grants → GrantDays),
+  admin extend (user → subscription → queued updates); no path takes subscription → user.
+- Tests: `TestChallenges_TwoRunsOfOneUserFinishTogether`, `TestExtendRacingSettleNeverOverlaps`; 3× native + 3× race-docker green, red without locks.
+
+## T-M12-22 — Push/notice delivery exactly once
+- Bug: the claim was taken before sending and any passing failure (timeout/429/5xx) was only logged → that dose
+  reminder / inbox push was lost for good. Fix: the claiming process keeps the item in an in-memory retry queue
+  (`care/push_retry.go`), max `PushAttempts=3` within the lookback; 404/410 drop the subscription, other 4xx no retry;
+  one accepted browser = delivered. `pruned` map under a mutex.
+- Tests (`push_exactly_once_int_test.go`): 2 Pushers × concurrent Tick/TickNotices → each tag once (claims were
+  already atomic — regression guard); retry after 503/500/429/timeout once; bounded retries; permanent refusal;
+  dose vs inbox are separate channels by design. -race green; retry tests red on old code.
+- Open: retry lost on restart → **T-M12-22b** (DB claim release, needs sqlc).
+
+## T-M12-19c — make sqlc green again
+- 00128: the JSON_TABLE UPDATE wrapped in PREPARE/EXECUTE/DEALLOCATE (same SQL, quotes doubled) so sqlc's parser
+  skips it. goose v3 tracks version only (no checksum) → no re-run on stage/beta. Equivalence: old vs new Up on two
+  fresh MariaDB DBs with 7 seeded rows → identical rows; second run no-op; migration test ok.
+- All stores regenerated: only diff is `companions.goal` moving last (00126 MODIFY; stores never regenerated since
+  00128 broke sqlc) — identical to generating without 00128; named fields everywhere, no behaviour change.
+
+## T-M12-22b — Durable push retry
+- A passing failure now releases the claim in the DB: `reminder_pushes.sent_at` / `user_notifications.pushed_at` =
+  `2000-01-01 00:00:00` + failed tries (seconds) — attempt counter without a schema change. Any process (also after a
+  restart) re-claims it by compare-and-set (`ReclaimReminderPush` / `ReclaimNotificationPush`); cap 3 tries, lookback
+  unchanged; permanent failures never released. In-memory queue from T-M12-22 removed. `PruneReminderPushes` keeps
+  the last 2 days so a released row's counter survives.
+- Tests: restart retries once, bounded with a fresh Pusher per tick, concurrent processes deliver once, not past
+  lookback; -race green; red on T-M12-22 code. Retry rules in `docs/care-reminders/README.md`.
+- Note: a released row shows `pushed_at` 2000-01-01 in the account export for the few minutes until retry.
+
+## T-M12-14b — Account export loader on sqlc
+- 24 `db/queries/profile/export_<section>.sql` files, one `AcctExport<Table>` query per table with an explicit column
+  list (hidden columns never selected), `CAST(sqlc.arg(uid) AS UNSIGNED)` owner predicate; `export_gen.go` registry +
+  `jsonTextColumns`. String-built SQL removed; exception: `user_profiles_dedupe_backup` (created via PREPARE in 00096,
+  invisible to sqlc) read by one constant query in `dedupe_backup.go`.
+- Export JSON byte-identical to the old loader on the seeded fixture (one-off diff, 48 comparisons).
+- `TestAccountExport_ColumnGuard`: every live column of an exported table is exported xor hidden — a new column
+  needs a decision. Lint 0 issues.
+
+## T-M12-08 — Autopilot: sharing/invite/consent/export controls need confirmation
+- `safety.confirmTargets`: the six named ids + 25 more the new guard flagged (companion join/renew, privacy
+  export/consent, assistant export/share, record/lab/vitals/checkup share, doctor/lab consents, city report/review/join,
+  shop share, program joins).
+- `catalog.test.ts` guard: every catalog id matching /share|invite|consent|send|export|join|delete|pay/ must be in
+  confirm/block (engine's `matchesAny`), except a reviewed `INERT` set of field/navigation ids (invite form fields,
+  `city-join.*` fields — their submit is confirmed). Negative case included. `docs/autopilot.md` updated.
+
+## T-M12-03 — Signed-commit guard on the stage auto-deploy
+- Decision (user): signed commits from an allow-listed SSH key, verified on the server.
+- `deploy/stage-autodeploy.sh`: verifies every commit in anchor..new — accepted only if SSH-signed by
+  `/etc/ritme/allowed_signers` (root-owned, not writable), or a clean unsigned 2-parent merge whose tree equals
+  `git merge-tree` of its parents (the Action's merge), or reached only via a signed merge's second parent.
+  Fail closed (no signers/anchor/old git/unknown key → REFUSED, no build). `--self-test`: 14 cases, mutation-checked.
+- Unit runs `/usr/local/sbin/ritme-stage-autodeploy` (installed copy, never the checkout).
+- Workflow: merge waits on backend (ci.yml, race + int) and frontend gates; advisory "Signatures" step via repo var
+  `RITME_ALLOWED_SIGNERS`.
+- **User steps pending** (not applied): signing key on the Mac + repo git config, install script/unit/allowed_signers
+  and the anchor on the server — exact commands in `docs/quality-2026-11/autodeploy.md`.
+
+## T-M12-02 — Client IP only from the CDN (beta/stage); stage gate bypass closed — files done, deploy blocked on user
+- `deploy/cdn-real-ip.inc`: ArvanCloud IPv4 ranges (ips.txt, 2026-11-18) + `real_ip_header X-Forwarded-For;
+  real_ip_recursive on;`, included in beta/stage server blocks; vhosts send `X-Real-IP`/`X-Forwarded-For` =
+  `$remote_addr` only (beta "rightmost XFF" map removed; stage no longer appends client XFF).
+- Go `cmd/api/app.go`: `TRUSTED_PROXIES` (default loopback + private ranges; public/catch-all entries dropped with a
+  warning) instead of 0.0.0.0/0; tests incl. forged XFF from an untrusted peer, mutation-checked.
+- `stage-gate.sh`: exemption = exact subnets of the stage frontend container's networks (gateway /32 excluded),
+  GET/HEAD on the SSR public endpoints only; fail closed. `ritme_stage` cookie `Secure`.
+- `deploy/smoke/forged-xff.sh` (run against stage/beta after deploy).
+- Main session: `docker-compose.prod.yml` mounts `cdn-real-ip.inc`; fixed a latent `nginx -t` break in
+  `deploy/vhost-api.inc` (duplicate `proxy_read_timeout` in the two media locations from 1eb8f4d7 — proxy-params
+  inlined, 300s kept).
+- Open (user): deploy (prod proxy reload + stage + beta), firewall: origin :443 only from Arvan ranges via
+  DOCKER-USER ipset (stage must be behind the CDN first), docker `ip6tables: true` / AAAA removal so IPv6 clients
+  don't share one bucket; `vhost-instructor-stage.inc` cookie still lacks `Secure`.
+
+## T-M12-30 — Query budgets for the web home fan-out
+- 14 budget rows (cold/warm at measured counts) in `querybudget/budgets.go`; teen/companion seeding in the int test.
+- Real cold web-home fan-out = 30 GETs in two waves (P-05 estimated 18–20) — table with file:line in
+  `docs/quality-2026-11/perf.md`; `loadtest/web_home.js` + thresholds (per request p95 60/200 ms warm/cold, whole
+  open 400/1200 ms, errors < 0.1 %); added to `loadtest/run.sh` scenarios (main session); `k6 inspect` ok.
+- Not done: no k6 run against a server (command in perf.md). Follow-ups → **T-M12-30b** (pregnancy v2 today 21 warm,
+  /todo 6 warm, row-growth budgets).
+
+## T-M12-06 — Step-up OTP + throttles for export and account delete; /docs failure budget
+- Decision (user): fresh OTP for **both** delete and full export. `send-otp`/`verify-otp` with `purpose=step_up`
+  (bearer; mobile from the token user; all T-M12-01 guards) → single-use 5-min `step_up_token` (sha256 in Redis,
+  atomic Lua GET+DEL, bound to user). `GET /profile/export` and `DELETE /account` need `X-Step-Up`; missing/
+  expired/used/foreign → **403 `step_up_required`** (never 401). Limiters `account_export` / `account_delete` 3/h/user
+  run before step-up (a throttled call doesn't burn the token); export concurrency cap 4 → 429 `export_busy`.
+  `/docs`: 10 wrong passwords/min per client net → 429 (also for the right one until the window ends).
+- Frontend `features/manage-account`: StepUpSheet/Panel on privacy + backup pages (no pilot names), `shared/api/stepUp`,
+  `X-Step-Up` header option in apiClient; fa/en `profile.stepUp.*` (synced to backend translations, i18n goldens re-recorded).
+- Contract: runner `step_up: true` issues a token for Go only; profile 104 passed, public 26 passed. `dump.sql` brought
+  up to schema (3 tables + `pushed_at`). Deviation **D-213**; D-96 extended with the 22 T-M12-14 keys.
+- Open: old clients (incl. Android) get 403 on export/delete until they add the step; export paging of big tables
+  (throttle + step-up + cap cover DoS now); no UI render test (vitest is node-only).
+
+## T-M12-32 — Indexes and limits: notifications listing, next appointment, assistant history
+- goose **00131_user_notifications_listing_index** + Laravel twin `2026_11_18_000131_…`: `(user_id, created_at DESC,
+  id)`; filesort gone (EXPLAIN in perf.md); schema-diff OK (249 tables). Response order/shape unchanged.
+- `/care/today`: new `NextAppointmentFrom` (cancelled filtered in SQL, LIMIT 1); `ListAppointmentsFrom` LIMIT 1000
+  (= MaxAppointments) for the family projection.
+- Assistant: `ListRecentChatMessages` (last N user/assistant-with-body, DESC LIMIT) feeds the model;
+  `AI_ASSISTANT_HISTORY_TURNS` (default 20, 1–200); full conversation listing unchanged. Wired in routes_assistant.go.
+- Tests with negative/mutation checks; contract notifications/assistant/home green; budgets unchanged.
+
+## T-M12-30b — Query counts: /todo, row growth; pregnancy today attributed
+- `/todo`: board + notification prefs in one sqlc `ListBoard` → v6 3 warm (was 4), v1 5 (cycle/service loads 3).
+- `TestQueryAttribution` (per sqlc name): pregnancy v2 today = 6 page reads + 15 alert-evaluation reads (`al.EvaluateFirst`).
+  Not cut — alert engine outside touches and time-based urgent alerts (H-05 kick window) need a due-time-aware cache →
+  **T-M12-30c**.
+- `TestHomeReadsConstantInRows` (N=1 vs 20: care today, todo, todo v6, checkups home, home notifications) and
+  `TestTightenedRowFailsWhenExceeded`. Budgets: todo 7/5, todo v6 9/3.
+
+## T-M12-07 — Secrets hygiene
+- APP_KEY emptied in both example env files (old value never printed; it can't boot Laravel — 23-byte key).
+- backend-go refuses to boot in `APP_ENV=production` with the committed contract Passport key (fingerprint only in code).
+- `scripts/secret-scan.sh` (+ `--self-test`), gate job `secrets` before the stage merge; repo scan green.
+- **User**: run the MATCH/different checks and the beta volume key-hash check in `docs/quality-2026-11/secrets.md`
+  (beta = production env → would refuse to boot on the fixture key).
+
+## T-M12-30c — Pregnancy alert evaluation skipped on unchanged repeat reads, never past a due time
+- `pregnancyalerts/evalcache.go`: per-user Redis entry `(input revision, evaluated_at, next_due_at)`. Revision =
+  user_revisions (engine_rev, analysis_rev) + `GetV2AlertInputStamp` (kick sessions, running contraction session,
+  appointments, open preg.* inbox rows) + rule snapshot + clinical registry + binary. `NextDue` = earliest of local day
+  change (every daily/weekly rule), a running kick session's window end (H-05 urgent), the next appointment instant;
+  5-1-1 is write-driven. Skip only if revision equal AND evaluated_at ≤ now < next_due_at; any doubt / Redis down →
+  evaluate (fail safe).
+- Tests (`evalcache_int_test.go`): repeat read skips, urgent right after a qualifying log, kick alert after the window
+  with no write, week change, Redis down evaluates, NextDue table. Main session mutation check: dropping the kick due
+  → kick test red; ignoring the revision → urgent + kick tests red. vet/lint clean; budget row tightened.
+
+## T-M12-31 — Batched log-day save
+- `PUT /logs/days/:date` (10 params) 36→15 warm queries: one batched DELETE (`FIND_IN_SET` on `cat.param`, sqlc can't
+  slice tuples) + one batched INSERT (JSON array → digit-table index, same pattern as `InsertMessageEventsBatch`);
+  `SaveDayWith` parses/validates inside the user lock on the single day read; legacy `POST /health-logs` sync batched too.
+- Property test (150 seeded random edits, new vs test-only old path → identical rows/day/cycle history), duplicate
+  param last-wins, revision bumps exactly once, invalid body writes nothing; write-budget row 17/15 with a fails-when-
+  exceeded test; mutation-checked (6 mutants). Contract logs/healthlog green. `log_burst.js` on the new route (k6 not run).
+
+## T-M12-34 — ETag/304 on low-churn home reads
+- `platform/etag.BodyTag` + `ByBody()` middleware on 7 routes (per-request body hash → never another user's body);
+  bodies unchanged. Unit + int tests (304 per route, admin toggle/banner edit → new tag, cross-user, locale, query,
+  401 untagged); mutation (path-keyed cache) → 4 tests red. web_home k6 sends If-None-Match + 304 metrics (not run).
+- Contract content/logs/healthlog/learning/teen: 155 passed; 3 teen failures pre-existing (same with ByBody off):
+  `teen/parent_link_card`, `teen/accept_after_mode_change.{none,en}` — not caused here, to triage.
+
+## T-M12-25 — Browser smoke harness (Playwright)
+- `@playwright/test` 1.51.1 (next 15.5.29 peer), `npm run e2e`; specs `frontend/e2e/*.e2e.ts`: main routine light +
+  dark (OTP login from DB → onboarding → log period via log sheet → ring «روز ۱» → calendar today), wrong OTP / short
+  phone negatives, raw-key detector (unit + injected on the live page). Selectors = pilot names. Local: 6 passed.
+- Private DB `ritme_e2e`; system Chrome locally, Playwright chromium in CI; job `e2e-smoke` in ci.yml nightly/manual
+  (boot time unproven until the first run). How-to in frontend/CLAUDE.md §9.
+
+## T-M12-27 — Split the 1 MB globals.css into per-screen CSS
+- `globals.css` 962 KB source / 793 KB built → 270 KB / 114 KB. ~105 new CSS files (`<slice>/ui/<prefix>.css` for
+  one-slice families, `shared/ui/styles/<prefix>.css` for families shared by ≤ 20 slices); 741 import lines.
+- CSS every route downloads: 793.6 KB → 216 KB (median route 228 KB, `/fa/home` 365 KB). The rest of the gap to
+  150 KB is sheet CSS pulled by the root layout's static sheet registry → follow-up **T-M12-27b**.
+- Kept global: tokens, Tailwind, shell, primitives, `nb-`/`is-`/`app-`, families used by > 20 slices, and
+  `cal-`/`osheet-`/`pad-`/`fld-`/`jcal-` (moved copies loaded before globals and lost to `.chip` — calendar pill grew).
+- New gate `npm run check:bundle` (`scripts/check-bundle-size.mjs`, reads prerendered HTML; budgets = measured × 1.1:
+  global 238 KB, heaviest route 402 KB, `/fa/home` JS 447 KB gzip). `lint:styles`/`lint:dark` scan every `.css`.
+- Fixed the known dark-gate failure (`.pgn-read-btn.is-read` raw `#fff` fallback → `var(--on-brand)`).
+- Screenshots: 173 routes × light/dark before/after, 327/346 pixel-identical; the 19 others are data/skeleton/redirect
+  state (sampled). Lighthouse not run (needs a logged-in page; build numbers used instead).
+
+## T-M12-04b — Zod 4 and next-intl 4 migration, audit gate to high
+- zod 3.25 → 4.6.7 (frontend + admin-web, main import, no `zod/v3`), next-intl 3.22 → 4.15.3 (frontend; no code
+  change, custom routing untouched), @playwright/test 1.51 → 1.56 (last high advisory, GHSA-7mvr-c777-76hp).
+- Rewrites: `ZodType<T, ZodTypeDef, unknown>` → `ZodType<T, unknown>`, `ZodTypeAny` → `ZodType`, 1-arg `z.record`,
+  `.default({})` → `.prefault({})` on object schemas (zod 3 parsed the default through the schema),
+  `.optional()` added to `z.unknown()`(+transform) keys (zod 4 makes them required), admin-web envelope tolerates a
+  missing `data` only when the data schema accepts `undefined`.
+- Both `npm audit --omit=dev --audit-level=high` = 0; `claude-to-stage.yml` audit steps now `--audit-level=high`.
+- Open: run `npx playwright install` locally before the next e2e run; `fsd:lint` still flags the unreferenced
+  `widgets/plus-required-sheet` (pre-existing).
+
+## T-M12-28 — Lazy-load the autopilot catalog, voice-log stack and mode-specific home branches
+- First-load JS (gzip, script tags): /fa/home 417.3 → 376.0 KB (−9.9 %), /fa/log 397.7 → 364.2 KB (−8.4 %).
+- Autopilot engine + catalog load on `ritme:autopilot-wake` (`shared/autopilot/core/wake.ts`; `runAutopilot` waits up
+  to 8 s for the host). Voice slot is `next/dynamic` in the log sheet/page. Home: MenopauseHome, TeenHome,
+  LinkedTeenCards, HomeLabCards, QuickEditSheet, PeriodDateEditor, SkipPeriodSheet via `next/dynamic`.
+- Bundle gate: home budget 414 KB, new /fa/log row 401 KB. `wake.test.ts` (5 cases, mutation-checked).
+- Open (→ T-M12-27b): PeriodDateEditor/SkipPeriodSheet stay first-load until their feature barrels are split.
+
+## T-M12-33 — Home: fetch the ring months in parallel instead of after /cycle/today
+- `useDayMarks` fetches prev/current/next Gregorian month at mount (`useCycleMonths`, same `cycleKeys.month` keys);
+  any ring day outside them adds its month (`homeMonthSet`, `entities/cycle/model/homeMonths.ts`, 7 tests,
+  mutation-checked). Cold /fa/home: October month starts at ~166 ms instead of ~320 ms; critical path 3 → 2.
+- Main session: `monthNext` now `shiftMonth(base, 1)` instead of `base + 31 days` (Jan 31 skipped February).
+
+## T-M12-29 — Trim the home i18n payload
+- `ROUTE_NAMESPACES` entries may be dotted subtrees (`MessageScope`, `pickNamespaces` in `shared/i18n/scope.ts`);
+  home lists ~120 subtrees instead of 23 whole namespaces. fa home messages 146,376 → 56,333 B (−61.5 %);
+  `fa/home.html` −26.8 %, `.rsc` −28.7 %.
+- `message-scopes.test.ts` now walks each route's import graph for `t(...)` keys (template/ternary/passed-`t` widen
+  to the prefix) and fails on uncovered, dead or misspelled entries; fixed its comment stripper (a `/*` inside a line
+  comment hid ~15 KB of HomePage). Mutation-checked (5 mutants).
+- No raw keys on cycle/TTC/menopause/teen homes, light + dark.
+- Open: `care` and `plus` still whole (needs literal keys in widgets/today-reminders and plus-trial-sheet).
+
+## T-M12-27b — Lazy sheet registry: global CSS toward 114 KB
+- CSS every route downloads 216.0 → 150.0 KB (153,553 B); /fa/home JS 386 → 376 KB gz, /fa/log JS 375 → 334 KB gz.
+- Lazy: last static sheets in the registry (article warmed on idle), `app/LazyGlobals.tsx` (notification/billing/session
+  sync, pending consents, AI gate sheet, install prompt), `ModuleOff.tsx`; `PeriodDateEditor`/`SkipPeriodSheet`/
+  `VoiceLogGated` exported as lazy wrappers from their barrels; `useVoiceLocked` → `widgets/voice-log-slot/model`.
+- Budgets: global 165 KB, heaviest route 342 KB, home JS 404 KB, log JS 359 KB. 18 before/after pairs ≤ 4 px diff.
+- `frontend/CLAUDE.md` §10.1 and verify-all (`npm run build && npm run check:bundle`) updated.
+- Open: `cal-`/`osheet-`/`pad-`/`fld-`/`jcal-` stay global (rendered by shared/ui + AppSheet); ~30 KB more via
+  `features/app-lock` → `LockScreen` → `entities/health-record` (lab/rec CSS) — a lazy card there would save it.
+
+## T-M12-01b — OTP caps per number+network so a stranger cannot lock a user out
+- Send caps (3/15 min, 10/24 h) and the failure lock (10 → 60 min) are keyed on (sha256(mobile), client net); the old
+  per-number keys are now the global backstop: `OTP_SEND_MAX_DAILY_GLOBAL=30`, `OTP_FAILURE_MAX_GLOBAL=50` in
+  `OTP_FAILURE_GLOBAL_WINDOW_HOURS=24`. Both Lua scripts check and count net + number atomically; a refused send
+  counts nowhere. Guess bound ≈ 73/day per number (0.73 % for a 4-digit code) whatever the number of networks.
+- 3 unit + 4 integration tests (attacker net A vs owner net B, global ceilings at cap−1/cap), mutation-checked.
+- Open: effective only where the real client IP arrives (T-M12-02 deploy; prod T-M12-09); carrier NAT shares a /32;
+  30 global sends/day is still reachable by a 3-network attacker (raise the env if it happens — guesses stay bounded).

@@ -1,0 +1,39 @@
+/* `has-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.home-tip-body.has-action { margin-bottom: 14px; }
+
+.dls.has-entries {
+  padding: 4px 4px 6px;
+  border-radius: 20px;
+  background: var(--surface-3);
+  box-shadow: 0 10px 26px -18px rgba(17, 24, 39, .28);
+}
+
+.dls-head.has-entries { margin-bottom: 6px; padding: 10px 10px 4px; }
+
+.fld-card-hd.has-hint { margin-bottom: 4px; }
+
+.dt-add-row.has-items { margin-bottom: 14px; }
+
+.onb2-daterow.has-icon { border-radius: var(--r-card); padding: 16px; min-height: 76px; }
+
+.onb2-daterow.has-icon .onb2-daterow-text { flex-direction: column; align-items: flex-start; gap: 2px; }
+
+.chd-photo-btn.has-photo { border-style: solid; border-color: var(--surface); box-shadow: var(--shadow-hero); }
+
+.mpre-row.has-links { cursor: default; }
+
+.rec-doc-preview.has-image { padding: 0; gap: 0; }
+
+.lrn-hub-head.has-action { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+.wcs-grid.has-map { grid-template-columns: 260px minmax(0, 1fr) minmax(360px, 42%); }
+
+@media (max-width: 1023px) {
+  .wcs-grid.has-map { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .wcs-grid.has-map { grid-template-columns: 240px minmax(0, 1fr); }
+  .wcs-grid.has-map .wcs-mapcol { display: none; }
+}

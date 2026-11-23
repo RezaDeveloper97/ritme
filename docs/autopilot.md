@@ -129,7 +129,7 @@ Everything tunable is in `AUTOPILOT_CONFIG`. Change it there, never in the runne
 | `safety.maxSteps` | Longest script accepted | 60 |
 | `safety.allowedRoutes` / `blockedRoutes` | Route prefixes a script may / may never open | `['/']` / dev + sign-up flow |
 | `safety.blockedTargets` | Target ids (or `family:*`) the engine refuses | `[]` |
-| `safety.confirmTargets` | Target ids that need the user's «انجام بده» first | `[]` |
+| `safety.confirmTargets` | Target ids that need the user's «انجام بده» first | commit, share, invite, consent, export, send and join controls (see §Safety) |
 | `safety.allowRawSelectors` / `allowRoleSelectors` | Fallback locators | `false` / `false` |
 | `safety.scriptMayOverride` | Option keys a script may set for itself (`preset`, `pace`) | `['preset']` |
 | `debug` | Console trace of step kinds and target ids (never values) | `false` |
@@ -238,4 +238,8 @@ from the DOM when `data-pilot-kind` is absent.
   elsewhere are named and drivable but their option codes are not listed for the agent yet.
 - Controls under a `SectionTitle` action (menopause treatment "add", the IVF home's medication link), the
   body-map regions and `text_items` log params have no name yet.
-- Six commit-type buttons ask the user first (`safety.confirmTargets` in the config).
+- Safety guard: every catalog id matching `/share|invite|consent|send|export|join|delete|pay/` must be in
+  `safety.confirmTargets` (commits the user to something outside the app, or shares/exports health data) or
+  `safety.blockedTargets` (never reachable by a script). `catalog.test.ts` fails otherwise, so a new control
+  cannot slip through. Pure field/navigation ids of a form (`invite.name`, `city-join.*` except its submit)
+  are listed as inert in that test; a new match is either confirmed, blocked or reviewed into that list.

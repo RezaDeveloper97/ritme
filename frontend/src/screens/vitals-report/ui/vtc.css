@@ -1,0 +1,33 @@
+/* `vtc-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.vtc-svg { overflow: visible; }
+
+.vtc-grid line { stroke: var(--line); stroke-width: 1; }
+
+.vtc-grid text { font-size: 9.5px; font-weight: 700; fill: var(--text-3); font-family: inherit; }
+
+.vtc-band { fill: color-mix(in srgb, var(--data) 14%, transparent); }
+
+.vtc-bp-bar { stroke: var(--nb-tone); stroke-width: 7; stroke-linecap: round; opacity: .85; }
+
+.vtc-dot { fill: var(--nb-tone); }
+
+.vtc-dot.is-hollow { fill: var(--surface); stroke: var(--nb-tone); stroke-width: 2.5; }
+
+.vtc-line { fill: none; stroke: color-mix(in srgb, var(--nb-tone) 70%, transparent); stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+
+.vtc-x { position: relative; block-size: 18px; margin-block-start: 6px; }
+
+.vtc-x-label { position: absolute; translate: -50% 0; font-size: var(--fs-2xs); font-weight: 700; color: var(--text-3); white-space: nowrap; }
+
+.vtc-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; }
+
+.vtc-legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-sm); font-weight: 700; color: var(--text-2); }
+
+.vtc-legend-mark { inline-size: 9px; block-size: 9px; border-radius: 50%; background: var(--nb-tone); }
+
+.vtc-legend-mark.is-hollow { background: transparent; border: 2px solid var(--nb-tone); }
+
+.vtc-legend-mark.is-band { inline-size: 14px; block-size: 6px; border-radius: 3px; background: var(--data); }
+
+.vtc-legend-item.nb-tone-data { color: var(--data-deep); }

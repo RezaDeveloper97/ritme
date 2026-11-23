@@ -24,6 +24,8 @@ import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { pilot, pilotOption } from '@/shared/pilot';
 import { Card, EmptyState, Icon, PrimaryButton, ScreenHeader, SkyLayer } from '@/shared/ui';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/dr.css';
 
 const MODE_TONE: Record<VisitMode, string> = { video: 'nb-tone-data', phone: 'nb-tone-brand', in_person: 'nb-tone-warm' };
 

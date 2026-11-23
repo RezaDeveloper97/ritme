@@ -48,7 +48,7 @@ const int0 = z.number().catch(0);
 
 function oneOf<T extends readonly [string, ...string[]]>(values: T) {
   return z
-    .unknown()
+    .unknown().optional()
     .transform((v) => ((values as readonly unknown[]).includes(v) ? (v as T[number]) : null));
 }
 
@@ -126,7 +126,7 @@ function toReading(r: z.infer<typeof rawReading>): VitalReading {
 export const readingSchema = rawReading.transform(toReading);
 
 /** A reading, or null when it doesn't parse (unknown type) — lists drop those. */
-const looseReading = z.unknown().transform((v) => {
+const looseReading = z.unknown().optional().transform((v) => {
   const p = readingSchema.safeParse(v);
   return p.success ? p.data : null;
 });
@@ -285,13 +285,16 @@ const tir = z
   .object({ in_range: int0, below: int0, above: int0, readings: int0, percent: int0 })
   .catch({ in_range: 0, below: 0, above: 0, readings: 0, percent: 0 })
   .transform((t) => ({ inRange: t.in_range, below: t.below, above: t.above, readings: t.readings, percent: t.percent }));
-const nullableReading = z.unknown().transform((v) => (v == null ? null : looseReading.parse(v)));
+const nullableReading = z.unknown().optional().transform((v) => (v == null ? null : looseReading.parse(v)));
 
-function mvn<T extends z.ZodTypeAny>(avg: T) {
+function mvn<T extends z.ZodType>(avg: T) {
   return z
     .object({ morning: avg, night: avg, night_out_of_range: int0 })
-    .catch({ morning: null, night: null, night_out_of_range: 0 })
-    .transform((m) => ({ morning: m.morning as z.infer<T>, night: m.night as z.infer<T>, nightOutOfRange: m.night_out_of_range }));
+    .catch({ morning: null, night: null, night_out_of_range: 0 } as never)
+    .transform((m) => {
+      const r = m as { morning: unknown; night: unknown; night_out_of_range: number };
+      return { morning: r.morning as z.infer<T>, night: r.night as z.infer<T>, nightOutOfRange: r.night_out_of_range };
+    });
 }
 
 const base = {

@@ -22,6 +22,7 @@ import (
 	"github.com/ritme/backend-go/internal/cycle/state"
 	"github.com/ritme/backend-go/internal/family"
 	"github.com/ritme/backend-go/internal/family/projections"
+	"github.com/ritme/backend-go/internal/platform/civildate"
 )
 
 // Reader maps legacy sections onto the member projections.
@@ -81,6 +82,25 @@ func (r *Reader) ReadFor(ctx context.Context, link companion.Link, section compa
 	v, err := r.b.Project(ctx, snap, d, locale, now)
 	if errors.Is(err, projections.ErrDenied) {
 		return nil, companion.ErrProjectionDenied
+	}
+	return v, err
+}
+
+// PeriodForecastFor is the likely period days of link.OwnerID in [from, to] for the link's companion, or
+// companion.ErrProjectionDenied (no data) when the owner has not consented on this link (preferences.period_days) or
+// the cycle_phase read is not allowed for their pair. The caller audits the read.
+func (r *Reader) PeriodForecastFor(ctx context.Context, link companion.Link, from, to civildate.Date, now time.Time) (projections.PeriodForecast, error) {
+	none := projections.PeriodForecast{Days: []string{}}
+	if !link.Preferences.PeriodDays || link.CompanionUserID == 0 || link.CompanionUserID == link.OwnerID {
+		return none, companion.ErrProjectionDenied
+	}
+	snap, err := family.Request(ctx, r.db, func() time.Time { return now }).Pair(ctx, link.OwnerID, link.CompanionUserID)
+	if err != nil {
+		return none, err
+	}
+	v, err := r.b.PeriodForecast(ctx, snap, from, to, now)
+	if errors.Is(err, projections.ErrDenied) {
+		return none, companion.ErrProjectionDenied
 	}
 	return v, err
 }

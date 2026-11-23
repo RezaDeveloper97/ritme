@@ -1,0 +1,17 @@
+/* `shrev-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.shrev-stars { display: flex; flex-direction: column; gap: 6px; }
+
+.shrev-stars-row { display: flex; gap: 4px; }
+
+.shrev-star { inline-size: 44px; block-size: 44px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 12px; background: none; color: var(--track); cursor: pointer; }
+
+.shrev-star.is-on { color: var(--warm-deep); }
+
+.shrev-star.is-on svg { fill: currentColor; }
+
+.shrev-star:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.shrev-field { height: auto; align-items: stretch; padding: 12px 16px; }
+
+.shrev-body { flex: 1; min-inline-size: 0; border: 0; outline: 0; background: transparent; resize: vertical; font-family: inherit; font-size: 15px; line-height: 1.8; text-align: start; color: var(--ink); }

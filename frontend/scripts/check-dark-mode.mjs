@@ -37,6 +37,18 @@ const SRC = join(ROOT, 'src');
 const GLOBALS = join(SRC, 'app', 'globals.css');
 const THEME_DIR = join(SRC, 'shared', 'theme');
 
+/** Every stylesheet under src/ — globals.css plus the per-screen files split out of it (T-M12-27). */
+function cssFiles(dir) {
+  const out = [];
+  for (const name of readdirSync(dir)) {
+    const p = join(dir, name);
+    if (statSync(p).isDirectory()) out.push(...cssFiles(p));
+    else if (name.endsWith('.css')) out.push(p);
+  }
+  return out;
+}
+const CSS_FILES = cssFiles(SRC);
+
 const VERBOSE = process.argv.includes('--verbose');
 
 const problems = [];
@@ -401,8 +413,9 @@ const ON_GRADIENT = ['.home-hero', '.home-ring', '.home-highlight', '.home-phase
 const COLOUR_PROPS = /(?:^|[;{\s])(background|background-color|color|border-color|border|outline-color|fill|stroke)\s*:\s*([^;}]+)/g;
 const HAS_LITERAL = /#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/;
 
-{
-  const lines = css.split('\n');
+for (const cssFile of CSS_FILES) {
+  const lines = readFileSync(cssFile, 'utf8').split('\n');
+  const cssName = relative(ROOT, cssFile);
   // Line ranges of the two token blocks — declarations there are the answer,
   // not the problem.
   const blockRanges = [];
@@ -437,7 +450,7 @@ const HAS_LITERAL = /#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/;
       if (/^(?:-webkit-)?mask/.test(m[1])) continue;
       if (ON_GRADIENT.some((p) => selector.includes(p))) continue;
       fail(
-        `globals.css:${idx + 1}`,
+        `${cssName}:${idx + 1}`,
         `\`${m[1]}: ${value.slice(0, 60)}\` on \`${selector}\` is a colour literal — it cannot flip. Use a token or color-mix(), or add the selector to ON_GRADIENT if it really does sit on a saturated fill.`,
       );
     }

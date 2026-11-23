@@ -13,6 +13,7 @@ import { clockText, minutesOf, wallTime } from '../model/live';
 import { FEED_SIDES, FEED_TYPES, MAX_AMOUNT_ML, type BabyFeed, type FeedSide, type FeedType } from '../model/types';
 import type { FeedTimerState } from '../model/use-feed-timer';
 import { ManualFeedForm } from './ManualFeedForm';
+import '@/shared/ui/styles/bfl.css';
 
 type T = ReturnType<typeof useTranslations<'babyLog'>>;
 
