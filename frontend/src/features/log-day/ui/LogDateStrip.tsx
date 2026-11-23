@@ -2,7 +2,7 @@
 
 import { clsx } from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { useLogDays } from '@/entities/health-log';
 import { pilot } from '@/shared/pilot';
@@ -41,10 +41,17 @@ export function LogDateStrip({ date, onSelect }: { date: string; onSelect: (date
   const t = useTranslations('logSheet');
   const locale = useLocale() as Locale;
   const todayKey = toApiDate(today());
+  // The window is anchored, not re-centred on every pick: centring on `date` kept the selected cell in the
+  // same slot and only rolled the numbers under it. It re-anchors only when `date` leaves the window (a
+  // deep link, the heading's date picker).
+  const [anchor, setAnchor] = useState(date);
+  const windowStart = toApiDate(addDays(fromApiDate(anchor), -BEFORE));
+  const windowEnd = toApiDate(addDays(fromApiDate(anchor), AFTER));
+  if (date < windowStart || date > windowEnd) setAnchor(date);
   const days = useMemo(() => {
-    const base = fromApiDate(date);
+    const base = fromApiDate(anchor);
     return Array.from({ length: BEFORE + AFTER + 1 }, (_, i) => addDays(base, i - BEFORE));
-  }, [date]);
+  }, [anchor]);
   const from = toApiDate(days[0]);
   const to = toApiDate(days[days.length - 1]) > todayKey ? todayKey : toApiDate(days[days.length - 1]);
   const logged = useLogDays(from, to, from <= to);
