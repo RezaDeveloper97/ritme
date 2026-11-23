@@ -49,10 +49,10 @@
 .lday-body { display: flex; flex-direction: column; gap: 14px; padding-top: 4px; }
 
 .lday-param { display: flex; flex-direction: column; gap: 8px; }
-/* Bleeding has no sheet: its form (Log_Bleeding) sits flat inside the accordion, sections split by a rule. */
-.lday-bleed .lday-pcard { background: none; border: 0; border-radius: 0; padding: 0; }
-.lday-bleed .lday-pcard + .lday-pcard { border-top: 1px solid var(--line); padding-top: 14px; }
-.lday-bleed .lday-pcard-h { font-size: 14px; }
+/* Bleeding & measurements have no sheet: their form (Log_Bleeding / Log_Measure) sits flat inside the accordion, sections split by a rule. */
+.lday-inline-form .lday-pcard { background: none; border: 0; border-radius: 0; padding: 0; }
+.lday-inline-form .lday-pcard + .lday-pcard { border-top: 1px solid var(--line); padding-top: 14px; }
+.lday-inline-form .lday-pcard-h { font-size: 14px; }
 
 .lday-plabel { font-size: 12.5px; font-weight: 800; color: var(--text-2); }
 

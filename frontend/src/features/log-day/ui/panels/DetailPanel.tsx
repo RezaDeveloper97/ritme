@@ -15,20 +15,18 @@ interface DetailPanelProps {
   onClose: () => void;
   title: string;
   subtitle: string;
-  /** «تأیید» keeps the edits in the sheet's draft; «ذخیره» (Log_Measure) also saves the day. */
-  action: 'confirm' | 'save';
+  /** «تأیید»: keeps the edits in the sheet's draft (the footer «ذخیره» saves the day). */
   onAction: () => void;
-  busy?: boolean;
   /** A search typed here jumps back to the sheet's full list, filtered. */
   onSearch: (query: string) => void;
   children: ReactNode;
 }
 
 /**
- * The shell of a log detail panel (Log_Bleeding / Log_Pain / Log_Measure): an inline `AppSheet` that rises
+ * The shell of a log detail panel (Log_Pain — bleeding and measurements are edited in their accordion): an inline `AppSheet` that rises
  * over the log sheet, centred title + day, the shared search field, the panel's cards and one pill action.
  */
-export function DetailPanel({ open, onClose, title, subtitle, action, onAction, busy, onSearch, children }: DetailPanelProps) {
+export function DetailPanel({ open, onClose, title, subtitle, onAction, onSearch, children }: DetailPanelProps) {
   const t = useTranslations('logSheet');
   const [query, setQuery] = useState('');
   return (
@@ -44,8 +42,8 @@ export function DetailPanel({ open, onClose, title, subtitle, action, onAction, 
         </span>
       }
       footer={
-        <PrimaryButton onClick={onAction} loading={busy} {...pilot(logPilotId.panelConfirm)}>
-          {action === 'save' ? t('panel.save') : t('panel.confirm')}
+        <PrimaryButton onClick={onAction} {...pilot(logPilotId.panelConfirm)}>
+          {t('panel.confirm')}
         </PrimaryButton>
       }
     >

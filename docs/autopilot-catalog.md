@@ -169,7 +169,6 @@
 | `nav.tab:*` | action | — | — | — | — |
 | `sheet.close` | action | بستن پنجره | — | — | — |
 | `log.panel:pain` | action | جزئیات درد | sheet `log` | yes | — |
-| `log.panel:measure` | action | جزئیات اندازه‌گیری‌ها | sheet `log` | yes | — |
 | `log.panel-confirm` | action | تأیید یا ذخیره‌ی جزئیات | sheet `log` | — | — |
 | `log.tile:*` | action | — | sheet `log` | — | — |
 | `log.tab:*` | action | — | sheet `log` | — | — |
@@ -182,10 +181,6 @@
 | `log.panel-param:bleeding.clots` | single | لخته | sheet `log` | yes | `none` `small` `large` |
 | `log.panel-param:pain.score` | single | شدت درد (۱ تا ۱۰) | sheet `log` | yes | `1` `2` `3` `4` `5` `6` `7` `8` `9` `10` |
 | `log.panel-param:pain.relief` | multi | چی دردت رو کم کرد | sheet `log` | yes | — |
-| `log.panel-param:measurements.weight` | number | وزن | sheet `log` | yes | — |
-| `log.panel-param:measurements.bbt` | number | دمای پایه‌ی بدن (ثبت روزانه) | sheet `log` | yes | — |
-| `log.panel-param:measurements.lh_test` | single | تست LH | sheet `log` | yes | — |
-| `log.panel-param:measurements.pregnancy_test` | single | تست بارداری | sheet `log` | yes | — |
 | `period.toggle` | action | شروع یا پایان پریود | — | — | — |
 | `period.day:*` | bool | — | — | — | — |
 | `period.save` | action | ذخیره‌ی تاریخ‌های پریود | — | — | — |

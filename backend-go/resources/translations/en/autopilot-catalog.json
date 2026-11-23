@@ -151,7 +151,6 @@
     "sheetClose": "Close the panel",
     "navTab": "Bottom bar tab",
     "log_panel_pain": "Pain details",
-    "log_panel_measure": "Measurement details",
     "log_panel_confirm": "Confirm panel",
     "log_search": "Search log fields",
     "log_preset_bleeding": "Bleeding (menopause)",
@@ -160,10 +159,6 @@
     "log_panel_param_bleeding_clots": "Clots",
     "log_panel_param_pain_score": "Pain score (1-10)",
     "log_panel_param_pain_relief": "What eased the pain",
-    "log_panel_param_measurements_weight": "Weight",
-    "log_panel_param_measurements_bbt": "Basal temperature (daily log)",
-    "log_panel_param_measurements_lh_test": "LH test",
-    "log_panel_param_measurements_pregnancy_test": "Pregnancy test",
     "period_toggle": "Start or end period",
     "period_save": "Save period dates",
     "period_spotting": "Just spotting",
@@ -1905,8 +1900,6 @@
     }
   },
   "units": {
-    "log_panel_param_measurements_weight": "kg",
-    "log_panel_param_measurements_bbt": "°C",
     "fertility_bbt": "°C",
     "cycle_settings_cycle_length": "days",
     "cycle_settings_period_length": "days",

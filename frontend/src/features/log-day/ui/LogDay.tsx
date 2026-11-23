@@ -31,7 +31,6 @@ import { useLogDayController } from '../model/use-log-day';
 import { CategorySection } from './CategorySection';
 import { LogDateStrip } from './LogDateStrip';
 import { DetailPanel } from './panels/DetailPanel';
-import { MeasurePanel } from './panels/MeasurePanel';
 import { PainPanel, type BodyMapSlot } from './panels/PainPanel';
 import { KickCountSub } from './presets/KickCountSub';
 import { MenopausePreset } from './presets/MenopausePreset';
@@ -94,8 +93,8 @@ export interface LogDayProps {
    */
   extra?: ReactNode;
   /**
-   * Deep link (T-M9-42b): opens the measurement panel on arrival — where the LH / pregnancy test chips are
-   * (the overdue banner's «ثبت تست بارداری»). Any other value is a category code (home «ثبت امروز» rows:
+   * Deep link (T-M9-42b): `pregnancy_test` opens the measurements section on arrival — where the LH /
+   * pregnancy test chips are (the overdue banner's «ثبت تست بارداری»). Any other value is a category code (home «ثبت امروز» rows:
    * `bleeding`, `symptoms`, `mood`): the sheet scrolls to that section and opens it. Applied once; ignored
    * when the mode has no such panel or category.
    */
@@ -186,8 +185,11 @@ export function LogDay({
     });
   };
 
-  // Bleeding has no sheet of its own any more: «open the bleeding panel» opens its accordion section.
-  const openPanel = (kind: PanelKind) => (kind === 'bleeding' ? openSection('bleeding') : setPanel(kind));
+  // Only pain keeps a sheet (the body map); bleeding and measurements are edited in their accordion section.
+  const openPanel = (kind: PanelKind) => {
+    if (kind === 'pain') setPanel(kind);
+    else openSection(kind === 'measure' ? 'measurements' : kind);
+  };
 
   const searchPanel = (q: string) => {
     setPanel(null);
@@ -208,18 +210,12 @@ export function LogDay({
 
   const category = (code: string) => c.categories.find((cat) => cat.code === code);
   const pain = category('pain');
-  const measurements = category('measurements');
 
-  // Deep link: open the measurement panel once its category has loaded.
-  const focusApplied = useRef(false);
-  const hasMeasure = Boolean(measurements);
-  useEffect(() => {
-    if (focus !== 'pregnancy_test' || focusApplied.current || !hasMeasure) return;
-    focusApplied.current = true;
-    setPanel('measure');
-  }, [focus, hasMeasure]);
   // Deep link to a category: scroll to its section and open it once the taxonomy has loaded.
-  const focusCategory = focus && focus !== 'pregnancy_test' && !c.loading ? category(focus) : undefined;
+  // `pregnancy_test` (T-M9-42b) is the measurements section, where the LH / pregnancy test chips are.
+  const focusApplied = useRef(false);
+  const focusCode = focus === 'pregnancy_test' ? 'measurements' : focus;
+  const focusCategory = focusCode && !c.loading ? category(focusCode) : undefined;
   useEffect(() => {
     if (!focusCategory || focusApplied.current) return;
     focusApplied.current = true;
@@ -346,6 +342,7 @@ export function LogDay({
                   mode={c.mode}
                   labels={c.labels}
                   locale={locale}
+                  date={date}
                   open={query ? true : openCat === cat.code}
                   onOpenChange={(open) => {
                     if (query) return;
@@ -452,32 +449,10 @@ export function LogDay({
           onClose={() => setPanel(null)}
           title={pain.label}
           subtitle={t('pain.sub')}
-          action="confirm"
           onAction={() => setPanel(null)}
           onSearch={searchPanel}
         >
           <PainPanel category={pain} values={c.values} setParam={c.setParam} mode={c.mode} locale={locale} BodyMap={BodyMap} />
-        </DetailPanel>
-      ) : null}
-      {measurements ? (
-        <DetailPanel
-          open={panel === 'measure'}
-          onClose={() => setPanel(null)}
-          title={measurements.label}
-          subtitle={heading.panelSub}
-          action="save"
-          busy={c.saving}
-          onAction={() => (c.dirty ? c.save(() => setPanel(null)) : setPanel(null))}
-          onSearch={searchPanel}
-        >
-          <MeasurePanel
-            category={measurements}
-            values={c.values}
-            setParam={c.setParam}
-            mode={c.mode}
-            locale={locale}
-            date={date}
-          />
         </DetailPanel>
       ) : null}
     </div>

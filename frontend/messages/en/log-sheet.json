@@ -60,7 +60,6 @@
   "more": "More details",
   "less": "Hide details",
   "bodyMapLink": "Pick on the body map",
-  "measureLink": "Log precisely",
   "severity": "Intensity",
   "link": {
     "open": "Open",
@@ -95,7 +94,6 @@
   },
   "panel": {
     "confirm": "Done",
-    "save": "Save",
     "today": "Today",
     "sub": "{date} · day {day}"
   },

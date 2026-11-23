@@ -151,7 +151,6 @@
     "sheetClose": "بستن پنجره",
     "navTab": "تب نوار پایین",
     "log_panel_pain": "جزئیات درد",
-    "log_panel_measure": "جزئیات اندازه‌گیری‌ها",
     "log_panel_confirm": "تأیید یا ذخیره‌ی جزئیات",
     "log_search": "جست‌وجوی ثبت روزانه",
     "log_preset_bleeding": "خونریزی (یائسگی)",
@@ -160,10 +159,6 @@
     "log_panel_param_bleeding_clots": "لخته",
     "log_panel_param_pain_score": "شدت درد (۱ تا ۱۰)",
     "log_panel_param_pain_relief": "چی دردت رو کم کرد",
-    "log_panel_param_measurements_weight": "وزن",
-    "log_panel_param_measurements_bbt": "دمای پایه‌ی بدن (ثبت روزانه)",
-    "log_panel_param_measurements_lh_test": "تست LH",
-    "log_panel_param_measurements_pregnancy_test": "تست بارداری",
     "period_toggle": "شروع یا پایان پریود",
     "period_save": "ذخیره‌ی تاریخ‌های پریود",
     "period_spotting": "فقط لکه‌بینی است",
@@ -1905,8 +1900,6 @@
     }
   },
   "units": {
-    "log_panel_param_measurements_weight": "کیلوگرم",
-    "log_panel_param_measurements_bbt": "°C",
     "fertility_bbt": "°C",
     "cycle_settings_cycle_length": "روز",
     "cycle_settings_period_length": "روز",
