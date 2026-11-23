@@ -8,6 +8,7 @@ import { type Confidence, V2_TERM_WEEKS, type WeekSummary } from '@/entities/pre
 import { Link, useDirection } from '@/shared/i18n';
 import { Icon } from '@/shared/ui';
 import { FetusSize } from '@/shared/ui/illustrations';
+import '@/shared/ui/styles/pg2.css';
 
 interface Props {
   slides: readonly WeekSummary[];

@@ -7,6 +7,7 @@ import { useThemeStore } from '@/shared/theme';
 import { Icon } from '@/shared/ui';
 
 import { NotificationBell } from './NotificationBell';
+import '@/shared/ui/styles/home.css';
 
 /** One-tap light/dark switch; the icon waits for mount so the server render can't disagree with the stored theme. */
 export function ThemeToggle({ className }: { className: string }) {

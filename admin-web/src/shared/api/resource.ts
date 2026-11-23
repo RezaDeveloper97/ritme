@@ -30,7 +30,7 @@ export const stringListSchema = z.preprocess(
 );
 
 /** `{items, meta, …extra}` — a paginated list whose extra keys vary per endpoint. */
-export function pagedSchema<I extends z.ZodTypeAny, E extends z.ZodRawShape>(item: I, extra: E) {
+export function pagedSchema<I extends z.ZodType, E extends z.ZodRawShape>(item: I, extra: E) {
   return z.object({ items: z.array(item), meta: pageMetaSchema }).extend(extra);
 }
 
@@ -45,7 +45,7 @@ type Query = Record<string, QueryValue>;
  * Each screen instantiates it in its own `api/` segment with its zod schemas;
  * every write invalidates the whole resource (`keys.all`).
  */
-export function createResource<L extends z.ZodTypeAny, D extends z.ZodTypeAny, O extends z.ZodTypeAny>(config: {
+export function createResource<L extends z.ZodType, D extends z.ZodType, O extends z.ZodType>(config: {
   key: string;
   path: string;
   list: L;

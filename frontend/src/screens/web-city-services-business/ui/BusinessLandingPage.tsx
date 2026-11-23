@@ -5,6 +5,7 @@ import { Link } from '@/shared/i18n';
 import { Icon, type IconName } from '@/shared/ui';
 
 import { BusinessShell } from './BusinessShell';
+import './wbz.css';
 
 const WHY: { key: 'reach' | 'book' | 'reviews'; icon: IconName }[] = [
   { key: 'reach', icon: 'mapPin' },

@@ -7,6 +7,8 @@ import { useUpdateCheckupSettings } from '@/features/manage-custom-checkup';
 import { pilot } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { Icon, Switch as NbSwitch } from '@/shared/ui';
+import '@/shared/ui/styles/ck.css';
+import '@/shared/ui/styles/rmd.css';
 
 function Switch({
   on,

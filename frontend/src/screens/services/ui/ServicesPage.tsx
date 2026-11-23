@@ -28,6 +28,7 @@ import {
   ShopCard,
   SosCard,
 } from './sections';
+import './svc.css';
 
 /**
  * «خدمات» tab (B-N7-01, nbl_/nbd_v17_Main). Every section, its order and its copy come from GET /services (admin

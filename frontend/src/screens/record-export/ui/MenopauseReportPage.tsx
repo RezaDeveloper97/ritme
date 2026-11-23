@@ -27,6 +27,8 @@ import { buildMenopauseModel, type MenoRow } from '../model/menopause';
 import type { Translate } from '../model/paper';
 import { ShareLinkSheet } from './ShareLinkSheet';
 import { usePaperModel, usePdfDownload } from './usePaper';
+import './rx.css';
+import './mrp.css';
 
 export type MenopauseReportOrigin = 'home' | 'alert';
 

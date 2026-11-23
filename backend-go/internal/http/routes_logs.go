@@ -9,6 +9,7 @@ import (
 	"github.com/ritme/backend-go/internal/i18n"
 	i18nstore "github.com/ritme/backend-go/internal/i18n/store"
 	"github.com/ritme/backend-go/internal/platform/clock"
+	"github.com/ritme/backend-go/internal/platform/etag"
 	"github.com/ritme/backend-go/resources/translations"
 )
 
@@ -29,7 +30,7 @@ func init() {
 			i18n.NewTranslationStore(translations.FS, d.Config.StoragePath), languages)
 		writes := writeThrottle(d)
 
-		r.Get("/api/v1/logs/taxonomy", locale, guard, h.Taxonomy)
+		r.Get("/api/v1/logs/taxonomy", locale, guard, etag.ByBody(), h.Taxonomy) // T-M12-34: ETag / 304
 		r.Get("/api/v1/logs/days", locale, guard, h.Days)
 		r.Get("/api/v1/logs/days/:date", locale, guard, h.Day)
 		r.Put("/api/v1/logs/days/:date", locale, guard, writes, h.Save)

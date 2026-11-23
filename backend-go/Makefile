@@ -36,6 +36,33 @@ TEST_DB_ADMIN_DSN    ?= root:root@tcp(127.0.0.1:$(TEST_DB_PORT))/?parseTime=true
 
 PKG ?= ./...
 
+# cgo fallback (T-M12-11). Some macOS Command Line Tools ship an SDK whose .tbd stubs the system linker
+# cannot read ("tapi error: malformed file … unknown architecture arm64e.x1"), so every test binary that
+# links cgo (net, os/user) fails. CGO_PROBE prints CGO_ENABLED=0 when a tiny cgo program does not link,
+# and nothing otherwise; an explicit CGO_ENABLED in the environment always wins. The real fix is a
+# Command Line Tools update (`softwareupdate --list`, or xcode-select --install after removing the old one).
+# -race needs cgo: on such a Mac use `make test-race-docker`.
+define CGO_PROBE
+$$(if [ -n "$${CGO_ENABLED+x}" ]; then :; else \
+  d="$$(mktemp -d)"; printf 'package main\nimport "C"\nfunc main() {}\n' > "$$d/main.go"; \
+  if ! (cd "$$d" && GO111MODULE=off go build -o /dev/null . >/dev/null 2>&1); then \
+    echo 'CGO_ENABLED=0'; echo 'cgo does not link here: CGO_ENABLED=0 (see Makefile, CGO_PROBE)' >&2; fi; \
+  rm -rf "$$d"; fi)
+endef
+
+# Race suite (T-M12-11). RACE_P = packages built/tested at once: testdb gives every package its own database
+# and the Redis tests use random key prefixes, so packages may run in parallel.
+RACE_P               ?= 4
+RACE_TIMEOUT         ?= 30m
+# Report-only coverage on the same run (T-M12-12): make test-race COVER_FLAGS='-coverprofile=cover.out -coverpkg=./...'
+COVER_FLAGS          ?=
+# test-race-docker: a Linux Go container on the test stack's network (cgo works there). Its own scratch
+# database $(RACE_DB) for the few tests that use TEST_DB_DSN directly — never ritme_test, which
+# `make test-int` runs share.
+RACE_GO_IMAGE        ?= golang:1.25-bookworm
+RACE_DB              ?= ritme_race
+RACE_NETWORK         ?= ritme-go-test_default
+
 # Benchmarks (T-M9-08): bench/run.sh reads BENCH_PKGS / BENCH_COUNT / BENCH_TIME. benchstat from PATH, else pinned.
 BENCHSTAT_VERSION ?= v0.0.0-20261009192801-be2c69fb417e
 BENCHSTAT ?= $(shell command -v benchstat 2>/dev/null || { p="$$(go env GOPATH)/bin/benchstat"; [ -x "$$p" ] && echo "$$p"; } || echo "go run golang.org/x/perf/cmd/benchstat@$(BENCHSTAT_VERSION)")
@@ -44,7 +71,7 @@ BENCHSTAT ?= $(shell command -v benchstat 2>/dev/null || { p="$$(go env GOPATH)/
 SQLC_VERSION ?= v1.31.1
 SQLC ?= $(shell command -v sqlc 2>/dev/null || { p="$$(go env GOPATH)/bin/sqlc"; [ -x "$$p" ] && echo "$$p"; } || echo "go run github.com/sqlc-dev/sqlc/cmd/sqlc@$(SQLC_VERSION)")
 
-.PHONY: help run test test-int test-db-up test-db-down lint fmt vet sqlc schema-diff contract contract-record contract-v6 contract-v6-update docker \
+.PHONY: lint-tests help run test test-int test-race test-race-docker test-db-up test-db-down lint fmt vet sqlc schema-diff contract contract-record contract-v6 contract-v6-update docker \
 	bench bench-baseline bench-compare bench-gate
 
 help: ## List targets
@@ -53,8 +80,8 @@ help: ## List targets
 run: ## Run the API locally (needs `make test-db-up` or DB_* / REDIS_* in .env)
 	go run ./cmd/api
 
-test: ## Unit tests (integration tests skip without TEST_DB_DSN)
-	TEST_DB_DSN= TEST_REDIS_ADDR= go test ./...
+test: ## Unit tests (integration tests skip without TEST_DB_DSN; falls back to CGO_ENABLED=0 if cgo cannot link)
+	env $(CGO_PROBE) CI= TEST_DB_DSN= TEST_REDIS_ADDR= go test ./...
 
 test-db-up: ## Start MariaDB 11.4 + Redis for integration tests
 	$(COMPOSE_TEST) up -d --wait
@@ -62,11 +89,38 @@ test-db-up: ## Start MariaDB 11.4 + Redis for integration tests
 test-db-down: ## Stop and wipe the test databases
 	$(COMPOSE_TEST) down -v
 
-test-int: test-db-up ## Integration tests: make test-int PKG=./internal/content/...
-	TEST_DB_DSN='$(TEST_DB_DSN)' TEST_DB_ADMIN_DSN='$(TEST_DB_ADMIN_DSN)' TEST_REDIS_ADDR='$(TEST_REDIS_ADDR)' go test -count=1 -p 1 $(PKG)
+test-int: test-db-up ## Integration tests: make test-int PKG=./internal/content/... [RUN=TestName]
+	env $(CGO_PROBE) TEST_DB_DSN='$(TEST_DB_DSN)' TEST_DB_ADMIN_DSN='$(TEST_DB_ADMIN_DSN)' TEST_REDIS_ADDR='$(TEST_REDIS_ADDR)' go test -count=1 -p 1 $(if $(RUN),-run '$(RUN)') $(PKG)
+
+test-race: ## Full suite with -race, integration included (needs cgo + TEST_DB_DSN/TEST_REDIS_ADDR; CI runs this)
+	CGO_ENABLED=1 go test -race -count=1 -p $(RACE_P) -timeout $(RACE_TIMEOUT) $(COVER_FLAGS) $(PKG)
+
+test-race-docker: test-db-up ## -race in a Linux container on the test stack (Mac without a cgo linker): make test-race-docker [PKG=…]
+	$(COMPOSE_TEST) exec -T mariadb mariadb -uroot -proot -e "CREATE DATABASE IF NOT EXISTS \`$(RACE_DB)\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; GRANT ALL ON \`$(RACE_DB)\`.* TO 'ritme'@'%';"
+	docker run --rm --network '$(RACE_NETWORK)' \
+	  -v '$(abspath $(CURDIR)/..)':/repo -w /repo/backend-go \
+	  -v "$$(go env GOMODCACHE)":/go/pkg/mod \
+	  -v ritme-go-race-buildcache:/root/.cache/go-build \
+	  -e GOTOOLCHAIN=local -e GOFLAGS=-modcacherw -e CI= \
+	  -e TEST_DB_DSN='ritme:ritme@tcp(mariadb:3306)/$(RACE_DB)?parseTime=true&loc=Asia%2FTehran&charset=utf8mb4&collation=utf8mb4_unicode_ci' \
+	  -e TEST_DB_ADMIN_DSN='root:root@tcp(mariadb:3306)/?parseTime=true&loc=Asia%2FTehran&charset=utf8mb4&collation=utf8mb4_unicode_ci' \
+	  -e TEST_REDIS_ADDR='redis:6379' \
+	  '$(RACE_GO_IMAGE)' \
+	  go test -race -count=1 -p $(RACE_P) -timeout $(RACE_TIMEOUT) $(PKG)
 
 vet: ## go vet
 	go vet ./...
+
+# T-M12-20: a sleep in a test makes CI flaky. Every time.Sleep( in a _test.go needs `//nolint:sleep // <reason>` on the same
+# line. LINT_TESTS_LEGACY are sleeps from before the rule, not yet reviewed: remove a file from the list once its sleeps are
+# replaced or annotated.
+LINT_TESTS_LEGACY = internal/messages/compiled/cache_test.go internal/auth/passport/export_test.go \
+	internal/platform/queue/queue_test.go internal/platform/queue/queue_int_test.go \
+	internal/platform/configcache/configcache_test.go internal/http/routes_messages_v2_int_test.go cmd/api/observability_test.go
+lint-tests: ## fail on time.Sleep( in _test.go without //nolint:sleep // reason
+	@bad=$$(grep -rn --include='*_test.go' 'time\.Sleep(' internal cmd 2>/dev/null | grep -v '//nolint:sleep // .\+' \
+		| grep -v -F $(foreach f,$(LINT_TESTS_LEGACY),-e $(f):) || true); \
+	if [ -n "$$bad" ]; then echo "time.Sleep in tests needs '//nolint:sleep // reason' on the same line:"; echo "$$bad"; exit 1; fi
 
 lint: ## golangci-lint (v2)
 	golangci-lint run

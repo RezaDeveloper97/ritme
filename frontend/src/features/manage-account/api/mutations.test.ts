@@ -4,13 +4,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const apiDelete = vi.fn();
 const clearAuthToken = vi.fn();
 
-vi.mock('@/shared/api', () => ({ apiClient: { delete: apiDelete } }));
+vi.mock('@/shared/api', () => ({
+  apiClient: { delete: apiDelete },
+  stepUpHeaders: (token: string) => ({ 'X-Step-Up': token }),
+}));
 vi.mock('@/shared/session', () => ({ clearAuthToken }));
 
 const { deleteAccountMutationOptions } = await import('./mutations');
 
 function run(queryClient: QueryClient) {
-  return new MutationObserver(queryClient, deleteAccountMutationOptions(queryClient)).mutate();
+  return new MutationObserver(queryClient, deleteAccountMutationOptions(queryClient)).mutate('step-up-token');
 }
 
 describe('deleteAccountMutationOptions', () => {
@@ -26,7 +29,8 @@ describe('deleteAccountMutationOptions', () => {
 
     await run(queryClient);
 
-    expect(apiDelete).toHaveBeenCalledWith('/account');
+    // T-M12-06: the single-use step-up token rides in X-Step-Up, never in the URL or body.
+    expect(apiDelete).toHaveBeenCalledWith('/account', { headers: { 'X-Step-Up': 'step-up-token' } });
     expect(clearAuthToken).toHaveBeenCalledTimes(1);
     expect(queryClient.getQueryData(['profile'])).toBeUndefined();
   });

@@ -30,11 +30,11 @@ export const userModeSchema = z
  * of the message payload can arrive as an empty list. Normalize it to `{}` so a
  * message-less day parses to empty strings instead of throwing at the boundary.
  */
-const objectish = <T extends z.ZodTypeAny>(shape: T) =>
+const objectish = <T extends z.ZodType>(shape: T) =>
   z.preprocess(v => (Array.isArray(v) && v.length === 0 ? {} : v), shape);
 
 /** Same idea in reverse: an empty object stands in for an empty list. */
-const listish = <T extends z.ZodTypeAny>(shape: T) =>
+const listish = <T extends z.ZodType>(shape: T) =>
   z.preprocess(
     v => (v && !Array.isArray(v) && typeof v === 'object' && Object.keys(v).length === 0 ? [] : v),
     shape,
@@ -51,7 +51,7 @@ const primaryMessageSchema = objectish(
       dos: stringList.default([]),
       donts: stringList.default([]),
     })
-    .default({}),
+    .prefault({}),
 );
 
 const contextInfoSchema = objectish(
@@ -61,7 +61,7 @@ const contextInfoSchema = objectish(
       phase_label: z.string().nullable().default(null),
       cycle_day: z.number().nullable().default(null),
     })
-    .default({}),
+    .prefault({}),
 );
 
 const correlationSchema = z.object({
@@ -91,21 +91,21 @@ const supplementsSchema = objectish(
           .object({ focus: z.string().default(''), tip: z.string().default('') })
           .partial()
           .passthrough()
-          .default({}),
+          .prefault({}),
       ),
       sleep: objectish(
         z
           .object({ quality_focus: z.string().default(''), tips: stringList.default([]) })
           .partial()
           .passthrough()
-          .default({}),
+          .prefault({}),
       ),
       exercise: objectish(
-        z.object({ tip: z.string().default('') }).partial().passthrough().default({}),
+        z.object({ tip: z.string().default('') }).partial().passthrough().prefault({}),
       ),
     })
     .partial()
-    .default({}),
+    .prefault({}),
 );
 
 /** Boundary parser for GET /messages/daily (CLAUDE.md §10). */
@@ -115,8 +115,8 @@ export const dailyMessageSchema = z
     date: z.string().default(''),
     context_info: contextInfoSchema,
     primary_message: primaryMessageSchema,
-    correlations: listish(z.array(correlationSchema).default([])).pipe(z.array(correlationSchema)),
-    patterns: listish(z.array(patternSchema).default([])).pipe(z.array(patternSchema)),
+    correlations: listish(z.array(correlationSchema).default([])),
+    patterns: listish(z.array(patternSchema).default([])),
     supplements: supplementsSchema,
     tips: stringList.default([]),
   })

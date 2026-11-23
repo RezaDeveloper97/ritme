@@ -27,6 +27,7 @@ import {
   SkeletonGroup,
   SkyLayer,
 } from '@/shared/ui';
+import '@/shared/ui/styles/ins.css';
 
 function CapRow({ cov }: { cov: PolicyCoverage }) {
   const t = useTranslations('insurance.coverage');

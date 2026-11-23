@@ -40,6 +40,7 @@ const TAXONOMY: LogTaxonomy = {
       param({ code: 'flow', type: 'single', options: [option('light'), option('heavy'), option('old', null, true), option('preg_only', ['pregnancy'])] }),
       param({ code: 'spotting', type: 'bool' }),
       param({ code: 'color', type: 'single', detail: true, options: [option('red')] }),
+      param({ code: 'clots', type: 'bool', detail: true }),
     ]),
     category('pain', [
       param({ code: 'location', type: 'items', options: [option('head')], levels: [{ value: 'no', label: 'نه' }, { value: 'mild', label: 'کم' }, { value: 'severe', label: 'شدید' }] }),
@@ -92,9 +93,12 @@ describe('logTargetsOf', () => {
   });
 
   it('leaves out what the accordions do not render', () => {
-    // Detail params of a panel category and pain relief live in the detail panels.
-    expect(byId.has('log.param:bleeding.color')).toBe(false);
+    // Pain relief lives in the pain panel.
     expect(byId.has('log.param:pain.relief')).toBe(false);
+    // Bleeding has no panel: its accordion is the whole form, detail params included…
+    expect(byId.has('log.param:bleeding.color')).toBe(true);
+    // …except the clots row, one choice over clots + clot_size, catalogued as log.panel-param:bleeding.clots.
+    expect(byId.has('log.param:bleeding.clots')).toBe(false);
     // …but a detail param of an ordinary category sits behind «جزئیات بیشتر» and is reachable.
     expect(byId.has('log.param:sleep.quality')).toBe(true);
     // Nothing to pick, a link tile, free-text items.

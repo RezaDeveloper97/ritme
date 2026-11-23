@@ -1,4 +1,5 @@
 import type { LegendKey } from '../model/tones';
+import './cc.css';
 
 interface CalendarLegendProps {
   items: readonly LegendKey[];

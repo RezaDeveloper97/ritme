@@ -14,6 +14,7 @@ import { asNumber, asString, normalizeNumber, pickableOptions } from '../../mode
 import { logPilotId } from '../../model/pilot-targets';
 import { ParamField } from '../ParamField';
 import { PanelCard } from './PanelCard';
+import '@/shared/ui/styles/lday.css';
 
 interface MeasurePanelProps {
   category: LogCategory;
@@ -35,7 +36,7 @@ const STEPPED: Record<string, { icon: IconName; tone: Tone; step: number; fallba
 const TESTS: Record<string, Tone> = { lh_test: 'warm', pregnancy_test: 'bloom' };
 
 /**
- * Log_Measure: weight and basal temperature as big −/+ steppers (the last reading within 30 days is the
+ * Log_Measure, rendered inside the measurements accordion (no sheet of its own): weight and basal temperature as big −/+ steppers (the last reading within 30 days is the
  * starting point and the comparison), the LH / pregnancy tests as chips, and any other measure the mode
  * has (blood pressure, heart rate, sugar) as plain number fields.
  */
@@ -71,7 +72,7 @@ export function MeasurePanel({ category, values, setParam, mode, locale, date }:
           previous={last[p.code] ?? null}
           onChange={(n) => setParam(cat, p.code, n)}
           locale={locale}
-          pilotId={logPilotId.panelParam(cat, p.code)}
+          pilotId={logPilotId.param(cat, p.code)}
         />
       ))}
 
@@ -83,7 +84,7 @@ export function MeasurePanel({ category, values, setParam, mode, locale, date }:
             return (
               <div key={p.code} className="lday-param">
                 <div className="lday-plabel">{p.label}</div>
-                <ChipGroup label={p.label} layout="fill" pilot={pilot(logPilotId.panelParam(cat, p.code), 'choice')}>
+                <ChipGroup label={p.label} layout="fill" pilot={pilot(logPilotId.param(cat, p.code), 'choice')}>
                   <PillChip shape="square" mode="multi" tone={tone} pressed={current === null} onPressedChange={() => setParam(cat, p.code, null)}>
                     {t('measure.testNone')}
                   </PillChip>
@@ -118,7 +119,7 @@ export function MeasurePanel({ category, values, setParam, mode, locale, date }:
               mode={mode}
               tone="bloom"
               locale={locale}
-              pilotId={logPilotId.panelParam(cat, p.code)}
+              pilotId={logPilotId.param(cat, p.code)}
             />
           ))}
         </PanelCard>

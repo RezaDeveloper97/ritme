@@ -33,6 +33,8 @@ import {
 
 import { CartButton } from './CartButton';
 import { ProductTile, usePrice, useRatingText, useSkinLabel } from './ProductTile';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/shp.css';
 
 type Dim = 'size' | 'color' | 'volume';
 type Selection = Record<Dim, string | null>;

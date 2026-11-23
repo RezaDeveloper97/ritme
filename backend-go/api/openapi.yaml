@@ -87,11 +87,13 @@ paths:
     delete:
       tags: [Profile]
       summary: Delete account and all personal data
-      description: "Permanently deletes the authenticated user's account together with every related record (profile, health logs, cycle data, pregnancy data, reminders, notifications) and deletes all its OAuth access and refresh tokens, in one transaction (D-25; Laravel only revokes the access tokens). The old token then answers 401 `token_revoked`. Irreversible."
+      description: "Permanently deletes the authenticated user's account together with every related record (profile, health logs, cycle data, pregnancy data, reminders, notifications) and deletes all its OAuth access and refresh tokens, in one transaction (D-25; Laravel only revokes the access tokens). The old token then answers 401 `token_revoked`. Irreversible. Go only (T-M12-06, D-213): needs a fresh step-up token in `X-Step-Up` (verify-otp `purpose: step_up`; spent by this call) else 403 `step_up_required`; 3 attempts per hour per user (the 4th → 429)."
       operationId: deleteAccount
       security:
         - {bearerAuth: []}
-      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {$ref: "#/components/parameters/StepUp"}
       responses:
         '200':
           description: Account deleted
@@ -103,6 +105,8 @@ paths:
                 properties: {success: {type: boolean}, message: {type: string}}
               example: {success: true, message: Your account and all associated data have been deleted}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/StepUpRequired"}
+        '429': {$ref: "#/components/responses/TooManyAttempts"}
   /api/v1/alerts:
     get:
       tags: [Alerts]
@@ -1318,7 +1322,12 @@ paths:
     post:
       tags: [Auth]
       summary: Send OTP for login/register
-      description: Sends a 4-digit OTP to the mobile number. Creates new user if not exists.
+      description: |
+        Sends a 4-digit OTP to the mobile number. Creates new user if not exists.
+
+        Go only (T-M12-06, D-213): `purpose: step_up` with a bearer token sends the code to the **signed-in user's own
+        number** (the body's `mobile` is ignored) for a step-up (see verify-otp). Without a valid bearer → 401; an
+        account without a mobile → 422. Every send guard below applies the same.
       operationId: postAuthSendOtp
       security: []
       parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
@@ -1327,12 +1336,15 @@ paths:
         content:
           application/json:
             schema:
-              required: [mobile]
               properties:
                 mobile:
-                  description: Iranian mobile number (11 digits)
+                  description: Iranian mobile number (11 digits); required unless `purpose` is `step_up`
                   type: string
                   examples: ["09123456789"]
+                purpose:
+                  description: "Go only (D-213): `step_up` = a code for the signed-in user (bearer required); anything else = login"
+                  type: string
+                  enum: [step_up]
               type: object
       responses:
         '200':
@@ -1368,19 +1380,31 @@ paths:
                 message: Validation failed
                 errors: {mobile: ["Mobile number must be a valid Iranian mobile number (e.g., 09123456789)"]}
         '429':
-          description: Too many requests
+          description: |
+            Either the resend window (`Please wait before requesting a new OTP` + `retry_after`; also a send that lost
+            the per-number send lock to a parallel one), or the framework throttle `Too Many Attempts.` with
+            `Retry-After` / `X-RateLimit-*`: the per-IP `otp_send` limiter (5/min, IPv6 per /64) or, Go only
+            (T-M12-01, D-211), the per-number send caps (3 codes / 15 min, 10 / 24 h; `X-RateLimit-Limit` = the cap
+            hit). Identical for registered and unknown numbers.
+          headers:
+            Retry-After: {schema: {type: integer}}
+            X-RateLimit-Limit: {schema: {type: integer}}
+            X-RateLimit-Remaining: {schema: {type: integer}}
+            X-RateLimit-Reset: {schema: {type: integer}}
           content:
             application/json:
               schema:
-                type: object
-                required: [success, message, data]
-                properties:
-                  success: {type: boolean}
-                  message: {type: string}
-                  data:
-                    type: object
-                    required: [retry_after]
-                    properties: {retry_after: {type: integer}}
+                anyOf:
+                  - type: object
+                    required: [success, message, data]
+                    properties:
+                      success: {type: boolean}
+                      message: {type: string}
+                      data:
+                        type: object
+                        required: [retry_after]
+                        properties: {retry_after: {type: integer}}
+                  - {$ref: "#/components/schemas/FrameworkError"}
               example:
                 success: false
                 message: Please wait before requesting a new OTP
@@ -1429,7 +1453,8 @@ paths:
       description: |
         Verifies the OTP code and returns access token. Creates user if new.
 
-        403 for a blocked user (Persian message in every locale). 429 after 5 wrong attempts.
+        403 for a blocked user (Persian message in every locale). 429 after 5 wrong attempts, or (Go only, T-M12-01)
+        while the number is locked by its failure budget.
 
         Go only (T-M10-23, D-174): a **new** account must send `consents` with the version shown of every mandatory
         signup consent (`terms`, `health_data_processing`), else 422 `consent_required` (checked after the code matched,
@@ -1437,6 +1462,11 @@ paths:
         recorded in the consent ledger (source `signup`) before the token is issued. An existing account is never
         refused (its pending consents come from GET /consents/pending); if it sends valid versions they are recorded
         once. The Laravel API ignores the field.
+
+        Go only (T-M12-06, D-213): `purpose: step_up` with a bearer token checks `code` against the signed-in user's own
+        number (no `mobile`; all T-M12-01 guards apply) and answers — instead of a login — `{step_up_token, expires_in}`:
+        a single-use token valid 5 minutes, sent as `X-Step-Up` to GET /profile/export or DELETE /account. Without a
+        valid bearer → 401.
       operationId: postAuthVerifyOtp
       security: []
       parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
@@ -1445,10 +1475,14 @@ paths:
         content:
           application/json:
             schema:
-              required: [mobile, code]
+              required: [code]
               properties:
-                mobile: {type: string, examples: ["09123456789"]}
+                mobile: {description: "Required unless `purpose` is `step_up`", type: string, examples: ["09123456789"]}
                 code: {description: "4-digit OTP code", type: string, examples: ["1234"]}
+                purpose:
+                  description: "Go only (D-213): `step_up` = a step-up token for the signed-in user (bearer required)"
+                  type: string
+                  enum: [step_up]
                 consents:
                   description: "Signup consents (T-M10-23): consent code → version of the text shown; required for a new account"
                   type: object
@@ -1467,14 +1501,21 @@ paths:
                   success: {type: boolean}
                   message: {type: string}
                   data:
-                    type: object
-                    required: [user, new_user, profile_completed, access_token, token_type]
-                    properties:
-                      user: {$ref: "#/components/schemas/User"}
-                      new_user: {type: boolean}
-                      profile_completed: {type: boolean}
-                      access_token: {type: string}
-                      token_type: {type: string}
+                    oneOf:
+                      - type: object
+                        required: [user, new_user, profile_completed, access_token, token_type]
+                        properties:
+                          user: {$ref: "#/components/schemas/User"}
+                          new_user: {type: boolean}
+                          profile_completed: {type: boolean}
+                          access_token: {type: string}
+                          token_type: {type: string}
+                      - type: object
+                        description: "`purpose: step_up` (Go only, D-213)"
+                        required: [step_up_token, expires_in]
+                        properties:
+                          step_up_token: {type: string, description: "Single-use; send as X-Step-Up"}
+                          expires_in: {type: integer, description: "Seconds (300)"}
               example:
                 success: true
                 message: Login successful
@@ -1536,13 +1577,24 @@ paths:
                 message: Validation failed
                 errors: {mobile: ["قالب شماره موبایل معتبر نیست."], code: ["کد تایید باید 4 نویسه باشد."]}
         '429':
-          description: Too many attempts
+          description: |
+            `Too many attempts. Please request a new OTP.` after 5 wrong tries of one code, or the framework throttle
+            `Too Many Attempts.` with `Retry-After` / `X-RateLimit-*`: the per-IP `otp_verify` limiter (10/min, IPv6
+            per /64) or, Go only (T-M12-01, D-211), a number locked by its failure budget (10 wrong codes / 24 h lock
+            it for 1 h, even the right code is refused; `X-RateLimit-Limit` = 10).
+          headers:
+            Retry-After: {schema: {type: integer}}
+            X-RateLimit-Limit: {schema: {type: integer}}
+            X-RateLimit-Remaining: {schema: {type: integer}}
+            X-RateLimit-Reset: {schema: {type: integer}}
           content:
             application/json:
               schema:
-                type: object
-                required: [success, message]
-                properties: {success: {type: boolean}, message: {type: string}}
+                anyOf:
+                  - type: object
+                    required: [success, message]
+                    properties: {success: {type: boolean}, message: {type: string}}
+                  - {$ref: "#/components/schemas/FrameworkError"}
               example: {success: false, message: Too many attempts. Please request a new OTP.}
   /api/v1/banners/ads:
     get:
@@ -1749,7 +1801,12 @@ paths:
         **active**, scheduled appointment at `scheduled_at` − `remind_before`. Left out: doses already ticked,
         reminders inside the user's quiet hours and a kind whose notification category («داروها» / «نوبت پزشک») is
         off. `title` / `body` already went through «متن خنثی» (`neutral_copy`): with it on they carry no health data.
-        Times are Tehran wall-clock; `at_ms` is the same instant in epoch milliseconds.
+        Dose times and quiet hours are wall-clock on the user's zone (T-M12-21c, like M-08): the request's
+        `X-Timezone` → the stored `user_profiles.timezone` → Asia/Tehran; «۸ صبح» is 08:00 where she is, across
+        daylight-saving changes too (a slot inside a skipped hour fires once at the first valid instant after it, a
+        slot in a repeated hour once, at its first occurrence). `generated_at` / `at` are wall-clock strings on that
+        zone; `at_ms` is the same instant in epoch milliseconds (what clients should arm). Appointment visits stay
+        their stored `scheduled_at` (Tehran wall-clock) instant.
       operationId: getCareUpcoming
       security:
         - {bearerAuth: []}
@@ -1770,7 +1827,7 @@ paths:
                     type: object
                     required: [generated_at, items]
                     properties:
-                      generated_at: {type: string, description: "`Y-m-d H:i:s`, Tehran."}
+                      generated_at: {type: string, description: "`Y-m-d H:i:s`, on the user's zone (Asia/Tehran without one)."}
                       items:
                         type: array
                         maxItems: 64
@@ -1783,7 +1840,7 @@ paths:
                             reminder_id: {type: integer}
                             date: {allOf: [{$ref: "#/components/schemas/Date"}], description: "The dose day; for an appointment the day of the visit."}
                             slot: {type: string, description: "The dose time `HH:MM`; for an appointment the time of the visit."}
-                            at: {type: string, description: "When the reminder fires, `Y-m-d H:i:s`, Tehran."}
+                            at: {type: string, description: "When the reminder fires, `Y-m-d H:i:s`, on the user's zone (Asia/Tehran without one)."}
                             at_ms: {type: integer, format: int64}
                             title: {type: string}
                             body: {type: string}
@@ -1806,7 +1863,7 @@ paths:
       security:
         - {bearerAuth: []}
       parameters:
-        - {name: date, in: query, required: false, description: "Default today (Tehran).", schema: {$ref: "#/components/schemas/Date"}}
+        - {name: date, in: query, required: false, description: "Default the user's today (her zone: `X-Timezone` → stored → Asia/Tehran, T-M12-21c).", schema: {$ref: "#/components/schemas/Date"}}
         - {$ref: "#/components/parameters/AcceptLanguage"}
       responses:
         '200':
@@ -2029,7 +2086,8 @@ paths:
       summary: Mark a dose taken
       description: |
         Idempotent: ticking the same dose again keeps the first `taken_at`. `slot` must be one of the medication's
-        `times`, and `date` must be inside its weekday/start/end window and not after today (Tehran); otherwise 422
+        `times`, and `date` must be inside its weekday/start/end window and not after the user's today (her zone:
+        `X-Timezone` → stored → Asia/Tehran, T-M12-21c); otherwise 422
         on `slot` / `date`.
       operationId: postCareMedicationsIntakes
       security:
@@ -14679,7 +14737,8 @@ paths:
       summary: Notification settings
       description: |
         Go only (B-N1-11). The categories a push may be sent for (grouped cycle · health · other, screen order),
-        the quiet-hours window (Tehran wall-clock, `start` > `end` wraps midnight) and `neutral_copy` («متن خنثی»:
+        the quiet-hours window (wall-clock on the user's zone — `X-Timezone` → stored `user_profiles.timezone` →
+        Asia/Tehran, T-M12-21c; `start` > `end` wraps midnight) and `neutral_copy` («متن خنثی»:
         push title/body never carry health data; CB-PRIV-01: it is also the «اعلان‌های محرمانه» discreet flag of the
         privacy screen and covers SMS — free-text SMS get the neutral line, templated SMS such as the companion invite
         the neutral gateway template). A user who never saved gets the defaults (fertile window, vitals
@@ -17260,11 +17319,13 @@ paths:
     get:
       tags: [Profile]
       summary: Export all personal data
-      description: "Returns a full JSON export of the authenticated user's data (account, profile, health logs, cycle history, pregnancy data, reminders; in Go also consents (with the version accepted, B-N6-05b), support reports and notification settings, D-33, the life profile, D-34, and `ai_usage` — the AI usage rows still linked to the user, kept 90 days: feature, op, provider, model, token counts, byte sizes, cost_micros, latency_ms, ok, created_at; no content, D-58; and, user decision 2026-10-12 / D-96, the canvas health data — `pelvic_floor`, `contraception`, `menopause`, `ivf`, `condition_programs`, `loss`, `insurance`, `shop`, `directory` — owner-scoped raw rows with the sealed text opened for the owner and file metadata only) for data-portability."
+      description: "Go only (T-M12-06, D-213): needs a fresh step-up token in `X-Step-Up` (verify-otp `purpose: step_up`; spent by this call) else 403 `step_up_required`; 3 per hour per user (the 4th → 429, the token is not spent); at most a few exports are built at once per server (busy → 429 `export_busy`, Retry-After 30). Returns a full JSON export of the authenticated user's data (account, profile, health logs, cycle history, pregnancy data, reminders; in Go also consents (with the version accepted, B-N6-05b), support reports and notification settings, D-33, the life profile, D-34, and `ai_usage` — the AI usage rows still linked to the user, kept 90 days: feature, op, provider, model, token counts, byte sizes, cost_micros, latency_ms, ok, created_at; no content, D-58; and, user decision 2026-10-12 / D-96, the canvas health data — `pelvic_floor`, `contraception`, `menopause`, `ivf`, `condition_programs`, `loss`, `insurance`, `shop`, `directory` — owner-scoped raw rows with the sealed text opened for the owner and file metadata only) for data-portability."
       operationId: getProfileExport
       security:
         - {bearerAuth: []}
-      parameters: [{$ref: "#/components/parameters/AcceptLanguage"}]
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {$ref: "#/components/parameters/StepUp"}
       responses:
         '200':
           description: Export generated successfully
@@ -17721,6 +17782,23 @@ paths:
                           applications: {type: array, items: {type: object}}
                           application_files: {type: array, items: {type: object}}
         '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/StepUpRequired"}
+        '429':
+          description: "The 3/hour/user throttle (framework 429 + Retry-After / X-RateLimit-*), or `error_code: export_busy` (Retry-After 30) when the server is already building its maximum of exports"
+          headers:
+            Retry-After: {schema: {type: integer}}
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - {$ref: "#/components/schemas/FrameworkError"}
+                  - type: object
+                    required: [success, message, error_code]
+                    properties:
+                      success: {type: boolean}
+                      message: {type: string}
+                      error_code: {type: string, enum: [export_busy]}
+              example: {message: Too Many Attempts.}
   /api/v1/reminders:
     get:
       tags: [Reminders]
@@ -18756,6 +18834,53 @@ paths:
                       alert: {$ref: "#/components/schemas/PregnancyV2Alert"}
         '401': {$ref: "#/components/responses/Unauthenticated"}
         '404': {$ref: "#/components/responses/ModelNotFound"}
+  /api/v1/companion/calendar:
+    get:
+      tags: [Companion]
+      summary: Companion calendar overlay — partner's likely period days (male account)
+      description: |
+        Go only. For a companion (male) account — **403** `not_companion_account` for any other account. One `partners`
+        entry per active partner/spouse link (parent links never appear). `period_days` lists the days in the window her
+        period is likely to fall on, **today onwards only** (never logged history), and is **null unless she turned on
+        `period_days` for this link and the cycle grant is readable** (family.Decide: paused, out-of-mode or revoked →
+        null). `[]` = shared, but nothing predicted in the window, or she is late (no honest prediction). No cycle day,
+        length, lateness or confidence ever. Each returned list is audited as a cycle read. The window is clamped to
+        today … today + 92 days. His own medications and appointments come from `/care/*`.
+      operationId: getCompanionCalendar
+      security:
+        - {bearerAuth: []}
+      parameters:
+        - {$ref: "#/components/parameters/AcceptLanguage"}
+        - {name: from, in: query, required: false, schema: {$ref: "#/components/schemas/Date"}, description: "Default today"}
+        - {name: to, in: query, required: false, schema: {$ref: "#/components/schemas/Date"}, description: "Default from + 41 days; ≥ from and at most 62 days after it"}
+      responses:
+        '200':
+          description: Partner overlay
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, data]
+                properties:
+                  success: {type: boolean}
+                  data:
+                    type: object
+                    required: [from, to, partners]
+                    properties:
+                      from: {$ref: "#/components/schemas/Date"}
+                      to: {$ref: "#/components/schemas/Date"}
+                      partners:
+                        type: array
+                        items:
+                          type: object
+                          required: [link_id, partner_name, period_days]
+                          properties:
+                            link_id: {type: integer}
+                            partner_name: {type: [string, "null"]}
+                            period_days: {type: [array, "null"], items: {$ref: "#/components/schemas/Date"}}
+        '401': {$ref: "#/components/responses/Unauthenticated"}
+        '403': {$ref: "#/components/responses/NotCompanionAccount"}
+        '422': {$ref: "#/components/responses/ValidationFailed"}
   /api/v1/companion/home:
     get:
       tags: [Companion]
@@ -18982,6 +19107,7 @@ paths:
                     mood: {type: [boolean, "null"]}
                     energy: {type: [boolean, "null"]}
                     sleep: {type: [boolean, "null"]}
+                period_days: {type: [boolean, "null"], description: "(Go only) consent to show the companion her likely period days in his calendar; default false"}
                 action_prefs: {type: [array, "null"], maxItems: 5, items: {type: string, enum: [food, gift, time, calm, help]}, description: "«ریتمی همراه» v2 (Go only): ordered, deduped; default []"}
             example: {type: spouse, display_name: علی, phone: "09121234567", grants: {meds: edit, appointments: edit, cycle: view, pregnancy: view}}
       responses:
@@ -26014,6 +26140,12 @@ components:
       required: false
       description: "the life-stage mode the preferences are for (default: the caller's current mode)"
       schema: {type: string, enum: [cycle, ttc, pregnancy, postpartum, menopause, teen]}
+    StepUp:
+      name: X-Step-Up
+      in: header
+      required: true
+      description: "Go only (T-M12-06, D-213): the single-use step-up token from verify-otp `purpose: step_up` (5 min)"
+      schema: {type: string}
     LocaleQuery:
       name: locale
       in: query
@@ -26021,6 +26153,21 @@ components:
       description: "Overrides `Accept-Language`. Some endpoints clamp to the languages they have content for."
       schema: {type: string}
   responses:
+    StepUpRequired:
+      description: |
+        Go only (T-M12-06, D-213): the route needs a fresh step-up — `X-Step-Up` is missing, unknown, expired (5 min),
+        already spent or another account's. Never a 401: the session is fine. Get one with send-otp + verify-otp
+        `purpose: step_up`.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [success, message, error_code]
+            properties:
+              success: {type: boolean}
+              message: {type: string}
+              error_code: {type: string, enum: [step_up_required]}
+          example: {success: false, message: "Confirm it's you with a fresh code first.", error_code: step_up_required}
     AlertAction:
       description: The inbox item after the action (T-M10-07, D-164)
       content:
@@ -31339,6 +31486,7 @@ components:
         goal: {$ref: "#/components/schemas/CompanionGoal"}
         goals: {$ref: "#/components/schemas/CompanionGoals"}
         signals: {$ref: "#/components/schemas/CompanionSignalScope"}
+        period_days: {type: boolean, description: "(Go only) the owner's consent to show this companion her likely period days in his calendar (GET /companion/calendar); false by default"}
         action_prefs: {$ref: "#/components/schemas/CompanionActionPrefs"}
     CompanionGoal:
       type: string
@@ -31386,6 +31534,7 @@ components:
             mood: {type: [boolean, "null"]}
             energy: {type: [boolean, "null"]}
             sleep: {type: [boolean, "null"]}
+        period_days: {type: [boolean, "null"], description: "Consent to show the companion her likely period days in his calendar"}
         action_prefs: {type: [array, "null"], maxItems: 5, items: {type: string, enum: [food, gift, time, calm, help]}}
     CompanionLink:
       type: object
@@ -34225,7 +34374,7 @@ components:
         dose: {type: [string, number, "null"], description: "Free text (≤ 50); a number is stored as its string.", examples: ["400"]}
         unit: {type: [string, number, "null"], description: "One of `mg|mcg|ml|iu|drop` (labelled) or free text (≤ 50).", examples: [mcg]}
         form: {type: string, enum: [tablet, capsule, syrup, injection, drops]}
-        times: {type: array, minItems: 1, maxItems: 4, items: {type: string, pattern: "^\\d{2}:\\d{2}$"}, examples: [["08:00", "20:00"]]}
+        times: {type: array, minItems: 1, maxItems: 4, items: {type: string, pattern: "^\\d{2}:\\d{2}$"}, description: "Wall-clock `HH:MM` on the user's own zone (T-M12-21c): stored as typed, no conversion; Asia/Tehran when no zone is known.", examples: [["08:00", "20:00"]]}
         weekdays: {type: array, minItems: 1, maxItems: 7, items: {type: integer, minimum: 0, maximum: 6}, description: "Saturday = 0 … Friday = 6. Default: all seven."}
         amount: {type: integer, minimum: 1, maximum: 10, default: 1}
         duration: {type: string, enum: [ongoing, until_date, pregnancy_end], default: ongoing}
@@ -34346,7 +34495,7 @@ components:
         form: {type: string, enum: [tablet, capsule, syrup, injection, drops]}
         dose: {type: [string, "null"]}
         unit: {type: [string, "null"]}
-        times: {type: array, items: {type: string}, description: "Sorted `HH:MM` slots."}
+        times: {type: array, items: {type: string}, description: "Sorted `HH:MM` slots, wall-clock on the user's zone (T-M12-21c)."}
         weekdays: {type: array, items: {type: integer, minimum: 0, maximum: 6}, description: "Saturday = 0."}
         amount: {type: integer}
         duration: {type: string, enum: [ongoing, until_date, pregnancy_end]}

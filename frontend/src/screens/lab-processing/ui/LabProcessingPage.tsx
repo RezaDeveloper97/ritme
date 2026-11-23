@@ -18,6 +18,7 @@ import { type Locale, useRouter } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { Card, EmptyState, Icon, IconCircle, PrimaryButton, ProgressRing, SecondaryButton, SkyLayer } from '@/shared/ui';
+import '@/shared/ui/styles/lab.css';
 
 /**
  * `/labs/[id]/processing` (nbl_Lab_Processing): polls `/labs/{id}/status`

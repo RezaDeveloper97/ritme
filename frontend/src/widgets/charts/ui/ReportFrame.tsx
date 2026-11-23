@@ -4,6 +4,7 @@ import { clsx } from 'clsx';
 import type { ReactNode } from 'react';
 
 import { EmptyState, ScreenHeader, SecondaryButton, SegmentedTabs, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
+import '@/shared/ui/styles/axc.css';
 
 export interface ReportFrameProps<V extends string> {
   title: string;

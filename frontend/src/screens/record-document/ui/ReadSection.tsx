@@ -29,6 +29,8 @@ import { pilot, pilotOption } from '@/shared/pilot';
 import type { ExtractErrorKind } from '../model/errors';
 import { confirmedRows } from '../model/format';
 import { TextField } from './DocumentSheets';
+import '@/shared/ui/styles/hrec.css';
+import '@/shared/ui/styles/rec.css';
 
 type T = ReturnType<typeof useTranslations<'record.doc'>>;
 

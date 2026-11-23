@@ -37,6 +37,7 @@ import {
   pageComplete,
   pagesOf,
 } from '../model/flow';
+import '@/shared/ui/styles/pp.css';
 
 type T = ReturnType<typeof useTranslations<'postpartum'>>;
 

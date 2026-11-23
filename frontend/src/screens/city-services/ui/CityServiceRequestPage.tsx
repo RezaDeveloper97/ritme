@@ -22,6 +22,8 @@ import {
 } from '../model/form';
 import { BookSlotFlow } from './BookSlotFlow';
 import { CsError, CsSkeleton } from './ListSkeleton';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/csv.css';
 
 /**
  * `/city-services/[id]/request` — the booking request for a `request`-mode venue: name, phone, a preferred day,

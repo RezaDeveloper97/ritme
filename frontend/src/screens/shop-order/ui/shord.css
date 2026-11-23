@@ -1,0 +1,42 @@
+/* `shord-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.shord-body { padding-block-end: 96px; }
+
+.shord-hero { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 0; text-align: center; }
+
+.shord-hero-icon { display: inline-flex; align-items: center; justify-content: center; inline-size: 56px; block-size: 56px; border-radius: 50%; background: var(--data-soft); color: var(--data-deep); }
+
+.shord-hero-title { margin: 0; font-family: var(--font-display); font-size: 22px; color: var(--text-1); }
+
+.shord-hero-sub { margin: 0; font-size: 12.5px; font-weight: 600; color: var(--text-2); }
+
+.shord-ship { display: flex; flex-direction: column; gap: 12px; padding: 14px; }
+
+.shord-ship-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+.shord-ship-name { margin: 0; font-size: 15px; font-weight: 800; color: var(--text-1); }
+
+.shord-hint { margin: 0; font-size: 12px; font-weight: 600; line-height: 1.8; color: var(--text-2); }
+
+.shord-items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+
+.shord-item { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+
+.shord-item-main { flex: 1; min-inline-size: 0; display: flex; flex-direction: column; }
+
+.shord-item-title { margin: 0; font-size: 13.5px; font-weight: 800; color: var(--text-1); }
+
+.shord-item-variant,
+.shord-item-qty { font-size: 12px; font-weight: 600; color: var(--text-2); }
+
+.shord-link { min-block-size: 44px; display: inline-flex; align-items: center; padding: 0 6px; border: 0; background: none; font: inherit; font-size: 12.5px; font-weight: 800; color: var(--brand); text-decoration: none; cursor: pointer; }
+
+.shord-check { display: flex; align-items: center; gap: 12px; padding: 14px; color: var(--brand); }
+
+.shord-check-main { flex: 1; min-inline-size: 0; }
+
+.shord-returns { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+
+.shord-actions { display: flex; flex-direction: column; gap: 6px; }
+
+.shord-link svg { margin-inline-end: 4px; }

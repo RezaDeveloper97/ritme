@@ -81,16 +81,12 @@ func (h *Handlers) Board(c fiber.Ctx) error {
 	}
 	now, locale := h.now(c), i18n.Locale(c)
 	today := civildate.InTehran(now)
-	tasks, err := h.svc.Board(c, userID, today)
+	tasks, prefs, err := h.svc.Board(c, userID, today)
 	if err != nil {
 		return err
 	}
 	b := BuildBoard(tasks, today)
 	suggestion, err := h.suggestionJSON(c, userID, h.localToday(c), locale)
-	if err != nil {
-		return err
-	}
-	prefs, err := h.svc.Notifications(c, userID)
 	if err != nil {
 		return err
 	}

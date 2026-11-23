@@ -300,10 +300,10 @@
     "log": {
       "title": "Today's log",
       "streak": "{n} days in a row",
-      "bleeding": "Bleeding",
-      "bleedingHint": "Period or spotting",
+      "period": "Log period",
+      "periodHint": "On the calendar",
       "symptoms": "Symptoms",
-      "mood": "Mood & energy",
+      "mood": "Mood",
       "empty": "Not logged yet",
       "logged": "Logged",
       "add": "Log {name}"

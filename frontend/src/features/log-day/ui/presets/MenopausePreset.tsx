@@ -24,6 +24,7 @@ import {
   type PresetRow,
   type SeverityLevel,
 } from '../../model/menopause-preset';
+import '../mlog.css';
 
 interface MenopausePresetProps {
   categories: readonly LogCategory[];

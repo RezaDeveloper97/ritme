@@ -37,6 +37,8 @@ import { BottomNav, useNavMode } from '@/widgets/bottom-nav';
 
 import { MeErrorCard } from './MeErrorCard';
 import { firstLetter, localizeDigits, maskMobile, MODE_TONE } from './me-format';
+import '@/shared/ui/styles/me.css';
+import '@/shared/ui/styles/tone.css';
 
 /** A hub row whose feature ships with a later bloom task: visible, not tappable, «به‌زودی». */
 interface SoonRow {
@@ -70,7 +72,10 @@ export function ProfilePage() {
   const rtl = useDirection() === 'rtl';
   const logout = useLogout();
   const { locale, languages } = useSwitchLocale();
-  const preference = useThemeStore((s) => s.preference);
+  const theme = useThemeStore((s) => s.theme);
+  const setTheme = useThemeStore((s) => s.setTheme);
+  // The icon waits for mount so the server render can't disagree with the stored theme.
+  const dark = mounted && theme === 'dark';
   const appLock = useAppLock();
 
   const profile = profileQuery.data;
@@ -115,11 +120,13 @@ export function ProfilePage() {
       <div className="scroll me-scroll">
         <header className="me-hdr">
           <h1 className="me-title">{t('title')}</h1>
+          {/* One tap flips light/dark — there is no appearance screen. */}
           <HeaderButton
-            label={t('rows.appearance')}
-            icon="sun"
+            label={dark ? t('themeToggle.toLight') : t('themeToggle.toDark')}
+            icon={dark ? 'sun' : 'moon'}
             variant="soft"
-            onClick={() => router.push('/profile/appearance')} pilot={pilot('me.header:appearance')}
+            onClick={() => setTheme(dark ? 'light' : 'dark')}
+            pilot={pilot('me.header:theme')}
           />
         </header>
 
@@ -357,12 +364,6 @@ export function ProfilePage() {
                 onClick={() => router.push('/cycle/settings')} pilot={pilot('me.open:cycle-settings')}
               />
             ) : null}
-            <ListRow
-              icon="moon"
-              title={t('rows.appearance')}
-              description={mounted ? t(`theme.${preference}`) : undefined}
-              onClick={() => router.push('/profile/appearance')} pilot={pilot('me.open:profile-appearance')}
-            />
             <ListRow
               icon="calendar"
               title={t('rows.language')}

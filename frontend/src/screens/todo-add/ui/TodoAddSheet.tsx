@@ -25,6 +25,7 @@ import { CalendarPicker, Icon, PrimaryButton, SecondaryButton, Skeleton, Skeleto
 import { pilot, pilotOption } from '@/shared/pilot';
 
 import { parseTodoAddArg } from '../model/arg';
+import '@/shared/ui/styles/td.css';
 
 /** Visually hidden: the sheet opens on the title input (nbl_Todo_Add has no heading); it still names the dialog. */
 export function TodoAddTitle({ arg }: SheetContentProps) {

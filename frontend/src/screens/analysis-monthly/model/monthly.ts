@@ -35,7 +35,7 @@ const index = ({ year, month }: YearMonth) => year * 12 + (month - 1);
  * other calendar (e.g. a fa link opened after switching to en) is re-expressed
  * as the reader's month that contains its first day — month names come from the
  * locale, so a mixed pair could not be titled. Parses through `convertParts`
- * (jalaliday setters write Gregorian fields; never chain them).
+ * (pure Jalali parts from shared/lib/date; never chain calendar setters).
  */
 export function resolveMonth(ym: YearMonth, calendar: MonthlyCalendar, locale: Locale): YearMonth {
   const own = calendarSystem(locale);

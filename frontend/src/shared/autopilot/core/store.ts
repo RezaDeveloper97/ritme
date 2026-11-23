@@ -1,8 +1,11 @@
 'use client';
 
+import { useEffect } from 'react';
 import { create } from 'zustand';
 
 import { EMPTY_CATALOG, type PilotCatalog } from '@/shared/pilot';
+
+import { requestAutopilotRuntime } from './wake';
 
 /** What the overlay paints. UI state only (§8); no script values ever land here except the `say` caption. */
 
@@ -70,5 +73,7 @@ export const useAutopilotCatalogStore = create<{ catalog: PilotCatalog }>(() => 
 
 /** The app's catalog (empty until `AutopilotHost` mounts). For building the agent manifest. */
 export function useAutopilotCatalog(): PilotCatalog {
+  // The host that holds the catalog loads lazily — reading it is what asks for it.
+  useEffect(() => requestAutopilotRuntime(), []);
   return useAutopilotCatalogStore((s) => s.catalog);
 }

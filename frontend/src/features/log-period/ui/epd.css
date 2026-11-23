@@ -1,0 +1,70 @@
+/* `epd-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.osheet.epd-sheet { background: var(--surface); }
+
+.epd-sheet .osheet-foot { background: var(--surface); border-top: 0; }
+
+.epd-title { font-family: var(--font-display); font-weight: 400; font-size: 28px; line-height: 1.2; }
+
+.epd-body { display: flex; flex-direction: column; gap: 14px; }
+
+.epd-tiles { display: flex; gap: 8px; }
+
+.epd-tile {
+  flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding: 12px;
+  border-radius: 18px; background: var(--surface-3);
+}
+
+.epd-tile.is-start { background: var(--period-soft); }
+
+.epd-tile-k { font-size: 11px; font-weight: 800; color: var(--text-2); }
+
+.epd-tile.is-start .epd-tile-k { color: var(--period-deep); }
+
+.epd-tile-v { font-size: 15px; font-weight: 800; color: var(--text-1); }
+
+.epd-month { display: flex; align-items: center; justify-content: space-between; }
+
+.epd-month-t { font-family: var(--font-display); font-size: 22px; color: var(--text-1); }
+
+.epd-nav {
+  inline-size: 44px; block-size: 44px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; border: 0; color: var(--text-1); cursor: pointer;
+}
+
+.epd-nav:disabled { opacity: .35; cursor: default; }
+
+.epd-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); row-gap: 8px; }
+
+.epd-wd { text-align: center; font-size: 11px; font-weight: 700; color: var(--text-3); }
+
+.epd-cell { display: flex; justify-content: center; }
+
+.epd-day {
+  position: relative; inline-size: 44px; block-size: 44px; border-radius: 50%;
+  background: transparent; border: 1.5px solid var(--line); color: var(--text-2);
+  font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+
+.epd-day.is-today { border-color: var(--line-strong); color: var(--text-1); }
+
+.epd-day.is-selected { background: var(--period); border-color: var(--period); color: var(--surface); }
+
+.epd-day.is-suggested { border: 2px dashed var(--period); color: var(--period-deep); }
+
+.epd-day.is-locked { opacity: .5; cursor: default; }
+
+.epd-day:focus-visible,
+.epd-nav:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.epd-check {
+  position: absolute; inset-block-end: -3px; inset-inline-end: -3px; inline-size: 16px; block-size: 16px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: var(--period); color: var(--surface); border: 1.5px solid var(--surface);
+}
+
+.epd-hint { margin: 0; font-size: 11.5px; font-weight: 600; line-height: 1.7; color: var(--text-2); }
+
+.epd-foot { display: flex; flex-direction: column; gap: 4px; }
+
+.epd-error { margin: 0 0 6px; font-size: 12px; font-weight: 700; color: var(--danger); text-align: center; }

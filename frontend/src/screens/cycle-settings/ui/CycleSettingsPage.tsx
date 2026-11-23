@@ -39,6 +39,7 @@ import {
   type Reminder,
   type ReminderCode,
 } from '../model/settings';
+import './cys.css';
 
 type Save = (patch: CycleSettingsPatch) => void;
 

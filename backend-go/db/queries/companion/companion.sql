@@ -22,18 +22,18 @@ WHERE owner_id = ? AND companion_user_id = ? AND status <> 'revoked';
 -- name: CreateCompanion :execlastid
 -- goal / share_* / action_prefs are the owner's «ریتمی همراه» v2 preferences (goose 00117; validated in Go).
 INSERT INTO `companions` (owner_id, type, status, display_name, invited_at, goal, share_pain, share_mood, share_energy,
-  share_sleep, action_prefs, created_at, updated_at)
+  share_sleep, share_period_days, action_prefs, created_at, updated_at)
 VALUES (sqlc.arg(owner_id), sqlc.arg(type), 'invited', sqlc.arg(display_name), sqlc.arg(now), sqlc.arg(goal),
-  sqlc.arg(share_pain), sqlc.arg(share_mood), sqlc.arg(share_energy), sqlc.arg(share_sleep), sqlc.arg(action_prefs),
-  sqlc.arg(now), sqlc.arg(now));
+  sqlc.arg(share_pain), sqlc.arg(share_mood), sqlc.arg(share_energy), sqlc.arg(share_sleep),
+  sqlc.arg(share_period_days), sqlc.arg(action_prefs), sqlc.arg(now), sqlc.arg(now));
 
 -- name: UpdateCompanionPreferences :execrows
 -- The owner's preferences of one of her invited or active links (the caller merged the partial update); scoped by the
 -- owner in the statement so a foreign id changes nothing.
 UPDATE `companions`
 SET goal = sqlc.arg(goal), share_pain = sqlc.arg(share_pain), share_mood = sqlc.arg(share_mood),
-  share_energy = sqlc.arg(share_energy), share_sleep = sqlc.arg(share_sleep), action_prefs = sqlc.arg(action_prefs),
-  updated_at = sqlc.arg(now)
+  share_energy = sqlc.arg(share_energy), share_sleep = sqlc.arg(share_sleep),
+  share_period_days = sqlc.arg(share_period_days), action_prefs = sqlc.arg(action_prefs), updated_at = sqlc.arg(now)
 WHERE id = sqlc.arg(id) AND owner_id = sqlc.arg(owner_id) AND status <> 'revoked';
 
 -- name: GetCompanion :one

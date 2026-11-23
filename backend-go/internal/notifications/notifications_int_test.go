@@ -122,7 +122,8 @@ func TestShow_DefaultsWithoutRow(t *testing.T) {
 			{"code":"other","items":[{"code":"learning","enabled":true},{"code":"companion","enabled":true},{"code":"articles","enabled":false}]}
 		],
 		"quiet_hours":{"enabled":true,"start":"23:00","end":"08:00"},
-		"neutral_copy":true}}`, r.raw)
+		"neutral_copy":true,
+		"sms_reminders":true}}`, r.raw)
 }
 
 func TestUpdate_PartialSaveAndUserIsolation(t *testing.T) {

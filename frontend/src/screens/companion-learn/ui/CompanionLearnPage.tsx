@@ -9,6 +9,7 @@ import { AppSheet, openSheet } from '@/shared/sheet';
 import { ScreenHeader, SkyLayer } from '@/shared/ui';
 import { BottomNav } from '@/widgets/bottom-nav';
 import { LEARN_TOPICS, type LearnTopic, type LearnTopicId, LearnTile, matchArticle } from '@/widgets/companion-support';
+import '@/shared/ui/styles/cmh.css';
 
 /**
  * `/companion/learn` — «یادگیری» (companion v2 compLearn): four short topics and «افسانه‌های رایج». A topic

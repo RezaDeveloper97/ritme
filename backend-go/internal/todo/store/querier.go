@@ -24,8 +24,11 @@ type Querier interface {
 	InsertTask(ctx context.Context, arg InsertTaskParams) (int64, error)
 	// The newest open shopping task that already holds items: an accepted suggestion lands there as an item.
 	LatestOpenShoppingList(ctx context.Context, userID uint64) (TodoTask, error)
-	// The board of GET /todo: every open task plus the tasks ticked since done_since, with the item counts of each list.
-	ListBoardTasks(ctx context.Context, arg ListBoardTasksParams) ([]ListBoardTasksRow, error)
+	// The board of GET /todo in one statement (T-M12-30b): every open task plus the tasks ticked since done_since, with
+	// the item counts of each list, and the user's notification categories (notification_preferences.categories, NULL =
+	// no settings row) for the board's reminder switch. Driven by the user's own row, so an empty board is still one row
+	// (task_id NULL) carrying the categories; with tasks, every row repeats them.
+	ListBoard(ctx context.Context, arg ListBoardParams) ([]ListBoardRow, error)
 	// Household list (engine v6 M11, T-M11-04 schema, goose 00108; F-24, F-25): a todo_tasks row with scope = 'household'
 	// belongs to the owner's one household list (user_id = the owner) and is never merged with another owner's list. The
 	// personal statements above stay scope-agnostic until T-M11-14 adds the household writes; the caller checks the

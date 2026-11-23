@@ -7,6 +7,8 @@ import { CompanionCodeField } from '@/entities/companion';
 import { Icon } from '@/shared/ui';
 
 import type { JoinCompanion } from '../model/use-join-companion';
+import '@/shared/ui/styles/onb.css';
+import '@/shared/ui/styles/cmh.css';
 
 interface JoinCodeStepProps {
   join: JoinCompanion;

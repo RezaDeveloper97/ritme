@@ -7,6 +7,7 @@ import type { ReactNode } from 'react';
 import { Link, useDirection, useRouter } from '@/shared/i18n';
 import { Icon } from '@/shared/ui';
 import { PlusBadge, PlusGate } from '@/shared/ui/plus-gate';
+import '@/shared/ui/styles/an.css';
 
 interface PostCardProps {
   title: string;

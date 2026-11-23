@@ -40,7 +40,7 @@ import {
  *   rather than nothing.
  */
 
-const idSchema = z.union([z.number(), z.string()]).pipe(z.coerce.number().int());
+const idSchema = z.union([z.number(), z.string()]).transform(Number).pipe(z.number().int());
 
 const nullableId = z
   .union([z.number(), z.string()])
@@ -62,10 +62,10 @@ function pickText(value: unknown): string | null {
   return null;
 }
 
-const text = z.unknown().transform(pickText);
+const text = z.unknown().optional().transform(pickText);
 
 /** `Y-m-d`, `Y-m-d H:i:s` or ISO → `Y-m-d`; anything else → null. */
-const dateText = z.unknown().transform((v) => {
+const dateText = z.unknown().optional().transform((v) => {
   if (typeof v !== 'string') return null;
   const m = /^(\d{4}-\d{2}-\d{2})/.exec(v.trim());
   return m ? m[1] : null;
@@ -73,14 +73,14 @@ const dateText = z.unknown().transform((v) => {
 
 const count = z.coerce.number().int().nonnegative().catch(0).default(0);
 
-const nullableCount = z.unknown().transform((v) => {
+const nullableCount = z.unknown().optional().transform((v) => {
   const n = typeof v === 'string' && v.trim() !== '' ? Number(v) : v;
   return typeof n === 'number' && Number.isFinite(n) ? Math.trunc(n) : null;
 });
 
 const bool = (fallback: boolean) =>
   z
-    .unknown()
+    .unknown().optional()
     .transform((v) => (v === undefined || v === null ? fallback : v === true || v === 1 || v === '1' || v === 'true'));
 
 const categorySchema = z.enum(CHECKUP_CATEGORIES).catch('custom');
@@ -93,8 +93,8 @@ const labelSchema = z.enum(CHECKUP_LABELS).nullish().catch(null).transform((v) =
 const testKindSchema = z.enum(CHECKUP_TEST_KINDS).nullish().catch(null).transform((v) => v ?? null);
 
 /** Array whose malformed items are dropped one by one; a non-array → []. */
-function tolerantArray<T>(item: z.ZodType<T, z.ZodTypeDef, unknown>) {
-  return z.unknown().transform((raw): T[] => {
+function tolerantArray<T>(item: z.ZodType<T, unknown>) {
+  return z.unknown().optional().transform((raw): T[] => {
     let list: unknown = raw;
     if (typeof list === 'string') {
       try {
@@ -146,10 +146,10 @@ export const checkupSummarySchema = summaryRowSchema.transform(toSummary);
 const itemRowSchema = z.object({
   id: idSchema,
   key: text,
-  title: z.unknown().transform(pickText).pipe(z.string()),
+  title: z.unknown().optional().transform(pickText).pipe(z.string()),
   subtitle: text,
   category: categorySchema.default('custom'),
-  section: z.unknown(),
+  section: z.unknown().optional(),
   status: statusSchema.default('up_to_date'),
   icon: text,
   tone: toneSchema.default('neutral'),
@@ -158,7 +158,7 @@ const itemRowSchema = z.object({
   last_done_on: dateText,
   next_due_on: dateText,
   next_due_label: text,
-  is_custom: z.unknown(),
+  is_custom: z.unknown().optional(),
   informational: bool(false),
   label: labelSchema,
 });
@@ -275,7 +275,7 @@ const pageMetaSchema = z
  * (the two pagination shapes the API already uses elsewhere).
  */
 export const checkupRecordPageSchema = z
-  .unknown()
+  .unknown().optional()
   .transform((raw): CheckupRecordPage => {
     const obj = typeof raw === 'object' && raw !== null && !Array.isArray(raw) ? (raw as Record<string, unknown>) : null;
     const records = tolerantArray(checkupRecordSchema).parse(obj ? (obj.items ?? obj.records ?? obj.data) : raw);
@@ -299,7 +299,7 @@ export const checkupRecordPageSchema = z
 const asObject = (v: unknown): Record<string, unknown> | null =>
   typeof v === 'object' && v !== null && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
 
-const prepStepSchema = z.unknown().transform((v, ctx) => {
+const prepStepSchema = z.unknown().optional().transform((v, ctx) => {
   const o = asObject(v);
   const t = o && ('text' in o || 'title' in o) ? pickText(o.text ?? o.title) : pickText(v);
   if (!t) {
@@ -309,7 +309,7 @@ const prepStepSchema = z.unknown().transform((v, ctx) => {
   return t;
 });
 
-const guideStepSchema = z.unknown().transform((v, ctx): CheckupGuideStep => {
+const guideStepSchema = z.unknown().optional().transform((v, ctx): CheckupGuideStep => {
   const o = asObject(v);
   if (o && ('title' in o || 'body' in o || 'text' in o)) {
     const title = pickText(o.title);
@@ -325,7 +325,7 @@ const guideStepSchema = z.unknown().transform((v, ctx): CheckupGuideStep => {
 /** Keys that mean «چیزی متفاوت نبود» when the server doesn't flag `exclusive`. */
 const NOTHING_KEYS = new Set(['none', 'nothing', 'no_change', 'normal']);
 
-const findingOptionSchema = z.unknown().transform((v, ctx): CheckupFindingOption => {
+const findingOptionSchema = z.unknown().optional().transform((v, ctx): CheckupFindingOption => {
   if (typeof v === 'string' && v.trim()) {
     return { key: v, label: v, exclusive: NOTHING_KEYS.has(v) };
   }
@@ -401,7 +401,7 @@ export const checkupDetailSchema = itemRowSchema
  * T-M4-02 note), a bare item, or a bare record. Anything unreadable → nulls,
  * and the caller refetches.
  */
-export const checkupRecordResultSchema = z.unknown().transform((raw): CheckupRecordResult => {
+export const checkupRecordResultSchema = z.unknown().optional().transform((raw): CheckupRecordResult => {
   if (typeof raw !== 'object' || raw === null) return { item: null, record: null };
   const o = raw as Record<string, unknown>;
   if ('item' in o || 'record' in o) {

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { usePathname } from '@/shared/i18n';
 
 import { isShellUserAgent } from './shell';
+import '@/shared/ui/styles/pwa.css';
 
 // Icon paths from Material Symbols (via Iconify): ios-share, add-box-outline,
 // install-mobile. Inlined so the prompt renders offline with zero requests.

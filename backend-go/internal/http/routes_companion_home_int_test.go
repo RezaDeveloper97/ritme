@@ -94,6 +94,7 @@ func TestCompanionHome_AccessCombinations(t *testing.T) {
 
 	// Accepted with cycle (view) and meds (edit): those two views, the rest null; each read audited.
 	require.Equal(t, fiber.StatusOK, e.do(fiber.MethodPost, "/api/v1/companions/accept", ali, map[string]any{"code": code}).Status)
+	e.confirm(sara, link)
 	r = e.home(ali)
 	require.Equal(t, fiber.StatusOK, r.Status, r.Raw)
 	assert.Equal(t, true, r.data()["has_partners"])

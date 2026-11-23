@@ -24,6 +24,8 @@ import { openSheet } from '@/shared/sheet';
 import { Icon, ScreenHeader, Skeleton, SkeletonGroup, SkyLayer } from '@/shared/ui';
 
 import { MARK_DONE_SHEET, bookPrefill, heroNote, heroRelative, markDoneSheetArg } from '../model/view';
+import '@/shared/ui/styles/ck.css';
+import '@/shared/ui/styles/rmd.css';
 
 const LIST_HREF = '/checkups';
 const GUIDE_HREF = '/checkups/self-exam';

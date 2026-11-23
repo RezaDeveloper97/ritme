@@ -8,6 +8,7 @@ import {
   type IntroSlideId,
 } from '../model/slides';
 import { CycleDotRing, PregnancyDotRing } from './DotRing';
+import '@/shared/ui/styles/ib.css';
 
 type ToneName = 'brand' | 'data' | 'warm' | 'period' | 'bloom';
 

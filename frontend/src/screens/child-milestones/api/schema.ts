@@ -6,7 +6,7 @@ import type { MilestoneActivity, MilestoneBandRef, MilestoneItem, MilestonesView
 
 const text = z.string().nullable().catch(null);
 
-function each<T>(schema: z.ZodType<T, z.ZodTypeDef, unknown>) {
+function each<T>(schema: z.ZodType<T, unknown>) {
   return z
     .array(z.unknown())
     .catch([])

@@ -7,6 +7,12 @@ import { useLocale, useTranslations } from 'next-intl';
 import { localizeFeedText, selectSmartTip, useDailyMessage, type FeedItem } from '@/entities/message';
 import type { Locale } from '@/shared/i18n';
 import { Icon } from '@/shared/ui';
+import '@/shared/ui/styles/home.css';
+import '@/shared/ui/styles/skeleton.css';
+import '@/shared/ui/styles/sec.css';
+import '@/shared/ui/styles/has.css';
+import './tip.css';
+import '@/shared/ui/styles/ch.css';
 
 /**
  * Smart tip («نکته هوشمند») — fully driven by `/messages/daily`.

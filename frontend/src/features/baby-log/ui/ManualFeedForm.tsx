@@ -9,6 +9,7 @@ import { LocaleNumberField, SecondaryButton } from '@/shared/ui';
 
 import { manualStart, tehranNow } from '../model/live';
 import { MAX_AMOUNT_ML, MAX_FEED_MINUTES, type FeedType, type ManualFeedInput } from '../model/types';
+import '@/shared/ui/styles/bfl.css';
 
 const clamp = (n: number | undefined, max: number) => (n === undefined ? undefined : Math.min(max, Math.max(0, n)));
 

@@ -19,7 +19,7 @@ const nullableInt = z.number().int().nullable().catch(null);
 const mood = z.enum(IVF_TWW_MOODS);
 
 /** Keep the valid items of a list, never fail the list. */
-function each<T>(schema: z.ZodType<T, z.ZodTypeDef, unknown>) {
+function each<T>(schema: z.ZodType<T, unknown>) {
   return z
     .array(z.unknown())
     .catch([])

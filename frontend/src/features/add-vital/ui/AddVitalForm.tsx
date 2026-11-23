@@ -57,6 +57,7 @@ import {
 import { MeasuredAtField, type MeasuredAt } from './MeasuredAtField';
 import { UrgentAlertSheet } from './UrgentAlertSheet';
 import { ValueInput } from './ValueInput';
+import '@/shared/ui/styles/vt.css';
 
 type T = ReturnType<typeof useTranslations<'vitals'>>;
 

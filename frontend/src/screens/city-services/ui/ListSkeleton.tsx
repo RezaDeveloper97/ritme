@@ -1,4 +1,5 @@
 import { Card, EmptyState, PrimaryButton, Skeleton, SkeletonGroup } from '@/shared/ui';
+import '@/shared/ui/styles/csv.css';
 
 /** Loading skeleton shared by the city-services screens. */
 export function CsSkeleton({ label }: { label: string }) {

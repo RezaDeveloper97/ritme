@@ -27,3 +27,8 @@ node_modules/
 *.idsig
 *.jks
 *.keystore
+
+# Go coverage (T-M12-12)
+backend-go/cover.out
+backend-go/cover-func.txt
+coverage/

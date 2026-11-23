@@ -25,6 +25,8 @@ import {
 import { useSymptomPattern } from '../api/queries';
 import { heatRuns, typicalBands } from '../model/bars';
 import { PATTERN_GROUPS, type PatternGroup, type SymptomPattern, type SymptomPatternItem } from '../model/schema';
+import './cyh.css';
+import './csp.css';
 
 /** Icon + tone per symptom code; unknown codes (a newer backend) fall back to a neutral look. */
 const SYMPTOM_LOOK: Record<string, { icon: IconName; tone: Tone }> = {

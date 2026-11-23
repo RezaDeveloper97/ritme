@@ -9,6 +9,7 @@ import { Icon, type Tone } from '@/shared/ui';
 import { pilot } from '@/shared/pilot';
 
 import { parseLocaleNumber } from '../model/validate';
+import '@/shared/ui/styles/vt.css';
 
 function show(value: number | null, decimals: number, locale: Locale): string {
   return value === null ? '' : formatDecimal(value.toFixed(decimals), locale);

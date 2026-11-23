@@ -6,11 +6,12 @@ import { useState } from 'react';
 import type { Locale } from '@/shared/i18n';
 import { addDays, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import { Checkbox, NumberStepper } from '@/shared/ui';
-import { OnbFrame } from '@/features/auth';
+import { MonthCalendar, OnbFrame } from '@/features/auth';
 
 import { useSaveOnboardingStep } from '../api/onboarding';
-import { MonthCalendar } from './MonthCalendar';
+
 import { StepScreen, type StepContext } from './StepScreen';
+import '@/shared/ui/styles/onb.css';
 
 /** Same ranges as the cycle-settings screen (B-N1-09). */
 const PERIOD = { min: 2, max: 10, fallback: 5 } as const;

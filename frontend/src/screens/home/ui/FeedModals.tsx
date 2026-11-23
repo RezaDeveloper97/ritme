@@ -6,6 +6,7 @@ import { useEffect, useRef } from 'react';
 import { localizeFeedText, telHref, type FeedItem } from '@/entities/message';
 import type { Locale } from '@/shared/i18n';
 import { PrimaryButton, SecondaryButton, UrgentCard } from '@/shared/ui';
+import '@/shared/ui/styles/del.css';
 
 interface UrgentModalProps {
   item: FeedItem;

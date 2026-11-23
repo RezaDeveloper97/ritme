@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
 import {
   clampTextScaleIndex,
@@ -6,7 +6,6 @@ import {
   isMotionPreference,
   reducesMotion,
   TEXT_SCALES,
-  themeInitScript,
 } from './index';
 
 describe('text scale', () => {
@@ -36,40 +35,5 @@ describe('reduced motion', () => {
     expect(reducesMotion('reduce', false)).toBe(true);
     expect(reducesMotion('system', true)).toBe(true);
     expect(reducesMotion('system', false)).toBe(false);
-  });
-});
-
-// The pre-paint bootstrap duplicates TEXT_SCALES and the motion key; prove they agree.
-describe('themeInitScript display preferences', () => {
-  afterEach(() => vi.unstubAllGlobals());
-
-  function run(store: Record<string, string>) {
-    const props: Record<string, string> = {};
-    const root = {
-      dataset: {} as Record<string, string>,
-      style: { setProperty: (name: string, value: string) => (props[name] = value) },
-    };
-    vi.stubGlobal('localStorage', { getItem: (key: string) => store[key] ?? null });
-    vi.stubGlobal('window', { matchMedia: () => ({ matches: false }) });
-    vi.stubGlobal('document', { documentElement: root, querySelectorAll: () => [] });
-    vi.stubGlobal('getComputedStyle', () => ({ getPropertyValue: () => '' }));
-    new Function(themeInitScript)();
-    return { scale: props['--text-scale'], motion: root.dataset.motion };
-  }
-
-  it('applies every stored text-scale stop exactly as the store does', () => {
-    TEXT_SCALES.forEach((scale, index) => {
-      expect(run({ ritme_text_scale: String(index) }).scale).toBe(String(scale));
-    });
-  });
-
-  it('leaves the scale alone when nothing valid is stored', () => {
-    expect(run({}).scale).toBeUndefined();
-    expect(run({ ritme_text_scale: '42' }).scale).toBeUndefined();
-  });
-
-  it('forces reduced motion only for a stored reduce', () => {
-    expect(run({ ritme_motion: 'reduce' }).motion).toBe('reduce');
-    expect(run({ ritme_motion: 'system' }).motion).toBeUndefined();
   });
 });

@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { useRouter } from '@/shared/i18n';
 import { hasSeenIntro } from '@/shared/session';
 import { CycleDotRing } from '@/widgets/intro-carousel';
+import '@/shared/ui/styles/ib.css';
 
 /**
  * Night & Bloom `Splash`: the dotted cycle ring around the wordmark on the

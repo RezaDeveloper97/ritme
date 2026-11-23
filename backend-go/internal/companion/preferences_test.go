@@ -152,3 +152,21 @@ func TestPreferenceRules(t *testing.T) {
 		`{"goals":["quality_time","support"],"signals":{"pain":true,"energy":0},"action_prefs":["help"]}`)), preferenceRules())
 	assert.False(t, v.Fails())
 }
+
+func TestPreferencesApply_PeriodDays(t *testing.T) {
+	assert.False(t, DefaultPreferences().PeriodDays, "off by default")
+	on := true
+	got, err := DefaultPreferences().Apply(PreferencesPatch{PeriodDays: &on})
+	require.NoError(t, err)
+	assert.True(t, got.PeriodDays)
+	assert.False(t, PreferencesPatch{PeriodDays: &on}.Empty())
+	kept, err := got.Apply(PreferencesPatch{Signals: SignalScope{SignalPain: true}})
+	require.NoError(t, err)
+	assert.True(t, kept.PeriodDays, "an unrelated patch keeps the consent")
+	assert.True(t, preferencesOf(store.Companion{SharePeriodDays: true}).PeriodDays)
+
+	p, err := parsePreferences("en", validation.DecodeBody([]byte(`{"period_days":true}`)))
+	require.NoError(t, err)
+	require.NotNil(t, p.PeriodDays)
+	assert.True(t, *p.PeriodDays)
+}

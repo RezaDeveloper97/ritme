@@ -50,6 +50,9 @@ import {
 import { pilot, pilotOption } from '@/shared/pilot';
 
 import { BpChart, VitalLineChart } from './VitalCharts';
+import '@/shared/ui/styles/log.css';
+import '@/shared/ui/styles/vt.css';
+import './vtc.css';
 
 type T = ReturnType<typeof useTranslations<'vitals'>>;
 

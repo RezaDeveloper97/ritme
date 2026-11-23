@@ -69,6 +69,13 @@ func TestQueryBudgets(t *testing.T) {
 		require.NoError(t, err)
 		tokens[mode] = tok.AccessToken
 	}
+	// T-M12-30: modes without a benchfixtures history (teen, companion) are a bare account + life-stage row.
+	for i, mode := range []enums.LifeMode{enums.LifeModeTeen, enums.LifeModeCompanion} {
+		uid := seedBare(t, db, mode, fmt.Sprintf("0912000%04d", 8100+i))
+		tok, err := iss.Issue(context.Background(), uid, time.Now())
+		require.NoError(t, err)
+		tokens[mode] = tok.AccessToken
+	}
 
 	defer configcache.SetEnabled(false)
 	var report strings.Builder
@@ -89,14 +96,20 @@ func TestQueryBudgets(t *testing.T) {
 			}
 
 			fmt.Fprintf(&report, "| `%s` | %s | %d | %d | %d / %d |\n", b.Path, b.Mode, cold, warm, b.Cold, b.Warm)
-			assert.LessOrEqual(t, cold, b.Cold, "cold queries over budget for %s", b.Path)
-			assert.LessOrEqual(t, warm, b.Warm, "warm queries over budget for %s", b.Path)
+			withinBudget(t, b, cold, warm)
 			if cold < b.Cold || warm < b.Warm {
 				t.Logf("%s: measured %d / %d, below its budget %d / %d — lower the row in budgets.go", b.Name, cold, warm, b.Cold, b.Warm)
 			}
 		})
 	}
 	t.Log(report.String())
+}
+
+// withinBudget is TestQueryBudgets' check of one row: false (and t failed) when either count is over its ceiling.
+func withinBudget(t assert.TestingT, b querybudget.Budget, cold, warm int64) bool {
+	okCold := assert.LessOrEqual(t, cold, b.Cold, "cold queries over budget for %s", b.Path)
+	okWarm := assert.LessOrEqual(t, warm, b.Warm, "warm queries over budget for %s", b.Path)
+	return okCold && okWarm
 }
 
 // TestAuthBudget is the guard's own share (querybudget.Auth) against MariaDB; the same pin as T-M9-09's
@@ -130,7 +143,8 @@ func TestAuthBudget(t *testing.T) {
 // newApp is cmd/api's middleware order that matters for counting (metrics counter → test clock → module gate →
 // the registry) on a fresh in-memory Redis, plus a probe that copies the request's query count into a header.
 // engine is the CYCLE_ENGINE ("" = v1); the v6 state cache runs with verify sampled at 0 so the serving path is counted.
-func newApp(t *testing.T, db *sql.DB, keysPath string, engine config.CycleEngine) *fiber.App {
+// extra handlers run after the module gate, before the routes (TestTightenedRowFailsWhenExceeded's extra query).
+func newApp(t *testing.T, db *sql.DB, keysPath string, engine config.CycleEngine, extra ...fiber.Handler) *fiber.App {
 	t.Helper()
 	quiet := slog.New(slog.NewJSONHandler(io.Discard, nil))
 	mr := miniredis.RunT(t)
@@ -147,6 +161,9 @@ func newApp(t *testing.T, db *sql.DB, keysPath string, engine config.CycleEngine
 	})
 	app.Use(clock.Middleware(clock.Real{}, true))
 	app.Use(modules.Gate(modules.NewService(db, rc, quiet)))
+	for _, h := range extra {
+		app.Use(h)
+	}
 	apihttp.Mount(app, &apihttp.Deps{
 		Config: &config.Config{
 			App:         config.App{Env: "testing", URL: "http://localhost"},
@@ -233,6 +250,23 @@ func seedUser(t *testing.T, db *sql.DB, u benchfixtures.User, mobile string) uin
 	}
 	bulk(t, db, "health_log_entries", "user_id, log_date, category, param, item, value_code, value_num", rows)
 	bulk(t, db, "fertility_logs", "user_id, log_date, lh_test, cervical_mucus", fert)
+	return uid
+}
+
+// seedBare writes an account and its life-stage row only (teen: life_mode teen; companion: a male account).
+func seedBare(t *testing.T, db *sql.DB, mode enums.LifeMode, mobile string) uint64 {
+	t.Helper()
+	res, err := db.Exec(`INSERT INTO users (name, mobile, created_at, updated_at) VALUES ('Bench', ?, '2025-09-01 09:00:00', '2025-09-01 09:00:00')`, mobile)
+	require.NoError(t, err)
+	id, err := res.LastInsertId()
+	require.NoError(t, err)
+	uid := uint64(id) //nolint:gosec // auto-increment id
+	gender, lifeMode := "female", string(mode)
+	if mode == enums.LifeModeCompanion {
+		gender, lifeMode = "male", string(enums.LifeModeCycle)
+	}
+	exec(t, db, `INSERT INTO user_life_profiles (user_id, gender, life_mode, onboarding_completed_at, created_at, updated_at)
+		VALUES (?, ?, ?, NOW(), NOW(), NOW())`, uid, gender, lifeMode)
 	return uid
 }
 

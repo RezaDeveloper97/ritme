@@ -22,6 +22,10 @@ import { DirectoryCard, DirectoryFilterSheet } from '@/widgets/directory-filters
 
 import type { BrowseQuery } from './CityServicesHome';
 import { CsError, CsSkeleton } from './ListSkeleton';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/csv.css';
+import '@/shared/ui/styles/cdh.css';
+import './dfl.css';
 
 /**
  * CB-DIR-07 — `nbl_Dir_List`: the directory list. Search, a city and category row, the filter sheet (child age,

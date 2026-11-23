@@ -159,7 +159,7 @@ const symptomsSchema = z
   .transform((s) => s.days.length);
 
 /** A section view: null when not shared (or unreadable). */
-function section<T extends z.ZodTypeAny>(schema: T) {
+function section<T extends z.ZodType>(schema: T) {
   return schema.nullable().catch(null).optional();
 }
 

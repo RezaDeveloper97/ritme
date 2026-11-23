@@ -477,7 +477,7 @@ func docsApp(env, user, pass string) *fiber.App {
 	mountDocs(app, &config.Config{
 		App:     config.App{Env: env},
 		Swagger: config.Swagger{User: user, Password: pass},
-	})
+	}, nil)
 	return app
 }
 

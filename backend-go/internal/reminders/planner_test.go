@@ -103,3 +103,151 @@ func TestPlan_QuietHoursDeferAndUnknownCycle(t *testing.T) {
 	assert.Equal(t, notifications.ReasonQuietHours, occ[0].Decision.Reason)
 	assert.Equal(t, time.Date(2026, 9, 11, 8, 0, 0, 0, civildate.Tehran), occ[0].Decision.DeferUntil)
 }
+
+// T-M12-21 — Jalali and quiet-hours edge tables for the planner. The planner works on Gregorian days; the Jalali
+// labels are comments (1403 is leap: 30 Esfand 1403 = 2025-03-20; 1404 is not: 29 Esfand 1404 = 2026-03-20).
+
+// Before-period (2 days before by default) and PMS (next − 3) fire on the right Gregorian day when the next period
+// lands on Nowruz or on the leap day, and on no neighbouring day.
+func TestPlan_CycleRemindersAcrossEsfandAndNowruz(t *testing.T) {
+	cases := []struct {
+		name              string
+		anchor, today     string
+		next, before, pms string
+		quiet             []string // days on which neither fires (negative rows)
+	}{
+		{
+			name: "next = 1 Farvardin 1405 (common Esfand)", anchor: "2026-02-21", today: "2026-02-25",
+			next: "2026-03-21", before: "2026-03-19" /* 28 Esfand */, pms: "2026-03-18", /* 27 Esfand */
+			quiet: []string{"2026-03-17", "2026-03-20", "2026-03-21"},
+		},
+		{
+			name: "next = 1 Farvardin 1404 (leap Esfand)", anchor: "2025-02-21", today: "2025-02-25",
+			next: "2025-03-21", before: "2025-03-19" /* 29 Esfand */, pms: "2025-03-18", /* 28 Esfand */
+			quiet: []string{"2025-03-17", "2025-03-20", "2025-03-21"},
+		},
+		{
+			name: "next = 30 Esfand 1403 (the leap day)", anchor: "2025-02-20", today: "2025-02-25",
+			next: "2025-03-20", before: "2025-03-18", pms: "2025-03-17",
+			quiet: []string{"2025-03-16", "2025-03-19", "2025-03-20"},
+		},
+		{
+			name: "next = 2 Farvardin 1405: reminders on 29 Esfand and 1 Farvardin", anchor: "2026-02-22", today: "2026-02-25",
+			next: "2026-03-22", before: "2026-03-20", pms: "2026-03-19",
+			quiet: []string{"2026-03-18", "2026-03-21", "2026-03-22"},
+		},
+	}
+	p := notifications.Defaults()
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			cy := cycleOn(c.anchor, 28, 5, c.today)
+			require.Equal(t, d(c.next), cy.NextPeriodStart)
+			assert.Equal(t, d(c.pms), cy.PMSStart)
+			assert.Contains(t, codes(Plan(p, cy, d(c.before))), notifications.BeforePeriod)
+			assert.Contains(t, codes(Plan(p, cy, d(c.pms))), notifications.PMS)
+			for _, q := range c.quiet {
+				got := codes(Plan(p, cy, d(q)))
+				assert.NotContains(t, got, notifications.BeforePeriod, q)
+				assert.NotContains(t, got, notifications.PMS, q)
+			}
+		})
+	}
+}
+
+// A reminder exactly at the quiet-hours start is deferred to the window's end on the next day (across the
+// 29 Esfand → Nowruz midnight); one exactly at the end goes out; the minute before the end waits until it.
+func TestPlan_QuietHoursBoundariesAcrossNowruz(t *testing.T) {
+	esfand29 := d("2026-03-20")
+	cases := []struct {
+		name       string
+		minute     int
+		send       bool
+		deferUntil time.Time
+	}{
+		{"22:59 sends", 22*60 + 59, true, time.Time{}},
+		{"23:00 (quiet start) defers to Nowruz 08:00", 23 * 60, false, time.Date(2026, 3, 21, 8, 0, 0, 0, civildate.Tehran)},
+		{"23:59 defers to Nowruz 08:00", 23*60 + 59, false, time.Date(2026, 3, 21, 8, 0, 0, 0, civildate.Tehran)},
+		{"00:00 defers to the same day 08:00", 0, false, time.Date(2026, 3, 20, 8, 0, 0, 0, civildate.Tehran)},
+		{"07:59 defers to the same day 08:00", 7*60 + 59, false, time.Date(2026, 3, 20, 8, 0, 0, 0, civildate.Tehran)},
+		{"08:00 (quiet end) sends", 8 * 60, true, time.Time{}},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			p := notifications.Defaults()
+			p.Schedule.Times[notifications.DailyLog] = c.minute
+			occ := Plan(p, Cycle{}, esfand29)
+			require.Equal(t, notifications.DailyLog, occ[0].Category)
+			at := occ[0].At.In(civildate.Tehran)
+			assert.Equal(t, esfand29, civildate.FromTime(at), "the occurrence stays on its own day")
+			assert.Equal(t, c.minute, at.Hour()*60+at.Minute())
+			assert.Equal(t, c.send, occ[0].Decision.Send)
+			assert.Equal(t, c.deferUntil, occ[0].Decision.DeferUntil)
+		})
+	}
+}
+
+// Plan reads the times on the preferences' zone (T-M12-21c, like M-08): a Berlin user's 09:00 daily-log reminder is
+// 09:00 Berlin on every day, across both DST changes — 23 h / 25 h after the previous one across a change — and on
+// the same Berlin day. (Before T-M12-21c it was 09:00 Tehran.)
+func TestPlan_DailyTimeAcrossBerlinDST(t *testing.T) {
+	berlin, err := time.LoadLocation("Europe/Berlin")
+	require.NoError(t, err)
+	p := notifications.Defaults().InZone(berlin)
+	p.Schedule.Times[notifications.DailyLog] = 9 * 60
+	for _, tc := range []struct {
+		days []string
+		gaps []time.Duration
+	}{
+		{[]string{"2026-03-28", "2026-03-29", "2026-03-30"}, []time.Duration{23 * time.Hour, 24 * time.Hour}},
+		{[]string{"2026-10-24", "2026-10-25", "2026-10-26"}, []time.Duration{25 * time.Hour, 24 * time.Hour}},
+	} {
+		var prev time.Time
+		for i, day := range tc.days {
+			occ := Plan(p, Cycle{}, d(day))
+			require.Len(t, occ, 2, day) // daily log + pill: one each, never doubled
+			at := occ[0].At
+			assert.Equal(t, "09:00", at.In(berlin).Format("15:04"), day)
+			assert.Equal(t, d(day), civildate.FromTime(at.In(berlin)), "%s: the Berlin day", day)
+			assert.True(t, occ[0].Decision.Send, "09:00 Berlin is outside 23–08 Berlin")
+			if i > 0 {
+				assert.Equal(t, tc.gaps[i-1], at.Sub(prev), day)
+			}
+			prev = at
+		}
+	}
+}
+
+// A user without a zone keeps the Tehran clock: 09:00 Tehran, 24 h apart (unchanged by T-M12-21c).
+func TestPlan_TehranUserUnchanged(t *testing.T) {
+	p := notifications.Defaults()
+	p.Schedule.Times[notifications.DailyLog] = 9 * 60
+	var prev time.Time
+	for i, day := range []string{"2026-03-28", "2026-03-29", "2026-03-30"} {
+		at := Plan(p, Cycle{}, d(day))[0].At
+		assert.Equal(t, time.Date(2026, 3, 28+i, 9, 0, 0, 0, civildate.Tehran), at)
+		assert.Equal(t, d(day), civildate.InTehran(at))
+		if i > 0 {
+			assert.Equal(t, 24*time.Hour, at.Sub(prev))
+		}
+		prev = at
+	}
+}
+
+// Quiet hours on the Berlin clock: a reminder at 23:30 Berlin before the spring-forward night is deferred to 08:00
+// Berlin (7 h 30 min later, not 8 h 30 min), and a reminder inside the skipped hour fires at the transition.
+func TestPlan_BerlinQuietHoursAndGap(t *testing.T) {
+	berlin, err := time.LoadLocation("Europe/Berlin")
+	require.NoError(t, err)
+	p := notifications.Defaults().InZone(berlin)
+	p.Schedule.Times[notifications.DailyLog] = 23*60 + 30
+	occ := Plan(p, Cycle{}, d("2026-03-28"))
+	assert.False(t, occ[0].Decision.Send)
+	assert.Equal(t, notifications.ReasonQuietHours, occ[0].Decision.Reason)
+	assert.True(t, time.Date(2026, 3, 29, 8, 0, 0, 0, berlin).Equal(occ[0].Decision.DeferUntil))
+	assert.Equal(t, 7*time.Hour+30*time.Minute, occ[0].Decision.DeferUntil.Sub(occ[0].At))
+
+	p.QuietEnabled = false
+	p.Schedule.Times[notifications.DailyLog] = 2*60 + 30
+	at := Plan(p, Cycle{}, d("2026-03-29"))[0].At
+	assert.Equal(t, "03:00", at.In(berlin).Format("15:04"), "02:30 does not exist: the first valid instant after the gap")
+}

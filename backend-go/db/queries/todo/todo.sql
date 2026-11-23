@@ -24,13 +24,20 @@ DELETE FROM `todo_tasks` WHERE id = sqlc.arg(id) AND user_id = sqlc.arg(user_id)
 -- name: CountTasks :one
 SELECT COUNT(*) FROM `todo_tasks` WHERE user_id = sqlc.arg(user_id);
 
--- name: ListBoardTasks :many
--- The board of GET /todo: every open task plus the tasks ticked since done_since, with the item counts of each list.
-SELECT t.*,
+-- name: ListBoard :many
+-- The board of GET /todo in one statement (T-M12-30b): every open task plus the tasks ticked since done_since, with
+-- the item counts of each list, and the user's notification categories (notification_preferences.categories, NULL =
+-- no settings row) for the board's reminder switch. Driven by the user's own row, so an empty board is still one row
+-- (task_id NULL) carrying the categories; with tasks, every row repeats them.
+SELECT np.categories AS notification_categories,
+  t.id AS task_id, t.title, t.note, t.category, t.due_date, t.due_time, t.remind, t.done_at, t.suggestion_key,
+  t.created_at,
   (SELECT COUNT(*) FROM `todo_items` i WHERE i.task_id = t.id) AS items_total,
   (SELECT COUNT(*) FROM `todo_items` i WHERE i.task_id = t.id AND i.done_at IS NULL) AS items_open
-FROM `todo_tasks` t
-WHERE t.user_id = sqlc.arg(user_id) AND (t.done_at IS NULL OR t.done_at >= sqlc.arg(done_since))
+FROM `users` u
+LEFT JOIN `notification_preferences` np ON np.user_id = u.id
+LEFT JOIN `todo_tasks` t ON t.user_id = u.id AND (t.done_at IS NULL OR t.done_at >= sqlc.arg(done_since))
+WHERE u.id = sqlc.arg(user_id)
 ORDER BY t.id
 LIMIT ?;
 

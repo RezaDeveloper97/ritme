@@ -10,6 +10,7 @@ import { Card, Icon, IconCircle, Skeleton, TileButton } from '@/shared/ui';
 import { babyActionError, useDiaperAction, useDiaperDay } from '../api/queries';
 import { wallTime } from '../model/live';
 import { DIAPER_KINDS, type DiaperKind } from '../model/types';
+import '@/shared/ui/styles/bfl.css';
 
 const ICON: Record<DiaperKind, 'drop' | 'box' | 'sprout'> = { wet: 'drop', dirty: 'box', both: 'sprout' };
 

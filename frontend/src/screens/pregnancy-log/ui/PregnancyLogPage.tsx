@@ -10,6 +10,8 @@ import { BottomNav } from '@/widgets/bottom-nav';
 import { MovementForm } from './MovementForm';
 import { SymptomsForm } from './SymptomsForm';
 import { WeeklyForm } from './WeeklyForm';
+import './plog.css';
+import '@/shared/ui/styles/pgn.css';
 
 type Tab = 'symptoms' | 'weekly' | 'movement';
 const TABS: Tab[] = ['symptoms', 'weekly', 'movement'];

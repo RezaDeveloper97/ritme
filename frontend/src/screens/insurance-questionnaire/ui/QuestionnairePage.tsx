@@ -37,6 +37,8 @@ import {
 } from '@/shared/ui';
 
 import { useQuestionnairePdf } from '../lib/use-questionnaire-pdf';
+import '@/shared/ui/styles/ins.css';
+import './insq.css';
 
 const MAX_EXPLANATION = 2000;
 

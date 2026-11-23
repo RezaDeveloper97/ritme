@@ -5,29 +5,30 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 
 import { useLogDay, useLogPreferences, useLogTaxonomy } from '@/entities/health-log';
-import type { Locale } from '@/shared/i18n';
+import { Link, type Locale } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
 import { formatNumber, toApiDate, today } from '@/shared/lib/date';
 import { openSheet } from '@/shared/sheet';
-import { Card, Icon, IconCircle, type IconName, type Tone } from '@/shared/ui';
+import { IconCircle, type IconName, type Tone } from '@/shared/ui';
 
 import { summarizeTodayLog } from '../model/today-log';
+import '@/shared/ui/styles/ch.css';
 
-interface Row {
-  /** Also the log taxonomy category the row opens (`?sheet=log` scrolls to it). */
-  key: 'bleeding' | 'symptoms' | 'mood';
+interface Tile {
+  key: 'period' | 'symptoms' | 'mood';
   icon: IconName;
   tone: Tone;
   title: string;
   sub: string;
-  /** Items logged (shown as a count); 0 = empty (a + disc), null = logged without a count (a tick). */
+  /** Items logged; 0 = nothing yet, null = logged without a count. Only the accessible name reads it. */
   count: number | null;
 }
 
 /**
- * «ثبت امروز» (nbl_Cycle_Home): today's bleeding, symptoms and mood at a glance
- * with the logging streak. Every row opens the log sheet (`?sheet=log`, B-N3-03) on its own section;
- * the rows are buttons, so the + disc is decoration, not a second target.
+ * «ثبت امروز» (nbl_Cycle_Home): three cards — «ثبت پریود», «علائم», «حال و روحیه» — with the logging
+ * streak (user request, 2026-11-22). «ثبت پریود» opens the calendar's period editor (`/calendar?editDates=1`);
+ * the other two open the log sheet (`?sheet=log`, B-N3-03) on their own section. Each card is one
+ * target.
  */
 export function TodayLogCard({ streakDays }: { streakDays: number | null }) {
   const t = useTranslations('home.nb.log');
@@ -43,16 +44,16 @@ export function TodayLogCard({ streakDays }: { streakDays: number | null }) {
     return summarizeTodayLog(day?.categories, taxonomy.data?.categories ?? [], { extraLabels, unknown });
   }, [day, taxonomy.data, prefs.data, unknown]);
 
-  // Every logged item; the sub line ellipsizes when it runs out of room.
+  // Every logged item; the sub line clamps when it runs out of room.
   const list = (items: string[]) => items.join(' · ');
 
-  const rows: Row[] = [
+  const tiles: Tile[] = [
     {
-      key: 'bleeding',
+      key: 'period',
       icon: 'drop',
       tone: 'period',
-      title: t('bleeding'),
-      sub: summary.bleeding ?? t('bleedingHint'),
+      title: t('period'),
+      sub: summary.bleeding ?? t('periodHint'),
       count: summary.bleeding === null ? 0 : null,
     },
     {
@@ -73,43 +74,53 @@ export function TodayLogCard({ streakDays }: { streakDays: number | null }) {
     },
   ];
 
+  // Centred card (user request, 2026-11-22): the 3D icon on top, then title and summary — no corner badge.
+  const body = (tile: Tile) => (
+    <>
+      <IconCircle icon={tile.icon} tone={tile.tone} size="lg" outlined className="ch-log-icon" />
+      <span className="ch-log-title">{tile.title}</span>
+      <span className="ch-log-sub">{tile.sub}</span>
+    </>
+  );
+
+  // «ثبت پریود» already says what it does; the empty sections read «ثبت علائم» / «ثبت حال و روحیه».
+  const label = (tile: Tile) =>
+    tile.count !== 0 ? `${tile.title} · ${tile.sub}` : tile.key === 'period' ? tile.title : t('add', { name: tile.title });
+
   return (
-    <Card as="section" className="ch-log" aria-busy={isPending || undefined}>
+    <section className="ch-log" aria-busy={isPending || undefined}>
       <div className="ch-card-head">
         <h2 className="ch-card-title">{t('title')}</h2>
         {streakDays != null && streakDays > 1 && (
           <span className="ch-streak">{t('streak', { n: formatNumber(streakDays, loc) })}</span>
         )}
       </div>
-      {rows.map((row) => (
-        <button
-          key={row.key}
-          type="button"
-          onClick={() => openSheet('log', `${toApiDate(today())}:${row.key}`)}
-          className="ch-log-row"
-          {...pilot(`home.log-row:${row.key}`)}
-          aria-label={row.count === 0 ? t('add', { name: row.title }) : `${row.title} · ${row.sub}`}
-        >
-          <IconCircle icon={row.icon} tone={row.tone} outlined />
-          <span className="ch-log-body">
-            <span className="ch-log-title">{row.title}</span>
-            <span className="ch-log-sub">{row.sub}</span>
-          </span>
-          {row.count === 0 ? (
-            <span className={`ch-log-add is-${row.tone}`} aria-hidden>
-              <Icon name="plus" size={16} strokeWidth={2.4} />
-            </span>
-          ) : row.count === null ? (
-            <span className={`ch-log-count is-${row.tone}`} aria-hidden>
-              <Icon name="check" size={16} strokeWidth={2.4} />
-            </span>
+      <div className="ch-log-grid">
+        {tiles.map((tile) =>
+          tile.key === 'period' ? (
+            <Link
+              key={tile.key}
+              href="/calendar?editDates=1"
+              className="nb-card ch-log-tile"
+              {...pilot(`home.log-card:${tile.key}`)}
+              aria-label={label(tile)}
+            >
+              {body(tile)}
+            </Link>
           ) : (
-            <span className={`ch-log-count is-${row.tone}`} aria-hidden>
-              {formatNumber(row.count, loc)}
-            </span>
-          )}
-        </button>
-      ))}
-    </Card>
+            <button
+              key={tile.key}
+              type="button"
+              onClick={() => openSheet('log', `${toApiDate(today())}:${tile.key}`)}
+              className="nb-card ch-log-tile"
+              {...pilot(`home.log-card:${tile.key}`)}
+              aria-label={label(tile)}
+            >
+              {body(tile)}
+            </button>
+          ),
+        )}
+      </div>
+    </section>
   );
 }

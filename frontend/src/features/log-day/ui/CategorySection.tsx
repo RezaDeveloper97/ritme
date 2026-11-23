@@ -12,6 +12,9 @@ import { asBool, asItems, categoryEntries, type LabelContext } from '../model/dr
 import { logPilotId } from '../model/pilot-targets';
 import { categoryLook, panelOf, type PanelKind } from '../model/presentation';
 import { ParamField } from './ParamField';
+import { BleedingPanel } from './panels/BleedingPanel';
+import { MeasurePanel } from './panels/MeasurePanel';
+import '@/shared/ui/styles/lday.css';
 
 export interface CategorySectionProps {
   category: LogCategory;
@@ -21,6 +24,8 @@ export interface CategorySectionProps {
   mode: string | null;
   labels: LabelContext;
   locale: Locale;
+  /** The logged day (`YYYY-MM-DD`): the measurements form compares against the last reading before it. */
+  date: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onOpenPanel: (kind: PanelKind) => void;
@@ -28,8 +33,8 @@ export interface CategorySectionProps {
 
 /**
  * One accordion section of «همه موارد», rendered from the taxonomy. Pain gets «بدون درد» as the first
- * location chip, bleeding gets «لکه‌بینی» before the flows; optional `detail` params sit behind
- * «جزئیات بیشتر» — or, for bleeding / pain / measurements, in their detail panel.
+ * location chip; bleeding and measurements open straight onto their full form (شدت · رنگ · لخته · بو / وزن · دمای پایه ·
+ * تست‌ها) inside the accordion; optional `detail` params sit behind «جزئیات بیشتر» — or, for pain, in its panel.
  */
 export const CategorySection = forwardRef<HTMLDivElement, CategorySectionProps>(function CategorySection(props, ref) {
   const t = useTranslations('logSheet');
@@ -64,6 +69,23 @@ function SectionBody(props: CategorySectionProps) {
   const panel = panelOf(category.code);
   const cat = category.code;
   const val = (p: LogParam) => values[cat]?.[p.code];
+
+  // Bleeding and measurements have no second sheet: the accordion itself is the whole form
+  // (Log_Bleeding / Log_Measure inline).
+  if (cat === 'bleeding') {
+    return (
+      <div className="lday-body lday-inline-form">
+        <BleedingPanel category={category} values={values} setParam={setParam} extraOptions={extraOptions} mode={mode} locale={locale} />
+      </div>
+    );
+  }
+  if (cat === 'measurements') {
+    return (
+      <div className="lday-body lday-inline-form">
+        <MeasurePanel category={category} values={values} setParam={setParam} mode={mode} locale={locale} date={props.date} />
+      </div>
+    );
+  }
   const field = (p: LogParam, extra?: Partial<Parameters<typeof ParamField>[0]>) => (
     <ParamField
       key={p.code}
@@ -85,37 +107,6 @@ function SectionBody(props: CategorySectionProps) {
   const byCode = (code: string) => category.params.find((p) => p.code === code);
   const handled = new Set<string>();
   const nodes: ReactNode[] = [];
-
-  if (cat === 'bleeding') {
-    const flow = byCode('flow');
-    const spotting = byCode('spotting');
-    if (flow) {
-      handled.add('flow');
-      if (spotting) handled.add('spotting');
-      const spottingOn = spotting ? asBool(val(spotting)) === true : false;
-      nodes.push(
-        field(flow, {
-          hideLabel: true,
-          value: spottingOn ? undefined : val(flow),
-          onChange: (v) => {
-            setParam(cat, 'flow', v);
-            if (v !== null && spotting) setParam(cat, 'spotting', null);
-          },
-          leading: spotting
-            ? {
-                label: t('bleeding.spotting'),
-                pressed: spottingOn,
-                pilotId: logPilotId.param(cat, 'spotting'),
-                onToggle: () => {
-                  setParam(cat, 'spotting', spottingOn ? null : true);
-                  if (!spottingOn) setParam(cat, 'flow', null);
-                },
-              }
-            : undefined,
-        }),
-      );
-    }
-  }
 
   if (cat === 'pain') {
     const none = byCode('none');
@@ -153,9 +144,7 @@ function SectionBody(props: CategorySectionProps) {
   const detail = panel ? [] : category.params.filter((p) => !handled.has(p.code) && p.detail);
   for (const p of inline) nodes.push(field(p));
 
-  const panelHasMore = panel === 'pain' || panel === 'measure' || category.params.some((p) => p.detail);
-  const linkLabel =
-    panel === 'pain' ? t('bodyMapLink') : panel === 'bleeding' ? t('bleedingLink') : panel === 'measure' ? t('measureLink') : null;
+  const linkLabel = panel === 'pain' ? t('bodyMapLink') : null;
 
   return (
     <div className="lday-body">
@@ -175,7 +164,7 @@ function SectionBody(props: CategorySectionProps) {
           {details ? detail.map((p) => field(p)) : null}
         </>
       ) : null}
-      {panel && panelHasMore && linkLabel ? (
+      {panel && linkLabel ? (
         <button type="button" className="lday-panel-link" onClick={() => onOpenPanel(panel)} {...pilot(logPilotId.panel(panel))}>
           {linkLabel}
         </button>

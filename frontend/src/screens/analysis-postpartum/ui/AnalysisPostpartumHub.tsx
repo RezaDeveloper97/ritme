@@ -23,6 +23,9 @@ import {
 import { epdsTrend } from '../model/hub';
 import { EpdsChart } from './EpdsChart';
 import { PostCard } from './PostCard';
+import '@/shared/ui/styles/an.css';
+import '@/shared/ui/styles/apg.css';
+import './anp.css';
 
 type T = ReturnType<typeof useTranslations<'analysisPostpartum.hub'>>;
 

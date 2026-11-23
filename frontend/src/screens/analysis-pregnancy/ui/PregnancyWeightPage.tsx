@@ -14,6 +14,9 @@ import { isPregnancyInactive, usePregnancyAnalysis } from '../api/queries';
 import { isUserRow } from '../model/chart';
 import { weightNoteText } from './AnalysisPregnancyHub';
 import { GainChartView } from './GainChartView';
+import '@/shared/ui/styles/axc.css';
+import '@/shared/ui/styles/anr.css';
+import '@/shared/ui/styles/apg.css';
 
 /**
  * `/analysis/pregnancy-weight` (An_PregWeight, B-N3-12): gain so far, the

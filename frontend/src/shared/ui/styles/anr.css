@@ -1,0 +1,53 @@
+/* `anr-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.anr-note { margin: 0; font-size: 12.5px; line-height: 1.8; font-weight: 600; color: var(--text-2); }
+
+.anr-lead { margin: 0; font-size: 13px; line-height: 1.9; font-weight: 600; color: var(--text-2); }
+
+.anr-finding { margin: 0; font-size: 13px; line-height: 1.9; font-weight: 600; color: var(--text-1); }
+
+.anr-highlight { margin: 0; font-size: 12.5px; line-height: 1.8; font-weight: 600; color: var(--text-2); }
+
+.anr-highlight b { color: var(--text-1); font-weight: 800; }
+
+.anr-chips {
+  display: flex; gap: 8px; overflow-x: auto; padding-block: 2px; margin-inline: calc(-1 * var(--gutter-form));
+  padding-inline: var(--gutter-form); scrollbar-width: none;
+}
+
+.anr-chips::-webkit-scrollbar { display: none; }
+
+.nb-chip.anr-chip { position: relative; flex-shrink: 0; height: 44px; padding-inline: 16px; font-size: 13px; font-weight: 800; border-radius: 22px; }
+
+.nb-chip.anr-chip .nb-chip-check { display: none; }
+
+.anr-locked.nb-card { padding: 16px; }
+
+.anr-locked .nb-lock { border-radius: 16px; }
+
+.anr-metric { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+
+.anr-metric-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+
+.anr-metric-label { font-size: 12.5px; font-weight: 700; color: var(--text-1); }
+
+.anr-big { font-family: var(--font-display); font-size: 40px; line-height: 1; color: var(--text-1); }
+
+.anr-big-row { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+
+.anr-big-unit { font-size: 12.5px; font-weight: 700; color: var(--text-2); }
+
+.anr-metric-delta { align-self: center; flex-shrink: 0; font-size: 13px; font-weight: 800; color: var(--data-deep); }
+
+.anr-chip-out {
+  align-self: center; flex-shrink: 0; padding: 5px 12px; border-radius: 16px; border: 1.5px solid var(--brand);
+  font-size: 12px; font-weight: 800; color: var(--brand-strong); white-space: nowrap;
+}
+
+.anr-minis { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+
+.anr-mini { padding: 10px 6px; border-radius: 14px; background: var(--data-soft); text-align: center; }
+
+.anr-mini dt { font-size: 11px; font-weight: 700; color: var(--text-2); }
+
+.anr-mini dd { margin: 4px 0 0; font-size: 15px; font-weight: 800; color: var(--text-1); }

@@ -251,7 +251,7 @@ func (q *Queries) GetLinkInviteIntent(ctx context.Context, companionID sql.NullI
 }
 
 const getOpenLinkForPair = `-- name: GetOpenLinkForPair :one
-SELECT id, owner_id, companion_user_id, type, status, display_name, invited_at, accepted_at, revoked_at, revoked_by, created_at, updated_at, role, template, expires_at, urgent_sms, owner_confirmed_at, goal, share_pain, share_mood, share_energy, share_sleep, action_prefs FROM ` + "`" + `companions` + "`" + `
+SELECT id, owner_id, companion_user_id, type, status, display_name, invited_at, accepted_at, revoked_at, revoked_by, created_at, updated_at, role, template, expires_at, urgent_sms, owner_confirmed_at, share_pain, share_mood, share_energy, share_sleep, action_prefs, goal, share_period_days FROM ` + "`" + `companions` + "`" + `
 WHERE owner_id = ? AND companion_user_id = ? AND status = 'active'
 ORDER BY id LIMIT 1
 `
@@ -283,12 +283,13 @@ func (q *Queries) GetOpenLinkForPair(ctx context.Context, arg GetOpenLinkForPair
 		&i.ExpiresAt,
 		&i.UrgentSms,
 		&i.OwnerConfirmedAt,
-		&i.Goal,
 		&i.SharePain,
 		&i.ShareMood,
 		&i.ShareEnergy,
 		&i.ShareSleep,
 		&i.ActionPrefs,
+		&i.Goal,
+		&i.SharePeriodDays,
 	)
 	return i, err
 }

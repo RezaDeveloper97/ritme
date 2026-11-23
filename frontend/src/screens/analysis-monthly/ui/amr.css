@@ -1,0 +1,85 @@
+/* `amr-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.amr-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+.amr-stepper { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-block: -8px -4px; }
+
+.amr-step {
+  display: inline-flex; align-items: center; gap: 4px; min-block-size: 44px; padding: 0 12px; border-radius: 22px;
+  border: 0; background: transparent; color: var(--brand-strong); font: inherit; font-size: 12.5px; font-weight: 800; cursor: pointer;
+}
+
+.amr-step:hover { background: var(--surface-3); }
+
+.amr-step:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.amr-skel-hero.nb-skel { block-size: 132px; }
+
+.amr-skel-table.nb-skel { block-size: 360px; }
+
+.amr-hero {
+  display: flex; flex-direction: column; gap: 8px; padding: 22px 20px; border-radius: var(--r-card);
+  border: 1px solid var(--line); background: var(--hero-tint);
+}
+
+.amr-headline { margin: 0; font-family: var(--font-display); font-size: 30px; font-weight: 400; line-height: 1.3; color: var(--text-1); }
+
+.amr-summary { margin: 0; font-size: 13.5px; line-height: 2; font-weight: 600; color: var(--text-2); }
+
+.amr-table-card.nb-card { padding: 6px 16px; }
+
+.amr-table { inline-size: 100%; border-collapse: collapse; }
+
+.amr-table th,
+.amr-table td { padding: 0; text-align: start; }
+
+.amr-table thead th { block-size: 52px; font-size: 11.5px; font-weight: 700; color: var(--text-2); border-block-end: 1px solid var(--line); }
+
+.amr-table tbody tr + tr > * { border-block-start: 1px solid var(--line); }
+
+.amr-table tbody > tr > * { block-size: 60px; }
+
+.amr-th-num { inline-size: 88px; }
+
+.amr-th-num:last-child { inline-size: 64px; }
+
+.amr-td-metric { font-size: 14px; font-weight: 800; color: var(--text-1); }
+
+.amr-td-value { font-size: 14px; font-weight: 800; color: var(--text-1); white-space: nowrap; }
+
+.amr-td-delta { font-size: 13.5px; font-weight: 800; white-space: nowrap; }
+
+.amr-td-delta.is-data { color: var(--data-deep); }
+
+.amr-td-delta.is-warm { color: var(--warm-deep); }
+
+.amr-td-delta.is-flat { color: var(--text-2); }
+
+.amr-top { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+
+.amr-top-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+
+.amr-top-name { font-size: 14px; font-weight: 600; color: var(--text-1); }
+
+.amr-top-days { flex-shrink: 0; font-size: 13.5px; font-weight: 800; color: var(--text-1); }
+
+.amr-suggestion { margin: 0; font-size: 13.5px; line-height: 2; font-weight: 600; color: var(--text-2); }
+
+.amr-pdf-wrap { display: flex; flex-direction: column; gap: 8px; }
+
+.amr-pdf {
+  display: flex; align-items: center; justify-content: center; gap: 10px; inline-size: 100%; min-block-size: var(--h-btn);
+  padding: 0 20px; border-radius: 28px; border: 1px solid var(--line-strong); background: var(--surface);
+  color: var(--text-1); font: inherit; font-size: 15px; font-weight: 800; cursor: pointer;
+}
+
+.amr-pdf.is-soon { cursor: default; }
+
+.amr-pdf.is-soon .amr-pdf-label,
+.amr-pdf.is-soon > svg { opacity: .7; }
+
+.amr-pdf:not(.is-soon):hover { background: var(--surface-3); }
+
+.amr-pdf:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.amr-pdf-note { margin: 0; text-align: center; font-size: 12px; line-height: 1.8; font-weight: 600; color: var(--text-2); }

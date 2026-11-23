@@ -56,3 +56,9 @@ FAM-L3). DECISIONS.md F-11, F-12, F-13, F-17; D-196.
 
 ## Acceptance
 - Verify passes; PROGRESS.md cites D-196.
+
+## Note from T-M12-11b (2026-11-18)
+Ten `internal/http` integration tests went red in f91cb154 (this task's `needsOwner` → `awaiting_owner` on
+code-only invites). The "any write level" clause went beyond F-11; the user chose to keep it (new row **F-27**).
+T-M12-11b added the owner-confirm step to the affected tests (`securityPair`, companion home, delegated write,
+loss, children). Verify of this task must stay green with that.

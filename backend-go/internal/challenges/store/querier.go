@@ -36,6 +36,11 @@ type Querier interface {
 	ListTasks(ctx context.Context, challengeID uint64) ([]ChallengeTask, error)
 	ListUserEnrollments(ctx context.Context, userID uint64) ([]ChallengeEnrollment, error)
 	ListUserRewards(ctx context.Context, userID uint64) ([]ListUserRewardsRow, error)
+	// Serialises the Plus-period writes of one user (T-M12-19b), taken right after LockUserEnrollment and before any
+	// insert: an insert's foreign-key check takes a shared lock on the users row, and two runs of one user both holding
+	// it while plus.GrantDays asks for the exclusive one deadlock (1213). Lock order: enrollment row, then this one
+	// (the same as plus: invoice / store purchase row, then the user).
+	LockUser(ctx context.Context, id uint64) (uint64, error)
 	// Serialises the completion check of one enrollment (the reward is granted under this lock).
 	LockUserEnrollment(ctx context.Context, arg LockUserEnrollmentParams) (ChallengeEnrollment, error)
 	// Distinct users who completed anything on each day of the run.

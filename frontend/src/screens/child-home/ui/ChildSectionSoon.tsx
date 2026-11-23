@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useChild } from '@/entities/child';
 import { useRouter } from '@/shared/i18n';
 import { EmptyState, ScreenHeader, SecondaryButton, SkyLayer } from '@/shared/ui';
+import '@/shared/ui/styles/chd.css';
 
 export type ChildSection = 'growth' | 'vaccines' | 'milestones' | 'learn';
 

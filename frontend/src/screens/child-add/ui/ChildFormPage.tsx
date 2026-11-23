@@ -62,6 +62,8 @@ import {
 } from '@/shared/ui';
 
 import { type ChildFormState, EMPTY_FORM, formFromChild, type FormProblem, toChildInput, validateChildForm } from '../model/form';
+import '@/shared/ui/styles/has.css';
+import '@/shared/ui/styles/chd.css';
 
 type T = ReturnType<typeof useTranslations<'children'>>;
 

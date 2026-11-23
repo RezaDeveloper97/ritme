@@ -5,6 +5,7 @@ import (
 
 	"github.com/ritme/backend-go/internal/admin/httpadmin"
 	"github.com/ritme/backend-go/internal/modules"
+	"github.com/ritme/backend-go/internal/platform/etag"
 )
 
 // App module kill-switches: GET /api/v1/modules (public, read by onboarding and the app shell) and the admin
@@ -13,7 +14,7 @@ import (
 func init() {
 	Register("modules", func(r fiber.Router, d *Deps) {
 		h := modules.NewHandlers(modules.NewService(d.DB, d.Cache, d.Logger), d.Logger)
-		r.Get("/api/v1/modules", h.Public)
+		r.Get("/api/v1/modules", etag.ByBody(), h.Public) // T-M12-34: ETag / 304
 
 		kit := httpadmin.Wire(d.Config.App.Env, d.DB, d.Cache, d.Logger)
 		httpadmin.Handle(r, fiber.MethodGet, httpadmin.Prefix+"/modules", kit.Admin(h.AdminShow))

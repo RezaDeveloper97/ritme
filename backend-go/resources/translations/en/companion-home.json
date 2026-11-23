@@ -236,5 +236,36 @@
     "forAll": "About the cycle, support without judging, and being a better companion.",
     "enterCode": "Enter a companion code",
     "skip": "Skip for now"
+  },
+  "calendar": {
+    "title": "My calendar",
+    "subtitle": "Your own reminders and the days to be a little more attentive",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "legendTitle": "Calendar key",
+    "legendPeriod": "{name}'s likely period days",
+    "legendAppointment": "Your appointment",
+    "periodTitle": "Likely {name}'s period",
+    "periodBody": "{name} may feel more tired or be in pain these days. A little extra care and support helps.",
+    "notShared": "{name} hasn't shared her likely period days with you. She can turn it on in her companion settings if she wants to.",
+    "disclaimer": "These days are predictions and may shift by a few days. Only upcoming days are shown.",
+    "noPartnerTitle": "You're not connected to anyone yet",
+    "noPartnerBody": "Connect with a companion code to also see the days your partner shares here.",
+    "dayEmpty": "No reminders on this day.",
+    "at": "at {time}",
+    "a11yPeriod": "likely {name}'s period day",
+    "a11yAppointments": "{count, plural, one {# appointment} other {# appointments}}",
+    "addTitle": "New reminder",
+    "addMedication": "Medication reminder",
+    "addAppointment": "Doctor's appointment",
+    "weekdays": {
+      "sat": "Sa",
+      "sun": "Su",
+      "mon": "Mo",
+      "tue": "Tu",
+      "wed": "We",
+      "thu": "Th",
+      "fri": "Fr"
+    }
   }
 }

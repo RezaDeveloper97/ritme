@@ -7,6 +7,7 @@ import { Link, type Locale } from '@/shared/i18n';
 import { formatNumber } from '@/shared/lib/date';
 import { pilot } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
+import '@/shared/ui/styles/shp.css';
 
 /** «۴۸۵ هزار تومان» — compact toman, copy from the `shop.price.*` messages. */
 export function usePrice() {

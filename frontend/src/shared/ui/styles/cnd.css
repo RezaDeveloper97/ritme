@@ -1,0 +1,87 @@
+/* `cnd-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.cnd-body { display: flex; flex-direction: column; gap: 14px; padding: 4px var(--gutter) 24px; }
+
+.cnd-intro { display: flex; flex-direction: column; gap: 6px; padding-block: 4px 6px; text-align: start; }
+
+.cnd-heading { margin: 0; font-size: 24px; font-weight: 800; line-height: 1.5; color: var(--text-1); }
+
+.cnd-lead { margin: 0; font-size: 13.5px; font-weight: 600; line-height: 1.9; color: var(--text-2); }
+
+.cnd-list { display: flex; flex-direction: column; gap: 12px; margin: 0; padding: 0; list-style: none; }
+
+.cnd-skel { height: 104px; }
+
+.nb-card.cnd-card {
+  display: flex; flex-direction: column; gap: 12px; width: 100%; padding: 16px; font-family: inherit;
+  text-align: start; cursor: pointer; transition: border-color .15s ease;
+}
+
+.nb-card.cnd-card.is-active { border: 1.5px solid var(--period); }
+
+.nb-card.cnd-card:focus-visible { outline: none; box-shadow: var(--ring); }
+
+.cnd-card-head { display: flex; align-items: center; gap: 12px; }
+
+.cnd-card-titles { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+.cnd-card-title { font-size: 15px; font-weight: 800; line-height: 1.6; color: var(--text-1); }
+
+.cnd-card-sub { font-size: 12.5px; font-weight: 600; line-height: 1.7; color: var(--text-2); }
+
+.cnd-card-pill { flex-shrink: 0; }
+
+.cnd-card-chev { flex-shrink: 0; color: var(--text-3); }
+
+.cnd-card-logs { font-size: 12.5px; font-weight: 700; line-height: 1.8; color: var(--text-2); }
+
+.cnd-note { margin-top: 2px; }
+
+.nb-card.cnd-nudge {
+  display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; text-align: start;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--period) 15%, var(--surface)), var(--surface) 70%);
+}
+
+.cnd-nudge-head { display: flex; align-items: center; gap: 10px; }
+
+.cnd-nudge-title { margin: 0; font-size: 14.5px; font-weight: 800; line-height: 1.6; color: var(--text-1); }
+
+.cnd-nudge-body { margin: 0; font-size: 13px; font-weight: 600; line-height: 1.9; color: var(--text-2); }
+
+.cnd-nudge-actions { display: flex; flex-wrap: wrap; gap: 0 16px; }
+
+.cnd-nudge-link {
+  display: inline-flex; align-items: center; min-height: 44px; font-size: 13.5px; font-weight: 800;
+  color: var(--brand-strong); text-decoration: none; border-radius: 8px;
+}
+
+.cnd-nudge-link.is-quiet { color: var(--text-2); }
+
+.cnd-nudge-link:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.cnd-sheet { display: flex; flex-direction: column; gap: 12px; padding-bottom: 8px; text-align: start; }
+
+.cnd-sheet-head { display: flex; align-items: center; gap: 12px; }
+
+.cnd-sheet-titles { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+.cnd-sheet-sub { margin: 0; font-size: 14px; font-weight: 700; line-height: 1.7; color: var(--text-1); }
+
+.cnd-sheet-state { margin: 0; font-size: 12.5px; font-weight: 700; color: var(--data-deep); }
+
+.cnd-sheet-state.is-off { color: var(--text-3); }
+
+.cnd-sheet-logs {
+  margin: 0; padding: 12px 14px; border-radius: 16px; background: var(--surface-3);
+  font-size: 13px; font-weight: 700; line-height: 1.8; color: var(--text-2);
+}
+
+.cnd-sheet-hint { margin: 0; font-size: 12.5px; font-weight: 600; line-height: 1.8; color: var(--text-3); }
+
+.cnd-sheet-error { margin: 0; font-size: 13px; font-weight: 700; color: var(--danger-deep); }
+
+.cnd-sheet-actions { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+
+.cnd-sheet-actions .nb-btn { text-decoration: none; }
+
+a.nb-card.cnd-card { color: inherit; text-decoration: none; }

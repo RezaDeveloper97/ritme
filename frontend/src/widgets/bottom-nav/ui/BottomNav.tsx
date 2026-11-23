@@ -22,6 +22,7 @@ import {
 } from '../model/nav-items';
 import { useNavMode } from '../model/use-nav-mode';
 import { NavIcon } from './NavIcon';
+import './nbnav.css';
 
 export interface BottomNavProps {
   /**

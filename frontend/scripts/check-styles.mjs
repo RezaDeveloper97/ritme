@@ -20,7 +20,6 @@ import { join, relative, resolve } from 'node:path';
 
 const ROOT = resolve(new URL('..', import.meta.url).pathname);
 const SRC = join(ROOT, 'src');
-const GLOBALS = join(SRC, 'app', 'globals.css');
 const BASELINE = join(ROOT, 'scripts', 'styles-baseline.json');
 
 // ── helpers ──────────────────────────────────────────────────────
@@ -82,10 +81,23 @@ function isStaticStyle(body) {
   return !/[A-Za-z_$]/.test(stripped);
 }
 
+function cssFiles(dir) {
+  const out = [];
+  for (const name of readdirSync(dir)) {
+    const p = join(dir, name);
+    if (statSync(p).isDirectory()) out.push(...cssFiles(p));
+    else if (name.endsWith('.css')) out.push(p);
+  }
+  return out;
+}
+
+/** Custom properties declared in globals.css or in any per-screen stylesheet split out of it (T-M12-27). */
 function declaredVars() {
-  const css = readFileSync(GLOBALS, 'utf8');
   const set = new Set();
-  for (const m of css.matchAll(/(--[\w-]+)\s*:/g)) set.add(m[1]);
+  for (const file of cssFiles(SRC)) {
+    const css = readFileSync(file, 'utf8');
+    for (const m of css.matchAll(/(--[\w-]+)\s*:/g)) set.add(m[1]);
+  }
   return set;
 }
 

@@ -9,6 +9,7 @@ import { type DateParts, formatNumber, fromApiDate, partsToDate, toApiDate, toPa
 import { pilot, pilotOption } from '@/shared/pilot';
 import { AppSheet } from '@/shared/sheet';
 import { CalendarPicker, ChipGroup, Icon, PillChip, PrimaryButton, SecondaryButton, WheelPicker } from '@/shared/ui';
+import '@/shared/ui/styles/ivfm.css';
 
 /*
  * Form pieces of the cycle setup + editor (CB-IVF-06b). They reuse the

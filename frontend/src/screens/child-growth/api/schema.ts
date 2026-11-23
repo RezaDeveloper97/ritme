@@ -55,7 +55,7 @@ export const measurementSchema = z
   );
 
 /** Keeps the rows that parse (a malformed one never blanks the list). */
-function each<T>(schema: z.ZodType<T, z.ZodTypeDef, unknown>) {
+function each<T>(schema: z.ZodType<T, unknown>) {
   return z
     .array(z.unknown())
     .catch([])

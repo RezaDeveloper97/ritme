@@ -22,6 +22,9 @@ import { DirectoryCard } from '@/widgets/directory-filters';
 
 import { APP_DIRECTORY } from '../model/place';
 import { DirectoryWebShell } from './DirectoryWebShell';
+import '@/shared/ui/styles/has.css';
+import '@/shared/ui/styles/csv.css';
+import './wcs.css';
 
 const PER_PAGE = 12;
 const SEARCH_DEBOUNCE_MS = 350;

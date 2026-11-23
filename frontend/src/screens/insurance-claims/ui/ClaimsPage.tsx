@@ -30,6 +30,7 @@ import {
 } from '@/shared/ui';
 
 import { CLAIM_FILTERS, type ClaimFilter, filterClaims, groupByMonth } from '../model/claims';
+import '@/shared/ui/styles/ins.css';
 
 function Row({ claim }: { claim: InsuranceClaimRow }) {
   const t = useTranslations('insurance');

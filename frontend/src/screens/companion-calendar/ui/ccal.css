@@ -1,0 +1,27 @@
+/* `ccal-` styles — companion calendar (/companion/calendar): her likely period days (soft predicted band)
+   + his own reminders. Lives with the screen (T-M12-27), not in src/app/globals.css. */
+
+.ccal-day-title { margin: 0; font-size: var(--fs-base); font-weight: 800; color: var(--text-1); }
+
+.ccal-period { display: flex; align-items: flex-start; gap: 12px; }
+
+.ccal-period-text { display: flex; flex-direction: column; gap: 4px; margin: 0; font-size: var(--fs-sm); line-height: 1.8; color: var(--text-2); }
+
+.ccal-period-text b { font-size: var(--fs-base); color: var(--period-deep); }
+
+.ccal-list { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+
+.ccal-row {
+  display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 10px;
+  border-radius: var(--r-md); background: var(--surface-2); color: var(--text-1); text-decoration: none;
+}
+
+.ccal-row:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.ccal-row-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: var(--fs-sm); color: var(--text-2); }
+
+.ccal-row-text b { font-size: var(--fs-base); color: var(--text-1); overflow-wrap: anywhere; }
+
+.ccal-empty { margin: 0; font-size: var(--fs-sm); color: var(--text-3); }
+
+.ccal-add { display: flex; flex-direction: column; gap: 10px; }

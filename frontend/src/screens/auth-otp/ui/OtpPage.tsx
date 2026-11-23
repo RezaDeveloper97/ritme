@@ -9,6 +9,7 @@ import { Icon } from '@/shared/ui';
 import { getOnboardingPending } from '@/shared/session';
 import { isOnboardingStep, onboardingRoute, useOnboardingStore } from '@/entities/user';
 import { authErrorKey, OnbFrame, OTP_LENGTH, otpDigits, useSendOtp, useVerifyOtp, useWebOtp } from '@/features/auth';
+import '@/shared/ui/styles/onb.css';
 
 const RESEND_SECONDS = 59;
 const empty = () => Array.from({ length: OTP_LENGTH }, () => '');

@@ -9,6 +9,7 @@ import { type Locale, useRouter } from '@/shared/i18n';
 import { formatDayMonth, fromApiDate, toApiDate, today } from '@/shared/lib/date';
 import { SkyLayer } from '@/shared/ui';
 import { BodyMap } from '@/widgets/body-map';
+import '@/shared/ui/styles/lday.css';
 
 /**
  * «ثبت علائم» (`/menopause/log[?date=]`, CB-MENO-06, nbl_Meno_Log): bloom's log sheet v2 as a full page

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/shared/i18n';
 import { Icon, IconCircle, type IconName, type Tone } from '@/shared/ui';
 import { pilot } from '@/shared/pilot';
+import '@/shared/ui/styles/rad.css';
 
 /** Registry id of this sheet (`app/sheets/registry.tsx`). */
 export const VITALS_CHOOSER_SHEET = 'vitals-add';

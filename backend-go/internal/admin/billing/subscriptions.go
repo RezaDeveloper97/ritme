@@ -155,9 +155,19 @@ func (h *Handlers) ExtendSubscription(c fiber.Ctx) error {
 	at := now(c)
 	var newEnd time.Time
 	var shifted int64
-	err = h.inTx(c.Context(), func(q *store.Queries) error {
+	// Whose period it is, read before the transaction (a period never changes owner; this statement's row lock ends
+	// with it): the user's row lock comes first (T-M12-19b), so a purchase settling at the same moment queues its
+	// period after the extended end instead of over it, and two extends of one user's periods take turns.
+	owner, err := h.q.AdminLockPlusSubscription(c.Context(), id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return httpadmin.NotFound("Subscription")
+	}
+	if err != nil {
+		return err
+	}
+	err = h.inTxLocked(c.Context(), owner.UserID, func(q *store.Queries) error {
 		sub, err := q.AdminLockPlusSubscription(c.Context(), id)
-		if errors.Is(err, sql.ErrNoRows) {
+		if errors.Is(err, sql.ErrNoRows) || (err == nil && sub.UserID != owner.UserID) {
 			return httpadmin.NotFound("Subscription")
 		}
 		if err != nil {

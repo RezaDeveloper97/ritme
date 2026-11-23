@@ -47,6 +47,7 @@ import {
 import { LinkedTeenCards } from '@/widgets/linked-teen-card';
 
 import { statusCopy } from '../model/status';
+import '@/shared/ui/styles/cmh.css';
 
 type T = ReturnType<typeof useTranslations<'companionHome'>>;
 

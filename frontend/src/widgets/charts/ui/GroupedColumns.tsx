@@ -2,6 +2,7 @@ import type { Tone } from '@/shared/ui';
 
 import { groupedSlots, heightShare, maxOf } from '../lib/geometry';
 import { ChartFigure, type DataTable } from './ChartFigure';
+import '@/shared/ui/styles/axc.css';
 
 export interface ColumnGroup {
   key: string;

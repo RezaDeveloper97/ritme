@@ -57,7 +57,6 @@
     "privacy": "حریم خصوصی و قفل",
     "privacyLockOn": "قفل اپ فعال",
     "notifications": "اعلان‌ها و یادآورها",
-    "appearance": "ظاهر",
     "language": "زبان و تقویم",
     "help": "راهنما و سؤالات",
     "chat": "گفت‌وگو با پشتیبانی",
@@ -78,11 +77,6 @@
   "logout": "خروج از حساب",
   "loggingOut": "در حال خروج…",
   "version": "نسخه {version}",
-  "theme": {
-    "light": "روشن",
-    "dark": "تیره",
-    "system": "هماهنگ با گوشی"
-  },
   "calendars": {
     "jalali": "شمسی",
     "gregorian": "میلادی"
@@ -108,19 +102,9 @@
     "health": "چرخه و سلامت",
     "delete": "حذف حساب"
   },
-  "appearance": {
-    "title": "ظاهر",
-    "back": "بازگشت",
-    "theme": "پوسته",
-    "followSystem": "هماهنگ با تنظیمات گوشی",
-    "textSize": "اندازهٔ متن",
-    "textSizeSmall": "کوچک‌تر",
-    "textSizeLarge": "بزرگ‌تر",
-    "textSizeValue": "{percent}٪",
-    "sample": "الف",
-    "reduceMotion": "کاهش حرکت و انیمیشن",
-    "reduceMotionSub": "برای حساسیت به حرکت",
-    "reduceMotionSystem": "تنظیمات گوشی حرکت را کم کرده است"
+  "themeToggle": {
+    "toDark": "حالت شب",
+    "toLight": "حالت روز"
   },
   "language": {
     "title": "زبان و تقویم",

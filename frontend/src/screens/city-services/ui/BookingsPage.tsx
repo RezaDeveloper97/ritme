@@ -21,6 +21,9 @@ import { Card, EmptyState, Icon, PrimaryButton, ScreenHeader, SecondaryButton, S
 import { bookingWhen } from '../model/book';
 import { neshanHref } from '../model/place';
 import { CsError, CsSkeleton } from './ListSkeleton';
+import '@/shared/ui/styles/page.css';
+import '@/shared/ui/styles/csv.css';
+import '@/shared/ui/styles/cdb.css';
 
 const TONE: Record<BookingStatus, Tone> = {
   requested: 'brand',

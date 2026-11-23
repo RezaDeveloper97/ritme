@@ -35,6 +35,7 @@ import {
 import { useReorder } from '../model/use-reorder';
 import { type CategoryLook, CategoryRow } from './CategoryRow';
 import { CustomItems } from './CustomItems';
+import '@/shared/ui/styles/lcz.css';
 
 export interface CustomizeLogProps {
   /** Icon + tone per category (owned by `features/log-day`, passed in by the screen). */

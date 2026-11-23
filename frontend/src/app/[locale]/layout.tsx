@@ -7,10 +7,6 @@ import type { ReactNode } from 'react';
 
 import { OnboardingCalendarSync } from '@/entities/user';
 import { AppLockGate, appLockInitScript } from '@/features/app-lock';
-import { AiGateSheet } from '@/features/ai-gate';
-import { PendingConsentsSheet, SessionRefresher } from '@/features/auth';
-import { StoreBillingSync } from '@/features/purchase-plus';
-import { NotificationSync } from '@/features/push-notifications';
 import { BackGuard } from '@/shared/back-guard';
 import {
   BUNDLED_LOCALES,
@@ -20,11 +16,18 @@ import {
   pickNamespaces,
 } from '@/shared/i18n';
 import { NoZoom, ViewportHeight } from '@/shared/lib/viewport';
-import { InstallPrompt, UpdateGate } from '@/shared/pwa';
+import { UpdateGate } from '@/shared/pwa';
 import { SessionGuard } from '@/shared/session';
 import { ThemeApplier, themeInitScript } from '@/shared/theme';
 
 import '../globals.css';
+import {
+  LazyAiGateSheet,
+  LazyInstallPrompt,
+  LazyNotificationSync,
+  LazySessionRefresher,
+  LazyStoreBillingSync,
+} from '../LazyGlobals';
 import { ModuleRouteGate } from '../ModuleRouteGate';
 import { SHELL_NAMESPACES } from '../message-scopes';
 import { AppProviders } from '../providers';
@@ -173,14 +176,14 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
             <ThemeApplier />
             <BackGuard />
             <SessionGuard />
-            <SessionRefresher />
-            <NotificationSync />
-            <StoreBillingSync />
+            <LazySessionRefresher />
+            <LazyNotificationSync />
+            <LazyStoreBillingSync />
             <OnboardingCalendarSync />
             <ViewportHeight />
             <NoZoom />
             <UpdateGate />
-            <InstallPrompt />
+            <LazyInstallPrompt />
             <div className="stage">
               <div className="app-shell">
                 {/* B-N1-12: while the app lock is closed neither the screen
@@ -191,11 +194,8 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
                       screen is a sheet over whatever is showing, and it has to
                       outlive the screen that opened it (see app/sheets). */}
                   <SheetHost />
-                  {/* T-M10-23: the one-time sheet of the mandatory consents an
-                      account made before they existed has not accepted yet. */}
-                  <PendingConsentsSheet />
                   {/* AI gate: the one sheet that explains a missing subscription / spent credits (features/ai-gate). */}
-                  <AiGateSheet />
+                  <LazyAiGateSheet />
                   {/* UI autopilot: the pointer + stop bar of a running script (shared/autopilot); nothing while idle. */}
                   <AutopilotMount />
                 </AppLockGate>

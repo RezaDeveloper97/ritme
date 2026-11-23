@@ -1,0 +1,41 @@
+/* `rep-` styles — moved out of src/app/globals.css (T-M12-27) so only routes that render them download them. */
+
+.rep-body { display: flex; flex-direction: column; gap: 10px; }
+
+.rep-label { font-size: 13px; font-weight: 800; color: var(--text-1); }
+
+.rep-text {
+  min-height: 140px; padding: 12px 14px; border: 1px solid var(--line-strong); border-radius: 16px; resize: vertical;
+  background: var(--surface-3); color: var(--text-1); font: inherit; font-size: 14px; line-height: 1.9;
+}
+
+.rep-text::placeholder { color: var(--text-4); }
+
+.rep-text:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+
+.rep-hint { margin: 0; font-size: 11.5px; font-weight: 600; line-height: 1.8; color: var(--text-3); }
+
+.rep-file { display: none; }
+
+.rep-shot { display: flex; align-items: center; gap: 10px; padding: 8px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); }
+
+.rep-shot-img { width: 44px; height: 72px; object-fit: cover; border-radius: 8px; }
+
+.rep-shot-name { flex: 1; min-width: 0; font-size: 12.5px; font-weight: 700; color: var(--text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.rep-shot-remove {
+  width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: var(--text-2); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+
+.rep-shot-remove:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.rep-error { margin: 0; font-size: 12.5px; font-weight: 700; color: var(--danger); }
+
+.rep-done { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 8px 0 16px; text-align: center; }
+
+.rep-done-icon { color: var(--success); }
+
+.rep-done-title { margin: 0; font-size: 16px; font-weight: 800; color: var(--text-1); }
+
+.rep-done-body { margin: 0 0 8px; font-size: 13px; font-weight: 600; line-height: 1.9; color: var(--text-2); }

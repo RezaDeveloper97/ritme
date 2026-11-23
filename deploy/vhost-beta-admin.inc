@@ -9,6 +9,9 @@
 ## Same-origin for the __Host- session cookie and the CSRF/Origin checks. Targets are request-time variables so a
 ## down beta stack never fails the shared production proxy's `nginx -t`. Client IP/scheme: see vhost-beta.inc.
 
+# Client IP: $remote_addr is the real client only after cdn-real-ip.inc (ArvanCloud edges trusted, nothing else).
+include /etc/nginx/conf.d/cdn-real-ip.inc;
+
 client_max_body_size 25m;
 
 add_header X-Robots-Tag "noindex, nofollow" always;
@@ -20,8 +23,8 @@ set $beta_admin_web_target  http://beta-admin-web:3000;
 
 proxy_http_version 1.1;
 proxy_set_header Host              $host;
-proxy_set_header X-Real-IP         $beta_client_ip;
-proxy_set_header X-Forwarded-For   $beta_client_ip;
+proxy_set_header X-Real-IP         $remote_addr;
+proxy_set_header X-Forwarded-For   $remote_addr;
 proxy_set_header X-Forwarded-Proto https;
 proxy_set_header X-Forwarded-Host  $host;
 proxy_set_header X-Forwarded-Port  443;

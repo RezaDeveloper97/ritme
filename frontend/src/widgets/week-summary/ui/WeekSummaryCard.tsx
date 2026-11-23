@@ -13,6 +13,7 @@ import {
 import { Link, type Locale } from '@/shared/i18n';
 import { formatDayMonth, fromApiDate } from '@/shared/lib/date';
 import { Icon, type IconName } from '@/shared/ui';
+import '@/shared/ui/styles/ws.css';
 
 /** Tile presentation per metric — a UI concern, so it stays out of the entity. */
 const TILE: Record<WellbeingMetricKey, { icon: IconName; color: string }> = {

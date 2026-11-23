@@ -12,6 +12,7 @@ import { runAutopilot, useAutopilotStatus, type PilotPreset, type RunHandle, typ
 import type { AutopilotManifest, PilotStep } from '@/shared/pilot';
 import { ChipGroup, PillChip, PrimaryButton, SecondaryButton, SegmentedTabs } from '@/shared/ui';
 import { useAutopilotManifest } from '@/widgets/autopilot-manifest';
+import './aplab.css';
 
 type Tab = 'run' | 'manifest';
 
