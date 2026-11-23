@@ -251,6 +251,9 @@ function MonthYearPicker({ t, locale, isRtl, open, onClose, year, month, onPick,
 }
 
 // ── One day cell ───────────────────────────────────────────────
+// Markers painted as a filled circle; every other marker colours only the digit.
+const FILLED_MARKERS: ReadonlySet<CycleDayMarker> = new Set(['period', 'ovulation']);
+
 interface DayCellProps {
   cell: MonthCell | null;
   selectedDate: Date;
@@ -279,8 +282,13 @@ function DayCell({ cell, selectedDate, onSelect, dayNumber, marker, intensity, i
   // Selection dresses the cell in ITS OWN marker colour (deeper fill, ring and
   // glow), falling back to the brand purple on neutral days.
   const accent = markerStyle ? markerStyle.color : 'var(--brand)';
-  const baseBg = markerBg && !isPredicted ? markerBg : 'transparent';
-  const selectedBg = marker && !isPredicted ? cycleMarkerBg[marker].strong : baseBg;
+  // Only the key days (period, ovulation) earn a filled circle; PMS and the
+  // wider fertile window tint just the digit so the grid stays calm.
+  const filled = marker !== null && FILLED_MARKERS.has(marker) && !isPredicted;
+  const baseBg = filled && markerBg ? markerBg : 'transparent';
+  const selectedBg = marker && !isPredicted
+    ? (filled ? cycleMarkerBg[marker].strong : cycleMarkerBg[marker].faint)
+    : baseBg;
 
   return (
     <button
@@ -297,7 +305,8 @@ function DayCell({ cell, selectedDate, onSelect, dayNumber, marker, intensity, i
         border: selected ? `2px solid ${accent}` : '2px solid transparent',
         borderRadius: '50%',
         background: selected ? selectedBg : baseBg,
-        color: markerStyle ? markerStyle.color : 'var(--ink)',
+        // Amber fails AA as bare text on the page, so an unfilled fertile digit uses its -deep step.
+        color: markerStyle ? (!filled && marker === 'fertile' ? 'var(--warm-deep)' : markerStyle.color) : 'var(--ink)',
         fontFamily: 'inherit',
         fontSize: 14,
         fontWeight: 700,
