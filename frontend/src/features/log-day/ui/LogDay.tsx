@@ -30,7 +30,6 @@ import { useLogDayHeading } from '../model/use-heading';
 import { useLogDayController } from '../model/use-log-day';
 import { CategorySection } from './CategorySection';
 import { LogDateStrip } from './LogDateStrip';
-import { BleedingPanel } from './panels/BleedingPanel';
 import { DetailPanel } from './panels/DetailPanel';
 import { MeasurePanel } from './panels/MeasurePanel';
 import { PainPanel, type BodyMapSlot } from './panels/PainPanel';
@@ -112,7 +111,7 @@ type Tab = 'manual' | 'voice';
 /**
  * Log sheet v2 (nbl_/nbd_Log_Sheet_Cycle): date strip, manual / voice tabs, quick tiles that open their
  * section, every category of the mode as an accordion rendered from `/logs/taxonomy`, search, the detail
- * panels (bleeding, pain + body map, weight/BBT/tests) and a summary footer that saves the day in one PUT.
+ * panels (pain + body map, weight/BBT/tests; bleeding is edited inside its accordion) and a summary footer that saves the day in one PUT.
  * Mode-agnostic: the pregnancy and postpartum sheets (B-N3-06) reuse it with their `mode`.
  */
 export function LogDay({
@@ -185,6 +184,9 @@ export function LogDay({
     });
   };
 
+  // Bleeding has no sheet of its own any more: «open the bleeding panel» opens its accordion section.
+  const openPanel = (kind: PanelKind) => (kind === 'bleeding' ? openSection('bleeding') : setPanel(kind));
+
   const searchPanel = (q: string) => {
     setPanel(null);
     setOpenCat(null);
@@ -203,7 +205,6 @@ export function LogDay({
     : c.categories;
 
   const category = (code: string) => c.categories.find((cat) => cat.code === code);
-  const bleeding = category('bleeding');
   const pain = category('pain');
   const measurements = category('measurements');
 
@@ -305,7 +306,7 @@ export function LogDay({
             values={c.values}
             setParam={c.setParam}
             labels={c.labels}
-            onPanel={setPanel}
+            onPanel={openPanel}
             onSection={openSection}
             dailyHref={pregnancyDayHref}
           />
@@ -348,7 +349,7 @@ export function LogDay({
                     if (query) return;
                     setOpenCat(open ? cat.code : null);
                   }}
-                  onOpenPanel={setPanel}
+                  onOpenPanel={openPanel}
                 />
               ))
             ) : (
@@ -443,26 +444,6 @@ export function LogDay({
         />
       ) : null}
 
-      {bleeding ? (
-        <DetailPanel
-          open={panel === 'bleeding'}
-          onClose={() => setPanel(null)}
-          title={modePreset === 'postpartum' ? t('presets.postpartum.rows.lochia.title') : bleeding.label}
-          subtitle={heading.panelSub}
-          action="confirm"
-          onAction={() => setPanel(null)}
-          onSearch={searchPanel}
-        >
-          <BleedingPanel
-            category={bleeding}
-            values={c.values}
-            setParam={c.setParam}
-            extraOptions={c.extraOptions}
-            mode={c.mode}
-            locale={locale}
-          />
-        </DetailPanel>
-      ) : null}
       {pain ? (
         <DetailPanel
           open={panel === 'pain'}

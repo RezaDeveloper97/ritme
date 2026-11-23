@@ -7607,6 +7607,10 @@ button.me-plus:focus-visible { outline: none; box-shadow: var(--ring); }
 .lday-acc .nb-acc-btn { min-height: 64px; }
 .lday-body { display: flex; flex-direction: column; gap: 14px; padding-top: 4px; }
 .lday-param { display: flex; flex-direction: column; gap: 8px; }
+/* Bleeding has no sheet: its form (Log_Bleeding) sits flat inside the accordion, sections split by a rule. */
+.lday-bleed .lday-pcard { background: none; border: 0; border-radius: 0; padding: 0; }
+.lday-bleed .lday-pcard + .lday-pcard { border-top: 1px solid var(--line); padding-top: 14px; }
+.lday-bleed .lday-pcard-h { font-size: 14px; }
 .lday-plabel { font-size: 12.5px; font-weight: 800; color: var(--text-2); }
 .lday .nb-chip, .lday-panel .nb-chip { min-height: 44px; }
 .nb-chip.lday-chip-lg { padding: 0 18px; font-size: 14px; }

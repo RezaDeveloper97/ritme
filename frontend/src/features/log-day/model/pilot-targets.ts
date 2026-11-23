@@ -20,9 +20,9 @@ export const logPilotId = {
   param: (category: string, param: string) => `log.param:${category}.${param}`,
   /** The severity row of a graded `items` param. */
   level: (category: string, param: string) => `log.level:${category}.${param}`,
-  /** The link that opens a detail panel (`bleeding` | `pain` | `measure`). */
+  /** The link that opens a detail panel (`pain` | `measure`). */
   panel: (kind: string) => `log.panel:${kind}`,
-  /** One control inside a detail panel. */
+  /** One control inside a detail panel, or of the inline bleeding form. */
   panelParam: (category: string, param: string) => `log.panel-param:${category}.${param}`,
   /** The footer button of a detail panel («تأیید» / «ذخیره»). */
   panelConfirm: 'log.panel-confirm',
@@ -46,8 +46,13 @@ const VALUE_TYPE: Partial<Record<LogParam['type'], PilotValueType>> = {
   bool: 'bool',
 };
 
-/** Params the accordion body doesn't render: they live in a detail panel (bleeding / pain / measurements). */
+/**
+ * Params without a `log.param` control: pain / measurement details live in their detail panel. Bleeding has
+ * no panel — its accordion is the whole form — except the clots row, one choice over `clots` + `clot_size`
+ * catalogued as `log.panel-param:bleeding.clots`.
+ */
 function inPanel(category: LogCategory, param: LogParam): boolean {
+  if (category.code === 'bleeding') return param.code === 'clots' || param.code === 'clot_size';
   if (!panelOf(category.code)) return false;
   return param.detail || (category.code === 'pain' && param.code === 'relief');
 }

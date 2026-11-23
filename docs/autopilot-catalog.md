@@ -169,7 +169,6 @@
 | `nav.log` | action | دکمه‌ی ثبت | — | — | — |
 | `nav.tab:*` | action | — | — | — | — |
 | `sheet.close` | action | بستن پنجره | — | — | — |
-| `log.panel:bleeding` | action | جزئیات خونریزی | sheet `log` | yes | — |
 | `log.panel:pain` | action | جزئیات درد | sheet `log` | yes | — |
 | `log.panel:measure` | action | جزئیات اندازه‌گیری‌ها | sheet `log` | yes | — |
 | `log.panel-confirm` | action | تأیید یا ذخیره‌ی جزئیات | sheet `log` | — | — |
@@ -181,11 +180,7 @@
 | `log.preset-bleeding` | single | خونریزی (یائسگی) | sheet `log` | — | — |
 | `log.preset-triggers` | multi | محرک‌ها | sheet `log` | — | — |
 | `log.preset-voice` | action | با صدا بگو (ثبت علائم) | sheet `log` | — | — |
-| `log.panel-param:bleeding.flow` | single | شدت خونریزی (جزئیات) | sheet `log` | yes | — |
-| `log.panel-param:bleeding.spotting` | bool | لکه‌بینی | sheet `log` | yes | — |
-| `log.panel-param:bleeding.color` | single | رنگ خونریزی | sheet `log` | yes | — |
 | `log.panel-param:bleeding.clots` | single | لخته | sheet `log` | yes | `none` `small` `large` |
-| `log.panel-param:bleeding.odor` | single | بوی خونریزی | sheet `log` | yes | — |
 | `log.panel-param:pain.score` | single | شدت درد (۱ تا ۱۰) | sheet `log` | yes | `1` `2` `3` `4` `5` `6` `7` `8` `9` `10` |
 | `log.panel-param:pain.relief` | multi | چی دردت رو کم کرد | sheet `log` | yes | — |
 | `log.panel-param:measurements.weight` | number | وزن | sheet `log` | yes | — |

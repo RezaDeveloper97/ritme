@@ -22,12 +22,19 @@ interface BleedingPanelProps {
   locale: Locale;
 }
 
+/**
+ * Autopilot name of a param's control. Taxonomy params are `log.param:bleeding.<code>` (voice sets them); the
+ * clots chip row folds `clots` + `clot_size` into one choice, so it keeps its catalogued `log.panel-param` id.
+ */
+const pilotIdOf = (param: string) => (param === 'clots' ? logPilotId.panelParam('bleeding', param) : logPilotId.param('bleeding', param));
+
 /** Swatch classes for the bleeding colours the design paints (Log_Bleeding «رنگ»). */
 const SWATCH = new Set(['pink', 'bright_red', 'red', 'dark_red', 'brown', 'black']);
 
 /**
- * Log_Bleeding: flow as five drop cards (لکه‌بینی + the flows), colour swatches, clots and odour, and the
- * «با پزشک مشورت کن» note. Params the mode adds (lochia after birth) render generically underneath.
+ * Log_Bleeding, rendered inside the bleeding accordion (no sheet of its own): flow as five drop cards
+ * (لکه‌بینی + the flows), colour swatches, clots and odour, and the «با پزشک مشورت کن» note. Params the mode
+ * adds (lochia after birth) render generically underneath.
  */
 export function BleedingPanel({ category, values, setParam, extraOptions, mode, locale }: BleedingPanelProps) {
   const t = useTranslations('logSheet');
@@ -81,7 +88,7 @@ export function BleedingPanel({ category, values, setParam, extraOptions, mode, 
           tone="period"
           locale={locale}
           extraOptions={extraOptions(cat, p.code)}
-          pilotId={logPilotId.panelParam(cat, p.code)}
+          pilotId={pilotIdOf(p.code)}
         />
       ))}
     </section>
@@ -92,9 +99,9 @@ export function BleedingPanel({ category, values, setParam, extraOptions, mode, 
       {flow ? null : restBlock}
       {flow ? (
         <PanelCard title={t('bleeding.intensity')} icon="drop" tone="period">
-          <div className="lday-flow" role="group" aria-label={t('bleeding.intensity')} {...pilot(logPilotId.panelParam(cat, 'flow'), 'choice')}>
+          <div className="lday-flow" role="group" aria-label={t('bleeding.intensity')} {...pilot(pilotIdOf('flow'), 'choice')}>
             {spotting ? (
-              <button type="button" className="lday-flow-card" aria-pressed={spottingOn} onClick={pickSpotting} {...pilot(logPilotId.panelParam(cat, 'spotting'), 'toggle')}>
+              <button type="button" className="lday-flow-card" aria-pressed={spottingOn} onClick={pickSpotting} {...pilot(pilotIdOf('spotting'), 'toggle')}>
                 <span className="lday-flow-drop is-s0" aria-hidden>
                   <DropSolid size={14} color="currentColor" />
                 </span>
@@ -123,7 +130,7 @@ export function BleedingPanel({ category, values, setParam, extraOptions, mode, 
 
       {color ? (
         <PanelCard title={color.label} icon="drop" tone="period">
-          <div className="lday-swatches" role="group" aria-label={color.label} {...pilot(logPilotId.panelParam(cat, 'color'), 'choice')}>
+          <div className="lday-swatches" role="group" aria-label={color.label} {...pilot(pilotIdOf('color'), 'choice')}>
             {pickableOptions(color, mode).map((o) => {
               const on = asString(v.color) === o.value;
               return (
@@ -146,7 +153,7 @@ export function BleedingPanel({ category, values, setParam, extraOptions, mode, 
 
       {clots ? (
         <PanelCard title={clots.label} icon="drop" tone="period">
-          <ChipGroup label={clots.label} layout="fill" pilot={pilot(logPilotId.panelParam(cat, 'clots'), 'choice')}>
+          <ChipGroup label={clots.label} layout="fill" pilot={pilot(pilotIdOf('clots'), 'choice')}>
             <PillChip shape="square" mode="multi" tone="period" pressed={clotState === 'none'} onPressedChange={() => pickClots('none')} {...pilotOption('none')}>
               {t('bleeding.clotsNone')}
             </PillChip>
@@ -166,7 +173,7 @@ export function BleedingPanel({ category, values, setParam, extraOptions, mode, 
 
       {odor ? (
         <PanelCard title={odor.label} icon="drop" tone="period">
-          <ChipGroup label={odor.label} layout="fill" pilot={pilot(logPilotId.panelParam(cat, 'odor'), 'choice')}>
+          <ChipGroup label={odor.label} layout="fill" pilot={pilot(pilotIdOf('odor'), 'choice')}>
             {pickableOptions(odor, mode).map((o) => {
               const on = asString(v.odor) === o.value;
               return (
