@@ -11,6 +11,7 @@ import { Badge, Button, DataTable, Pagination, Panel, RowActions, Select, toast,
 
 import { messagesApi, type Message, type MissingMessage } from '../api/messages';
 import { previewOf } from '../lib/payload';
+import { groupByArea } from '../lib/where';
 import { SUPER_ONLY_GROUPS, canWriteGroup } from '../lib/super-only';
 import { useMessageLabels } from './labels';
 import { MessageCreatePanel, type CreateTarget } from './MessageCreatePanel';
@@ -37,14 +38,14 @@ export function MessagesScreen() {
     {
       key: 'group',
       header: t('group'),
-      cell: (m) => labels.group(m.group),
+      cell: (m) => <GroupCell group={m.group} />,
       className: 'cell-wrap',
     },
     {
       key: 'key',
-      header: t('key'),
-      cell: (m) => <span dir="ltr">{m.item_key}</span>,
-      className: 'cell-mono',
+      header: t('item'),
+      cell: (m) => <ItemCell group={m.group} itemKey={m.item_key} />,
+      className: 'cell-wrap',
     },
     {
       key: 'locale',
@@ -121,6 +122,8 @@ export function MessagesScreen() {
   ];
 
   const groups = query.data?.groups ?? [];
+  const allGroups = [...new Set([...groups, ...(query.data?.registered_groups ?? [])])];
+  const selectedGroup = list.params.filters.group ?? '';
   const locales = query.data?.locales ?? [];
   const filtered = Boolean(list.params.filters.group || list.params.filters.locale || list.params.filters.status);
 
@@ -131,6 +134,11 @@ export function MessagesScreen() {
           {t('rulesLink')}
         </Link>
       </div>
+      {selectedGroup ? (
+        <WherePanel group={selectedGroup} />
+      ) : (
+        <WhereGuide groups={allGroups} onGroup={(g) => list.setFilter('group', g)} />
+      )}
       {creating ? <MessageCreatePanel target={creating} onClose={() => setCreating(null)} /> : null}
       {query.data ? (
         <MissingPanel
@@ -150,7 +158,8 @@ export function MessagesScreen() {
             onChange={(e) => list.setFilter('group', e.target.value)}
             options={[
               { value: '', label: t('allGroups') },
-              ...[...new Set([...groups, ...(query.data?.registered_groups ?? [])])].map((g) => ({ value: g, label: labels.group(g) })),
+              // Ordered by where the app shows them, «area › group» so the same-named groups stay apart.
+              ...groupByArea(allGroups).flatMap((b) => b.groups.map((g) => ({ value: g, label: `${labels.area(g)} › ${labels.group(g)}` }))),
             ]}
           />
           <Select
@@ -186,6 +195,88 @@ export function MessagesScreen() {
         <Pagination meta={query.data?.meta} onPage={list.setPage} />
       </Panel>
     </div>
+  );
+}
+
+/** The group's name, then where the app shows it. */
+function GroupCell({ group }: { group: string }) {
+  const t = useTranslations('smartMessages');
+  const labels = useMessageLabels();
+  const where = labels.where(group);
+  return (
+    <span className="flex flex-col gap-0.5">
+      <span className="font-medium">{labels.group(group)}</span>
+      {where ? <span className="text-xs text-muted">{where}</span> : null}
+      {labels.shown(group) ? null : (
+        <span>
+          <Badge tone="neutral">{t('notShown')}</Badge>
+        </span>
+      )}
+    </span>
+  );
+}
+
+/** The readable name of the item (weeks, phases, symptoms…), with the stored key under it. */
+function ItemCell({ group, itemKey }: { group: string; itemKey: string }) {
+  const labels = useMessageLabels();
+  const name = labels.item(group, itemKey);
+  return (
+    <span className="flex flex-col gap-0.5">
+      {name ? <span>{name}</span> : null}
+      <span dir="ltr" className={cn('cell-mono', name && 'text-xs text-muted')}>
+        {itemKey}
+      </span>
+    </span>
+  );
+}
+
+/** With a group picked: one line saying where its messages appear. */
+function WherePanel({ group }: { group: string }) {
+  const t = useTranslations('smartMessages');
+  const labels = useMessageLabels();
+  const where = labels.where(group);
+  if (!where) return null;
+  return (
+    <Panel title={t('whereTitle')}>
+      <p className="m-0 flex flex-wrap items-center gap-2">
+        <Badge tone={labels.shown(group) ? 'brand' : 'neutral'}>{labels.area(group)}</Badge>
+        <span>{where}</span>
+      </p>
+    </Panel>
+  );
+}
+
+/** Without a filter: every group, bucketed by the part of the app it belongs to; a click filters the list. */
+function WhereGuide({ groups, onGroup }: { groups: string[]; onGroup: (group: string) => void }) {
+  const t = useTranslations('smartMessages');
+  const labels = useMessageLabels();
+  const n = useNumber();
+  if (groups.length === 0) return null;
+  return (
+    <Panel title={t('guideTitle')}>
+      <p className="field-hint mt-0">{t('guideHint')}</p>
+      <p className="field-hint mt-0">{t('rulesNote')}</p>
+      <div className="flex flex-col gap-2">
+        {groupByArea(groups).map((bucket) => (
+          <details key={bucket.area ?? 'other'} className="where-area">
+            <summary className="where-area-summary">
+              <span>{t(`areas.${bucket.area ?? 'other'}` as 'areas.other')}</span>
+              <Badge tone={bucket.area === 'notShown' ? 'neutral' : 'brand'}>{n(bucket.groups.length)}</Badge>
+            </summary>
+            <ul className="m-0 flex list-none flex-col gap-1 p-0 pt-2">
+              {bucket.groups.map((g) => (
+                <li key={g}>
+                  <button type="button" className="where-row" onClick={() => onGroup(g)}>
+                    <span className="font-semibold">{labels.group(g)}</span>
+                    <span className="text-xs text-muted">{labels.where(g) ?? g}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </details>
+        ))}
+      </div>
+    </Panel>
   );
 }
 

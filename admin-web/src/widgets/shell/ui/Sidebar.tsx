@@ -2,12 +2,17 @@
 
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import { useState } from 'react';
 
 import { LogoutButton } from '@/features/auth';
 import { Icon } from '@/shared/ui';
 
-import type { NavGroup, NavItem } from '../model/nav';
+import { groupOf, type NavGroup, type NavItem } from '../model/nav';
 
+/**
+ * Every category is a titled, collapsible block; the one holding the current page opens by itself. The filter on top
+ * narrows the whole menu (category names included) and opens every category that still has a match.
+ */
 export function Sidebar({
   groups,
   active,
@@ -22,11 +27,23 @@ export function Sidebar({
   const t = useTranslations('nav');
   const tc = useTranslations('common');
   const ts = useTranslations('shell');
-  const main = groups.filter((g) => !g.other);
-  const other = groups.filter((g) => g.other);
-  const renderItem = (item: NavItem) => {
-    const label = t(item.key as 'dashboard');
-    return item.ready ? (
+  const [filter, setFilter] = useState('');
+  const activeGroup = groupOf(active, groups);
+  const q = filter.trim().toLowerCase();
+  const label = (key: string) => t(key as 'dashboard');
+
+  const visible = q
+    ? groups
+        .map((g) =>
+          label(g.key).toLowerCase().includes(q)
+            ? g
+            : { ...g, items: g.items.filter((i) => label(i.key).toLowerCase().includes(q)) },
+        )
+        .filter((g) => g.items.length > 0)
+    : groups;
+
+  const renderItem = (item: NavItem) =>
+    item.ready ? (
       <Link
         key={item.key}
         href={item.href}
@@ -35,16 +52,16 @@ export function Sidebar({
         onClick={onNavigate}
       >
         <Icon name={item.icon} />
-        <span className="truncate">{label}</span>
+        <span className="truncate">{label(item.key)}</span>
       </Link>
     ) : (
       <span key={item.key} className="nav-link" aria-disabled="true" title={ts('soon')}>
         <Icon name={item.icon} />
-        <span className="truncate">{label}</span>
+        <span className="truncate">{label(item.key)}</span>
         <span className="sr-only">({ts('soon')})</span>
       </span>
     );
-  };
+
   return (
     <aside id="admin-sidebar" className="sidebar" data-open={open || undefined} aria-label={tc('adminPanel')}>
       <div className="flex items-center gap-2.5 px-2 pb-2">
@@ -56,24 +73,34 @@ export function Sidebar({
           <span className="text-xs text-muted">{tc('adminPanel')}</span>
         </span>
       </div>
-      <nav className="flex flex-1 flex-col">
-        {main.map((group) => (
-          <div key={group.key} className="flex flex-col gap-0.5">
-            {group.items.map(renderItem)}
-          </div>
-        ))}
-        {other.length > 0 && <div className="nav-group nav-group-other">{t('groupOther')}</div>}
-        {other.map((group) => (
+      <label className="nav-filter">
+        <Icon name="search" />
+        <span className="sr-only">{ts('menuFilter')}</span>
+        <input
+          type="search"
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          placeholder={ts('menuFilter')}
+          onKeyDown={(e) => e.key === 'Escape' && setFilter('')}
+        />
+      </label>
+      <nav className="flex flex-1 flex-col gap-0.5">
+        {visible.length === 0 ? <p className="nav-empty">{ts('menuFilterEmpty')}</p> : null}
+        {visible.map((group) => (
           <details
-            key={group.key}
+            // Re-mount on filter / page change so the open state follows them; a manual toggle sticks until then.
+            key={`${group.key}:${q ? 'q' : activeGroup?.key ?? ''}`}
             className="nav-details"
-            open={group.items.some((i) => i.key === active?.key) || undefined}
+            open={Boolean(q) || group.key === activeGroup?.key || undefined}
           >
-            <summary className="nav-summary">
-              <span>{t(group.key as 'groupGeneral')}</span>
+            <summary className="nav-summary" data-active={group.key === activeGroup?.key || undefined}>
+              <span className="flex min-w-0 items-center gap-2">
+                <Icon name={group.icon} />
+                <span className="truncate">{label(group.key)}</span>
+              </span>
               <Icon name="chevronDown" />
             </summary>
-            <div className="flex flex-col gap-0.5">{group.items.map(renderItem)}</div>
+            <div className="nav-items">{group.items.map(renderItem)}</div>
           </details>
         ))}
       </nav>

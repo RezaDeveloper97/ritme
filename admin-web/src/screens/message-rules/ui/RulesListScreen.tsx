@@ -40,7 +40,19 @@ export function RulesListScreen() {
       ),
       className: 'cell-wrap',
     },
-    { key: 'placement', header: t('placement'), cell: (r) => t(`placements.${r.placement}` as 'placements.smart_tip') },
+    {
+      key: 'placement',
+      header: t('placement'),
+      cell: (r) => (
+        <span className="flex flex-col gap-0.5">
+          <span>{t(`placements.${r.placement}` as 'placements.smart_tip')}</span>
+          {t.has(`placementWhere.${r.placement}` as 'placementWhere.push') ? (
+            <span className="text-xs text-muted">{t(`placementWhere.${r.placement}` as 'placementWhere.push')}</span>
+          ) : null}
+        </span>
+      ),
+      className: 'cell-wrap',
+    },
     { key: 'kind', header: t('kind'), cell: (r) => <Badge tone={KIND_TONE[r.kind]}>{t(`kinds.${r.kind}` as 'kinds.safety')}</Badge> },
     { key: 'level', header: t('level'), cell: (r) => <Badge tone={LEVEL_TONE[r.level]}>{t(`levels.${r.level}` as 'levels.info')}</Badge> },
     {

@@ -7,12 +7,15 @@ import { Button, Icon, ThemeToggle, UiLocaleSelect } from '@/shared/ui';
 
 export function Header({
   title,
+  section,
   admin,
   menuOpen,
   onMenu,
   onSearch,
 }: {
   title: string;
+  /** The sidebar category of the current page, shown above the title. */
+  section?: string;
   admin: Admin;
   menuOpen: boolean;
   onMenu: () => void;
@@ -32,7 +35,10 @@ export function Header({
       >
         <Icon name="menu" />
       </Button>
-      <h1 className="m-0 min-w-0 flex-1 truncate text-[17px] font-bold">{title}</h1>
+      <div className="flex min-w-0 flex-1 flex-col leading-tight">
+        {section ? <span className="truncate text-xs text-muted">{section}</span> : null}
+        <h1 className="m-0 truncate text-[17px] font-bold">{title}</h1>
+      </div>
       <button type="button" className="search-trigger" onClick={onSearch} aria-label={t('search')} aria-keyshortcuts="Control+K Meta+K">
         <Icon name="search" />
         <span className="search-trigger-label">{t('search')}</span>
