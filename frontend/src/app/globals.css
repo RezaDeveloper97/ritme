@@ -70,10 +70,10 @@
   --warm-deep: #B45309;  /* amber as text */
   --warm-soft: #FFF3DF;  /* amber surface */
 
-  /* Fertility (cycle ring + calendar): one green, graded by conception chance —
-     the lightest step opens the window, the full green is ovulation. */
-  --fertile:      #1E9E57;  /* ovulation / peak chance fill */
-  --fertile-deep: #11683A;  /* green as text on the light steps */
+  /* Fertility (cycle ring + calendar): one turquoise-green, graded by conception chance —
+     the lightest step opens the window, the full tone is ovulation. */
+  --fertile:      #0D9A83;  /* ovulation / peak chance fill */
+  --fertile-deep: #0B6E62;  /* turquoise-green as text on the light steps */
   --on-fertile:   #FFFFFF;  /* label on the two strong steps */
 
   --period:      #E8436F;  /* period marker / fill — red means menstruation */
@@ -296,8 +296,8 @@
   --warm-deep: #FFC98A;
   --warm-soft: #3A2F1E;
 
-  --fertile:      #6EDC9E;
-  --fertile-deep: #BFF3D5;
+  --fertile:      #5EE0C0;
+  --fertile-deep: #C6F6E8;
   --on-fertile:   #17112B;
 
   --period:      #FF6B8B;
@@ -4585,7 +4585,7 @@ body {
 
 .cal-grid-card { padding: 14px 14px 16px; position: relative; }
 
-.cal-legend-wrap { margin-bottom: 6px; }
+.cal-legend-wrap { margin-bottom: 4px; }
 
 .cal-legend-hint { font-size: 11px; color: var(--muted); font-weight: 700; text-align: start; }
 
@@ -4596,6 +4596,8 @@ body {
 .cal-page .page-scroll { overflow-anchor: none; }
 
 .cal-weeks {
+  /* Room inside the clip for the selected ring + shadow (WEEKS_PAD_PX in CalendarPage). */
+  box-sizing: border-box; padding-block: 6px; margin-inline: -6px; padding-inline: 6px;
   overflow: hidden;
   transition: height .42s cubic-bezier(.32, .72, 0, 1);
 }

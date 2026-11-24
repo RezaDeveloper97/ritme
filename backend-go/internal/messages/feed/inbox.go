@@ -128,7 +128,7 @@ func fanOut(slot string, winners []rules.Choice, texts []rules.Variant, open []O
 	ids := map[uint64]uint64{} // rule id → inbox row id of the fanned-out items (feed alert_id)
 	for i := range open {      // open is newest first
 		o := &open[i]
-		if o.Rule == nil || !pick(o) || containsRule(winners, o.Rule.ID) || containsRule(add, o.Rule.ID) {
+		if o.Rule == nil || !pick(o) || !inLifeMode(o.Rule, f) || containsRule(winners, o.Rule.ID) || containsRule(add, o.Rule.ID) {
 			continue
 		}
 		ch := rules.Choice{Rule: o.Rule, Variant: o.Rule.Assign(userID)}
@@ -151,6 +151,57 @@ func fanOut(slot string, winners []rules.Choice, texts []rules.Variant, open []O
 	}
 	n := capacity(slot, len(outW))
 	return outW[:min(n, len(outW))], outT[:min(n, len(outT))], ids
+}
+
+// FactLifeMode is the account fact the life-mode scope reads (facts/account.go).
+const FactLifeMode = "life_mode"
+
+var modeScopes atomic.Pointer[map[string]string] // rule_key prefix → the life mode its open rows belong to
+
+// InstallModeScope keeps the open rows of the rules whose rule_key starts with prefix out of the fanned-out slots
+// (urgent_modal, status_banner) while the user's life_mode is known and is not mode: an unacknowledged pregnancy alert
+// must not pop up over the cycle home after she left pregnancy (its pregnancy facts are unknown there, so the row
+// never resolves on its own). The row itself stays in the inbox and its history; "" removes the prefix.
+func InstallModeScope(prefix, mode string) {
+	renderersMu.Lock()
+	defer renderersMu.Unlock()
+	next := map[string]string{}
+	if cur := modeScopes.Load(); cur != nil {
+		maps.Copy(next, *cur)
+	}
+	if mode == "" {
+		delete(next, prefix)
+	} else {
+		next[prefix] = mode
+	}
+	modeScopes.Store(&next)
+}
+
+// ModeScopeFacts are the facts the life-mode scope reads (the feed asks for them whenever it evaluates the inbox).
+func ModeScopeFacts() []string {
+	if cur := modeScopes.Load(); cur == nil || len(*cur) == 0 {
+		return nil
+	}
+	return []string{FactLifeMode}
+}
+
+// inLifeMode reports whether r's open row may be fanned out under f's life_mode (true when no scope applies or the
+// mode is unknown — fail open: a safety alert is never hidden on missing data).
+func inLifeMode(r *rules.Rule, f rules.Facts) bool {
+	cur := modeScopes.Load()
+	if cur == nil {
+		return true
+	}
+	mode, ok := f[FactLifeMode].(string)
+	if !ok || mode == "" {
+		return true
+	}
+	for prefix, want := range *cur {
+		if strings.HasPrefix(r.RuleKey, prefix) {
+			return mode == want
+		}
+	}
+	return true
 }
 
 // EvidenceRenderer renders text with an inbox row's variables in locale (a missing variable stays as written).

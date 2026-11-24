@@ -10,6 +10,8 @@ import {
   type LogDayChanges,
   type LogDayValues,
 } from '@/entities/health-log';
+import { alertKeys } from '@/entities/alert';
+import { pregnancyKeys } from '@/entities/pregnancy';
 import { wellbeingKeys } from '@/entities/wellbeing';
 import { invalidateCycleDependents } from '@/shared/api';
 import { track } from '@/shared/analytics';
@@ -27,7 +29,8 @@ export interface SaveLogDayInput {
 /**
  * Saves the log sheet: one `PUT /logs/days/{date}`. Optimistic — the day's cache shows the draft at once
  * and rolls back on failure. The backend syncs v2 entries into the legacy `daily_health_logs` row, which
- * home, calendar, cycle engine, fertility and messages still read, so all of those are refreshed after.
+ * home, calendar, cycle engine, fertility and messages still read, so all of those are refreshed after — and the
+ * health alerts the save may have raised, which the urgent alert host shows at once.
  */
 export function useSaveLogDay() {
   const queryClient = useQueryClient();
@@ -50,6 +53,11 @@ export function useSaveLogDay() {
       void queryClient.invalidateQueries({ queryKey: healthLogKeys.all });
       invalidateCycleDependents(queryClient);
       void queryClient.invalidateQueries({ queryKey: wellbeingKeys.all });
+      // A save can raise a health alert (spotting / bleeding in pregnancy → the urgent alert): the feed (bell + urgent
+      // modal) refreshes with `invalidateCycleDependents`; the alerts list and the pregnancy Today badge refresh here.
+      void queryClient.invalidateQueries({ queryKey: alertKeys.all });
+      void queryClient.invalidateQueries({ queryKey: pregnancyKeys.v2.today() });
+      void queryClient.invalidateQueries({ queryKey: pregnancyKeys.v2.alerts() });
     },
   });
 }

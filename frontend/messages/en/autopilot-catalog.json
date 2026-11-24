@@ -187,7 +187,6 @@
     "cycle_settings_auto": "Automatic cycle lengths",
     "cycle_settings_cycle_length": "Cycle length",
     "cycle_settings_period_length": "Period length",
-    "cycle_settings_days_before": "Days before period to remind",
     "cycle_add_previous": "Add a previous cycle",
     "cycle_symptoms": "Symptom pattern",
     "calendar_month_prev": "Previous month",
@@ -883,11 +882,6 @@
     "me_header_theme": "Light / dark toggle (header)",
     "account_edit_name": "Edit name",
     "account_edit_birthday": "Edit birthday",
-    "account_edit_cycleDuration": "Edit cycle length",
-    "account_edit_periodDuration": "Edit period length",
-    "account_edit_lastPeriod": "Edit last period start",
-    "account_edit_weight": "Edit weight",
-    "account_edit_height": "Edit height",
     "quick_name": "Name",
     "quick_cycle_length": "Cycle length",
     "quick_period_length": "Period length",
@@ -1208,7 +1202,12 @@
     "preg_setup_weeks_ultrasound": "Weeks at the ultrasound",
     "preg_setup_days_ultrasound": "Days at the ultrasound",
     "preg_setup_weeks_week": "Current pregnancy week",
-    "preg_setup_days_week": "Current pregnancy day"
+    "preg_setup_days_week": "Current pregnancy day",
+    "cycle_settings_edit_lastPeriod": "Edit last period start",
+    "cycle_settings_edit_weight": "Edit weight",
+    "cycle_settings_edit_height": "Edit height",
+    "notif_days_before": "Days before period to remind",
+    "notif_reminder_pill": "Birth control pill reminder"
   },
   "options": {
     "log_panel_param_bleeding_clots": {
@@ -1903,7 +1902,6 @@
     "fertility_bbt": "°C",
     "cycle_settings_cycle_length": "days",
     "cycle_settings_period_length": "days",
-    "cycle_settings_days_before": "days",
     "preg_weekly_weight": "kg",
     "baby_feed_amount": "ml",
     "baby_feed_manual_left": "min",
@@ -1944,6 +1942,7 @@
     "lesson_seek": "seconds",
     "ins_setup_deadline": "days",
     "ins_claim_new_amount": "toman",
-    "ins_claim_step_amount": "toman"
+    "ins_claim_step_amount": "toman",
+    "notif_days_before": "days"
   }
 }

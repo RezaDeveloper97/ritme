@@ -280,6 +280,35 @@ func (q *Queries) RecordFlowBleedingSymptom(ctx context.Context, arg RecordFlowB
 	return err
 }
 
+const recordSpottingSymptom = `-- name: RecordSpottingSymptom :exec
+INSERT INTO ` + "`" + `pregnancy_symptom_logs` + "`" + ` (user_id, log_date, has_spotting, spotting_severity, created_at, updated_at)
+VALUES (?, ?, 1, ?, ?, ?)
+ON DUPLICATE KEY UPDATE
+  spotting_severity = IF(has_spotting = 1 AND spotting_severity IS NOT NULL, spotting_severity, VALUES(spotting_severity)),
+  has_spotting = 1, updated_at = VALUES(updated_at)
+`
+
+type RecordSpottingSymptomParams struct {
+	UserID           uint64
+	LogDate          civildate.Date
+	SpottingSeverity sql.NullString
+	Now              sql.NullTime
+}
+
+// Spotting logged in pregnancy on the general day log (healthlog bridge) is the day's spotting symptom: the day's row
+// is created or gets has_spotting (its other symptoms are kept). A severity the user logged herself is kept; a new
+// flag starts at the given severity.
+func (q *Queries) RecordSpottingSymptom(ctx context.Context, arg RecordSpottingSymptomParams) error {
+	_, err := q.db.ExecContext(ctx, recordSpottingSymptom,
+		arg.UserID,
+		arg.LogDate,
+		arg.SpottingSeverity,
+		arg.Now,
+		arg.Now,
+	)
+	return err
+}
+
 const updateSymptomLog = `-- name: UpdateSymptomLog :exec
 UPDATE ` + "`" + `pregnancy_symptom_logs` + "`" + ` SET
   has_nausea = ?, nausea_severity = ?, has_vomiting = ?, vomiting_severity = ?, has_fatigue = ?, fatigue_severity = ?,
