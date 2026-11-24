@@ -110,7 +110,7 @@ import {
   TtcPhasePills,
   ttcPhase,
 } from '@/widgets/fertility-tiles';
-import { FeedSmartTipCard } from '@/widgets/smart-tip';
+import { SmartTipCard } from '@/widgets/smart-tip';
 import { TodayChallengeCard } from '@/widgets/today-challenge';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
@@ -1069,6 +1069,7 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   };
   const feedBannerAll = slotItems(feed, 'status_banner')[0] ?? null;
   const feedBanner = firstVisible(feedBannerAll ? [feedBannerAll] : [], closedFeed);
+  const feedTipServed = slotItems(feed, 'smart_tip').length > 0;
   const feedTip = firstVisible(slotItems(feed, 'smart_tip').slice(0, 1), closedFeed);
   const urgentItem = firstVisible(slotItems(feed, 'urgent_modal').slice(0, 1), closedFeed);
   const modalItem = urgentItem ? null : firstVisible(slotItems(feed, 'modal').slice(0, 1), closedFeed);
@@ -1309,13 +1310,14 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
             {!teen && modules.learning && <LearnHomeCard />}
             {/* «چکاپ‌های دوره‌ای» (M4, /checkups/home). The «پیش‌بینی‌ها» card lives on /analysis. */}
             <CheckupsCard />
-            {feedTip && (
-              <FeedSmartTipCard
-                item={feedTip}
-                onCta={feedCta(feedTip)}
-                onDismiss={() => dismissFeedItem(feedTip)}
-              />
-            )}
+            {/* «نکتهٔ هوشمند»: the engine's `smart_tip` when it has one, else the older daily-message tip.
+                No fallback while the feed loads, or after she closed the engine's tip. */}
+            <SmartTipCard
+              item={feedTip}
+              fallback={feedStatus !== 'loading' && !feedTipServed}
+              onCta={feedTip ? feedCta(feedTip) : null}
+              onDismiss={feedTip ? () => dismissFeedItem(feedTip) : undefined}
+            />
             {!teen && <BannerSlideshow position="home_middle" />}
             {!teen && <HomeLabCards />}
             <TodayChallengeCard pick={feed?.dailyChallenge ?? null} />

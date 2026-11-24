@@ -293,7 +293,7 @@ All green. The admin int tests (`internal/admin/messages/rules_int_test.go`) and
 **M9-MSG-03 — Selection pipeline v6 (multi-slot, invariants, caps, tie-break)**
 - Scope:
   - `SelectSlot(slot, cap)` returns up to the capacity (urgent_modal 1, status_banner 1, smart_tip 1, daily_advice 3, daily_challenge 1, push 1, modal 1, alerts_inbox all, member_alert, member_tip)
-  - per-slot allowed kinds and default caps: smart_tip 1/cycle/message; daily_advice no repeat within 7 d; modal 1/week (marketing); push 1/day and 3/week, quiet 23–08 Tehran
+  - per-slot allowed kinds and default caps: smart_tip no default cap (dropped 2026-11-24: a matching tip shows every day; the rule's own caps and cooldown still apply); daily_advice no repeat within 7 d; modal 1/week (marketing); push 1/day and 3/week, quiet 23–08 Tehran
   - fixed invariants: requires_user_input; low confidence; contraception × `topics:fertile_window`; product/marketing blocked for 24 h after any safety shown
   - caps from shown **or** dismissed; real-cycle period per Q4; multi-cap
   - ordering: safety, priority desc, least-recently-shown, id asc

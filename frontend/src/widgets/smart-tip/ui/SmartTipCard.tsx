@@ -14,28 +14,68 @@ import '@/shared/ui/styles/has.css';
 import './tip.css';
 import '@/shared/ui/styles/ch.css';
 
-/**
- * Smart tip («نکته هوشمند») — fully driven by `/messages/daily`.
- *
- * Everything in this card — paragraph, highlighted action, extra insights and
- * the phase chip — comes from the server's message engine. While the request is
- * in flight the card shows a skeleton, and a day the engine has nothing to say
- * about renders no card at all rather than a generic health claim (§11).
- *
- * Shown on both the home feed and the analysis screen, so it lives here rather
- * than inside either screen slice.
- */
-export function SmartTipCard() {
-  const t = useTranslations('home');
-  const { data: message, isLoading } = useDailyMessage();
+interface SmartTipCardProps {
+  /** The `smart_tip` winner of GET /messages/feed; null when the engine served none (or it was closed). */
+  item?: FeedItem | null;
+  /**
+   * May the card fall back to the old `/messages/daily` content when there is no `item`? The caller says no while
+   * the feed is still loading (so the old copy never flashes before the engine's) and after she closed the
+   * engine's tip (so closing it does not just swap in another one).
+   */
+  fallback?: boolean;
+  /** The resolved CTA of `item`; null = the message has no usable button. */
+  onCta?: (() => void) | null;
+  onDismiss?: () => void;
+}
 
-  const tip = useMemo(() => selectSmartTip(message), [message]);
+/**
+ * Smart tip («نکته هوشمند») — one card for both sources (user request, 2026-11-24).
+ *
+ * The message engine's `smart_tip` slot wins: the rule's title heads the card, its body is the paragraph, an
+ * optional CTA and a dismiss link close it. A day the engine has no matching tip, the card is written by the older
+ * `/messages/daily` bundle instead (paragraph, highlighted action, extra insights, phase chip), as it was before the
+ * feed. With neither it renders nothing rather than a generic health claim (§11).
+ */
+export function SmartTipCard({ item = null, fallback = true, onCta = null, onDismiss }: SmartTipCardProps) {
+  const t = useTranslations('home');
+  const tCommon = useTranslations('common.actions');
+  const loc = useLocale() as Locale;
+  // Asked only when it is needed: with an engine tip on screen the legacy bundle is never fetched.
+  const legacyWanted = !item && fallback;
+  const { data: message, isLoading } = useDailyMessage(undefined, legacyWanted);
+  const tip = useMemo(() => (legacyWanted ? selectSmartTip(message) : null), [legacyWanted, message]);
+
+  if (item) {
+    return (
+      <div className="sec-tight" data-feed-slot="smart_tip">
+        <div className="card pad-card-sm home-tip-card">
+          <div className="home-tip-head">
+            <span className="home-tip-badge" aria-hidden>
+              <Icon name="sparkle" size={15} fill="currentColor" strokeWidth={0} />
+            </span>
+            <span className="home-tip-title">{item.title ? localizeFeedText(item.title, loc) : t('smartTip.title')}</span>
+          </div>
+          {item.body && <p className="sub home-tip-body">{localizeFeedText(item.body, loc)}</p>}
+          {onCta && item.ctaText ? (
+            <button type="button" className="ch-link" data-action="feed_cta" onClick={onCta}>
+              {localizeFeedText(item.ctaText, loc)}
+            </button>
+          ) : null}
+          {item.dismissible && onDismiss ? (
+            <button type="button" className="ch-link" data-action="feed_dismiss" onClick={onDismiss}>
+              {tCommon('close')}
+            </button>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
+  if (!legacyWanted || (!isLoading && !tip)) return null;
   const phaseLabel = message?.phaseLabel ?? null;
 
-  if (!isLoading && !tip) return null;
-
   return (
-    <div className="sec-tight">
+    <div className="sec-tight" data-feed-slot="smart_tip_legacy">
       {/* «هالهٔ هوش»: the only fully engine-written card, marked by an animated
           gradient hairline (gradient scarcity §10.2 holds — it is an edge). */}
       <div className="card pad-card-sm home-tip-card">
@@ -87,48 +127,6 @@ function SmartTipSkeleton() {
         <span key={width} className="skeleton-line" style={{ width }} />
       ))}
       <span className="skeleton-line home-skel-block" />
-    </div>
-  );
-}
-
-interface FeedSmartTipCardProps {
-  /** The `smart_tip` winner of GET /messages/feed. */
-  item: FeedItem;
-  /** The resolved CTA; null = the message has no usable button. */
-  onCta: (() => void) | null;
-  onDismiss: () => void;
-}
-
-/**
- * The same «نکته هوشمند» card, written by the message engine's `smart_tip` slot (SPEC §5.4): the rule's title
- * heads the card, its body is the paragraph, an optional CTA and a dismiss link close it.
- */
-export function FeedSmartTipCard({ item, onCta, onDismiss }: FeedSmartTipCardProps) {
-  const t = useTranslations('home');
-  const tCommon = useTranslations('common.actions');
-  const loc = useLocale() as Locale;
-
-  return (
-    <div className="sec-tight" data-feed-slot="smart_tip">
-      <div className="card pad-card-sm home-tip-card">
-        <div className="home-tip-head">
-          <span className="home-tip-badge" aria-hidden>
-            <Icon name="sparkle" size={15} fill="currentColor" strokeWidth={0} />
-          </span>
-          <span className="home-tip-title">{item.title ? localizeFeedText(item.title, loc) : t('smartTip.title')}</span>
-        </div>
-        {item.body && <p className="sub home-tip-body">{localizeFeedText(item.body, loc)}</p>}
-        {onCta && item.ctaText ? (
-          <button type="button" className="ch-link" data-action="feed_cta" onClick={onCta}>
-            {localizeFeedText(item.ctaText, loc)}
-          </button>
-        ) : null}
-        {item.dismissible ? (
-          <button type="button" className="ch-link" data-action="feed_dismiss" onClick={onDismiss}>
-            {tCommon('close')}
-          </button>
-        ) : null}
-      </div>
     </div>
   );
 }

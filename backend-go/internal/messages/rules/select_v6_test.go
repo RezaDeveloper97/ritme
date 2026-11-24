@@ -147,7 +147,7 @@ func TestSlots_Table(t *testing.T) {
 		assert.ElementsMatch(t, want.kinds, s.Kinds, name)
 	}
 	assert.True(t, rules.Slots[rules.SlotMemberAlert].Reserved)
-	assert.Equal(t, []rules.Cap{{Count: 1, Period: "cycle"}}, rules.Slots["smart_tip"].MessageCaps)
+	assert.Empty(t, rules.Slots["smart_tip"].MessageCaps)
 	assert.Equal(t, []rules.Cap{{Count: 1, Period: "week"}}, rules.Slots["daily_advice"].MessageCaps)
 	assert.Equal(t, []rules.Cap{{Count: 1, Period: "day"}, {Count: 3, Period: "week"}}, rules.Slots["push"].SlotCaps)
 	assert.Equal(t, []rules.Cap{{Count: 1, Period: "week"}}, rules.Slots["modal"].SlotCaps)
@@ -191,7 +191,7 @@ func TestSelectSlot_CooldownFromDismissed(t *testing.T) {
 	got, dropped := rules.SelectSlot("daily_challenge", nil, nil, nil, 1, tNow)
 	assert.Empty(t, got)
 	assert.Empty(t, dropped)
-	// smart_tip also has its 1-per-cycle default; give the user a fresh cycle so only the cooldown can bite.
+	// A fresh cycle, so nothing but the cooldown can bite.
 	f := rules.Facts{"current_period_start": tNow.AddDate(0, 0, -1).Format("2006-01-02")}
 	got, dropped = rules.SelectSlot("smart_tip", []rules.Rule{r}, f, h.build(tNow, f), 1, tNow)
 	assert.Empty(t, got)
@@ -432,7 +432,7 @@ func TestSelectSlot_PostSafety24h(t *testing.T) {
 
 // Ordering: priority, then least recently shown (never shown first), then the smaller id.
 func TestSelectSlot_LeastRecentlyShownThenID(t *testing.T) {
-	f := rules.Facts{"current_period_start": tNow.Format("2006-01-02")} // smart_tip cycle default: a fresh cycle
+	f := rules.Facts{"current_period_start": tNow.Format("2006-01-02")} // a fresh cycle
 	a := slotRule(5, "smart_tip", rules.KindClinical, 300)
 	b := slotRule(3, "smart_tip", rules.KindClinical, 300)
 	c := slotRule(4, "smart_tip", rules.KindClinical, 300)
@@ -478,13 +478,13 @@ func TestSelectSlot_DailyAdviceThreeFresh(t *testing.T) {
 	assert.Equal(t, rules.ReasonCapacity, reasonOf(t, dropped, 1))
 }
 
-// smart_tip: 1 per cycle per message by default.
-func TestSelectSlot_SmartTipOncePerCycle(t *testing.T) {
+// smart_tip has no per-cycle default: a tip already shown this cycle is served again while it still matches.
+func TestSelectSlot_SmartTipRepeatsWithinCycle(t *testing.T) {
 	r := slotRule(1, "smart_tip", rules.KindClinical, 300)
 	f := rules.Facts{"current_period_start": "2026-10-05"}
 	h := (&hist{}).shown(r, time.Date(2026, 10, 6, 9, 0, 0, 0, civildate.Tehran))
-	_, dropped := rules.SelectSlot("smart_tip", []rules.Rule{r}, f, h.build(tNow, f), 1, tNow)
-	assert.Equal(t, rules.ReasonSlotCap, reasonOf(t, dropped, 1))
+	got, _ := rules.SelectSlot("smart_tip", []rules.Rule{r}, f, h.build(tNow, f), 1, tNow)
+	assert.Equal(t, []uint64{1}, ids(got))
 }
 
 func TestSelectSlot_HormonalContraceptionDropsFertileWindow(t *testing.T) {

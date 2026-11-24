@@ -73,8 +73,9 @@ type Slot struct {
 var Slots = map[string]Slot{
 	"urgent_modal":  {Name: "urgent_modal", Capacity: 1, Kinds: SlotKinds["urgent_modal"]},
 	"status_banner": {Name: "status_banner", Capacity: 1, Kinds: SlotKinds["status_banner"]}, // while its condition holds
-	"smart_tip": {Name: "smart_tip", Capacity: 1, Kinds: SlotKinds["smart_tip"],
-		MessageCaps: []Cap{{Count: 1, Period: "cycle"}}},
+	// No per-message default cap (product call, 2026-11-24): a matching clinical tip shows every day its
+	// conditions hold. A rule's own caps and cooldown still apply.
+	"smart_tip": {Name: "smart_tip", Capacity: 1, Kinds: SlotKinds["smart_tip"]},
 	"daily_advice": {Name: "daily_advice", Capacity: 3, Kinds: SlotKinds["daily_advice"],
 		MessageCaps: []Cap{{Count: 1, Period: "week"}}}, // no repeat within 7 local days
 	"daily_challenge": {Name: "daily_challenge", Capacity: 1, Kinds: SlotKinds["daily_challenge"]},

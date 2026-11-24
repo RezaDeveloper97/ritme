@@ -274,7 +274,8 @@ func TestFeedInt_SlotsShownEligibleAndSelected(t *testing.T) {
 	_, body, _ = e.call(fiber.MethodGet, "/api/v1/messages/feed", feedDay2, nil)
 	require.Len(t, slotItems(body, "urgent_modal"), 1)
 	e.eventually(shownOf, 2, e.uid, urgent)
-	assert.Empty(t, slotItems(body, "smart_tip"), "smart_tip: once per cycle")
+	require.Len(t, slotItems(body, "smart_tip"), 1, "smart_tip: no per-cycle cap, served again while it matches")
+	assert.EqualValues(t, tip, slotItems(body, "smart_tip")[0]["id"])
 
 	st, body, _ = e.call(fiber.MethodGet, "/api/v1/messages/feed?slots=push", feedDay2, nil)
 	assert.Equal(t, 422, st, body)
