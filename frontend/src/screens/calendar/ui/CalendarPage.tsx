@@ -102,6 +102,8 @@ const SWIPE_THRESHOLD_PX = 40;
 
 // Vertical pitch of one calendar week row (40px cell + 4px flex gap).
 const WEEK_ROW_PX = 44;
+/** `.cal-weeks` block padding: room inside its clip for a day's ring and shadow, so a circle never touches the weekday row. */
+const WEEKS_PAD_PX = 6;
 
 // Scroll-driven collapse thresholds. Deliberately asymmetric (hysteresis):
 // the grid folds only once the user is clearly scrolling away, and unfolds
@@ -262,7 +264,7 @@ interface DayCellProps {
   onSelect: (date: Date) => void;
   dayNumber: string;
   marker: CycleDayMarker | null;
-  /** Chance step of a fertile-window day — the green deepens toward ovulation. */
+  /** Chance step of a fertile-window day — the turquoise-green deepens toward ovulation. */
   level: FertileLevel | null;
   /** Whether the day is inside a real logged period (vs an engine prediction). */
   isLogged: boolean;
@@ -896,7 +898,7 @@ export function CalendarPage() {
               onTouchEnd={onTouchEnd}
               className="cal-weeks"
               // Folded → one row tall; open → every week row (count varies 5–6).
-              style={{ height: (collapsed ? 1 : weeks.length) * WEEK_ROW_PX - 4 }}
+              style={{ height: (collapsed ? 1 : weeks.length) * WEEK_ROW_PX - 4 + 2 * WEEKS_PAD_PX }}
             >
               <div
                 className="cal-log-list"

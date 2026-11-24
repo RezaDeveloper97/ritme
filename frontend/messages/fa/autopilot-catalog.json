@@ -187,7 +187,6 @@
     "cycle_settings_auto": "محاسبه‌ی خودکار طول دوره",
     "cycle_settings_cycle_length": "طول دوره",
     "cycle_settings_period_length": "طول پریود",
-    "cycle_settings_days_before": "چند روز قبل از پریود یادآوری شود",
     "cycle_add_previous": "افزودن دوره‌ی قبلی",
     "cycle_symptoms": "الگوی علائم",
     "calendar_month_prev": "ماه قبل",
@@ -883,11 +882,6 @@
     "me_header_theme": "تغییر حالت روز / شب (بالای صفحه)",
     "account_edit_name": "ویرایش نام",
     "account_edit_birthday": "ویرایش تاریخ تولد",
-    "account_edit_cycleDuration": "ویرایش طول چرخه",
-    "account_edit_periodDuration": "ویرایش طول پریود",
-    "account_edit_lastPeriod": "ویرایش شروع آخرین پریود",
-    "account_edit_weight": "ویرایش وزن",
-    "account_edit_height": "ویرایش قد",
     "quick_name": "نام",
     "quick_cycle_length": "طول چرخه",
     "quick_period_length": "طول پریود",
@@ -1208,7 +1202,12 @@
     "preg_setup_weeks_ultrasound": "هفته در سونوگرافی",
     "preg_setup_days_ultrasound": "روز در سونوگرافی",
     "preg_setup_weeks_week": "هفته‌ی فعلی بارداری",
-    "preg_setup_days_week": "روز فعلی بارداری"
+    "preg_setup_days_week": "روز فعلی بارداری",
+    "cycle_settings_edit_lastPeriod": "ویرایش شروع آخرین پریود",
+    "cycle_settings_edit_weight": "ویرایش وزن",
+    "cycle_settings_edit_height": "ویرایش قد",
+    "notif_days_before": "چند روز قبل از پریود یادآوری شود",
+    "notif_reminder_pill": "یادآور قرص پیشگیری"
   },
   "options": {
     "log_panel_param_bleeding_clots": {
@@ -1903,7 +1902,6 @@
     "fertility_bbt": "°C",
     "cycle_settings_cycle_length": "روز",
     "cycle_settings_period_length": "روز",
-    "cycle_settings_days_before": "روز",
     "preg_weekly_weight": "کیلو",
     "baby_feed_amount": "میلی‌لیتر",
     "baby_feed_manual_left": "دقیقه",
@@ -1944,6 +1942,7 @@
     "lesson_seek": "ثانیه",
     "ins_setup_deadline": "روز",
     "ins_claim_new_amount": "تومان",
-    "ins_claim_step_amount": "تومان"
+    "ins_claim_step_amount": "تومان",
+    "notif_days_before": "روز"
   }
 }

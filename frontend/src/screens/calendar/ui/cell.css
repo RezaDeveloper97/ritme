@@ -20,7 +20,7 @@
 
 .cal-cell.is-pms { --cal-accent: var(--violet); color: var(--violet); }
 
-/* Fertile window: a green digit; only the ovulation (peak-chance, level 4) day is filled. */
+/* Fertile window: a turquoise-green digit; only the ovulation (peak-chance, level 4) day is filled. */
 .cal-cell.is-fertile,
 .cal-cell.is-ovulation { --cal-accent: var(--fertile); color: var(--fertile-deep); }
 
