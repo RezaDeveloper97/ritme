@@ -94,7 +94,7 @@ export const ROUTE_NAMESPACES = {
   log: ['aiCredit', 'aiGate', 'autopilot', 'children', 'common', 'logSheet', 'nav', 'plus', 'voiceLog'], // autopilot = features/voice-log runs the script it gets (shared/autopilot); // CB-NAV-03: children = widgets/log-later via screens/log; // B-N3-03: /log renders the log sheet v2 as a page
   logCustomize: ['common', 'logCustomize', 'logSheet'], // B-N3-04 /log/customize (the log sheet's gear; categoryLook comes via features/log-day)
   cycleSymptoms: ['common', 'cycle', 'logPeriod'], // B-N1-08 /cycle/symptoms (screen slice shares the editor)
-  cycleSettings: ['common', 'me'], // B-N1-09 /cycle/settings (copy lives under me.cycleSettings)
+  cycleSettings: ['common', 'me', 'profile', 'profileEdit'], // B-N1-09 /cycle/settings (copy lives under me.cycleSettings; profile = the health row labels, profileEdit = their QuickEditSheet)
   profile: ['account', 'aiCredit', 'common', 'companions', 'me', 'nav', 'plus', 'profile', 'profileEdit', 'teen'], // B-N2-08: entities/plus (Me Plus card) carries the PlusFeatureGate copy; B-N4-04 entities/companion (Me row); CB-TEEN-04b entities/teen (teen's parent row)
   profileAccount: ['account', 'aiCredit', 'common', 'companions', 'me', 'nav', 'plus', 'profile', 'profileEdit', 'teen'], // B-N1-10 /profile/account (+ plus: same Me hub slice; CB-TEEN-04b teen)
   profileDevices: ['common', 'me'], // B-N10-07 /profile/devices

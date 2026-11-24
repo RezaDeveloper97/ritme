@@ -46,48 +46,6 @@
 
 .cys-manual { display: flex; flex-direction: column; gap: 14px; padding-block: 4px 12px; }
 
-.cys-rem { display: flex; flex-direction: column; }
-
-.cys-rem > .nb-row { padding: 0; }
-
-.cys-sub {
-  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-block: -12px; padding: 0;
-  background: transparent; border: 0; font: inherit; color: var(--text-2); cursor: pointer; border-radius: 8px;
-}
-
-.cys-sub-icon { color: var(--brand); opacity: .8; }
-
-.cys-sub:focus-visible,
-.cys-done:focus-visible,
-.cys-time-input:focus-visible {
-  outline: 2px solid var(--brand); outline-offset: 2px;
-}
-
-.cys-edit { display: flex; flex-direction: column; gap: 12px; padding-block: 12px 4px; }
-
-.cys-edit-row { display: flex; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
-
-.cys-time { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 120px; }
-
-.cys-time-label { font-size: var(--fs-sm); font-weight: 700; color: var(--text-3); }
-
-.cys-time-input {
-  min-height: 44px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 14px;
-  background: var(--surface-3); color: var(--text-1); font: inherit; font-size: 14px; font-weight: 700;
-}
-
-.cys-done {
-  min-height: 44px; padding: 0 18px; border: 0; border-radius: var(--r-pill);
-  background: var(--brand-soft); color: var(--brand-ink); font: inherit; font-size: 13px; font-weight: 800; cursor: pointer;
-}
-
-.cys-check {
-  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
-  width: 24px; height: 24px; border-radius: 50%; background: var(--brand-fill); color: var(--on-brand);
-}
-
-.cys-empty { margin: 0; padding-block: 8px 12px; font-size: 13px; font-weight: 600; color: var(--text-2); }
-
 .cys-note { margin: 0; padding-inline: 8px; font-size: 12px; font-weight: 600; line-height: 1.9; color: var(--text-3); text-align: center; }
 
 .cys-error { margin: 0; padding-inline: 4px; font-size: var(--fs-sm); font-weight: 700; color: var(--danger); }
