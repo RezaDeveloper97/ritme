@@ -415,6 +415,7 @@
         "d7": "7 days",
         "d30": "30 days",
         "bmi": "BMI",
+        "bmiNote": "{label}: {message}",
         "statsLabel": "Weight change and BMI",
         "chart": "Weight trend as a {n}-day moving average, from {from} to {to} kg",
         "colDate": "Date",

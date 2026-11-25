@@ -122,7 +122,7 @@ func (s *Service) Build(ctx context.Context, req Request) (*Result, error) {
 	evaluate := req.Alerts && in != nil
 	var inboxNeed []string
 	if evaluate {
-		inboxNeed = in.Need(comp)
+		inboxNeed = append(in.Need(comp), ModeScopeFacts()...)
 	}
 	need := slices.Concat(comp.Need(req.Slots...), compiled.SelectionFacts, x.placeholders(req.Slots), inboxNeed,
 		challengeNeed(ctx, req))

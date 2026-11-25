@@ -177,6 +177,24 @@
 
 .nb-card.pgn-tip { background: linear-gradient(135deg, color-mix(in srgb, var(--brand) 16%, transparent), var(--surface) 70%); gap: 8px; }
 
+.pgn-tip-action {
+  display: flex; align-items: center; gap: 8px; margin: 2px 0 0; padding: 10px 12px; border-radius: 14px;
+  background: var(--surface); color: var(--text-1); font-size: 12.5px; font-weight: 700; line-height: 1.7;
+}
+
+.pgn-tip-action > svg { flex: none; color: var(--brand); }
+
+.pgn-tip-extras { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 6px; }
+
+.pgn-tip-extras > li {
+  position: relative; padding-inline-start: 14px; font-size: 12.5px; line-height: 1.7; color: var(--text-2);
+}
+
+.pgn-tip-extras > li::before {
+  content: ''; position: absolute; inset-inline-start: 0; top: .7em; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--brand);
+}
+
 .nb-card.pgn-week-hero {
   display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 18px; text-align: center;
   background: linear-gradient(135deg, color-mix(in srgb, var(--bloom) 16%, transparent), var(--surface) 70%);

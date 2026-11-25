@@ -15,14 +15,15 @@ export const cycleSettingsKeys = {
 
 /**
  * Caches the save makes stale: manual lengths re-run the cycle engine (every
- * cycle-dependent query via the shared helper, plus the profile), and the reminder switches are shared with the
- * /profile/notifications screen (a sibling slice, hence its literal key).
+ * cycle-dependent query via the shared helper, plus the profile), and the PMS
+ * reminder's cycle day on /profile/notifications follows the cycle length (a
+ * sibling slice, hence its literal key).
  */
-const DEPENDENT_KEYS: readonly (readonly string[])[] = [userKeys.profile(), ['notification-settings']];
+const DEPENDENT_KEYS: readonly (readonly string[])[] = [userKeys.profile(), ['cycle-settings', 'reminders']];
 
 const PATH = '/profile/cycle-settings';
 
-/** GET /profile/cycle-settings — automatic lengths and default reminders when never saved. */
+/** GET /profile/cycle-settings — automatic lengths when never saved. */
 export function useCycleSettings() {
   return useQuery({
     queryKey: cycleSettingsKeys.all,
@@ -37,7 +38,7 @@ export function useCycleSettings() {
 }
 
 /**
- * PUT /profile/cycle-settings with a partial body. Switches and steppers
+ * PUT /profile/cycle-settings with a partial body. The switch and steppers
  * update at once (optimistic); a failed save rolls the cache back and the
  * screen shows the error line.
  */

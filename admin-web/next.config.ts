@@ -48,8 +48,15 @@ const csp = [
   "frame-ancestors 'none'",
 ].join('; ');
 
+const skipBuildChecks = process.env.NEXT_SKIP_BUILD_CHECKS === '1';
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Image builds only (the Dockerfile sets NEXT_SKIP_BUILD_CHECKS=1): lint and type-check are run by /verify-all
+  // before a deploy, so `next build` does not repeat them on the slow build server. A plain local `npm run build`
+  // still checks both.
+  eslint: { ignoreDuringBuilds: skipBuildChecks },
+  typescript: { ignoreBuildErrors: skipBuildChecks },
   // The image optimizer (/_next/image) is unused (T-M12-04): serve images as-is and shut the endpoint.
   images: { unoptimized: true },
   // Local only: NEXT_DIST_DIR=.next-dev keeps a dev server alive while `npm run build` runs.

@@ -2,7 +2,7 @@
 
 import { clsx } from 'clsx';
 import { useTranslations } from 'next-intl';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, type MouseEvent, type PointerEvent } from 'react';
 
 import { useLogDays, type LogCategory, type LogDayValues, type LogParam, type LogParamValue } from '@/entities/health-log';
 import type { Locale } from '@/shared/i18n';
@@ -12,6 +12,7 @@ import { ChipGroup, Icon, PillChip, type IconName, type Tone } from '@/shared/ui
 
 import { asNumber, asString, normalizeNumber, pickableOptions } from '../../model/draft';
 import { logPilotId } from '../../model/pilot-targets';
+import { stepOnGrid } from '../../model/stepper';
 import { ParamField } from '../ParamField';
 import { PanelCard } from './PanelCard';
 import '@/shared/ui/styles/lday.css';
@@ -28,10 +29,19 @@ interface MeasurePanelProps {
 /** How far back the «ثبت قبلی» comparison looks. */
 const LOOKBACK_DAYS = 30;
 
-const STEPPED: Record<string, { icon: IconName; tone: Tone; step: number; fallback: number }> = {
-  weight: { icon: 'scaleSquare', tone: 'data', step: 0.1, fallback: 60 },
-  bbt: { icon: 'thermo', tone: 'brand', step: 0.01, fallback: 36.5 },
+/**
+ * −/+ steps. Weight moves by half a kilo (nobody needs 58.3 vs 58.4 for a trend); basal temperature by 0.1°,
+ * because the post-ovulation rise the BBT chart looks for is only 0.2–0.5° and a coarser step would hide it.
+ */
+const STEPPED: Record<string, { icon: IconName; tone: Tone; step: number; scale: number; fallback: number }> = {
+  weight: { icon: 'scaleSquare', tone: 'data', step: 0.5, scale: 1, fallback: 60 },
+  bbt: { icon: 'thermo', tone: 'brand', step: 0.1, scale: 1, fallback: 36.5 },
 };
+
+/** Holding a −/+ button repeats: first repeat after this delay, then faster and faster down to the floor. */
+const HOLD_DELAY_MS = 400;
+const HOLD_START_MS = 160;
+const HOLD_FLOOR_MS = 50;
 
 const TESTS: Record<string, Tone> = { lh_test: 'warm', pregnancy_test: 'bloom' };
 
@@ -145,11 +155,23 @@ function BigStepper({
 }) {
   const t = useTranslations('logSheet');
   const look = STEPPED[param.code];
-  const scale = param.type === 'integer' ? 0 : look.step < 0.1 ? 2 : 1;
+  const scale = param.type === 'integer' ? 0 : look.scale;
   const base = value ?? previous ?? look.fallback;
   const shown = formatDecimal(base.toFixed(scale), locale);
   const unit = param.unit?.label ?? '';
-  const nudge = (dir: 1 | -1) => onChange(normalizeNumber(param, (value ?? base) + (value === null ? 0 : dir * look.step)));
+
+  // The hold timer outlives renders, so it reads the latest value through a ref instead of a stale closure.
+  const current = useRef<number | null>(value);
+  current.current = value;
+  const nudge = (dir: 1 | -1) => {
+    const now = current.current;
+    // The first press only confirms the shown starting point (last reading or a typical value).
+    const next = normalizeNumber(param, now === null ? base : stepOnGrid(now, look.step, dir));
+    current.current = next;
+    onChange(next);
+  };
+  const minus = useHoldRepeat(() => nudge(-1));
+  const plus = useHoldRepeat(() => nudge(1));
 
   let caption = '';
   if (param.code === 'weight') {
@@ -165,13 +187,13 @@ function BigStepper({
   return (
     <PanelCard title={param.label} icon={look.icon} tone={look.tone}>
       <div className="lday-big" role="group" aria-label={param.label} {...pilot(pilotId, 'stepper')}>
-        <button type="button" className="lday-big-btn" aria-label={t('measure.decrease', { name: param.label })} onClick={() => nudge(-1)}>
+        <button type="button" className="lday-big-btn" aria-label={t('measure.decrease', { name: param.label })} {...minus}>
           <Icon name="minus" size={20} strokeWidth={2.4} />
         </button>
         <output className={clsx('lday-big-num', value === null && 'is-empty')} aria-live="polite">
           {shown}
         </output>
-        <button type="button" className="lday-big-btn" aria-label={t('measure.increase', { name: param.label })} onClick={() => nudge(1)}>
+        <button type="button" className="lday-big-btn" aria-label={t('measure.increase', { name: param.label })} {...plus}>
           <Icon name="plus" size={20} strokeWidth={2.4} />
         </button>
       </div>
@@ -185,4 +207,48 @@ function BigStepper({
       </p>
     </PanelCard>
   );
+}
+
+/**
+ * Tap = one step (also Enter/Space through `onClick`), press-and-hold = repeat with acceleration. A click that
+ * ends a hold which already repeated is swallowed, so letting go never adds an extra step.
+ */
+function useHoldRepeat(fire: () => void) {
+  const fireRef = useRef(fire);
+  fireRef.current = fire;
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const repeated = useRef(false);
+
+  const stop = () => {
+    if (timer.current !== null) clearTimeout(timer.current);
+    timer.current = null;
+  };
+  useEffect(() => stop, []);
+
+  return {
+    onPointerDown: (e: PointerEvent<HTMLButtonElement>) => {
+      if (e.button !== 0) return;
+      stop();
+      repeated.current = false;
+      let interval = HOLD_START_MS;
+      const tick = () => {
+        repeated.current = true;
+        fireRef.current();
+        interval = Math.max(HOLD_FLOOR_MS, interval * 0.85);
+        timer.current = setTimeout(tick, interval);
+      };
+      timer.current = setTimeout(tick, HOLD_DELAY_MS);
+    },
+    onPointerUp: stop,
+    onPointerLeave: stop,
+    onPointerCancel: stop,
+    onContextMenu: (e: MouseEvent) => e.preventDefault(),
+    onClick: () => {
+      if (repeated.current) {
+        repeated.current = false;
+        return;
+      }
+      fireRef.current();
+    },
+  };
 }

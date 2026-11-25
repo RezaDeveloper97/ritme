@@ -4584,7 +4584,7 @@ body {
 
 .cal-grid-card { padding: 14px 14px 16px; position: relative; }
 
-.cal-legend-wrap { margin-bottom: 6px; }
+.cal-legend-wrap { margin-bottom: 4px; }
 
 .cal-legend-hint { font-size: 11px; color: var(--muted); font-weight: 700; text-align: start; }
 
@@ -4595,6 +4595,8 @@ body {
 .cal-page .page-scroll { overflow-anchor: none; }
 
 .cal-weeks {
+  /* Room inside the clip for the selected ring + shadow (WEEKS_PAD_PX in CalendarPage). */
+  box-sizing: border-box; padding-block: 6px; margin-inline: -6px; padding-inline: 6px;
   overflow: hidden;
   transition: height .42s cubic-bezier(.32, .72, 0, 1);
 }

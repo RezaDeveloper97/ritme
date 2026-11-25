@@ -44,7 +44,6 @@ import {
   feedState,
   localizeFeedText,
   slotItems,
-  useAckAlert,
   useDailyMessage,
   useMessageEvent,
   useMessageFeed,
@@ -123,7 +122,7 @@ import { isEnginePayload, todayHero } from '../model/today-ui';
 
 import { PregnancyPromptCard } from './PregnancyPromptCard';
 import { FeedBanner, TodayBanner } from './TodayBanner';
-import { InAppModal, UrgentModal } from './FeedModals';
+import { InAppModal } from './FeedModals';
 import { PlusTrialOffer } from './PlusTrialOffer';
 import { TodayLogCard } from './TodayLogCard';
 import '@/shared/ui/styles/btn.css';
@@ -673,7 +672,6 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   const { data: daily } = useDailyMessage(undefined, legacyDaily);
   const router = useRouter();
   const sendEvent = useMessageEvent();
-  const ackAlert = useAckAlert();
   // Served messages she closed (or acted on) this session; the server's cap/cooldown takes over after the refetch.
   const [closedFeed, setClosedFeed] = useState<ReadonlySet<string>>(() => new Set());
   const profileQuery = useUserProfile();
@@ -1071,8 +1069,9 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   const feedBanner = firstVisible(feedBannerAll ? [feedBannerAll] : [], closedFeed);
   const feedTipServed = slotItems(feed, 'smart_tip').length > 0;
   const feedTip = firstVisible(slotItems(feed, 'smart_tip').slice(0, 1), closedFeed);
-  const urgentItem = firstVisible(slotItems(feed, 'urgent_modal').slice(0, 1), closedFeed);
-  const modalItem = urgentItem ? null : firstVisible(slotItems(feed, 'modal').slice(0, 1), closedFeed);
+  // The urgent alert is the shell's (widgets/urgent-alert, over every screen); the in-app modal waits behind it.
+  const urgentOpen = slotItems(feed, 'urgent_modal').length > 0;
+  const modalItem = urgentOpen ? null : firstVisible(slotItems(feed, 'modal').slice(0, 1), closedFeed);
 
   return (
     <div className="view">
@@ -1344,15 +1343,6 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
         }}
       />}
 
-      {/* SPEC §5.4.1: the urgent message cannot be closed — only «دیدم» (POST /alerts/{id}/ack) clears it. */}
-      {urgentItem && (
-        <UrgentModal
-          item={urgentItem}
-          pending={ackAlert.isPending}
-          failed={ackAlert.isError}
-          onAck={() => ackAlert.mutate({ ruleId: urgentItem.id, alertId: urgentItem.alertId }, { onSuccess: () => closeFeedItem(urgentItem) })}
-        />
-      )}
       {modalItem && (
         <InAppModal
           item={modalItem}

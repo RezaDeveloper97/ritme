@@ -56,7 +56,7 @@ var exportColumns = map[string][]string{
 	"baby_med_doses":                 {"id", "child_id", "name", "dose_text", "given_at", "note", "created_by", "updated_by", "created_at", "updated_at"},
 	"families":                       {"id", "owner_id", "spouse_user_id", "companion_id", "created_at", "updated_at"},
 	"family_children":                {"id", "family_id", "child_id", "created_at", "updated_at"},
-	"companions":                     {"id", "owner_id", "companion_user_id", "type", "status", "display_name", "invited_at", "accepted_at", "revoked_at", "revoked_by", "created_at", "updated_at", "role", "template", "expires_at", "urgent_sms", "owner_confirmed_at", "goal", "share_pain", "share_mood", "share_energy", "share_sleep", "action_prefs"},
+	"companions":                     {"id", "owner_id", "companion_user_id", "type", "status", "display_name", "invited_at", "accepted_at", "revoked_at", "revoked_by", "created_at", "updated_at", "role", "template", "expires_at", "urgent_sms", "owner_confirmed_at", "goal", "share_pain", "share_mood", "share_energy", "share_sleep", "share_period_days", "action_prefs"},
 	"companion_grants":               {"id", "companion_id", "section", "level", "created_at", "updated_at", "mode_epoch"},
 	"companion_invites":              {"id", "companion_id", "owner_id", "phone", "attempts", "expires_at", "used_at", "used_by_id", "revoked_at", "created_at", "updated_at"},
 	"companion_audit_logs":           {"id", "owner_id", "actor_id", "companion_id", "section", "action", "created_at", "subject_type", "subject_id", "diff_json", "payload_key_id", "undo_deadline", "undone_at", "undone_by", "proposal_id"},

@@ -287,6 +287,42 @@ func TestBridge_PregnancyFlowAlertsOnly(t *testing.T) {
 	assert.Zero(t, e.count(t, `SELECT COUNT(*) FROM pregnancy_alerts WHERE user_id = ?`, uid), "no legacy alert rows")
 }
 
+// Pregnancy mode: the log sheet's «لکه‌بینی» (bleeding.spotting, no flow) is the day's spotting symptom and raises the
+// urgent preg.critical_symptom alert in the same save (early pregnancy: spotting is critical up to week 12), so the
+// feed answering right after the save already carries it. Clearing the flag keeps the symptom and the alert.
+func TestBridge_PregnancySpottingAlertsOnSave(t *testing.T) {
+	e := setupLogs(t)
+	quiet := slog.New(slog.NewTextHandler(io.Discard, nil))
+	inboxalerts.Install(e.db, quiet)
+	t.Cleanup(func() { pregnancyalerts.InstallBackend(nil) })
+	uid, tok := e.user(t, "09121002006", "")
+	e.withProfile(t, uid)
+	_, err := e.db.Exec(`INSERT INTO pregnancy_profiles (user_id, pregnancy_mode, age_source, lmp_date, created_at, updated_at)
+		VALUES (?, 1, 'lmp', '2026-08-01', NOW(), NOW())`, uid)
+	require.NoError(t, err)
+	spotting := func() string {
+		var s string
+		require.NoError(t, e.db.QueryRow(`SELECT CONCAT(has_spotting, ' ', spotting_severity) FROM pregnancy_symptom_logs
+			WHERE user_id = ? AND log_date = '2026-09-20'`, uid).Scan(&s))
+		return s
+	}
+	open := func() int {
+		return e.count(t, `SELECT COUNT(*) FROM message_inbox WHERE user_id = ? AND rule_key = 'preg.critical_symptom'
+			AND state = 'active'`, uid)
+	}
+
+	r := e.do(t, "PUT", "/api/v1/logs/days/2026-09-20", tok, "fa", `{"categories":{"bleeding":{"spotting":true}}}`)
+	require.Equal(t, 200, r.status, r.raw)
+	assert.Equal(t, "1 mild", spotting())
+	assert.Equal(t, 1, open(), "the urgent alert opens with the save")
+	assert.Empty(t, e.bridgeRows(t, uid), "no period in pregnancy")
+
+	r = e.do(t, "PUT", "/api/v1/logs/days/2026-09-20", tok, "fa", `{"categories":{"bleeding":{"spotting":null}}}`)
+	require.Equal(t, 200, r.status, r.raw)
+	assert.Equal(t, "1 mild", spotting(), "the recorded symptom stays")
+	assert.Equal(t, 1, open(), "the alert stays open")
+}
+
 // Postpartum: flow is lochia before birth + 42 days (not offered, a 422 on the v2 sheet, ignored by the bridge on the
 // old endpoint); from day 42 it is offered and builds a period as in cycle mode (I-05, H-14).
 func TestBridge_PostpartumFlowFromDay42(t *testing.T) {

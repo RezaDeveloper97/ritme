@@ -104,7 +104,7 @@ function Indicators({ k }: { k: Kpi | undefined }) {
                   <th scope="col" className="p-2 text-start font-semibold">{t('ctrVersion')}</th>
                   <th scope="col" className="p-2 text-end font-semibold">{t('ctrShown')}</th>
                   <th scope="col" className="p-2 text-end font-semibold">{t('ctrClicked')}</th>
-                  <th scope="col" className="p-2 text-end font-semibold">CTR</th>
+                  <th scope="col" className="p-2 text-end font-semibold">{t('ctrRate')}</th>
                 </tr>
               </thead>
               <tbody>

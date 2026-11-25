@@ -42,3 +42,13 @@ WHERE id = ?;
 INSERT INTO `pregnancy_symptom_logs` (user_id, log_date, has_bleeding, bleeding_severity, created_at, updated_at)
 VALUES (sqlc.arg(user_id), sqlc.arg(log_date), 1, sqlc.arg(bleeding_severity), sqlc.arg(now), sqlc.arg(now))
 ON DUPLICATE KEY UPDATE has_bleeding = 1, bleeding_severity = VALUES(bleeding_severity), updated_at = VALUES(updated_at);
+
+-- name: RecordSpottingSymptom :exec
+-- Spotting logged in pregnancy on the general day log (healthlog bridge) is the day's spotting symptom: the day's row
+-- is created or gets has_spotting (its other symptoms are kept). A severity the user logged herself is kept; a new
+-- flag starts at the given severity.
+INSERT INTO `pregnancy_symptom_logs` (user_id, log_date, has_spotting, spotting_severity, created_at, updated_at)
+VALUES (sqlc.arg(user_id), sqlc.arg(log_date), 1, sqlc.arg(spotting_severity), sqlc.arg(now), sqlc.arg(now))
+ON DUPLICATE KEY UPDATE
+  spotting_severity = IF(has_spotting = 1 AND spotting_severity IS NOT NULL, spotting_severity, VALUES(spotting_severity)),
+  has_spotting = 1, updated_at = VALUES(updated_at);

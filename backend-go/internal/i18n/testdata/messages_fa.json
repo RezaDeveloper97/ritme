@@ -540,6 +540,7 @@
       "d7": "۷ روز",
       "d30": "۳۰ روز",
       "bmi": "BMI",
+      "bmiNote": "{label}: {message}",
       "statsLabel": "تغییر وزن و BMI",
       "chart": "روند وزن با میانگین متحرک {n} روزه، از {from} به {to} کیلو",
       "colDate": "تاریخ",
@@ -1320,15 +1321,6 @@
     "autoRead": "کد از پیامک خودکار خوانده می‌شود.",
     "submit": "تأیید",
     "verifying": "در حال بررسی…"
-   },
-   "pending": {
-    "title": "قبل از ادامه",
-    "lead": "این متن‌ها را هنوز نپذیرفته‌ای. بخوانشان و اگر موافقی، تأیید کن.",
-    "version": "نسخهٔ {v}",
-    "agree": "متن‌های بالا را خواندم و می‌پذیرم.",
-    "accept": "می‌پذیرم",
-    "later": "بعداً",
-    "error": "ذخیره نشد. دوباره امتحان کن."
    }
   },
   "autopilot": {
@@ -1373,7 +1365,6 @@
     "children": "کودکان",
     "plusCredits": "خرید اعتبار",
     "profileCredits": "مصرف اعتبار",
-    "profileAppearance": "ظاهر برنامه",
     "profileNotifications": "اعلان‌ها",
     "cycle_settings": "تنظیمات دوره",
     "cycle_symptoms": "الگوی علائم",
@@ -1485,7 +1476,6 @@
     "todoAdd": "کار تازه",
     "vitalsAdd": "ثبت علائم حیاتی",
     "phase": "جزئیات فاز",
-    "quick_access": "ویرایش دسترسی سریع",
     "reminders_add": "افزودن یادآور",
     "checkup_mark_done": "ثبت انجام چکاپ",
     "lab_consent": "رضایت تحلیل آزمایش",
@@ -1500,25 +1490,15 @@
     "navLog": "دکمه‌ی ثبت",
     "sheetClose": "بستن پنجره",
     "navTab": "تب نوار پایین",
-    "log_panel_bleeding": "جزئیات خونریزی",
     "log_panel_pain": "جزئیات درد",
-    "log_panel_measure": "جزئیات اندازه‌گیری‌ها",
     "log_panel_confirm": "تأیید یا ذخیره‌ی جزئیات",
     "log_search": "جست‌وجوی ثبت روزانه",
     "log_preset_bleeding": "خونریزی (یائسگی)",
     "log_preset_triggers": "محرک‌ها",
     "log_preset_voice": "با صدا بگو (ثبت علائم)",
-    "log_panel_param_bleeding_flow": "شدت خونریزی (جزئیات)",
-    "log_panel_param_bleeding_spotting": "لکه‌بینی",
-    "log_panel_param_bleeding_color": "رنگ خونریزی",
     "log_panel_param_bleeding_clots": "لخته",
-    "log_panel_param_bleeding_odor": "بوی خونریزی",
     "log_panel_param_pain_score": "شدت درد (۱ تا ۱۰)",
     "log_panel_param_pain_relief": "چی دردت رو کم کرد",
-    "log_panel_param_measurements_weight": "وزن",
-    "log_panel_param_measurements_bbt": "دمای پایه‌ی بدن (ثبت روزانه)",
-    "log_panel_param_measurements_lh_test": "تست LH",
-    "log_panel_param_measurements_pregnancy_test": "تست بارداری",
     "period_toggle": "شروع یا پایان پریود",
     "period_save": "ذخیره‌ی تاریخ‌های پریود",
     "period_spotting": "فقط لکه‌بینی است",
@@ -1547,7 +1527,6 @@
     "cycle_settings_auto": "محاسبه‌ی خودکار طول دوره",
     "cycle_settings_cycle_length": "طول دوره",
     "cycle_settings_period_length": "طول پریود",
-    "cycle_settings_days_before": "چند روز قبل از پریود یادآوری شود",
     "cycle_add_previous": "افزودن دوره‌ی قبلی",
     "cycle_symptoms": "الگوی علائم",
     "calendar_month_prev": "ماه قبل",
@@ -1559,8 +1538,6 @@
     "calendar_start_period_here": "پریودم از این روز شروع شد",
     "calendar_log_day": "ثبت یا ویرایش روز انتخاب‌شده",
     "calendar_vitals": "علائم حیاتی",
-    "home_quick_edit": "ویرایش دسترسی سریع",
-    "quick_access_save": "ذخیره‌ی دسترسی سریع",
     "home_today_tasks": "کارهای امروز",
     "home_later_vitals": "ثبت علائم حیاتی",
     "home_later_appointment": "ثبت وقت پزشک",
@@ -1576,7 +1553,6 @@
     "home_period_ended": "پریودم تموم شد",
     "home_period_still_going": "هنوز ادامه داره",
     "home_edit_period": "ویرایش پریود",
-    "home_predictions_details": "جزئیات پیش‌بینی‌ها",
     "analysis_report": "گزارش ماهانه",
     "analysis_filter": "فیلتر دسته‌بندی تحلیل",
     "analysis_log": "ثبت روزانه (از تحلیل)",
@@ -2219,7 +2195,6 @@
     "mode_contraception": "پیگیری پیشگیری",
     "mode_contraception_manage": "مدیریت پیشگیری",
     "mode_confirm_go": "تایید تغییر حالت",
-    "me_open_profile_appearance": "باز کردن «ظاهر اپ»",
     "me_open_profile_account": "باز کردن «حساب من»",
     "me_open_profile_credits": "باز کردن «اعتبار هوش مصنوعی»",
     "me_open_companion_links": "باز کردن «کد همدم»",
@@ -2244,14 +2219,9 @@
     "me_open_profile_support_chat": "باز کردن «گفت‌وگو با پشتیبانی»",
     "me_open_profile_about": "باز کردن «درباره‌ی ریتمی»",
     "me_open_plus": "باز کردن «اشتراک ریتمی پلاس»",
-    "me_header_appearance": "ظاهر اپ (بالای صفحه)",
+    "me_header_theme": "تغییر حالت روز / شب (بالای صفحه)",
     "account_edit_name": "ویرایش نام",
     "account_edit_birthday": "ویرایش تاریخ تولد",
-    "account_edit_cycleDuration": "ویرایش طول چرخه",
-    "account_edit_periodDuration": "ویرایش طول پریود",
-    "account_edit_lastPeriod": "ویرایش شروع آخرین پریود",
-    "account_edit_weight": "ویرایش وزن",
-    "account_edit_height": "ویرایش قد",
     "quick_name": "نام",
     "quick_cycle_length": "طول چرخه",
     "quick_period_length": "طول پریود",
@@ -2288,10 +2258,6 @@
     "reminders_submit": "ذخیره‌ی یادآور",
     "notifications_history": "سابقه‌ی هشدارها",
     "notifications_mark_all": "همه خوانده شد",
-    "appearance_theme": "تم اپ",
-    "appearance_follow_system": "پیروی از تم سیستم",
-    "appearance_text_size": "اندازه‌ی نوشته",
-    "appearance_reduce_motion": "کاهش حرکت",
     "notif_quiet": "ساعت سکوت",
     "notif_quiet_edit": "ویرایش بازه‌ی سکوت",
     "notif_quiet_start": "شروع ساعت سکوت",
@@ -2576,7 +2542,12 @@
     "preg_setup_weeks_ultrasound": "هفته در سونوگرافی",
     "preg_setup_days_ultrasound": "روز در سونوگرافی",
     "preg_setup_weeks_week": "هفته‌ی فعلی بارداری",
-    "preg_setup_days_week": "روز فعلی بارداری"
+    "preg_setup_days_week": "روز فعلی بارداری",
+    "cycle_settings_edit_lastPeriod": "ویرایش شروع آخرین پریود",
+    "cycle_settings_edit_weight": "ویرایش وزن",
+    "cycle_settings_edit_height": "ویرایش قد",
+    "notif_days_before": "چند روز قبل از پریود یادآوری شود",
+    "notif_reminder_pill": "یادآور قرص پیشگیری"
    },
    "options": {
     "log_panel_param_bleeding_clots": {
@@ -3084,11 +3055,6 @@
      "menopause": "یائسگی",
      "teen": "نوجوانی"
     },
-    "appearance_theme": {
-     "light": "روشن",
-     "dark": "تاریک",
-     "system": "مثل سیستم"
-    },
     "companion_goals": {
      "cycle": "فهمیدن چرخه",
      "support": "حمایت",
@@ -3273,12 +3239,9 @@
     }
    },
    "units": {
-    "log_panel_param_measurements_weight": "کیلوگرم",
-    "log_panel_param_measurements_bbt": "°C",
     "fertility_bbt": "°C",
     "cycle_settings_cycle_length": "روز",
     "cycle_settings_period_length": "روز",
-    "cycle_settings_days_before": "روز",
     "preg_weekly_weight": "کیلو",
     "baby_feed_amount": "میلی‌لیتر",
     "baby_feed_manual_left": "دقیقه",
@@ -3319,7 +3282,8 @@
     "lesson_seek": "ثانیه",
     "ins_setup_deadline": "روز",
     "ins_claim_new_amount": "تومان",
-    "ins_claim_step_amount": "تومان"
+    "ins_claim_step_amount": "تومان",
+    "notif_days_before": "روز"
    }
   },
   "baby-log": {
@@ -7216,10 +7180,10 @@
     "log": {
      "title": "ثبت امروز",
      "streak": "{n} روز پشت‌سر هم",
-     "bleeding": "خونریزی",
-     "bleedingHint": "پریود یا لکه‌بینی",
+     "period": "ثبت پریود",
+     "periodHint": "در تقویم",
      "symptoms": "علائم",
-     "mood": "حال و انرژی",
+     "mood": "حال و روحیه",
      "empty": "هنوز ثبت نشده",
      "logged": "ثبت شده",
      "add": "ثبت {name}"
@@ -9176,8 +9140,6 @@
    "more": "جزئیات بیشتر",
    "less": "بستن جزئیات",
    "bodyMapLink": "انتخاب روی نقشهٔ بدن",
-   "measureLink": "ثبت دقیق",
-   "bleedingLink": "رنگ، لخته و بو",
    "severity": "شدت",
    "link": {
     "open": "باز کردن",
@@ -9212,7 +9174,6 @@
    },
    "panel": {
     "confirm": "تأیید",
-    "save": "ذخیره",
     "today": "امروز",
     "sub": "{date} · روز {day}"
    },
@@ -10169,7 +10130,6 @@
     "privacy": "حریم خصوصی و قفل",
     "privacyLockOn": "قفل اپ فعال",
     "notifications": "اعلان‌ها و یادآورها",
-    "appearance": "ظاهر",
     "language": "زبان و تقویم",
     "help": "راهنما و سؤالات",
     "chat": "گفت‌وگو با پشتیبانی",
@@ -10190,11 +10150,6 @@
    "logout": "خروج از حساب",
    "loggingOut": "در حال خروج…",
    "version": "نسخه {version}",
-   "theme": {
-    "light": "روشن",
-    "dark": "تیره",
-    "system": "هماهنگ با گوشی"
-   },
    "calendars": {
     "jalali": "شمسی",
     "gregorian": "میلادی"
@@ -10217,22 +10172,11 @@
     "subscription": "اشتراک",
     "sessions": "دستگاه‌های وارد شده",
     "sessionsSub": "همین دستگاه",
-    "health": "چرخه و سلامت",
     "delete": "حذف حساب"
    },
-   "appearance": {
-    "title": "ظاهر",
-    "back": "بازگشت",
-    "theme": "پوسته",
-    "followSystem": "هماهنگ با تنظیمات گوشی",
-    "textSize": "اندازهٔ متن",
-    "textSizeSmall": "کوچک‌تر",
-    "textSizeLarge": "بزرگ‌تر",
-    "textSizeValue": "{percent}٪",
-    "sample": "الف",
-    "reduceMotion": "کاهش حرکت و انیمیشن",
-    "reduceMotionSub": "برای حساسیت به حرکت",
-    "reduceMotionSystem": "تنظیمات گوشی حرکت را کم کرده است"
+   "themeToggle": {
+    "toDark": "حالت شب",
+    "toLight": "حالت روز"
    },
    "language": {
     "title": "زبان و تقویم",
@@ -10256,11 +10200,14 @@
     "items": {
      "before_period": {
       "title": "قبل از پریود",
-      "sub": "۲ روز قبل · ۹:۰۰"
+      "sub": "۲ روز قبل · ۹:۰۰",
+      "subAt": "{days} روز قبل · {time}"
      },
      "pms": {
       "title": "شروع PMS",
-      "sub": "روز ۲۴ چرخه"
+      "sub": "روز ۲۴ چرخه",
+      "subAt": "روز {day} چرخه",
+      "subUnknown": "۳ روز قبل از پریود"
      },
      "fertile_window": {
       "title": "پنجرهٔ باروری",
@@ -10268,7 +10215,8 @@
      },
      "daily_log": {
       "title": "یادآور ثبت روزانه",
-      "sub": "هر شب ۲۲:۰۰"
+      "sub": "هر شب ۲۲:۰۰",
+      "subAt": "هر شب {time}"
      },
      "medications": {
       "title": "دارو و مکمل",
@@ -10297,6 +10245,10 @@
      "articles": {
       "title": "پیشنهادها و مقاله‌ها",
       "sub": "حداکثر هفته‌ای ۱ بار"
+     },
+     "pill": {
+      "title": "قرص پیشگیری",
+      "subAt": "هر روز {time}"
      }
     },
     "quiet": {
@@ -10327,6 +10279,14 @@
      "title": "یادآور پیامکی",
      "body": "دارو و نوبت پزشک را با پیامک هم یادآوری می‌کنیم.",
      "plus": "پلاس"
+    },
+    "reminders": {
+     "edit": "تغییر زمان",
+     "time": "ساعت",
+     "daysBefore": "چند روز قبل",
+     "days": "روز",
+     "decrease": "کم کردن تعداد روز",
+     "increase": "زیاد کردن تعداد روز"
     }
    },
    "privacy": {
@@ -10479,52 +10439,15 @@
     },
     "decrease": "کم کردن {what}",
     "increase": "زیاد کردن {what}",
-    "reminders": {
-     "title": "یادآورها",
-     "edit": "تغییر زمان",
-     "time": "ساعت",
-     "daysBefore": "چند روز قبل",
-     "done": "تأیید",
-     "empty": "یادآور برای تنظیم نیست.",
-     "items": {
-      "before_period": {
-       "title": "قبل از پریود",
-       "sub": "{days} روز قبل · {time}"
-      },
-      "pms": {
-       "title": "شروع PMS",
-       "sub": "روز {day} چرخه",
-       "subUnknown": "۳ روز قبل از پریود"
-      },
-      "fertile_window": {
-       "title": "پنجرهٔ باروری",
-       "sub": "روز اول پنجره"
-      },
-      "daily_log": {
-       "title": "یادآور ثبت روزانه",
-       "sub": "هر شب {time}"
-      },
-      "pill": {
-       "title": "قرص پیشگیری",
-       "sub": "هر روز {time}"
-      }
-     }
-    },
-    "modes": {
-     "title": "حالت ریتمی",
-     "cycle": "پیگیری چرخه",
-     "ttc": "اقدام به بارداری",
-     "pregnancy": "بارداری",
-     "active": "فعال",
-     "switch": "تغییر حالت",
-     "soon": "به‌زودی"
-    },
     "disclaimer": "پیش‌بینی‌ها تخمینی‌اند و روش پیشگیری از بارداری نیستند.",
     "saveError": "ذخیره نشد؛ اتصال را بررسی کن و دوباره امتحان کن.",
     "error": {
      "title": "تنظیمات چرخه بارگذاری نشد",
      "body": "اتصال را بررسی کن و دوباره امتحان کن.",
      "retry": "دوباره امتحان کن"
+    },
+    "health": {
+     "title": "اطلاعات سلامت"
     }
    },
    "mode": {
@@ -11190,34 +11113,6 @@
     "todo": "{count, plural, other {# کار امروز}}",
     "todoNone": "کاری برای امروز نداری",
     "todoSub": "لیست کارها"
-   },
-   "quickAccess": {
-    "title": "دسترسی سریع",
-    "subtitle": "میانبرهای خودت را انتخاب کن",
-    "edit": "ویرایش",
-    "editTitle": "ویرایش دسترسی سریع",
-    "editLead": "تا {max} میانبر انتخاب کن؛ فقط روی همین گوشی ذخیره می‌شود.",
-    "count": "{count} از {max}",
-    "save": "ذخیره",
-    "reset": "بازگشت به پیش‌فرض",
-    "items": {
-     "record": "پرونده",
-     "doctor": "پزشک",
-     "painDiary": "دفترچهٔ درد",
-     "courses": "دوره‌ها",
-     "checkups": "چکاپ‌ها",
-     "reminders": "یادآورها",
-     "vitals": "علائم حیاتی",
-     "labs": "آزمایش",
-     "analysis": "تحلیل",
-     "todo": "لیست کارها",
-     "contraception": "پیشگیری",
-     "children": "فرزندان",
-     "search": "جست‌وجو",
-     "hotFlash": "گرگرفتگی",
-     "ivfMeds": "تزریق‌ها",
-     "kicks": "حرکات جنین"
-    }
    },
    "later": {
     "title": "برای بعد",
@@ -12565,6 +12460,8 @@
     "nextVisit": "ویزیت بعدی، {days, plural, =0 {امروز} =1 {فردا} other {# روز دیگر}}",
     "visitMeta": "{weekday}، {time}، هفتهٔ {week, number}",
     "tipEyebrow": "نکتهٔ هوشمند · این هفته",
+    "tipEyebrowToday": "نکتهٔ هوشمند · امروز",
+    "tipTitle": "نکتهٔ هوشمند",
     "readMinutes": "{minutes, plural, other {# دقیقه}}",
     "readMore": "دربارهٔ هفتهٔ {week, number} بیشتر بخوان",
     "careTitle": "مراقبت‌های این هفته",
