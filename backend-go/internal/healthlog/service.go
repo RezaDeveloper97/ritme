@@ -152,6 +152,7 @@ type StoreResult struct {
 	Warning *jsonx.OrderedMap
 
 	prevBleeding string // the day's flow before the write ("" = none)
+	prevSpotting bool   // the day's spotting flag before the write
 }
 
 // Data is the response `data`: the created model's own attributes, or the full row.
@@ -217,6 +218,9 @@ func (s *Service) store(ctx context.Context, userID uint64, attrs phpval.Map, lo
 		date: logDate, before: res.prevBleeding, after: strVal(res.Log.BleedingIntensity()),
 	}, locale, now)
 	if err != nil {
+		return nil, err
+	}
+	if err := s.pregnancySpotting(ctx, userID, logDate, res.prevSpotting, isTrue(res.Log.Spotting()), locale, now); err != nil {
 		return nil, err
 	}
 	// markRecalculatedIfNeeded: the log is an engine input (a bridge write has re-anchored and marked already).
@@ -302,7 +306,8 @@ func (s *Service) update(ctx context.Context, row store.DailyHealthLog, attrs ph
 	if err != nil {
 		return nil, fmt.Errorf("healthlog: reload: %w", err)
 	}
-	return &StoreResult{Log: model.FromRow(fresh), prevBleeding: strVal(before.BleedingIntensity())}, nil
+	return &StoreResult{Log: model.FromRow(fresh), prevBleeding: strVal(before.BleedingIntensity()),
+		prevSpotting: isTrue(before.Spotting())}, nil
 }
 
 // sameValue is Model::originalIsEquivalent on the cast values (strict for strings,

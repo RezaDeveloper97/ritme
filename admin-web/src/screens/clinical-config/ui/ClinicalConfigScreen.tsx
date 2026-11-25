@@ -293,7 +293,8 @@ function PendingPanel({ items, canApprove }: { items: ConfigKey[]; canApprove: b
               {p.note ? <span className="text-ink-2 text-xs">{p.note}</span> : null}
             </div>
             <span className="flex flex-wrap gap-2">
-              {canApprove && !mine && !approvedByMe ? (
+              {/* D-215: one approval publishes the version; the proposer may give it. */}
+              {canApprove && !approvedByMe ? (
                 <Button size="sm" variant="primary" onClick={() => act(p.id!, 'approve')} disabled={decide.isPending}>
                   {t('approve')}
                 </Button>
@@ -303,7 +304,6 @@ function PendingPanel({ items, canApprove }: { items: ConfigKey[]; canApprove: b
                   {mine ? t('withdraw') : t('reject')}
                 </Button>
               ) : null}
-              {mine && canApprove ? <span className="text-ink-3 self-center text-xs">{t('selfHint')}</span> : null}
             </span>
           </div>
         );

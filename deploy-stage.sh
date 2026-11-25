@@ -204,7 +204,18 @@ if [[ "${NO_BUILD:-0}" != "1" ]]; then
   fi
   echo "==> Building staging images on the server (BUILD_REV=${BUILD_REV})..."
   # backend-go is already built above, so it is a cache hit here.
-  ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} build --build-arg BUILD_REV=${BUILD_REV} ${SERVICES}"
+  if [[ "${SERIAL_BUILD:-0}" == "1" ]]; then
+    # One image at a time (the auto-deploy sets this): two `next build`s side by side need more RAM than the
+    # 2-core / 4 GB server has and swap it to a halt. Services without a build section are skipped by the config.
+    for s in $(ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} config --format json" \
+                 | python3 -c 'import json,sys; print(" ".join(k for k,v in json.load(sys.stdin)["services"].items() if "build" in v))'); do
+      wants "$s" || continue
+      echo "  -> $s"
+      ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} build --build-arg BUILD_REV=${BUILD_REV} $s"
+    done
+  else
+    ssh_run "cd ${REMOTE_DIR} && ${COMPOSE} build --build-arg BUILD_REV=${BUILD_REV} ${SERVICES}"
+  fi
 fi
 
 echo "==> Starting staging stack..."

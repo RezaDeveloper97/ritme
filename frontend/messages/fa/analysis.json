@@ -424,6 +424,7 @@
         "d7": "۷ روز",
         "d30": "۳۰ روز",
         "bmi": "BMI",
+        "bmiNote": "{label}: {message}",
         "statsLabel": "تغییر وزن و BMI",
         "chart": "روند وزن با میانگین متحرک {n} روزه، از {from} به {to} کیلو",
         "colDate": "تاریخ",

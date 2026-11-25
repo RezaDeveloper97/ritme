@@ -50,6 +50,12 @@ const primaryMessageSchema = objectish(
       action_suggestion: z.string().default(''),
       dos: stringList.default([]),
       donts: stringList.default([]),
+      // Layer 2 (symptom), merged into the primary message by the engine with `has_override: true`.
+      has_override: z.boolean().default(false),
+      override_type: z.string().nullable().default(''),
+      override_label: z.string().nullable().default(''),
+      override_message: z.string().nullable().default(''),
+      override_action: z.string().nullable().default(''),
     })
     .prefault({}),
 );
@@ -133,6 +139,15 @@ export const dailyMessageSchema = z
         actionSuggestion: d.primary_message.action_suggestion,
         dos: d.primary_message.dos,
         donts: d.primary_message.donts,
+        override:
+          d.primary_message.has_override && (d.primary_message.override_message ?? '').trim()
+            ? {
+                type: d.primary_message.override_type ?? '',
+                label: d.primary_message.override_label ?? '',
+                message: d.primary_message.override_message ?? '',
+                action: d.primary_message.override_action ?? '',
+              }
+            : null,
       },
       correlations: d.correlations.map(c => ({
         type: c.type,

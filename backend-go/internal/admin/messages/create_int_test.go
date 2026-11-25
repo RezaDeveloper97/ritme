@@ -44,7 +44,7 @@ func TestStoreRegistered(t *testing.T) {
 	assert.Equal(t, "fa", m["locale"])
 	assert.Equal(t, "pregnancy_week_tip / 8", m["label"])
 	assert.Equal(t, true, m["is_active"])
-	assert.Equal(t, true, m["is_approved"])
+	assert.Equal(t, false, m["is_approved"], "a new row waits for an admin's approval (D-215)")
 	assert.Equal(t, map[string]any{"title": "Tip", "body": "Body", "read_minutes": float64(2),
 		"article_url": "/pregnancy/weeks/8"}, m["payload"], "schema order, unknown keys dropped")
 	// Stored raw, like the seed rows: no \/ or \uXXXX escaping (QA 2026-09-29-c L8).
@@ -81,11 +81,11 @@ func TestStoreRegistered(t *testing.T) {
 
 	// Flags and label.
 	body = weekTip("en")
-	body["is_approved"] = false
+	body["is_approved"] = true
 	body["label"] = "Week 8"
 	r = c.JSON(fiber.MethodPost, "/messages", body)
 	require.Equal(t, 201, r.Status, r.Body)
-	assert.Equal(t, false, r.Obj("message")["is_approved"])
+	assert.Equal(t, true, r.Obj("message")["is_approved"], "an explicit approval at creation is kept")
 	assert.Equal(t, "Week 8", r.Obj("message")["label"])
 
 	// Guards.

@@ -42,7 +42,13 @@ import (
 
 // The feed renders a fanned-out preg.* inbox row (urgent_modal, status_banner) with its stored evidence in the
 // pregnancy alert copy's terms (localized digits, dates, symptom labels: inboxalerts.Render), T-M10-08b.
-func init() { feed.InstallEvidenceRenderer(inboxalerts.KeyPrefix, inboxalerts.Render) }
+//
+// Its open rows are fanned out only while she is in pregnancy (feed.InstallModeScope): after a switch to another life
+// mode an unacknowledged pregnancy alert stays in the alerts list but no longer pops up as the urgent modal.
+func init() {
+	feed.InstallEvidenceRenderer(inboxalerts.KeyPrefix, inboxalerts.Render)
+	feed.InstallModeScope(inboxalerts.KeyPrefix, string(enums.LifeModePregnancy))
+}
 
 // StoreSource is the sqlc-backed manager.Source for one user and request. It memoises every
 // read (Laravel's relation cache and HealthDataEngine's per-request caches) and builds the

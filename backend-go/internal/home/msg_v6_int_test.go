@@ -180,9 +180,8 @@ func TestHomeV6_MessageEqualsDaily(t *testing.T) {
 			}
 			ds, db := e.get(uid, "/api/v1/messages/daily"+q)
 			text, source, ok := smartTip(hb)
-			// 400: no engine anchor. 500: a low-energy cycle day (Laravel quirk D-05, ErrUndefinedOverrideCase) — Home
-			// swallows the same error. Either way no message on either side.
-			if ds == fiber.StatusBadRequest || ds == fiber.StatusInternalServerError {
+			// 400: no engine anchor — no message on either side. (A low-energy cycle day is no longer a 500, D-214.)
+			if ds == fiber.StatusBadRequest {
 				assert.NotEqual(t, "message_engine", source, name)
 				continue
 			}

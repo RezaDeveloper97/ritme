@@ -33,7 +33,7 @@ export function CommandPalette({
       groups.flatMap((g) =>
         g.items
           .filter((i) => i.ready)
-          .map((i) => ({ key: i.key, href: i.href, icon: i.icon, label: t(i.key as 'dashboard'), group: t(g.key as 'groupGeneral') })),
+          .map((i) => ({ key: i.key, href: i.href, icon: i.icon, label: t(i.key as 'dashboard'), group: t(g.key as 'groupOverview') })),
       ),
     [groups, t],
   );

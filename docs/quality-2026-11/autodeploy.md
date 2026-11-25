@@ -1,5 +1,12 @@
 # Stage auto-deploy: supply-chain guard (T-M12-03, finding S-06)
 
+> **Superseded on 2026-11-25 (user decision).** The signed-commit gate described below was never fully installed
+> (no signing key, no `/etc/ritme/allowed_signers`), so the server refused every stage commit and auto-deploy never
+> ran. The user chose to drop it: `deploy/stage-autodeploy.sh` now deploys whatever is on `stage`, the "Signatures"
+> step is gone from `claude-to-stage.yml`, and that workflow runs for every branch except `stage` / `main`. The guard
+> is GitHub push access plus the workflow's checks; finding S-06 is therefore accepted, not fixed. The rest of this
+> file is kept as history and as the recipe for bringing the gate back (the script before 2026-11-25 is in git).
+
 ## Problem
 
 A push to `claude/**` ran the checks, was merged into `stage` by `claude-to-stage.yml`, and within ~2 minutes the

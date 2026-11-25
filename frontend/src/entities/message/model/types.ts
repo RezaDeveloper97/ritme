@@ -20,6 +20,21 @@ export interface PrimaryMessage {
   dos: string[];
   /** Things to avoid today (already localized by the backend). */
   donts: string[];
+  /**
+   * The symptom layer (layer 2): set when today's log matched a symptom the engine has copy for (pregnancy:
+   * nausea, fatigue, backache, anxiety; cycle: pain, mood, flow…). Null on a day without one.
+   */
+  override: SymptomOverride | null;
+}
+
+/** Layer-2 copy for a symptom logged today; text already localized by the backend. */
+export interface SymptomOverride {
+  /** Stable engine code (`nausea`, `backache`, …) — never shown. */
+  type: string;
+  /** The symptom's display name («تهوع»). */
+  label: string;
+  message: string;
+  action: string;
 }
 
 /**

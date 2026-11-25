@@ -132,6 +132,8 @@
     "nextVisit": "Next visit · {days, plural, =0 {today} =1 {tomorrow} other {in # days}}",
     "visitMeta": "{weekday} · {time} · week {week, number}",
     "tipEyebrow": "Smart tip · this week",
+    "tipEyebrowToday": "Smart tip · today",
+    "tipTitle": "Smart tip",
     "readMinutes": "{minutes, plural, one {# min} other {# min}}",
     "readMore": "Read more about week {week, number}",
     "careTitle": "This week's care",
