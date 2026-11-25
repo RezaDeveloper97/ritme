@@ -59,7 +59,7 @@
 
 .home-wday-dot.is-pms { background: var(--violet); }
 
-/* Fertile window: one green, deeper as the chance rises toward ovulation. */
+/* Fertile window: one turquoise, deeper as the chance rises toward ovulation. */
 .home-wday-dot.is-lv1 { background: var(--fertile-1); }
 
 .home-wday-dot.is-lv2 { background: var(--fertile-2); }
@@ -104,7 +104,7 @@
 
 .home-ring-dot.is-pms { fill: var(--violet); }
 
-/* Fertile window: one green, deeper as the chance rises toward ovulation. */
+/* Fertile window: one turquoise, deeper as the chance rises toward ovulation. */
 .home-ring-dot.is-lv1 { fill: var(--fertile-1); }
 
 .home-ring-dot.is-lv2 { fill: var(--fertile-2); }

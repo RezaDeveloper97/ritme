@@ -11,7 +11,7 @@ export const cycleMarkerStyle: Record<CycleDayMarker, { bg: string; color: strin
   // Period stays red — bleeding days read as red to users, and that convention
   // outranks the brand palette. It is the one sanctioned red (§10.2).
   period: { bg: 'var(--period-soft)', color: 'var(--period)' },
-  // The fertile window and ovulation are one turquoise-green ramp, graded by chance
+  // The fertile window and ovulation are one turquoise ramp, graded by chance
   // ({@link fertileLevel}); ovulation is its darkest step.
   fertile: { bg: 'var(--fertile-soft)', color: 'var(--fertile-2)' },
   ovulation: { bg: 'var(--fertile-soft)', color: 'var(--fertile-4)' },
