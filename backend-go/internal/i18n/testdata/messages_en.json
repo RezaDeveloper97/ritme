@@ -540,6 +540,7 @@
       "d7": "7 days",
       "d30": "30 days",
       "bmi": "BMI",
+      "bmiNote": "{label}: {message}",
       "statsLabel": "Weight change and BMI",
       "chart": "Weight trend as a {n}-day moving average, from {from} to {to} kg",
       "colDate": "Date",
@@ -1373,7 +1374,6 @@
     "children": "Children",
     "plusCredits": "Buy credits",
     "profileCredits": "Credit usage",
-    "profileAppearance": "Appearance",
     "profileNotifications": "Notifications",
     "cycle_settings": "Cycle settings",
     "cycle_symptoms": "Symptom patterns",
@@ -1485,7 +1485,6 @@
     "todoAdd": "New to-do",
     "vitalsAdd": "Add a vital reading",
     "phase": "Phase details",
-    "quick_access": "Edit quick access",
     "reminders_add": "Add a reminder",
     "checkup_mark_done": "Mark checkup done",
     "lab_consent": "Lab analysis consent",
@@ -1500,25 +1499,15 @@
     "navLog": "Log button",
     "sheetClose": "Close the panel",
     "navTab": "Bottom bar tab",
-    "log_panel_bleeding": "Bleeding details",
     "log_panel_pain": "Pain details",
-    "log_panel_measure": "Measurement details",
     "log_panel_confirm": "Confirm panel",
     "log_search": "Search log fields",
     "log_preset_bleeding": "Bleeding (menopause)",
     "log_preset_triggers": "Triggers",
     "log_preset_voice": "Say it out loud (symptom log)",
-    "log_panel_param_bleeding_flow": "Bleeding flow (details)",
-    "log_panel_param_bleeding_spotting": "Spotting",
-    "log_panel_param_bleeding_color": "Bleeding color",
     "log_panel_param_bleeding_clots": "Clots",
-    "log_panel_param_bleeding_odor": "Bleeding odor",
     "log_panel_param_pain_score": "Pain score (1-10)",
     "log_panel_param_pain_relief": "What eased the pain",
-    "log_panel_param_measurements_weight": "Weight",
-    "log_panel_param_measurements_bbt": "Basal temperature (daily log)",
-    "log_panel_param_measurements_lh_test": "LH test",
-    "log_panel_param_measurements_pregnancy_test": "Pregnancy test",
     "period_toggle": "Start or end period",
     "period_save": "Save period dates",
     "period_spotting": "Just spotting",
@@ -1547,7 +1536,6 @@
     "cycle_settings_auto": "Automatic cycle lengths",
     "cycle_settings_cycle_length": "Cycle length",
     "cycle_settings_period_length": "Period length",
-    "cycle_settings_days_before": "Days before period to remind",
     "cycle_add_previous": "Add a previous cycle",
     "cycle_symptoms": "Symptom pattern",
     "calendar_month_prev": "Previous month",
@@ -1559,8 +1547,6 @@
     "calendar_start_period_here": "Period started on this day",
     "calendar_log_day": "Log or edit the selected day",
     "calendar_vitals": "Vitals",
-    "home_quick_edit": "Edit quick access",
-    "quick_access_save": "Save quick access",
     "home_today_tasks": "Today's tasks",
     "home_later_vitals": "Log vitals",
     "home_later_appointment": "Add an appointment",
@@ -1576,7 +1562,6 @@
     "home_period_ended": "My period ended",
     "home_period_still_going": "Still going",
     "home_edit_period": "Edit period",
-    "home_predictions_details": "Prediction details",
     "analysis_report": "Monthly report",
     "analysis_filter": "Analysis category filter",
     "analysis_log": "Log a day (from analysis)",
@@ -2219,7 +2204,6 @@
     "mode_contraception": "Track contraception",
     "mode_contraception_manage": "Manage contraception",
     "mode_confirm_go": "Confirm mode change",
-    "me_open_profile_appearance": "Open “Appearance”",
     "me_open_profile_account": "Open “My account”",
     "me_open_profile_credits": "Open “AI credits”",
     "me_open_companion_links": "Open “Companion code”",
@@ -2244,14 +2228,9 @@
     "me_open_profile_support_chat": "Open “Chat with support”",
     "me_open_profile_about": "Open “About Ritme”",
     "me_open_plus": "Open “Ritme Plus”",
-    "me_header_appearance": "Appearance (header)",
+    "me_header_theme": "Light / dark toggle (header)",
     "account_edit_name": "Edit name",
     "account_edit_birthday": "Edit birthday",
-    "account_edit_cycleDuration": "Edit cycle length",
-    "account_edit_periodDuration": "Edit period length",
-    "account_edit_lastPeriod": "Edit last period start",
-    "account_edit_weight": "Edit weight",
-    "account_edit_height": "Edit height",
     "quick_name": "Name",
     "quick_cycle_length": "Cycle length",
     "quick_period_length": "Period length",
@@ -2288,10 +2267,6 @@
     "reminders_submit": "Save reminder",
     "notifications_history": "Alert history",
     "notifications_mark_all": "Mark all as read",
-    "appearance_theme": "App theme",
-    "appearance_follow_system": "Follow system theme",
-    "appearance_text_size": "Text size",
-    "appearance_reduce_motion": "Reduce motion",
     "notif_quiet": "Quiet hours",
     "notif_quiet_edit": "Edit quiet window",
     "notif_quiet_start": "Quiet hours start",
@@ -2576,7 +2551,12 @@
     "preg_setup_weeks_ultrasound": "Weeks at the ultrasound",
     "preg_setup_days_ultrasound": "Days at the ultrasound",
     "preg_setup_weeks_week": "Current pregnancy week",
-    "preg_setup_days_week": "Current pregnancy day"
+    "preg_setup_days_week": "Current pregnancy day",
+    "cycle_settings_edit_lastPeriod": "Edit last period start",
+    "cycle_settings_edit_weight": "Edit weight",
+    "cycle_settings_edit_height": "Edit height",
+    "notif_days_before": "Days before period to remind",
+    "notif_reminder_pill": "Birth control pill reminder"
    },
    "options": {
     "log_panel_param_bleeding_clots": {
@@ -3084,11 +3064,6 @@
      "menopause": "Menopause",
      "teen": "Teen"
     },
-    "appearance_theme": {
-     "light": "Light",
-     "dark": "Dark",
-     "system": "System"
-    },
     "companion_goals": {
      "cycle": "Understand the cycle",
      "support": "Support",
@@ -3273,12 +3248,9 @@
     }
    },
    "units": {
-    "log_panel_param_measurements_weight": "kg",
-    "log_panel_param_measurements_bbt": "°C",
     "fertility_bbt": "°C",
     "cycle_settings_cycle_length": "days",
     "cycle_settings_period_length": "days",
-    "cycle_settings_days_before": "days",
     "preg_weekly_weight": "kg",
     "baby_feed_amount": "ml",
     "baby_feed_manual_left": "min",
@@ -3319,7 +3291,8 @@
     "lesson_seek": "seconds",
     "ins_setup_deadline": "days",
     "ins_claim_new_amount": "toman",
-    "ins_claim_step_amount": "toman"
+    "ins_claim_step_amount": "toman",
+    "notif_days_before": "days"
    }
   },
   "baby-log": {
@@ -7216,10 +7189,10 @@
     "log": {
      "title": "Today's log",
      "streak": "{n} days in a row",
-     "bleeding": "Bleeding",
-     "bleedingHint": "Period or spotting",
+     "period": "Log period",
+     "periodHint": "On the calendar",
      "symptoms": "Symptoms",
-     "mood": "Mood & energy",
+     "mood": "Mood",
      "empty": "Not logged yet",
      "logged": "Logged",
      "add": "Log {name}"
@@ -9176,8 +9149,6 @@
    "more": "More details",
    "less": "Hide details",
    "bodyMapLink": "Pick on the body map",
-   "measureLink": "Log precisely",
-   "bleedingLink": "Colour, clots and odour",
    "severity": "Intensity",
    "link": {
     "open": "Open",
@@ -9212,7 +9183,6 @@
    },
    "panel": {
     "confirm": "Done",
-    "save": "Save",
     "today": "Today",
     "sub": "{date} · day {day}"
    },
@@ -10169,7 +10139,6 @@
     "privacy": "Privacy & lock",
     "privacyLockOn": "App lock on",
     "notifications": "Notifications & reminders",
-    "appearance": "Appearance",
     "language": "Language & calendar",
     "help": "Help & FAQ",
     "chat": "Chat with support",
@@ -10190,11 +10159,6 @@
    "logout": "Log out",
    "loggingOut": "Logging out…",
    "version": "Version {version}",
-   "theme": {
-    "light": "Light",
-    "dark": "Dark",
-    "system": "Match phone"
-   },
    "calendars": {
     "jalali": "Solar Hijri",
     "gregorian": "Gregorian"
@@ -10217,22 +10181,11 @@
     "subscription": "Subscription",
     "sessions": "Signed-in devices",
     "sessionsSub": "This device",
-    "health": "Cycle & health",
     "delete": "Delete account"
    },
-   "appearance": {
-    "title": "Appearance",
-    "back": "Back",
-    "theme": "Theme",
-    "followSystem": "Match phone settings",
-    "textSize": "Text size",
-    "textSizeSmall": "Smaller",
-    "textSizeLarge": "Larger",
-    "textSizeValue": "{percent}%",
-    "sample": "Aa",
-    "reduceMotion": "Reduce motion & animation",
-    "reduceMotionSub": "For motion sensitivity",
-    "reduceMotionSystem": "Your phone already reduces motion"
+   "themeToggle": {
+    "toDark": "Dark mode",
+    "toLight": "Light mode"
    },
    "language": {
     "title": "Language & calendar",
@@ -10256,11 +10209,14 @@
     "items": {
      "before_period": {
       "title": "Before your period",
-      "sub": "2 days before · 9:00"
+      "sub": "2 days before · 9:00",
+      "subAt": "{days} days before · {time}"
      },
      "pms": {
       "title": "PMS starts",
-      "sub": "Cycle day 24"
+      "sub": "Cycle day 24",
+      "subAt": "Cycle day {day}",
+      "subUnknown": "3 days before your period"
      },
      "fertile_window": {
       "title": "Fertile window",
@@ -10268,7 +10224,8 @@
      },
      "daily_log": {
       "title": "Daily log reminder",
-      "sub": "Every night at 22:00"
+      "sub": "Every night at 22:00",
+      "subAt": "Every night at {time}"
      },
      "medications": {
       "title": "Medications & supplements",
@@ -10297,6 +10254,10 @@
      "articles": {
       "title": "Tips & articles",
       "sub": "At most once a week"
+     },
+     "pill": {
+      "title": "Birth control pill",
+      "subAt": "Every day at {time}"
      }
     },
     "quiet": {
@@ -10327,6 +10288,14 @@
      "title": "SMS reminders",
      "body": "We also text you about medications and doctor visits.",
      "plus": "Plus"
+    },
+    "reminders": {
+     "edit": "Change time",
+     "time": "Time",
+     "daysBefore": "Days before",
+     "days": "days",
+     "decrease": "Fewer days",
+     "increase": "More days"
     }
    },
    "privacy": {
@@ -10479,52 +10448,15 @@
     },
     "decrease": "Decrease {what}",
     "increase": "Increase {what}",
-    "reminders": {
-     "title": "Reminders",
-     "edit": "Change time",
-     "time": "Time",
-     "daysBefore": "Days before",
-     "done": "Done",
-     "empty": "There are no reminders to set.",
-     "items": {
-      "before_period": {
-       "title": "Before your period",
-       "sub": "{days} days before · {time}"
-      },
-      "pms": {
-       "title": "PMS starts",
-       "sub": "Cycle day {day}",
-       "subUnknown": "3 days before your period"
-      },
-      "fertile_window": {
-       "title": "Fertile window",
-       "sub": "First day of the window"
-      },
-      "daily_log": {
-       "title": "Daily log reminder",
-       "sub": "Every night at {time}"
-      },
-      "pill": {
-       "title": "Birth control pill",
-       "sub": "Every day at {time}"
-      }
-     }
-    },
-    "modes": {
-     "title": "Ritme mode",
-     "cycle": "Cycle tracking",
-     "ttc": "Trying to conceive",
-     "pregnancy": "Pregnancy",
-     "active": "Active",
-     "switch": "Switch mode",
-     "soon": "Soon"
-    },
     "disclaimer": "Predictions are estimates and are not a method of birth control.",
     "saveError": "Couldn't save — check your connection and try again.",
     "error": {
      "title": "Couldn't load cycle settings",
      "body": "Check your connection and try again.",
      "retry": "Try again"
+    },
+    "health": {
+     "title": "Health details"
     }
    },
    "mode": {
@@ -11190,34 +11122,6 @@
     "todo": "{count, plural, one {# task today} other {# tasks today}}",
     "todoNone": "Nothing on your list today",
     "todoSub": "To-do list"
-   },
-   "quickAccess": {
-    "title": "Quick access",
-    "subtitle": "Choose what you want here",
-    "edit": "Edit",
-    "editTitle": "Edit quick access",
-    "editLead": "Pick up to {max} shortcuts; they are saved on this phone only.",
-    "count": "{count} of {max}",
-    "save": "Save",
-    "reset": "Back to default",
-    "items": {
-     "record": "Record",
-     "doctor": "Doctor",
-     "painDiary": "Pain diary",
-     "courses": "Courses",
-     "checkups": "Checkups",
-     "reminders": "Reminders",
-     "vitals": "Vitals",
-     "labs": "Labs",
-     "analysis": "Analysis",
-     "todo": "To-do list",
-     "contraception": "Contraception",
-     "children": "Children",
-     "search": "Search",
-     "hotFlash": "Hot flash",
-     "ivfMeds": "Injections",
-     "kicks": "Kicks"
-    }
    },
    "later": {
     "title": "For later",
@@ -12565,6 +12469,8 @@
     "nextVisit": "Next visit · {days, plural, =0 {today} =1 {tomorrow} other {in # days}}",
     "visitMeta": "{weekday} · {time} · week {week, number}",
     "tipEyebrow": "Smart tip · this week",
+    "tipEyebrowToday": "Smart tip · today",
+    "tipTitle": "Smart tip",
     "readMinutes": "{minutes, plural, one {# min} other {# min}}",
     "readMore": "Read more about week {week, number}",
     "careTitle": "This week's care",
