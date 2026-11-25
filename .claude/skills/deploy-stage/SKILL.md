@@ -22,10 +22,13 @@ webpack's cache is kept between builds in BuildKit cache mounts (`ritme-frontend
 
 ## Automatic deploys (no manual merge)
 
-A push to any `claude/**` branch (Claude Code on the web) runs `.github/workflows/claude-to-stage.yml`: go vet +
+A push to any branch except `stage` / `main` (since 2026-11-25; e.g. Claude Code on the web's `claude/**`) runs `.github/workflows/claude-to-stage.yml`: go vet +
 go test + frontend typecheck, then merges the branch into `stage` (a conflict fails the job, stage untouched).
-On the server, `ritme-stage-autodeploy.timer` runs `deploy/stage-autodeploy.sh` every 2 min: it fetches `stage`
-into `/opt/ritme-stage-src` and, on a new commit, runs `LOCAL=1 ./deploy-stage.sh` there. So **any** new commit on
+On the server, `ritme-stage-autodeploy.timer` runs the installed copy of `deploy/stage-autodeploy.sh`
+(`/usr/local/sbin/ritme-stage-autodeploy`) every 2 min: it fetches `stage` into `/opt/ritme-stage-src` and, on a new
+commit, runs `LOCAL=1 SERIAL_BUILD=1 ./deploy-stage.sh` there (one image at a time). No signature check (user decision
+2026-11-25): whatever is on `stage` ships. After editing the script, re-install it:
+`install -o root -g root -m 0755 deploy/stage-autodeploy.sh /usr/local/sbin/ritme-stage-autodeploy`. So **any** new commit on
 `stage` — a manual push too — is shipped within a few minutes.
 
 - Log: `/var/log/ritme-stage-autodeploy.log`; last tried / last good commit: `/var/lib/ritme-stage-autodeploy/{last,ok}`.

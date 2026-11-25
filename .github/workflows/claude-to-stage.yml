@@ -10,14 +10,9 @@
 # Gates (T-M12-03): `merge` needs every job green — backend (go vet + go test -race with integration, ci.yml),
 # frontend (audits, typecheck, vitest) and secrets (scripts/secret-scan.sh, T-M12-07). No step of a gate may carry `continue-on-error`.
 #
-# Signatures: the real gate is on the server (deploy/stage-autodeploy.sh verifies every new stage commit against the
-# pinned /etc/ritme/allowed_signers and refuses anything else). The "signatures" step below is an early, advisory copy
-# of that check so an unsigned branch fails HERE instead of being merged and then blocking stage on the server. It
-# reads the public keys from the repository variable RITME_ALLOWED_SIGNERS (allowed_signers format); unset → warning
-# only. Advisory because a push to claude/** runs that branch's own copy of this workflow.
-# The merge commit this job makes is unsigned on purpose: the server accepts an unsigned merge only when its tree is
-# exactly the clean merge of its parents, and checks the parents' signatures.
-# docs/quality-2026-11/autodeploy.md has the key setup.
+# Trust (user decision 2026-11-25): the server deploys whatever lands on `stage` — no signature check any more, here or
+# on the server (deploy/stage-autodeploy.sh). These gates and push access to the repository are the whole guard.
+# docs/quality-2026-11/autodeploy.md has the history.
 name: claude-to-stage
 
 on:
@@ -98,29 +93,6 @@ jobs:
         with:
           ref: stage
           fetch-depth: 0
-      - name: Signatures (advisory; the server re-checks)
-        env:
-          SRC_SHA: ${{ github.sha }}
-          ALLOWED_SIGNERS: ${{ vars.RITME_ALLOWED_SIGNERS }}
-        run: |
-          if [ -z "$ALLOWED_SIGNERS" ]; then
-            echo "::warning::RITME_ALLOWED_SIGNERS is not set — skipping the signature pre-check (the server still verifies)."
-            exit 0
-          fi
-          printf '%s\n' "$ALLOWED_SIGNERS" > "$RUNNER_TEMP/allowed_signers"
-          git fetch origin "+refs/heads/stage:refs/remotes/origin/stage"
-          bad=0
-          for c in $(git rev-list "origin/stage..$SRC_SHA"); do
-            if ! git -c gpg.format=ssh -c gpg.ssh.allowedSignersFile="$RUNNER_TEMP/allowed_signers" \
-                     -c gpg.minTrustLevel=fully verify-commit "$c" >/dev/null 2>&1; then
-              echo "::error::${c::12} $(git log -1 --format='%an: %s' "$c") is not signed by an allowed key."
-              bad=1
-            fi
-          done
-          if [ "$bad" -ne 0 ]; then
-            echo "::error::Not merged: the server would refuse to deploy it. Sign the commits, or approve the branch with a signed merge into stage from the Mac (docs/quality-2026-11/autodeploy.md)."
-            exit 1
-          fi
       - name: Merge ${{ github.ref_name }} into stage
         env:
           SRC_BRANCH: ${{ github.ref_name }}
