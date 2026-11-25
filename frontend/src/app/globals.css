@@ -84,6 +84,12 @@
   --bloom:      #FF6FAE;  /* illustration / avatar / companion accent (peach at night) */
   --bloom-deep: #D9447F;  /* bloom as text */
 
+  /* Default woman avatar (shared/ui/illustrations/WomanAvatar) — skin, hair, top. */
+  --avatar-skin:  #F6C9A8;
+  --avatar-cheek: #F3A3A0;
+  --avatar-hair:  #4A2E3F;
+  --avatar-top:   var(--bloom);
+
   --success:      #0F7B6C;
   --success-soft: #E7F8EF;
   --success-fill: #0F7B6C;  /* fill under white text; theme-stable */
@@ -307,6 +313,11 @@
 
   --bloom:      #FFD5B8;
   --bloom-deep: #FFD5B8;
+
+  --avatar-skin:  #E8B896;
+  --avatar-cheek: #E58E8B;
+  --avatar-hair:  #2B1A26;
+  --avatar-top:   var(--brand-fill);
 
   --success:      #7FE0A8;
   --success-soft: #1F3A2E;

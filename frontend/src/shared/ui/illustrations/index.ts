@@ -3,6 +3,7 @@
 export { FetusSize, type FetusSizeProps } from './FetusSize';
 export { ResultBaby } from './ResultBaby';
 export { WelcomePregnancy } from './WelcomePregnancy';
+export { WomanAvatar } from './WomanAvatar';
 export type { IllustrationProps } from './svg-a11y';
 export {
   FETUS_DRAWINGS,

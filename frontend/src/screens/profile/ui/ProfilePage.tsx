@@ -33,10 +33,11 @@ import {
   type Tone,
   Art3d,
 } from '@/shared/ui';
+import { WomanAvatar } from '@/shared/ui/illustrations';
 import { BottomNav, useNavMode } from '@/widgets/bottom-nav';
 
 import { MeErrorCard } from './MeErrorCard';
-import { firstLetter, localizeDigits, maskMobile, MODE_TONE } from './me-format';
+import { localizeDigits, maskMobile, MODE_TONE } from './me-format';
 import '@/shared/ui/styles/me.css';
 import '@/shared/ui/styles/tone.css';
 
@@ -144,7 +145,7 @@ export function ProfilePage() {
           <div className="me-id">
             <button type="button" className="me-id-main" onClick={() => router.push('/profile/account')} {...pilot('me.open:profile-account')}>
               <span className="me-avatar" aria-hidden>
-                {profile?.name ? firstLetter(profile.name) : <Icon name="user" size={26} />}
+                <WomanAvatar size={54} />
               </span>
               <span className="me-id-body">
                 <span className="me-id-name">{profile?.name || t('guest')}</span>
