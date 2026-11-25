@@ -496,7 +496,8 @@ func (h *Handlers) requireMedical(c fiber.Ctx) error {
 	return nil
 }
 
-// RuleApprove is POST /messages/rules/:id/approve — the medical advisor (clinical capability, manage) only.
+// RuleApprove is POST /messages/rules/:id/approve — the clinical capability (manage) only. One approval is enough and
+// the author may give it (D-215): a draft is approved directly, without the submit step a non-clinical author uses.
 func (h *Handlers) RuleApprove(c fiber.Ctx) error {
 	if err := h.requireMedical(c); err != nil {
 		return err
@@ -505,7 +506,10 @@ func (h *Handlers) RuleApprove(c fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	if m.Status != rules.StatusPending {
+	if !rules.NeedsMedicalApproval(m.Level, m.Kind) {
+		return httpadmin.Fail(fiber.StatusUnprocessableEntity, CodeApprovalNotNeeded, "This message does not need medical approval.")
+	}
+	if m.Status != rules.StatusPending && m.Status != rules.StatusDraft {
 		return httpadmin.Fail(fiber.StatusConflict, CodeNotPending, "The message is not waiting for approval.")
 	}
 	return h.setStatus(c, m, rules.StatusApproved, adminID(c), "message_rule.approve", "Message approved.")

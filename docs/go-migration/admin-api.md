@@ -528,7 +528,7 @@ lists).
 | GET | `/messages` | as §11 | as §11 plus `registered_groups[]` and `missing:[{group, item_key, locale}]` — every registered item × active language without a row, narrowed by `group` / `locale` |
 | GET | `/messages/registry` | — | `{groups:[{group, typed, keys[]}]}` |
 | GET | `/messages/registry/:group/:key` | `locale?` | `{group, item_key, typed, fields: Schema, placeholders[], existing:[{id, locale}], template}` — `template` prefills a new row: the default-language row, else any row, else the code fallback copy in `locale` (default: the default language), else an empty shape. Unregistered → 404 |
-| POST | `/messages` | `group` (registered), `item_key` (registered for the group), `locale` (active), `payload` (validated against the item's schema, errors on `payload.<path>`; stored in schema order, unknown keys dropped), `label?` (default `"<group> / <item_key>"`), `is_active?`, `is_approved?` (absent = **true**), `sort_order?` (0–65535) | 201 `{message}`; an existing (group, item_key, locale) → 422 `unique` on `item_key` |
+| POST | `/messages` | `group` (registered), `item_key` (registered for the group), `locale` (active), `payload` (validated against the item's schema, errors on `payload.<path>`; stored in schema order, unknown keys dropped), `label?` (default `"<group> / <item_key>"`), `is_active?` (absent = true), `is_approved?` (absent = **false**: a new row waits for «تأیید», D-215), `sort_order?` (0–65535) | 201 `{message}`; an existing (group, item_key, locale) → 422 `unique` on `item_key` |
 
 `PUT /messages/:id` on a **typed** item no longer uses the shape-keeping string merge (which would flatten `params`,
 `actions` and `levels` into string lists): the sent top-level keys replace the stored ones and the whole payload is
@@ -913,7 +913,7 @@ needs_medical_approval, approved_by, approved_at, …}`.
 | `PUT /messages/rules/{id}` | whole definition; version +1, snapshot, status → `draft` (approval withdrawn) |
 | `DELETE /messages/rules/{id}` | |
 | `POST /messages/rules/{id}/submit` | medical rules, draft → pending_approval (422 `approval_not_needed`, 409 `not_pending`) |
-| `POST /messages/rules/{id}/approve` · `/reject` | `clinical` manage; only from pending (409 `not_pending`) |
+| `POST /messages/rules/{id}/approve` · `/reject` | `clinical` manage; approve from draft or pending (D-215: one approval, the author may give it; a non-clinical author still uses `/submit`), reject only from pending (409 `not_pending`) |
 | `POST /messages/rules/{id}/toggle` | publish / unpublish; 409 `approval_required` for an unapproved medical rule |
 | `POST /messages/rules/conflicts` `{rule\|rule_id}` | overlapping messages of the placement with the winner (`this` / `other` / `tie`) |
 | `POST /messages/rules/preview` `{rule\|rule_id, user_id?, facts?}` | `{eligible, reasons[], variant, title, body, cta_label, level}`; audited when a user id is used; fact values never returned |
@@ -958,13 +958,13 @@ fit the fact's type (e.g. `between` on a bool, a value outside the enum). Other 
 Package `internal/admin/clinicalcfg` (store side) + `internal/clinicalconfig` (leaf registry + cached lookup the
 engines call), routes `routes_admin_clinical_config.go`, queries `db/queries/admin/clinical_config.sql`, goose
 **00063** (+ Laravel twin `2026_10_11_000063_create_clinical_config_tables.php`). Capability `config` (GET = view,
-writes = manage); approve / reject additionally need role `medical_advisor` (403 `medical_advisor_required`).
+writes = manage); approve / reject additionally need the `clinical` capability at manage (403 `medical_advisor_required`) — D-215.
 
 **Model.** Every key (`bp.crisis`, `glucose.fasting`, `epds.cutoff.likely`, `cycle.figo.frequency`,
 `engine.period_hard_cap`, `engine.fertile_window`, `lab.ferritin.low`, … — `clinicalconfig.Defs`) has a value
 (named numbers, e.g. `{"systolic":180,"diastolic":120}`), unit, source, version and effective date. **Version 1 is
-the code default** (the pre-B-N9-11 constants; never stored). A stored version is `pending` → `approved` after **two
-distinct medical advisors** approve (never the proposer) or `rejected`. The server reads the approved version with the
+the code default** (the pre-B-N9-11 constants; never stored). A stored version is `pending` → `approved` after **one
+approval** by an admin with the clinical capability (the proposer included, D-215; it was two distinct advisors) or `rejected`. The server reads the approved version with the
 latest `effective_from` ≤ the engine's target date (reading day, check day, cycle target, report day), so historic
 outputs keep their thresholds. Snapshot cached in-process, refreshed on approval and every minute; an empty or
 unreachable store answers the code defaults.
@@ -975,8 +975,8 @@ unreachable store answers the code defaults.
 | GET | `/clinical-config/resolve` | config | `key, date` (Y-m-d) | `{key, date, version, value, effective_from}` — what the server reads |
 | GET | `/clinical-config/:key` | config | — | `{key, versions:[stored newest first…, v1], can_approve, required_approvals}`; 404 unknown key |
 | POST | `/clinical-config/:key/proposals` | config manage | `value {field: number}` (all fields, in range, ordered pairs increasing), `effective_from` (≥ today), `source?` (≤ 255, default the v1 source), `note?` (≤ 500) | 201 `{proposal}`; 409 `pending_exists` (one pending per key); 422 validation; audit `clinical_config.propose` |
-| POST | `/clinical-config/proposals/:id/approve` | medical advisor | — | `{proposal}` (approved on the 2nd distinct approval); 403 `self_approval`, 409 `already_approved` / `not_pending`, 422 `effective_date_passed`, 404 unknown; audit `clinical_config.approve` |
-| POST | `/clinical-config/proposals/:id/reject` | medical advisor or the proposer | — | `{proposal}`; 409 `not_pending`; audit `clinical_config.reject` |
+| POST | `/clinical-config/proposals/:id/approve` | clinical manage | — | `{proposal}` (approved on the first approval, D-215); 409 `already_approved` / `not_pending`, 422 `effective_date_passed`, 404 unknown; audit `clinical_config.approve` |
+| POST | `/clinical-config/proposals/:id/reject` | clinical manage or the proposer | — | `{proposal}`; 409 `not_pending`; audit `clinical_config.reject` |
 
 ## 24. Safety & clinical content — «ایمنی و محتوای بالینی» (B-N9-10, D-90)
 

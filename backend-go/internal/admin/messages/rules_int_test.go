@@ -84,9 +84,9 @@ func TestRules_MedicalApprovalWorkflowAndInvalidation(t *testing.T) {
 	path := "/messages/rules/" + itoa(id)
 	assert.Equal(t, true, r.Obj("rule")["needs_medical_approval"])
 
-	// Not approved: cannot be published; approving needs a pending message and the clinical capability.
+	// Not approved: cannot be published; approving needs the clinical capability. A non-clinical author submits; a
+	// clinical admin may approve a draft directly (D-215) — here the submitted one.
 	assert.Equal(t, "approval_required", mk.JSON(fiber.MethodPost, path+"/toggle", nil).Code())
-	assert.Equal(t, "not_pending", med.JSON(fiber.MethodPost, path+"/approve", nil).Code())
 	assert.Equal(t, 200, mk.JSON(fiber.MethodPost, path+"/submit", nil).Status)
 	assert.Equal(t, 403, mk.JSON(fiber.MethodPost, path+"/approve", nil).Status, "marketing has no clinical capability")
 	ok := med.JSON(fiber.MethodPost, path+"/approve", nil)
@@ -202,4 +202,17 @@ func TestRules_EngineViewAndSimulate(t *testing.T) {
 	assert.Equal(t, 403, e.As(5).Get("/messages/rules/engine").Status)
 	assert.Equal(t, 422, mk.JSON(fiber.MethodPost, "/messages/rules/simulate", map[string]any{"placements": []string{"nope"}}).Status)
 	assert.Equal(t, 401, e.Anonymous().JSON(fiber.MethodPost, "/messages/rules/simulate", map[string]any{}).Status)
+}
+
+// D-215: one clinical approval is enough and the author may give it — a draft is approved directly, no submit step.
+func TestRules_ClinicalAuthorApprovesOwnDraft(t *testing.T) {
+	e := rulesEnv(t)
+	med := e.As(medicalID)
+	r := med.JSON(fiber.MethodPost, "/messages/rules", clinicalRule())
+	require.Equal(t, 201, r.Status, r.Body)
+	path := "/messages/rules/" + itoa(int(r.Obj("rule")["id"].(float64)))
+	ok := med.JSON(fiber.MethodPost, path+"/approve", nil)
+	require.Equal(t, 200, ok.Status, ok.Body)
+	assert.Equal(t, "approved", ok.Obj("rule")["status"])
+	assert.Equal(t, "not_pending", med.JSON(fiber.MethodPost, path+"/approve", nil).Code(), "an approved rule is not approved twice")
 }

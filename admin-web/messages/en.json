@@ -1661,7 +1661,8 @@
       "heavy_pain": "Heavy pain"
     },
     "whereLabel": "Where it shows",
-    "notShown": "Not shown for now"
+    "notShown": "Not shown for now",
+    "createdPending": "Created; it shows in the app once approved."
   },
   "languages": {
     "title": "Languages",
@@ -2025,10 +2026,10 @@
     "audiencesInvalid": "Invalid audience codes: {codes}",
     "everyone": "Everyone",
     "review": "Clinical review",
-    "needsReview": "Needs clinical review",
-    "reviewed": "Reviewed",
-    "needsReviewField": "Needs clinical review",
-    "needsReviewHint": "Clear it once the copy has been clinically reviewed; the app may show a badge until then.",
+    "needsReview": "Awaiting approval",
+    "reviewed": "Approved",
+    "needsReviewField": "Awaiting approval",
+    "needsReviewHint": "On means not approved yet; approve it with «Approve» in the list, or by switching this off.",
     "activeHint": "Inactive items are hidden from the app.",
     "code": "Code",
     "codeHint": "Stable id inside the group: lowercase English letters, digits and _. It can't be changed after creation.",
@@ -2065,7 +2066,9 @@
     },
     "confirmDelete": "Delete this item for good? Clients that reference its code will lose it — deactivating is safer.",
     "sortOrderNewHint": "Leave empty to add it to the end.",
-    "orderN": "Order {n}"
+    "orderN": "Order {n}",
+    "approve": "Approve",
+    "approvedToast": "Approved."
   },
   "plus": {
     "toman": "{amount} toman",
@@ -3312,9 +3315,9 @@
       "marketing": "Marketing"
     },
     "bandHints": {
-      "safety": "Always first; no repeat cap; only with the medical advisor's approval.",
+      "safety": "Always first; no repeat cap; only once approved.",
       "engine": "Status banners from engine warnings; at most one.",
-      "clinical": "Needs the medical advisor's approval before publishing.",
+      "clinical": "Must be approved before publishing.",
       "product": "Daily and weekly caps; never on urgent paths."
     },
     "placements": {
@@ -3331,7 +3334,7 @@
     },
     "statuses": {
       "draft": "Draft",
-      "pending_approval": "Waiting for the medical advisor",
+      "pending_approval": "Awaiting approval",
       "approved": "Approved"
     },
     "sectionContent": "1. Content",
@@ -3378,7 +3381,7 @@
       "between": "between",
       "contains": "contains"
     },
-    "levelMedicalNote": "This message needs the medical advisor's approval before it is published.",
+    "levelMedicalNote": "This message must be approved before publishing.",
     "priorityBand": "Band for this kind: {min} to {max}",
     "capCount": "Frequency cap",
     "capHint": "Empty = no cap (product messages require one)",
@@ -3400,9 +3403,9 @@
     "goal": "Goal",
     "goalHint": "e.g. symptom analysis opened within 24 hours",
     "approvalTitle": "Approval",
-    "approvalHint": "This is a clinical message; it is published after the medical advisor approves it. Any edit withdraws the approval.",
+    "approvalHint": "Clinical message: it is published after «Approve»; one approval is enough. Any change withdraws the approval.",
     "approvalNotNeeded": "This message does not need medical approval.",
-    "waitingForAdvisor": "Waiting for the medical advisor",
+    "waitingForAdvisor": "Awaiting approval",
     "submit": "Submit for approval",
     "approve": "Approve",
     "reject": "Return to draft",
@@ -3422,7 +3425,7 @@
     "deleted": "Message deleted.",
     "delete": "Delete",
     "confirmDelete": "Delete this message and its rule?",
-    "editWithdraws": "Saving any change withdraws the current medical approval.",
+    "editWithdraws": "Saving any change withdraws the current approval.",
     "previewTitle": "Preview",
     "previewUser": "User id",
     "previewUserHint": "Leave empty to run on manual facts only; the user's values are never shown.",
@@ -3490,7 +3493,7 @@
   },
   "clinicalConfig": {
     "title": "Thresholds & config",
-    "subtitle": "Every change = a new version · 2 approvals · applies from a set date",
+    "subtitle": "Every change = a new version · one approval · applies from a set date",
     "groupsLabel": "Groups",
     "groups": {
       "all": "All",
@@ -3520,18 +3523,17 @@
     "approve": "Approve",
     "reject": "Reject",
     "withdraw": "Withdraw",
-    "selfHint": "The proposer cannot approve",
     "approved": "Approval recorded.",
     "rejected": "Proposal rejected.",
-    "proposed": "Proposal saved; it needs 2 approvals.",
+    "proposed": "Proposal saved and awaiting approval.",
     "proposeTitle": "Propose a threshold change",
     "close": "Close",
     "range": "Allowed {min}–{max} · default {def}",
     "noteLabel": "Note",
-    "twoApprovals": "After two different medical advisors approve, it applies from the effective date on; outputs before that date do not change.",
+    "twoApprovals": "Once approved it applies from the effective date; outputs before that date do not change.",
     "submit": "Submit proposal",
     "cancel": "Cancel",
-    "note": "The server reads the version valid on target_date; past outputs stay reproducible with their own thresholds. A clinical threshold change cannot go live without 2 medical-advisor approvals.",
+    "note": "The server reads the version valid on target_date; past outputs can be rebuilt with their own old threshold. A clinical threshold change cannot go live without approval.",
     "units": {
       "day": "days",
       "score": "score",

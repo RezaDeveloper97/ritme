@@ -71,7 +71,8 @@ func typedPayload(c fiber.Ctx, item registry.Item, original, input any) (any, er
 
 // Store is POST /messages {group, item_key, locale, payload, label?, is_active?, is_approved?,
 // sort_order?}: 201 {message}. Only a registered (group, item_key) in an active language; a
-// row that exists already is a 422 unique on item_key. is_active / is_approved default to true.
+// row that exists already is a 422 unique on item_key. is_active defaults to true; is_approved to false — a new row
+// waits for an admin's «تأیید», like every clinical approval in the admin (D-215).
 func (h *Handlers) Store(c fiber.Ctx) error {
 	in := validation.Input(c)
 	group, _ := phpval.Get(in, "group")
@@ -132,16 +133,16 @@ func (h *Handlers) Store(c fiber.Ctx) error {
 	if !label.Valid {
 		label = sql.NullString{String: groupName + " / " + keyName, Valid: true}
 	}
-	flag := func(k string) bool {
+	flag := func(k string, def bool) bool {
 		if !form.Has(data, k) {
-			return true
+			return def
 		}
 		return httpadmin.Bool(data, k)
 	}
 	id, err := h.pq.InsertMessageContent(c.Context(), pstore.InsertMessageContentParams{
 		MsgGroup: groupName, ItemKey: keyName, Locale: httpadmin.String(data, "locale"), Label: label,
 		Payload:  form.JSON(registry.Build(item.Fields, payload)),
-		IsActive: flag("is_active"), IsApproved: flag("is_approved"),
+		IsActive: flag("is_active", true), IsApproved: flag("is_approved", false),
 		SortOrder: uint32(form.Int(data, "sort_order", 0)), //nolint:gosec // G115: validated 0…65535
 		Now:       httpadmin.DBTime(httpadmin.Now(c)),
 	})

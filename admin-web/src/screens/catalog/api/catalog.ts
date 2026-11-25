@@ -48,6 +48,8 @@ export const catalogRequests = {
   create: (group: string, body: unknown) => api.post(path(group), body, { schema: detailSchema }),
   update: (group: string, id: number, body: unknown) => api.put(path(group, id), body, { schema: detailSchema }),
   remove: (group: string, id: number) => api.delete(path(group, id)),
+  /** «تأیید» (D-215): needs_review off, nothing else changes; clinical capability at manage. */
+  approve: (group: string, id: number) => api.post(`${path(group, id)}/approve`, undefined, { schema: detailSchema }),
   /** Store `ordered` as the new order: one atomic request, sort_order becomes 1…n (catalog.md §3). */
   reorder: (group: string, ordered: readonly { id: number }[]) =>
     api.post(`${path(group)}/reorder`, { ids: ordered.map((r) => r.id) }, { schema: reorderSchema }),
@@ -116,6 +118,14 @@ export function useReorderItems(group: string) {
   return useMutation({
     mutationFn: (ordered: readonly { id: number }[]) => catalogRequests.reorder(group, ordered),
     onSettled: () => invalidate(),
+  });
+}
+
+export function useApproveItem(group: string) {
+  const invalidate = useInvalidate(group);
+  return useMutation({
+    mutationFn: (id: number) => catalogRequests.approve(group, id),
+    onSuccess: () => invalidate(),
   });
 }
 

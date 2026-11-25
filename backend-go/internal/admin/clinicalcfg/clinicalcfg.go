@@ -40,13 +40,13 @@ const (
 	StatusRejected = "rejected"
 )
 
-// RequiredApprovals is how many distinct medical advisors approve a version.
-const RequiredApprovals = 2
+// RequiredApprovals is how many approvals publish a version: one, like every other clinical approval in the admin
+// (messages, rules, catalog — user decision 2026-11-25, D-215). The proposer may approve their own proposal.
+const RequiredApprovals = 1
 
 // Error codes.
 const (
-	CodeAdvisorRequired = "medical_advisor_required" // 403: only medical advisors approve / reject
-	CodeSelfApproval    = "self_approval"            // 403: the proposer never approves their own proposal
+	CodeAdvisorRequired = "medical_advisor_required" // 403: only the clinical capability (manage) approves / rejects
 	CodeAlreadyApproved = "already_approved"         // 409: this advisor already approved
 	CodeNotPending      = "not_pending"              // 409
 	CodePendingExists   = "pending_exists"           // 409: one pending proposal per key
@@ -299,9 +299,9 @@ func (h *Handlers) approvals(ctx context.Context) (map[uint64][]store.ListClinic
 	return out, nil
 }
 
+// canApprove: the clinical capability at manage — the same gate as message rules and the catalog review (D-215).
 func canApprove(c fiber.Ctx) bool {
-	a := httpadmin.CurrentAdmin(c)
-	return a != nil && a.Role == httpadmin.RoleMedicalAdvisor
+	return httpadmin.Can(c, httpadmin.CapClinical, httpadmin.LevelManage)
 }
 
 func today(c fiber.Ctx) civildate.Date { return civildate.InTehran(httpadmin.Now(c)) }
@@ -612,11 +612,11 @@ func (h *Handlers) inTx(c fiber.Ctx, fn func(q *store.Queries) error) error {
 	return tx.Commit()
 }
 
-// Approve is POST /clinical-config/proposals/:id/approve (medical advisors, never the proposer, once each). The
-// second distinct approval makes the version approved and reloads the thresholds.
+// Approve is POST /clinical-config/proposals/:id/approve (clinical capability, manage; the proposer may approve).
+// One approval makes the version approved and reloads the thresholds (D-215).
 func (h *Handlers) Approve(c fiber.Ctx) error {
 	if !canApprove(c) {
-		return httpadmin.Fail(fiber.StatusForbidden, CodeAdvisorRequired, "Only a medical advisor can approve clinical thresholds.")
+		return httpadmin.Fail(fiber.StatusForbidden, CodeAdvisorRequired, "Only an admin with the clinical capability can approve clinical thresholds.")
 	}
 	a := httpadmin.CurrentAdmin(c)
 	var (
@@ -628,9 +628,6 @@ func (h *Handlers) Approve(c fiber.Ctx) error {
 		var err error
 		if r, def, err = h.decision(c, q); err != nil {
 			return err
-		}
-		if r.ProposedBy.Valid && uint64(r.ProposedBy.Int64) == a.ID { //nolint:gosec // ids
-			return httpadmin.Fail(fiber.StatusForbidden, CodeSelfApproval, "The proposer cannot approve their own proposal.")
 		}
 		if r.EffectiveFrom.Before(today(c)) {
 			return httpadmin.Fail(fiber.StatusUnprocessableEntity, CodeEffectivePassed,

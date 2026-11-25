@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { hrefWithSheet, readSheetTarget } from './url';
+import { hrefWithSheet, readSheetTarget, sheetQuery } from './url';
 
 const BASE = 'https://ritmeapp.ir/fa/profile';
 
@@ -47,5 +47,16 @@ describe('hrefWithSheet', () => {
     expect(hrefWithSheet(`https://ritmeapp.ir${opened}`, null)).toBe(
       '/fa/profile?date=2026-08-06',
     );
+  });
+});
+
+describe('sheetQuery', () => {
+  it('keeps only the sheet and its argument', () => {
+    expect(sheetQuery('?sheet=notifications&date=2026-11-25')).toBe('?sheet=notifications');
+    expect(sheetQuery('?x=1&sheet=info&sheetArg=bbt')).toBe('?sheet=info&sheetArg=bbt');
+  });
+  it('is empty without a sheet', () => {
+    expect(sheetQuery('')).toBe('');
+    expect(sheetQuery('?date=2026-11-25')).toBe('');
   });
 });

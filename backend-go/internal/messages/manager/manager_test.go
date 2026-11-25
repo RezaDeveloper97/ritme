@@ -141,13 +141,28 @@ func toJSON(t *testing.T, v any) map[string]any {
 	return m
 }
 
-// TestLowEnergyCycleDayIs500 is D-11: a low-energy day in cycle mode reaches the undefined
-// OverrideType::LOW_ENERGY.
-func TestLowEnergyCycleDayIs500(t *testing.T) {
+// TestLowEnergyCycleDayServesItsOverride: Laravel answered a low-energy cycle day with a 500 (D-11); Go serves
+// the cycle_override/low_energy copy (D-214).
+func TestLowEnergyCycleDayServesItsOverride(t *testing.T) {
 	src := &fakeSource{profile: &Profile{UserGoal: "non_ttc", SubscriptionType: "premium", HasLastPeriodStart: true},
 		log: lowEnergy(), calc: cycleCalc()}
-	_, err := New(src, defaultsContent{}, "en", day).Generate(context.Background(), day, "")
-	require.ErrorIs(t, err, ErrUndefinedOverrideCase)
+	res, err := New(src, defaultsContent{}, "en", day).Generate(context.Background(), day, "")
+	require.NoError(t, err)
+	pm := toJSON(t, res.JSON())["primary_message"].(map[string]any)
+	assert.Equal(t, true, pm["has_override"])
+	assert.Equal(t, "low_energy", pm["override_type"])
+	assert.Equal(t, "Fatigue", pm["override_label"])
+	assert.NotEmpty(t, pm["override_message"])
+}
+
+func TestBloatingAndAcneDaysServeTheirOverride(t *testing.T) {
+	for _, tc := range []struct{ symptom, want string }{{"bloating", "bloating"}, {"acne", "acne"}} {
+		mc := &Context{Symptoms: []string{tc.symptom}}
+		oc, ok := determineOverride(mc)
+		require.True(t, ok, tc.symptom)
+		assert.Equal(t, tc.want, oc.key)
+		assert.NotEmpty(t, oc.label("fa"), tc.symptom)
+	}
 }
 
 func TestCycleResultShape(t *testing.T) {

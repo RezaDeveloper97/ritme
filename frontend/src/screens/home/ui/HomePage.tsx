@@ -77,7 +77,7 @@ import {
   weekOf,
 } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
-import { openSheet } from '@/shared/sheet';
+import { openSheet, sheetQuery } from '@/shared/sheet';
 import {
   Card,
   Icon,
@@ -1422,15 +1422,17 @@ export function HomePage() {
   const ivf = fresh === 'ttc' && Boolean(life.data?.ivfIui);
 
   useEffect(() => {
+    // A sheet the link asked for (`/home?sheet=notifications` from `/alerts`) rides along: changing route closes it.
+    const carry = sheetQuery(window.location.search);
     if (companion) {
-      router.replace('/companion');
+      router.replace(`/companion${carry}`);
       return;
     }
     if (fresh) writeLifeModeHint(fresh);
-    if (fresh === 'pregnancy') router.replace('/pregnancy');
+    if (fresh === 'pregnancy') router.replace(`/pregnancy${carry}`);
     // B-N5-04 (N3 stage bug B-4): postpartum has its own home — never the cycle home.
-    if (fresh === 'postpartum') router.replace('/postpartum');
-    if (ivf) router.replace('/ivf');
+    if (fresh === 'postpartum') router.replace(`/postpartum${carry}`);
+    if (ivf) router.replace(`/ivf${carry}`);
   }, [companion, fresh, ivf, router]);
 
   // Server pass, first client render, an unknown mode, and the pregnancy / postpartum / IVF / companion
