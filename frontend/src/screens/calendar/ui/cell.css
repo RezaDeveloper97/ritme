@@ -20,13 +20,12 @@
 
 .cal-cell.is-pms { --cal-accent: var(--violet); color: var(--violet); }
 
-/* Fertile window: every day filled with its chance step (`fertileLevelAt`) — light
-   turquoise at the window's edges, deepening to full turquoise on ovulation. */
+/* Fertile window: only the three peak-chance days (`fertileLevelAt` 3–4: ovulation and
+   the two days before it) are filled; the rest of the window colours just the digit
+   turquoise, so the grid stays calm. */
 .cal-cell.is-fertile,
 .cal-cell.is-ovulation { --cal-accent: var(--fertile); color: var(--fertile-deep); }
 
-.cal-cell.is-lv1 { background: var(--fertile-1); color: var(--text-1); }
-.cal-cell.is-lv2 { background: var(--fertile-2); color: var(--text-1); }
 .cal-cell.is-lv3 { background: var(--fertile-3); color: var(--on-fertile); }
 .cal-cell.is-lv4 { background: var(--fertile-4); color: var(--on-fertile); }
 
@@ -35,7 +34,7 @@
 }
 
 /* On a filled day a thin canvas gap keeps the selection ring apart from the fill. */
-.cal-cell.is-selected:is(.is-period, .is-predicted, .is-lv1, .is-lv2, .is-lv3, .is-lv4) {
+.cal-cell.is-selected:is(.is-period, .is-predicted, .is-lv3, .is-lv4) {
   box-shadow: inset 0 0 0 2px var(--page), 0 0 0 2px var(--cal-accent), 0 4px 12px color-mix(in srgb, var(--cal-accent) 35%, transparent);
 }
 
