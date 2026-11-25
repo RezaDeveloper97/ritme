@@ -142,7 +142,9 @@ export function AnalysisHub({ variant, predictions }: { variant: HubVariant; pre
     body = (
       <div className={clsx('an-content', updating && 'is-updating')} aria-busy={updating || undefined}>
         <section className="an-finding-card" aria-labelledby="an-finding-title">
-          <Icon name="sparkle" size={20} className="an-finding-icon" />
+          <span className="an-finding-badge" aria-hidden>
+            <Icon name="sparkle" size={20} />
+          </span>
           <div>
             <h2 id="an-finding-title" className="an-finding-title">
               {t('topFinding', { range: t(`ranges.${range}`) })}
@@ -165,9 +167,9 @@ export function AnalysisHub({ variant, predictions }: { variant: HubVariant; pre
         ) : groups.length ? (
           groups.map((g) => (
             <section key={g.group} className="an-group" aria-labelledby={`an-g-${g.group}`}>
-              <h2 id={`an-g-${g.group}`} className="an-group-title">
+              <h3 id={`an-g-${g.group}`} className="an-group-title">
                 {t(`groups.${g.group}`)}
-              </h2>
+              </h3>
               {g.cards.map((card) => renderCard(card, summary, variant))}
             </section>
           ))
@@ -183,23 +185,35 @@ export function AnalysisHub({ variant, predictions }: { variant: HubVariant; pre
     <div className="an-hub">
       <HubHead />
       {predictions}
-      <SegmentedTabs
-        label={t('rangeLabel')}
-        value={range}
-        tabs={HUB_RANGES.map((r) => ({ value: r, label: t(`ranges.${r}`) }))}
-        onChange={setRange}
-        pilot={(v) => pilot(`analysis.range:${v}`)}
-      />
-      {summary && !noData && !paywalled && categories.length > 2 ? (
-        <div className="an-chips" role="group" aria-label={t('filterLabel')} {...pilot('analysis.filter', 'choice')}>
-          {categories.map((c) => (
-            <PillChip key={c} pressed={active === c} onPressedChange={() => setCategory(c)} className="an-chip" {...pilotOption(c)}>
-              {t(`categories.${c}`)}
-            </PillChip>
-          ))}
+      <section className="an-trends" aria-labelledby="an-trends-title">
+        <header className="an-section-head">
+          <h2 id="an-trends-title" className="an-section-title">
+            {t('trends.title')}
+          </h2>
+          <p className="an-section-sub">{t('trends.sub')}</p>
+        </header>
+        {/* Sticky: while the cards scroll by, the range and filter they answer to stay in view. */}
+        <div className="an-toolbar">
+          <SegmentedTabs
+            label={t('rangeLabel')}
+            value={range}
+            tabs={HUB_RANGES.map((r) => ({ value: r, label: t(`ranges.${r}`) }))}
+            onChange={setRange}
+            pilot={(v) => pilot(`analysis.range:${v}`)}
+            className="an-range"
+          />
+          {summary && !noData && !paywalled && categories.length > 2 ? (
+            <div className="an-chips" role="group" aria-label={t('filterLabel')} {...pilot('analysis.filter', 'choice')}>
+              {categories.map((c) => (
+                <PillChip key={c} pressed={active === c} onPressedChange={() => setCategory(c)} className="an-chip" {...pilotOption(c)}>
+                  {t(`categories.${c}`)}
+                </PillChip>
+              ))}
+            </div>
+          ) : null}
         </div>
-      ) : null}
-      {body}
+        {body}
+      </section>
     </div>
   );
 }

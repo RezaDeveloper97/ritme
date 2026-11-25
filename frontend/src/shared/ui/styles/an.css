@@ -47,13 +47,36 @@
 
 .an-finding-text { margin: 4px 0 0; font-size: 12.5px; line-height: 1.9; font-weight: 600; color: var(--text-2); }
 
-.an-group { display: flex; flex-direction: column; gap: 16px; }
+.an-group { display: flex; flex-direction: column; gap: 12px; }
 
-.an-group-title { margin: 0; font-size: 13px; font-weight: 800; letter-spacing: .06em; color: var(--text-2); }
+/* «چرخه ────» — the group name followed by a hairline, so groups read as chapters, not as one more card. */
+.an-group-title {
+  display: flex; align-items: center; gap: 10px; margin: 8px 0 0; font-size: 13px; font-weight: 800; color: var(--text-2);
+}
 
-.nb-card.an-card { display: flex; flex-direction: column; gap: 10px; padding: 16px; color: var(--text-1); text-decoration: none; }
+.an-group-title::after { content: ''; flex: 1; block-size: 1px; background: var(--line); }
+
+.nb-card.an-card { display: flex; flex-direction: column; gap: 12px; padding: 16px; color: var(--text-1); text-decoration: none; }
+
+.an-card.is-link { transition: border-color .15s ease, transform .15s ease; }
+
+.an-card.is-link:hover { border-color: var(--line-strong); }
+
+.an-card.is-link:active { transform: scale(.99); }
 
 .an-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+
+.an-card-icon {
+  flex-shrink: 0; display: inline-grid; place-items: center; inline-size: 38px; block-size: 38px; border-radius: 12px;
+  background: color-mix(in srgb, var(--nb-tone) 14%, transparent); color: var(--nb-tone-ink);
+}
+
+.an-card-icon + .an-card-titles { flex: 1; }
+
+.an-card-go {
+  flex-shrink: 0; display: inline-grid; place-items: center; inline-size: 28px; block-size: 28px; border-radius: 50%;
+  background: var(--surface-2); color: var(--text-2);
+}
 
 .an-card-titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 
@@ -66,6 +89,45 @@
 .an-card-chev { flex-shrink: 0; color: var(--text-2); }
 
 .an-card-note { margin: 0; font-size: 12.5px; line-height: 1.8; font-weight: 600; color: var(--text-2); }
+
+/* «not enough data yet» reads as a hint, not as content: a soft inset with a dashed edge. */
+.an-card-note.is-pending {
+  padding: 10px 12px; border-radius: 14px; border: 1px dashed var(--line-strong); background: var(--surface-2);
+}
+
+/* A locked Plus card: one line on what the analysis shows + the unlock button (no fake blurred chart). */
+.an-unlock {
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; min-block-size: 40px; padding: 0 16px;
+  border-radius: 20px; border: 0; background: var(--warm-soft); color: var(--warm-deep);
+  font-family: inherit; font-size: 12.5px; font-weight: 800; cursor: pointer;
+}
+
+.an-unlock:focus-visible { outline: none; box-shadow: var(--ring); }
+
+/* «الگوها و روندها»: the backward-looking half of the hub, under the forward-looking predictions. */
+.an-trends { display: flex; flex-direction: column; gap: 12px; margin-block-start: 8px; }
+
+.an-section-head { display: flex; flex-direction: column; gap: 2px; }
+
+.an-section-title { margin: 0; font-size: 18px; font-weight: 800; color: var(--text-1); }
+
+.an-section-sub { margin: 0; font-size: 12px; font-weight: 600; line-height: 1.7; color: var(--text-2); }
+
+.an-toolbar {
+  position: sticky; inset-block-start: 0; z-index: 2; display: flex; flex-direction: column; gap: 8px;
+  margin-inline: calc(-1 * var(--gutter-form)); padding: 8px var(--gutter-form);
+  background: color-mix(in srgb, var(--page) 90%, transparent);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+}
+
+.nb-seg.an-range .nb-seg-tab { height: 36px; font-size: 12.5px; }
+
+.an-toolbar .an-chips { padding-block: 0; }
+
+.an-finding-badge {
+  flex-shrink: 0; display: inline-grid; place-items: center; inline-size: 38px; block-size: 38px; border-radius: 12px;
+  background: var(--brand-fill); color: var(--on-brand);
+}
 
 .an-stat { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; }
 
@@ -93,16 +155,51 @@
 
 .an-bars-labels > span { flex: 1 1 0; text-align: center; font-size: 9.5px; font-weight: 700; color: var(--text-2); }
 
+/* The hub's cycle bars: each column carries its length on top, so the chart reads without the detail screen. */
+.an-bars:has(.an-bar-col) .an-bars-row { block-size: 84px; }
+
+/* The top padding is the value label's room: bar heights are a share of what is left, and the label of the
+   tallest bar overflows into it (flex-end overflows toward the start) instead of over the stat row. */
+.an-bar-col {
+  flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch;
+  gap: 4px; block-size: 100%; box-sizing: border-box; padding-block-start: 19px;
+}
+
+.an-bar-col .an-bar { flex: none; }
+
+.an-bar-value { text-align: center; font-size: 11px; font-weight: 800; color: var(--text-2); }
+
+.an-bar-col.is-last .an-bar { opacity: 1; }
+
+.an-bar-col.is-last .an-bar-value { color: var(--brand); }
+
+.an-bar-col.is-out .an-bar { background: var(--warm); opacity: .8; }
+
+.an-bar-col.is-out .an-bar-value { color: var(--warm-deep); }
+
+.an-bars:has(.an-bar-col) .an-bars-labels > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; }
+
 .an-strips { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 
 .an-strip { display: flex; align-items: center; gap: 8px; }
 
-.an-strip-month { flex-shrink: 0; inline-size: 58px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10.5px; font-weight: 700; color: var(--text-2); }
+.an-strip-month { flex-shrink: 0; inline-size: 52px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10.5px; font-weight: 700; color: var(--text-2); }
 
 .an-strip-dots {
   flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(var(--an-days, 28), minmax(0, 7px));
   gap: 3px; direction: ltr;
 }
+
+/* The hub's strips fill the row (the dots grow up to 9px) and end with the cycle's length. */
+.an-strip .an-strip-dots { grid-template-columns: repeat(var(--an-days, 28), minmax(0, 9px)); gap: 2px; }
+
+.an-strip-len { flex-shrink: 0; min-inline-size: 44px; text-align: end; font-size: 11px; font-weight: 800; color: var(--text-1); }
+
+.an-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; padding-block-start: 10px; border-block-start: 1px solid var(--line); }
+
+.an-legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: var(--text-2); }
+
+.an-legend-item .an-dot { inline-size: 8px; block-size: 8px; }
 
 .an-dot { aspect-ratio: 1; border-radius: 50%; background: var(--line); }
 
@@ -133,7 +230,7 @@
 
 .an-hbar-fill { display: block; block-size: 100%; border-radius: 5px; background: var(--nb-tone); }
 
-.an-hbar-value { flex-shrink: 0; inline-size: 34px; font-size: 11px; font-weight: 700; color: var(--text-2); }
+.an-hbar-value { flex-shrink: 0; min-inline-size: 44px; text-align: end; font-size: 11px; font-weight: 700; color: var(--text-2); }
 
 .an-hbar-value.is-wide { inline-size: auto; min-inline-size: 58px; }
 
