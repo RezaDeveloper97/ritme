@@ -344,7 +344,6 @@
 | `preg.setup-blood` | single | گروه خونی | route `/pregnancy/setup` | yes | `A` `B` `AB` `O` |
 | `preg.setup-rh` | single | آر‌اچ | route `/pregnancy/setup` | yes | `positive` `negative` |
 | `preg.setup-finish` | action | ثبت و پایان تنظیم | route `/pregnancy/setup` | yes | — |
-| `preg.setup-continue` | action | ادامه به بارداری | route `/pregnancy/setup` | — | — |
 | `baby.feed-child` | single | انتخاب بچه | — | — | — |
 | `baby.feed-type:*` | action | — | — | — | — |
 | `baby.feed-side:*` | action | — | — | — | — |
