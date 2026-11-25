@@ -1052,9 +1052,12 @@ Every write is audited (`insurance_insurer.save|delete`, `insurance_centre.save|
 
 Table `app_modules` (goose 00094 + Laravel twin), one row per key: `companion`, `ttc`, `ivf`, `menopause`, `teen`,
 `postpartum`, `children`, `contraception`, `programs`, `mother_child`, `learning`, `my_courses`, `shop`, `insurance`,
-`record`, `devices`, `doctors`, `todo`, `reminders`, `home_articles` (all seeded on; a missing row = on). `my_courses`
+`record`, `devices`, `doctors`, `todo`, `reminders`, `home_articles`, `services`, `vitals`, `backup`, `support` (seeded on;
+the last four have no row until an admin writes one — a missing row = on). `my_courses`
 and `devices` are UI-only (a «من» row each); `reminders` (the «یادآورها» hub + the «یادآورهای امروز» card) and
-`home_articles` (home's «بر اساس سیکل فعلی‌ات» strip) are UI-only too — `/care` stays open because pregnancy visits,
+`home_articles` (home's «بر اساس سیکل فعلی‌ات» strip) are UI-only too, and so are the «من» rows `services` (the «خدمات»
+hub: its row, back links go to «من»), `vitals` (row, hub tile, the log sheet's add links), `backup` and `support` (help +
+chat rows) — their APIs serve other screens — `/care` stays open because pregnancy visits,
 IVF, checkups and the log sheet book through it. `doctors` gates `/telemed`, `todo` gates `/todo`. The
 gate keeps `/health-record/emergency-card*` open with `record` off (safety). Capability `config` (view / manage).
 Package `internal/modules`; the switches are cached 60 s in Redis and cleared on every write.

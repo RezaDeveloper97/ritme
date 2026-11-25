@@ -5,7 +5,15 @@ export {
   APP_MODULES,
   modeAvailable,
   moduleOfRoute,
+  servicesHubHref,
   type AppModule,
   type AppModules,
 } from './model/modules';
-export { appModuleKeys, fetchAppModules, useAppModules, useAppModulesQuery, useModuleEnabled } from './api/queries';
+export {
+  appModuleKeys,
+  fetchAppModules,
+  useAppModules,
+  useAppModulesQuery,
+  useModuleEnabled,
+  useServicesHubHref,
+} from './api/queries';

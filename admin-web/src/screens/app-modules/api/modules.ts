@@ -28,13 +28,19 @@ export const MODULE_KEYS = [
   'todo',
   'reminders',
   'home_articles',
+  'services',
+  'vitals',
+  'backup',
+  'support',
 ] as const;
 export type ModuleKey = (typeof MODULE_KEYS)[number];
 
-/** The screen's panels: life stages & family, the «خدمات» / «من» surfaces, then the sections of Today. */
-export const MODULE_GROUPS: readonly { key: 'stages' | 'services' | 'today'; modules: readonly ModuleKey[] }[] = [
+/** The screen's panels: life stages & family, the «خدمات» surfaces, the rows of «من», then the sections of Today. */
+export const MODULE_GROUPS: readonly { key: 'stages' | 'services' | 'profile' | 'today'; modules: readonly ModuleKey[] }[] = [
   { key: 'stages', modules: ['companion', 'ttc', 'ivf', 'menopause', 'teen', 'postpartum', 'children', 'contraception'] },
-  { key: 'services', modules: ['programs', 'mother_child', 'learning', 'my_courses', 'shop', 'insurance', 'record', 'devices', 'doctors'] },
+  { key: 'services', modules: ['programs', 'mother_child', 'learning', 'shop', 'insurance', 'record', 'doctors'] },
+  // «من» rows (user request 2026-11-25): each hides its row there and every other entry point of the same section.
+  { key: 'profile', modules: ['services', 'vitals', 'my_courses', 'devices', 'backup', 'support'] },
   { key: 'today', modules: ['todo', 'reminders', 'home_articles'] },
 ];
 

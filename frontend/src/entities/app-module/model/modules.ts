@@ -24,6 +24,11 @@ export const APP_MODULES = [
   'todo',
   'reminders', // the «یادآورها» hub + «یادآورهای امروز» card; the visit/medication forms stay (other modules use them)
   'home_articles', // home's «بر اساس سیکل فعلی‌ات» strip (no route of its own)
+  // «من» rows an admin may hide (user request 2026-11-25); each also hides every other entry point of its section.
+  'services', // the «خدمات» hub only (`/services`); doctors / home lab under it keep their own switches
+  'vitals', // «علائم حیاتی» (`/vitals/*`): row, hub tile, the log sheet's add links
+  'backup', // «پشتیبان و خروجی داده» (`/profile/backup`)
+  'support', // «راهنما» / «گفتگو با پشتیبانی» (`/profile/support`)
 ] as const;
 export type AppModule = (typeof APP_MODULES)[number];
 
@@ -58,7 +63,17 @@ export function moduleOfRoute(pathname: string): AppModule | null {
   if (under('/todo')) return 'todo';
   // Only the hub: pregnancy visits, IVF, checkups and the companion book through /reminders/{appointment,medication}.
   if (path === '/reminders') return 'reminders';
+  // Only the hub: its sub-sections (doctors, home lab) are reachable from their own entry points.
+  if (path === '/services') return 'services';
+  if (under('/vitals')) return 'vitals';
+  if (under('/profile/backup')) return 'backup';
+  if (under('/profile/support')) return 'support';
   return null;
+}
+
+/** Where a «back» to the services hub lands: the hub, or «من» while an admin switched the hub off. */
+export function servicesHubHref(modules: AppModules): '/services' | '/profile' {
+  return modules.services ? '/services' : '/profile';
 }
 
 /** The life modes an admin switch can hide (cycle and pregnancy are always on). */

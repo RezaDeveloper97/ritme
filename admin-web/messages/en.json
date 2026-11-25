@@ -4283,11 +4283,28 @@
       "home_articles": {
         "title": "Home blog",
         "hint": "The “Based on your current cycle” articles strip on home."
+      },
+      "services": {
+        "title": "Services",
+        "hint": "The «Services» hub and its row under «Me». The sections inside it (doctors, insurance, courses…) have their own switches; their back button goes to «Me»."
+      },
+      "vitals": {
+        "title": "Vitals",
+        "hint": "Blood pressure, glucose and heart-rate screens, the row under «Me», the Services tile and the log sheet's «add» buttons. Values logged in the daily log stay."
+      },
+      "backup": {
+        "title": "Backup & export",
+        "hint": "The «Backup» row under «Me» and its screen."
+      },
+      "support": {
+        "title": "Help & support",
+        "hint": "The «Help» and «Chat with support» rows under «Me» and the support screen."
       }
     },
     "groups": {
       "stages": "Life stages & family",
-      "services": "Services & the Me hub",
+      "services": "Services",
+      "profile": "Rows of «Me»",
       "today": "Today screen sections"
     }
   },

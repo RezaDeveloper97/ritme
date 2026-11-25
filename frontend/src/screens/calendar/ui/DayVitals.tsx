@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 
+import { useModuleEnabled } from '@/entities/app-module';
 import { ReadingRow, useVitalReadings } from '@/entities/vital';
 import { Link } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
@@ -21,6 +22,8 @@ export function DayVitals({ selectedDate }: { selectedDate: Date }) {
   const day = toApiDate(selectedDate);
   const readings = useVitalReadings(null, day, day);
   const items = readings.data ?? [];
+  // The day's readings stay (they are the user's log); only the way into the switched-off hub goes.
+  const hubOn = useModuleEnabled('vitals');
 
   if (!mounted || items.length === 0) return null;
 
@@ -31,9 +34,11 @@ export function DayVitals({ selectedDate }: { selectedDate: Date }) {
         <h3 id="cal-vitals-title" className="cal-vitals-title">
           {t('title')}
         </h3>
-        <Link href="/vitals" className="cal-vitals-link" {...pilot('calendar.vitals')}>
-          {t('open')}
-        </Link>
+        {hubOn ? (
+          <Link href="/vitals" className="cal-vitals-link" {...pilot('calendar.vitals')}>
+            {t('open')}
+          </Link>
+        ) : null}
       </header>
       <ul className="cal-vitals-list">
         {items.map((r, i) => (

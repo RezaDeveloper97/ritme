@@ -8,6 +8,6 @@ import PregnancyAlertsRoute from './page';
 describe('/pregnancy/alerts', () => {
   it('redirects the old URL to home with the notifications sheet open, keeping the locale', async () => {
     await PregnancyAlertsRoute({ params: Promise.resolve({ locale: 'fa' }) });
-    expect(redirect).toHaveBeenCalledWith('/fa?sheet=notifications');
+    expect(redirect).toHaveBeenCalledWith('/fa/home?sheet=notifications');
   });
 });

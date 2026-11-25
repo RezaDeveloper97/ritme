@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { ALL_MODULES_ON, APP_MODULES, type AppModule, modeAvailable, moduleOfRoute } from './modules';
+import { ALL_MODULES_ON, APP_MODULES, type AppModule, modeAvailable, moduleOfRoute, servicesHubHref } from './modules';
 
 // T-M12-18: with a module off, every entry point that resolves to it is hidden (the same predicate the home feed
 // CTAs, quick-access shortcuts and the route gate use); with it on, nothing is hidden. Mirrors backend modules.Keys.
@@ -23,6 +23,11 @@ const ENTRY_POINTS: Record<string, string[]> = {
   todo: ['/todo'],
   devices: ['/profile/devices'],
   reminders: ['/reminders'],
+  // «من» rows (user request 2026-11-25).
+  services: ['/services'],
+  vitals: ['/vitals', '/vitals/bp/new'],
+  backup: ['/profile/backup'],
+  support: ['/profile/support'],
 };
 const NO_ROUTE: AppModule[] = ['my_courses', 'home_articles'];
 
@@ -55,5 +60,17 @@ describe('module kill-switch hides entry points', () => {
     for (const h of ['/record/emergency', '/home', '/pregnancy']) expect(hidden(allOff, h), h).toBe(false);
     expect(modeAvailable(allOff, 'ttc')).toBe(false);
     expect(modeAvailable(allOff, 'cycle')).toBe(true);
+  });
+});
+
+describe('services hub switch', () => {
+  it('owns only the hub: its sub-sections keep their own switches', () => {
+    expect(moduleOfRoute('/services')).toBe('services');
+    expect(moduleOfRoute('/services/doctors')).toBe('doctors');
+    expect(moduleOfRoute('/services/home-lab')).toBeNull();
+  });
+  it('sends «back» to «من» while the hub is off', () => {
+    expect(servicesHubHref(ALL_MODULES_ON)).toBe('/services');
+    expect(servicesHubHref({ ...ALL_MODULES_ON, services: false })).toBe('/profile');
   });
 });

@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 import { type FormEvent, useState } from 'react';
 
+import { useServicesHubHref } from '@/entities/app-module';
 import { ChildAvatar, useChildren } from '@/entities/child';
 import {
   ageRangeLabel,
@@ -49,6 +50,8 @@ export function CityServicesHome({ onBrowse }: Props) {
   const locale = useLocale() as Locale;
   const rtl = useDirection() === 'rtl';
   const router = useRouter();
+  // «من» while an admin switched the services hub off.
+  const servicesHref = useServicesHubHref();
   const options = useCityServiceOptions();
   const [city, setCity, cityReady] = useCityChoice();
   const [ageOn, setAgeOn, ageReady] = useAgeSuggest();
@@ -141,7 +144,7 @@ export function CityServicesHome({ onBrowse }: Props) {
       <div className="view csv-view">
         <SkyLayer />
         <div className="scroll">
-          <ScreenHeader title={t('title')} onBack={() => router.push('/services')} backLabel={t('back')} />
+          <ScreenHeader title={t('title')} onBack={() => router.push(servicesHref)} backLabel={t('back')} />
           <div className="csv-body">
             <SkeletonGroup label={t('loading')} className="csv-list">
               <Skeleton shape="block" />
@@ -159,7 +162,7 @@ export function CityServicesHome({ onBrowse }: Props) {
     <div className="view csv-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={t('title')} subtitle={t('tag')} onBack={() => router.push('/services')} backLabel={t('back')} />
+        <ScreenHeader title={t('title')} subtitle={t('tag')} onBack={() => router.push(servicesHref)} backLabel={t('back')} />
         <div className="csv-body">
           {options.isError ? (
             <CsError title={t('loadError')} retry={t('retry')} busy={options.isFetching} onRetry={() => void options.refetch()} />

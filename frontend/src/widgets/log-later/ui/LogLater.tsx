@@ -29,6 +29,8 @@ export function LogLater({ childRow = true }: { childRow?: boolean }) {
   const router = useRouter();
   const rtl = useDirection() === 'rtl';
   const childrenOn = useModuleEnabled('children'); // admin switch «کودک»
+  const vitalsOn = useModuleEnabled('vitals'); // admin switch «علائم حیاتی»
+  const todoOn = useModuleEnabled('todo'); // admin switch «لیست کارها»
   const withChild = childRow && childrenOn;
   const kids = useChildren({ enabled: withChild });
   const child = withChild ? kids.data?.children.find((c) => c.role === 'owner') : undefined;
@@ -38,6 +40,7 @@ export function LogLater({ childRow = true }: { childRow?: boolean }) {
 
   return (
     <>
+    {vitalsOn ? (
     <section className="llt" aria-labelledby="llt-vitals-title">
       <h3 id="llt-vitals-title" className="lday-sec-title">
         {t('vitalsTitle')}
@@ -51,6 +54,7 @@ export function LogLater({ childRow = true }: { childRow?: boolean }) {
         <Icon name={rtl ? 'chevronLeft' : 'chevronRight'} size={18} className="llt-chev" />
       </button>
     </section>
+    ) : null}
     <section className="llt" aria-labelledby="llt-title">
       <h3 id="llt-title" className="lday-sec-title">
         {t('title')}
@@ -60,10 +64,12 @@ export function LogLater({ childRow = true }: { childRow?: boolean }) {
           <Icon name="calendar" size={18} strokeWidth={1.8} className="llt-ic" />
           <span>{t('appointment')}</span>
         </button>
-        <button type="button" className="llt-btn" onClick={() => openSheet(TODO_ADD_SHEET)} {...pilot('home.later-task')}>
-          <Icon name="todo" size={18} strokeWidth={1.8} className="llt-ic" />
-          <span>{t('task')}</span>
-        </button>
+        {todoOn ? (
+          <button type="button" className="llt-btn" onClick={() => openSheet(TODO_ADD_SHEET)} {...pilot('home.later-task')}>
+            <Icon name="todo" size={18} strokeWidth={1.8} className="llt-ic" />
+            <span>{t('task')}</span>
+          </button>
+        ) : null}
       </div>
       {child ? (
         <button type="button" className="llt-row" onClick={() => go(`/children/${child.id}/feeding`)} {...pilot('home.later-feeding')}>
