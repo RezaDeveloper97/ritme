@@ -96,7 +96,7 @@ export function LabVerifyPage({ id }: { id: number }) {
   }, [status, id, router]);
 
   const header = (
-    <ScreenHeader title={t('verify.title')} onBack={() => router.push('/labs')} backLabel={t('common.back')} />
+    <ScreenHeader title={t('verify.title')} onBack={() => router.back('/labs')} backLabel={t('common.back')} />
   );
 
   if (!valid || getApiErrorStatus(lab.error) === 404) {

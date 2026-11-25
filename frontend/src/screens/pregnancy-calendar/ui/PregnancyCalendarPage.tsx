@@ -147,7 +147,7 @@ export function PregnancyCalendarPage() {
       <div className="scroll">
         <ScreenHeader
           title={t('calendar.screenTitle')}
-          onBack={() => router.push('/pregnancy')}
+          onBack={() => router.back('/pregnancy')}
           backLabel={t('common.back')}
           action={<HeaderButton icon="plus" label={t('calendar.newVisitLabel')} onClick={() => router.push(NEW_VISIT_HREF)} pilot={pilot('preg.new-visit')} />}
         />

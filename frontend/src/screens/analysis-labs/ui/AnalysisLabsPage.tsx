@@ -67,7 +67,7 @@ export function AnalysisLabsPage() {
               ? tl('subLabs', { n: formatNumber(trends.data.labsCount, locale) })
               : tl('sub')
           }
-          onBack={() => router.push('/analysis')}
+          onBack={() => router.back('/analysis')}
           backLabel={t('back')}
           className="axc-hdr"
         />

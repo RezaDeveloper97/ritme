@@ -451,7 +451,7 @@ export function ShopOrderPage({ id }: { id: number }) {
       <div className="scroll">
         <ScreenHeader
           title={placed ? t('order.placedTitle') : t('order.title')}
-          onBack={() => router.push(placed ? '/shop' : '/profile/orders')}
+          onBack={() => router.back(placed ? '/shop' : '/profile/orders')}
           backLabel={t('order.back')}
         />
         <div className="shp-body shord-body">{body}</div>

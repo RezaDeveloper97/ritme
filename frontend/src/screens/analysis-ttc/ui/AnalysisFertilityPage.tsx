@@ -158,7 +158,7 @@ export function AnalysisFertilityPage() {
       title={t('title')}
       subtitle={subtitle}
       backLabel={tR('back')}
-      onBack={() => router.push('/analysis')}
+      onBack={() => router.back('/analysis')}
       status={status}
       updating={query.isPlaceholderData && query.isFetching}
       loadingLabel={tR('loading')}

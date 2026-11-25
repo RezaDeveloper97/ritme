@@ -149,7 +149,7 @@ export function MenopauseReportPage({ from = 'home' }: { from?: MenopauseReportO
         <ScreenHeader
           title={t('title')}
           subtitle={sub}
-          onBack={() => router.push(from === 'alert' ? '/menopause/alert' : '/home')}
+          onBack={() => router.back(from === 'alert' ? '/menopause/alert' : '/home')}
           backLabel={t('back')}
           action={<HeaderButton icon="share" label={t('shareLink')} onClick={() => setSharing(true)} />}
         />

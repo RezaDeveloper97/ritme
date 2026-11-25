@@ -138,7 +138,7 @@ export function ChildrenPage() {
         <ScreenHeader
           title={t('list.title')}
           subtitle={data && count > 0 ? t('list.count', { count: formatNumber(count, locale) }) : undefined}
-          onBack={() => router.push(backTo)}
+          onBack={() => router.back(backTo)}
           backLabel={t('common.back')}
           action={canAdd ? <HeaderButton icon="plus" label={t('list.add')} onClick={add} pilot={pilot('child.add')} /> : undefined}
         />

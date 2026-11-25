@@ -30,7 +30,7 @@ export function PregnancyLogPage({ initialTab }: { initialTab?: string }) {
       <div className="scroll">
         <ScreenHeader
           title={t('log.title')}
-          onBack={() => router.push('/pregnancy')}
+          onBack={() => router.back('/pregnancy')}
           backLabel={t('back')}
         />
         <div className="pgn-body is-form">

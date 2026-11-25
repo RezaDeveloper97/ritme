@@ -45,7 +45,7 @@ export function StepScreen({ step, children }: StepScreenProps) {
   const modules = modulesQuery.data ?? ALL_MODULES_ON;
   const progress = step === 'ready' ? undefined : { current: PROGRESS[step], total: PROGRESS_TOTAL };
   const storedGoal = isGoal(query.data?.goal) ? query.data.goal : null;
-  const back = () => router.replace(previousRoute(step, storedGoal, modules.companion));
+  const back = () => router.back(previousRoute(step, storedGoal, modules.companion));
   // No gender / partner screens while the companion module is off (a resumed or typed URL lands on Goal).
   const skipped = !modulesQuery.isPending && !modules.companion && (step === 'gender' || step === 'partner');
   useEffect(() => {

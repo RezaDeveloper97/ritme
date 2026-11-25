@@ -75,7 +75,7 @@ export function MenopauseQuestionnairePage() {
         <ScreenHeader
           title={t('title')}
           subtitle={formatMonthLabel(now.year, now.month, locale)}
-          onBack={() => router.push('/menopause/score')}
+          onBack={() => router.back('/menopause/score')}
           backLabel={t('back')}
         />
         {body}

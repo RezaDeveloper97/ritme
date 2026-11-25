@@ -117,7 +117,7 @@ export function PregnancyWeekPage({ week: requested }: Props) {
         <ScreenHeader
           title={week != null ? t('week.headerTitle', { week: formatNumber(week, locale) }) : t('common.title')}
           subtitle={subtitle || undefined}
-          onBack={() => router.push('/pregnancy')}
+          onBack={() => router.back('/pregnancy')}
           backLabel={t('common.back')}
         />
         <div className="pgn-body">

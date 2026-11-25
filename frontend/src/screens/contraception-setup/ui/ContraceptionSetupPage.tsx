@@ -95,7 +95,7 @@ export function ContraceptionSetupPage() {
       <div className="scroll ctr-scroll is-form">
         <ScreenHeader
           title={t('title')}
-          onBack={() => router.push(saved ? '/contraception' : '/profile/mode')}
+          onBack={() => router.back(saved ? '/contraception' : '/profile/mode')}
           backLabel={t('back')}
         />
         {body}

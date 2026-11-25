@@ -149,7 +149,7 @@ export function FertilityInsightsPage() {
                   })
               : undefined
           }
-          onBack={() => router.push(BACK_HREF)}
+          onBack={() => router.back(BACK_HREF)}
           backLabel={t("back")}
         />
         <div className="ttc-body">{body}</div>

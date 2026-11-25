@@ -94,7 +94,7 @@ export function ChildVaccinesPage({ id }: { id: number }) {
     <ScreenHeader
       title={t('section.vaccines', { name })}
       subtitle={t('vaccines.subtitle')}
-      onBack={() => router.push(valid ? `/children/${id}` : '/children')}
+      onBack={() => router.back(valid ? `/children/${id}` : '/children')}
       backLabel={t('common.back')}
     />
   );

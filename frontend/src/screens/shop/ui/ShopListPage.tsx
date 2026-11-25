@@ -337,7 +337,7 @@ export function ShopListPage({ category }: { category: string }) {
         <ScreenHeader
           title={list?.category?.title ?? t('title')}
           subtitle={list ? t('list.itemCount', { n: list.category?.product_count ?? list.meta.total }) : undefined}
-          onBack={() => router.push('/shop')}
+          onBack={() => router.back('/shop')}
           backLabel={t('back')}
         />
         <div className="shp-body">

@@ -138,7 +138,7 @@ export function PackCheckout({ packId }: { packId: number }) {
     <div className="view plus-page">
       <SkyLayer />
       <div className="scroll plus-scroll">
-        <ScreenHeader title={t('checkout.title')} onBack={() => router.push('/plus/credits')} backLabel={t('back')} />
+        <ScreenHeader title={t('checkout.title')} onBack={() => router.back('/plus/credits')} backLabel={t('back')} />
         <div className="plus-intro">
           <h1 className="plus-title">{t('checkout.title')}</h1>
         </div>

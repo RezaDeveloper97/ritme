@@ -169,7 +169,7 @@ export function AssistantHistoryPage() {
         <ScreenHeader
           title={t('history.title')}
           subtitle={t('history.subtitle2')}
-          onBack={() => router.push('/assistant')}
+          onBack={() => router.back('/assistant')}
           backLabel={t('common.back')}
           action={<HeaderButton label={t('profile.title')} icon="user" onClick={() => router.push('/assistant/profile')} pilot={pilot('assistant.open:assistant-profile')} />}
         />

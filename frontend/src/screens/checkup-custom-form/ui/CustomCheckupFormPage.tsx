@@ -122,7 +122,7 @@ function CustomForm({ detail }: { detail?: CheckupDetail }) {
 
   const set = <K extends keyof CustomFormState>(key: K, value: CustomFormState[K]) =>
     setState((s) => ({ ...s, [key]: value }));
-  const back = () => router.push(LIST_HREF);
+  const back = () => router.back(LIST_HREF);
   // A per-user cap (422 limit_reached) or the write limit (429) shows the server's
   // localized message.
   const onError = (error: unknown) => setFormError(getApiSaveErrorMessage(error, t('saveError')));

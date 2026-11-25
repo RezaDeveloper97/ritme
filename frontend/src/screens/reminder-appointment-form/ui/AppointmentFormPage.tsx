@@ -153,7 +153,7 @@ function FormShell({
 function FormHeader({ title, backHref, sub }: { title: string; backHref: string; sub?: string }) {
   const t = useTranslations('care');
   const router = useRouter();
-  return <ScreenHeader title={title} subtitle={sub} onBack={() => router.push(backHref)} backLabel={t('back')} />;
+  return <ScreenHeader title={title} subtitle={sub} onBack={() => router.back(backHref)} backLabel={t('back')} />;
 }
 
 function AppointmentForm({

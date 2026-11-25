@@ -92,7 +92,7 @@ export function LabIntroPage() {
   const header = (
     <ScreenHeader
       title={t('intro.title')}
-      onBack={() => router.push('/analysis/labs')}
+      onBack={() => router.back('/analysis/labs')}
       backLabel={t('common.back')}
       action={<HeaderButton icon="info" label={t('intro.about')} onClick={() => openSheet('lab-consent')} pilot={pilot('lab.about')} />}
     />

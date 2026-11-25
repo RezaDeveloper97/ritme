@@ -61,7 +61,7 @@ export function BackupPage() {
     <div className="view bkp-page">
       <SkyLayer />
       <div className="scroll bkp-scroll">
-        <ScreenHeader title={t('backup.title')} onBack={() => router.push('/profile')} backLabel={t('backup.back')} />
+        <ScreenHeader title={t('backup.title')} onBack={() => router.back('/profile')} backLabel={t('backup.back')} />
 
         <section className="nb-card bkp-sync" aria-labelledby="bkp-sync-label">
           <span className="bkp-sync-ic" aria-hidden>

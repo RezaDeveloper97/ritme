@@ -50,7 +50,7 @@ export function MenopauseAlertPage() {
       <div className="scroll mal-scroll">
         <ScreenHeader
           title={primary?.title ?? t('title')}
-          onBack={() => router.push('/home')}
+          onBack={() => router.back('/home')}
           backLabel={t('back')}
         />
         <div className="mal-body">

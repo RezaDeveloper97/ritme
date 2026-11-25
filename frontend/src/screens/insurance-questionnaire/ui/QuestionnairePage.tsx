@@ -412,7 +412,7 @@ function Active({ id }: { id: number }) {
   if (q.status === 'confirmed' && !editing) {
     return (
       <>
-        <ScreenHeader title={t('questionnaire.title')} subtitle={t('questionnaire.subtitle')} onBack={() => router.push('/insurance')} backLabel={t('back')} />
+        <ScreenHeader title={t('questionnaire.title')} subtitle={t('questionnaire.subtitle')} onBack={() => router.back('/insurance')} backLabel={t('back')} />
         <Confirmed q={q} onEdit={() => setEditing(true)} />
       </>
     );
@@ -463,7 +463,7 @@ export function InsuranceQuestionnairePage() {
           <ScreenHeader
             title={t('questionnaire.title')}
             subtitle={t('questionnaire.subtitle')}
-            onBack={() => router.push('/insurance')}
+            onBack={() => router.back('/insurance')}
             backLabel={t('back')}
           />
         ) : null}

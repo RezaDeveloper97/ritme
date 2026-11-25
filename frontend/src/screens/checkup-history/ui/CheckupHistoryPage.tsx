@@ -207,7 +207,7 @@ export function CheckupHistoryPage({ type }: { type: number | null }) {
         <ScreenHeader
           title={t('history.title')}
           subtitle={query.data ? t('history.count', { count: formatNumber(total, locale) }) : undefined}
-          onBack={() => router.push(backHref)}
+          onBack={() => router.back(backHref)}
           backLabel={t('back')}
           action={
             <button

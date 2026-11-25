@@ -92,7 +92,7 @@ export function ConditionsHubPage() {
     <div className="view cnd-page">
       <SkyLayer />
       <div className="scroll cnd-scroll">
-        <ScreenHeader title={t('title')} onBack={() => router.push('/services')} backLabel={t('back')} />
+        <ScreenHeader title={t('title')} onBack={() => router.back('/services')} backLabel={t('back')} />
         <div className="cnd-body">
           <div className="cnd-intro">
             <h2 className="cnd-heading">{t('heading')}</h2>

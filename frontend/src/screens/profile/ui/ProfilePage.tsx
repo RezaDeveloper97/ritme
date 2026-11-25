@@ -17,6 +17,7 @@ import { APP_VERSION } from '@/shared/config';
 import { localizeHref, useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { calendarSystem } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { leaveSignedOut } from '@/shared/session';
 import { useThemeStore } from '@/shared/theme';
 import {
   HeaderButton,
@@ -109,7 +110,7 @@ export function ProfilePage() {
   const handleLogout = () => {
     if (logout.isPending) return;
     logout.mutate(undefined, {
-      onSettled: () => window.location.replace(localizeHref('/signup', loc)),
+      onSettled: () => leaveSignedOut(localizeHref('/signup', loc)),
     });
   };
 

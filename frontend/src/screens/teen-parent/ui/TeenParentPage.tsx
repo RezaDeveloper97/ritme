@@ -114,7 +114,7 @@ export function TeenParentPage() {
     <div className="view tnp-page">
       <SkyLayer />
       <div className="scroll tnp-scroll">
-        <ScreenHeader title={t('title')} onBack={() => router.push('/home')} backLabel={t('back')} />
+        <ScreenHeader title={t('title')} onBack={() => router.back('/home')} backLabel={t('back')} />
         {body}
       </div>
     </div>

@@ -266,7 +266,7 @@ export function InsuranceStatusPage() {
     <div className="view ins-page">
       <SkyLayer />
       <div className="scroll ins-scroll">
-        <ScreenHeader title={t('status.title')} onBack={() => router.push('/insurance')} backLabel={t('back')} />
+        <ScreenHeader title={t('status.title')} onBack={() => router.back('/insurance')} backLabel={t('back')} />
         {body}
       </div>
     </div>

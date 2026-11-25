@@ -129,7 +129,7 @@ export function ContraceptionOtherPage() {
       <div className="scroll ctr-scroll">
         <ScreenHeader
           title={t('other.title')}
-          onBack={() => router.push('/contraception')}
+          onBack={() => router.back('/contraception')}
           backLabel={t('other.back')}
         />
         {body}

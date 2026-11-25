@@ -352,6 +352,9 @@
 html,
 body { margin: 0; }
 
+/* A signed-out document on its way to /signup (shared/session/leave): if Back restores it from the bfcache, it shows nothing. */
+html[data-signed-out] body { visibility: hidden; }
+
 /* ── Native-app feel: no text selection, no pinch/double-tap zoom, no tap flash ──
    Inputs stay selectable so typing/editing still works normally. */
 
@@ -4682,6 +4685,7 @@ body {
 @keyframes osheetFade    { from { opacity: 0; } }
 
 .osheet-backdrop {
+  overscroll-behavior: contain; /* a drag on the scrim must not scroll the screen under the sheet */
   position: absolute; inset: 0; z-index: var(--z-sheet);
   display: flex; align-items: flex-end;
   background: var(--scrim);

@@ -154,7 +154,7 @@ export function PregnancyWeightPage() {
       title={t('title')}
       subtitle={r ? t('sub', { n: num(r.pregnancy.week) }) : undefined}
       backLabel={t('back')}
-      onBack={() => router.push('/analysis')}
+      onBack={() => router.back('/analysis')}
       status={status}
       loadingLabel={t('loading')}
       error={{

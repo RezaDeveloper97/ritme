@@ -44,7 +44,7 @@ export function LearnLessonPage({ courseId, lessonId }: { courseId: number; less
   const q = useLesson(lessonId);
   const outline = useCourseOutline(courseId);
   const [audioOnly, setAudioOnly] = useState(params.get('audio') === '1');
-  const back = () => router.push(`/learn/${courseId}`);
+  const back = () => router.back(`/learn/${courseId}`);
 
   if (q.isPending) {
     return (

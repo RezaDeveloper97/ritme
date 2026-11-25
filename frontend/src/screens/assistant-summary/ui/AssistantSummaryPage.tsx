@@ -115,7 +115,7 @@ export function AssistantSummaryPage({ id }: { id: number }) {
         <ScreenHeader
           title={t('summary.title')}
           subtitle={page ? [page.conversation.department.name, when(page.conversation.last_message_at)].filter(Boolean).join(' · ') : undefined}
-          onBack={() => router.push(`/assistant/chat/${id}`)}
+          onBack={() => router.back(`/assistant/chat/${id}`)}
           backLabel={t('common.back')}
         />
         {body}

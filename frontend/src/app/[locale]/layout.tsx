@@ -7,7 +7,7 @@ import type { ReactNode } from 'react';
 
 import { OnboardingCalendarSync } from '@/entities/user';
 import { AppLockGate, appLockInitScript } from '@/features/app-lock';
-import { BackGuard } from '@/shared/back-guard';
+import { BackStackRoot } from '@/shared/back-stack';
 import {
   BUNDLED_LOCALES,
   DirectionProvider,
@@ -174,7 +174,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
           <DirectionProvider direction={direction}>
             <AppProviders>
             <ThemeApplier />
-            <BackGuard />
+            <BackStackRoot />
             <SessionGuard />
             <LazySessionRefresher />
             <LazyNotificationSync />

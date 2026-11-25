@@ -57,7 +57,7 @@ function ChatBody({ page }: { page: ConversationPage }) {
       <ScreenHeader
         title={d.name}
         subtitle={t('chat.subtitle')}
-        onBack={() => router.push(`/assistant/${d.code}`)}
+        onBack={() => router.back(`/assistant/${d.code}`)}
         backLabel={t('common.back')}
         action={<HeaderButton label={t('chat.summary')} icon="fileDoc" onClick={() => router.push(`/assistant/chat/${c.id}/summary`)} className={summaryReady ? '' : 'is-off'} />}
       />

@@ -275,7 +275,7 @@ export function NotificationSettingsPage() {
     <div className="view ntf-page">
       <SkyLayer />
       <div className="scroll ntf-scroll">
-        <ScreenHeader title={t('title')} onBack={() => router.push('/profile')} backLabel={t('back')} />
+        <ScreenHeader title={t('title')} onBack={() => router.back('/profile')} backLabel={t('back')} />
         {update.isError ? (
           <p className="ntf-error" role="alert">
             {t('saveError')}

@@ -422,7 +422,7 @@ export function CycleSettingsPage() {
       <div className="scroll cys-scroll">
         <ScreenHeader
           title={t('title')}
-          onBack={() => router.push('/home')}
+          onBack={() => router.back('/home')}
           backLabel={t('back')}
         />
         {update.isError ? (

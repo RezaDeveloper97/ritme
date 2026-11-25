@@ -33,7 +33,7 @@ export function LogLater({ childRow = true }: { childRow?: boolean }) {
   const kids = useChildren({ enabled: withChild });
   const child = withChild ? kids.data?.children.find((c) => c.role === 'owner') : undefined;
 
-  // Navigating closes every open sheet (shared/sheet closeSheetOnRouteChange) — no closeSheet() race with history.back().
+  // Navigating closes every open sheet (shared/sheet closeSheetOnRouteChange) — no closeSheet() racing the router with a history step.
   const go = (href: string) => router.push(href);
 
   return (

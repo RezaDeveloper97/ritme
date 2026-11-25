@@ -86,7 +86,7 @@ export function SupportPage() {
     <div className="view sup-page">
       <SkyLayer />
       <div className="scroll sup-scroll">
-        <ScreenHeader title={t('title')} onBack={() => router.push('/profile')} backLabel={t('back')} />
+        <ScreenHeader title={t('title')} onBack={() => router.back('/profile')} backLabel={t('back')} />
 
         <SearchField
           value={query}

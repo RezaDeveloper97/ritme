@@ -164,7 +164,7 @@ export function BookingsPage() {
     <div className="view csv-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={t('bookings.title')} subtitle={t('bookings.tag')} onBack={() => router.push('/profile')} backLabel={t('back')} />
+        <ScreenHeader title={t('bookings.title')} subtitle={t('bookings.tag')} onBack={() => router.back('/profile')} backLabel={t('back')} />
         <div className="csv-body">
           <div role="tablist" aria-label={t('bookings.title')} className="cdb-tabs">
             {(['upcoming', 'past'] as const).map((s) => (

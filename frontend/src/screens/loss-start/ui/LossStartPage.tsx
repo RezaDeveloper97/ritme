@@ -108,7 +108,7 @@ export function LossStartPage() {
       <div className="scroll lst-scroll">
         <ScreenHeader
           title={null}
-          onBack={() => router.push(pregnant ? '/profile/mode' : '/home')}
+          onBack={() => router.back(pregnant ? '/profile/mode' : '/home')}
           backLabel={t('back')}
         />
         {body}

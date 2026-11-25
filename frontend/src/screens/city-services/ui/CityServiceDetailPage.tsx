@@ -42,7 +42,7 @@ export function CityServiceDetailPage({ id }: { id: number }) {
   const [slotId, setSlotId] = useState<number | null>(null);
   const svcSlots = useCityServiceSlots(id, serviceId);
   const price = usePrice();
-  const back = () => router.push('/city-services');
+  const back = () => router.back('/city-services');
 
   let body;
   if (q.isPending) {

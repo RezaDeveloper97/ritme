@@ -54,7 +54,7 @@ export function CityServiceRequestPage({
   const [formError, setFormError] = useState<string | null>(null);
 
   const set = <K extends keyof BookingFormState>(key: K, value: BookingFormState[K]) => setState((s) => ({ ...s, [key]: value }));
-  const back = () => router.push(`/city-services/${id}`);
+  const back = () => router.back(`/city-services/${id}`);
 
   const onSubmit = () => {
     setFormError(null);

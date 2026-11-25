@@ -89,7 +89,7 @@ export function LossNextPage() {
     <div className="view lnx-page">
       <SkyLayer />
       <div className="scroll lnx-scroll">
-        <ScreenHeader title={tn('screenTitle')} onBack={() => router.push('/loss/care')} backLabel={t('back')} />
+        <ScreenHeader title={tn('screenTitle')} onBack={() => router.back('/loss/care')} backLabel={t('back')} />
         {body}
       </div>
     </div>

@@ -156,7 +156,7 @@ export function CompanionsPage() {
     <div className="view cmp-page">
       <SkyLayer />
       <div className="scroll cmp-scroll">
-        <ScreenHeader title={t('list.title')} onBack={() => router.push('/profile')} backLabel={t('back')} />
+        <ScreenHeader title={t('list.title')} onBack={() => router.back('/profile')} backLabel={t('back')} />
         <div className="cmp-body">
           {body}
         </div>

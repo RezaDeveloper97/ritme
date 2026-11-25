@@ -128,7 +128,7 @@ export function AssistantHubPage() {
     <div className="view as-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={t('hub.title')} subtitle={t('hub.subtitle')} onBack={() => router.push('/services')} backLabel={t('common.back')} />
+        <ScreenHeader title={t('hub.title')} subtitle={t('hub.subtitle')} onBack={() => router.back('/services')} backLabel={t('common.back')} />
         {body}
       </div>
       <BottomNav />

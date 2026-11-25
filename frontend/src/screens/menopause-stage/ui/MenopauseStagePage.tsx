@@ -78,7 +78,7 @@ export function MenopauseStagePage() {
     <div className="view mst-page">
       <SkyLayer />
       <div className="scroll mst-scroll">
-        <ScreenHeader title={t('title')} onBack={() => router.push('/home')} backLabel={t('back')} />
+        <ScreenHeader title={t('title')} onBack={() => router.back('/home')} backLabel={t('back')} />
         {body}
       </div>
     </div>

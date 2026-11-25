@@ -94,7 +94,7 @@ export function HealthRecordPage() {
         <ScreenHeader
           title={t('title')}
           subtitle={updated}
-          onBack={() => router.push('/profile')}
+          onBack={() => router.back('/profile')}
           backLabel={t('back')}
         />
         {body}

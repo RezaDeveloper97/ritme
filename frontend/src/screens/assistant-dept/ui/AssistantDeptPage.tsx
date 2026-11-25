@@ -106,7 +106,7 @@ export function AssistantDeptPage({ code, ask }: { code: string; ask?: string })
     <div className="view as-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={q.data?.department.name ?? t('hub.title')} subtitle={t('dept.subtitle')} onBack={() => router.push('/assistant')} backLabel={t('common.back')} />
+        <ScreenHeader title={q.data?.department.name ?? t('hub.title')} subtitle={t('dept.subtitle')} onBack={() => router.back('/assistant')} backLabel={t('common.back')} />
         {body}
       </div>
     </div>

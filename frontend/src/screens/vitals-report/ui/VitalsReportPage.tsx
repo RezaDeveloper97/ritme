@@ -151,7 +151,7 @@ export function VitalsReportPage({ type }: { type: VitalType }) {
         <ScreenHeader
           title={t(`report.titles.${type}`)}
           subtitle={subtitle}
-          onBack={() => router.push('/vitals')}
+          onBack={() => router.back('/vitals')}
           backLabel={t('common.back')}
           action={
             recordOn ? (

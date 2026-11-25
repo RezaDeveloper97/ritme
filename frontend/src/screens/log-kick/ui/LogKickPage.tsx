@@ -80,7 +80,7 @@ export function LogKickPage() {
       <div className="scroll ptl-scroll">
         <ScreenHeader
           title={t('kick.title')}
-          onBack={() => router.push('/pregnancy/log')}
+          onBack={() => router.back('/pregnancy/log')}
           backLabel={t('common.close')}
           backIcon="close"
           action={<HeaderButton icon="info" label={t('common.help')} onClick={() => setHelp((v) => !v)} />}

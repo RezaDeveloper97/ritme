@@ -107,7 +107,7 @@ export function PlansPage() {
       <div className="scroll plus-scroll">
         <ScreenHeader
           title={t('plans.title')}
-          onBack={() => router.push('/plus')}
+          onBack={() => router.back('/plus')}
           backLabel={t('back')}
           center={<ProgressSteps total={3} current={1} label={t('steps', { current: formatNumber(1, loc), total: formatNumber(3, loc) })} className="plus-steps" />}
         />

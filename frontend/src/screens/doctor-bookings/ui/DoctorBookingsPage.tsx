@@ -68,7 +68,7 @@ export function DoctorBookingsPage() {
     <div className="view dr-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={t('bookings.title')} onBack={() => router.push('/services/doctors')} backLabel={t('common.back')} />
+        <ScreenHeader title={t('bookings.title')} onBack={() => router.back('/services/doctors')} backLabel={t('common.back')} />
         <div className="dr-filters">
           <SegmentedTabs tabs={SCOPES.map((s) => ({ value: s, label: t(`bookings.${s}`) }))} value={scope} onChange={setScope} label={t('bookings.title')} pilot={(v) => pilot(`doctor-bookings.tab:${v}`)} />
         </div>

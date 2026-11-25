@@ -12,6 +12,7 @@ import { pilot } from '@/shared/pilot';
 import { localizeHref, useRouter, type Locale } from '@/shared/i18n';
 import { formatLongDate, formatNumber } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { leaveSignedOut } from '@/shared/session';
 import {
   Icon,
   ListGroup,
@@ -98,7 +99,7 @@ export function AccountPage() {
   const handleLogout = () => {
     if (logout.isPending) return;
     logout.mutate(undefined, {
-      onSettled: () => window.location.replace(localizeHref('/signup', loc)),
+      onSettled: () => leaveSignedOut(localizeHref('/signup', loc)),
     });
   };
 
@@ -106,7 +107,7 @@ export function AccountPage() {
     <div className="view acct-page">
       <SkyLayer />
       <div className="scroll acct-scroll">
-        <ScreenHeader title={t('account.title')} onBack={() => router.push('/profile')} backLabel={t('account.back')} />
+        <ScreenHeader title={t('account.title')} onBack={() => router.back('/profile')} backLabel={t('account.back')} />
 
         {loading ? (
           <SkeletonGroup label={t('loading')} className="acct-skel">

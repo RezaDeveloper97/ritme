@@ -98,7 +98,7 @@ export function PmddPage() {
         <ScreenHeader
           title={t('title')}
           subtitle={cycleDay ? t('subtitle', { day: formatNumber(cycleDay, locale) }) : t('subtitleNoCycle')}
-          onBack={() => router.push(PROGRAMS_HUB_PATH)}
+          onBack={() => router.back(PROGRAMS_HUB_PATH)}
           backLabel={t('back')}
         />
         <div className="cpm-body">

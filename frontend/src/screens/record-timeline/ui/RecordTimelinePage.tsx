@@ -114,7 +114,7 @@ export function RecordTimelinePage() {
       <div className="scroll rec-tl-scroll">
         <ScreenHeader
           title={t('title')}
-          onBack={() => router.push('/record')}
+          onBack={() => router.back('/record')}
           backLabel={t('back')}
           action={<HeaderButton icon="plus" label={t('add')} onClick={() => setUploadOpen(true)} pilot={pilot('rectl.add-header')} />}
         />

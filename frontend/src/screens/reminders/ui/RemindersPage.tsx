@@ -48,7 +48,7 @@ export function RemindersPage({ initialTab }: { initialTab?: string }) {
         <ScreenHeader
           title={t('title')}
           subtitle={t('subtitle')}
-          onBack={() => router.push('/home')}
+          onBack={() => router.back('/home')}
           backLabel={t('back')}
           action={
             <HeaderButton

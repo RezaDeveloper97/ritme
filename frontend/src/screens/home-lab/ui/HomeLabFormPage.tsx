@@ -44,7 +44,7 @@ export function HomeLabFormPage({ serviceId }: { serviceId: number | null }) {
   const [formError, setFormError] = useState<string | null>(null);
 
   const set = <K extends keyof LabFormState>(key: K, value: LabFormState[K]) => setState((s) => ({ ...s, [key]: value }));
-  const back = () => router.push('/services/home-lab');
+  const back = () => router.back('/services/home-lab');
   const service = services.data?.services.find((s) => s.id === serviceId) ?? services.data?.services[0] ?? null;
 
   const onSubmit = () => {

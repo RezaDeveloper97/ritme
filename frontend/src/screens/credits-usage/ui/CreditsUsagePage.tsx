@@ -269,7 +269,7 @@ export function CreditsUsagePage() {
     <div className="view cr-page">
       <SkyLayer />
       <div className="scroll cr-scroll">
-        <ScreenHeader title={t('usage.title')} onBack={() => router.push('/profile')} backLabel={t('back')} />
+        <ScreenHeader title={t('usage.title')} onBack={() => router.back('/profile')} backLabel={t('back')} />
         {body}
       </div>
     </div>

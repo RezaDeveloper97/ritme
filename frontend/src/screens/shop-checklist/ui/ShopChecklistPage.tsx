@@ -267,7 +267,7 @@ export function ShopChecklistPage() {
     <div className="view shc-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={t('title')} subtitle={subtitle} onBack={() => router.push('/shop')} backLabel={ts('back')} />
+        <ScreenHeader title={t('title')} subtitle={subtitle} onBack={() => router.back('/shop')} backLabel={ts('back')} />
         <div className="shc-body">{body}</div>
         <div className="page-tail" />
       </div>

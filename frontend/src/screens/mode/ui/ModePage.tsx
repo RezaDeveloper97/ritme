@@ -94,7 +94,7 @@ export function ModePage() {
         <ScreenHeader
           title={t('title')}
           subtitle={t('subtitle')}
-          onBack={() => router.push('/profile')}
+          onBack={() => router.back('/profile')}
           backLabel={t('back')}
         />
         {body}

@@ -276,7 +276,7 @@ export function SelfExamPage() {
         <ScreenHeader
           title={item?.title ?? t('title')}
           subtitle={subtitle || undefined}
-          onBack={() => router.push(item ? `/checkups/${item.id}` : '/checkups')}
+          onBack={() => router.back(item ? `/checkups/${item.id}` : '/checkups')}
           backLabel={t('back')}
           action={
             detail ? (
