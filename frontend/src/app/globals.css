@@ -438,6 +438,16 @@ body {
   --gutter-form: 20px;  /* forms / detail screens */
   --gap-section: 14px;
   --pad-card:    16px;
+
+  /* Screen edges. The installed app (TWA / PWA) runs `display: fullscreen`: no
+     status bar and no navigation bar, so `env(safe-area-inset-*)` is 0 on most
+     phones and a screen would start at the glass. These floors keep the first
+     header row and the last button off the physical edge and the rounded
+     corners; a real inset (notch, iOS home indicator) wins when it is larger. */
+  --edge-top:    12px;
+  --edge-bottom: 8px;
+  --safe-top:    max(env(safe-area-inset-top, 0px), var(--edge-top));
+  --safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--edge-bottom));
   --h-btn:       54px;  /* primary button */
   --h-btn-2:     58px;  /* secondary tile button */
   --h-chip:      40px;
@@ -505,9 +515,9 @@ body {
      are the white (--surface) layer on top of it. */
   background: var(--page);
   overflow: hidden;
-  /* No fixed top gap: the Android build runs immersive fullscreen (inset 0),
-     so the shell sits flush. Only a real notch/status-bar inset pads. */
-  padding-top: env(safe-area-inset-top, 0px);
+  /* Fullscreen has no status bar to push content down, so the shell keeps a
+     floor above every screen (--safe-top); a real notch inset wins. */
+  padding-top: var(--safe-top);
 }
 
 /* Desktop: lift the column off the neutral backdrop */
@@ -526,12 +536,12 @@ body {
 
 .view { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
 
-/* iOS home indicator (standalone + viewport-fit=cover): every screen's last
-   child — tab bar, onboarding CTA, footer — stops above it. Padding, not a
-   shell inset, so the strip under the indicator keeps the screen's own
-   background. 0 everywhere without an inset (desktop, Android). */
+/* Bottom edge: every screen's last child — onboarding CTA, sticky footer —
+   stops above the iOS home indicator, or at least --edge-bottom above the
+   glass in Android fullscreen (where the gesture area has no bar of its own).
+   Padding, not a shell inset, so the strip keeps the screen's background. */
 
-.view { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.view { padding-bottom: var(--safe-bottom); }
 
 .scroll { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
 
@@ -4365,7 +4375,7 @@ body {
 }
 
 .ap-bar {
-  position: absolute; inset-inline: 12px; inset-block-start: calc(10px + env(safe-area-inset-top, 0px));
+  position: absolute; inset-inline: 12px; inset-block-start: calc(10px + var(--safe-top));
   display: flex; align-items: center; gap: 8px; padding-block: 8px; padding-inline: 14px 8px; direction: inherit;
   pointer-events: auto; border: 1px solid var(--line); border-radius: var(--r-xl);
   background: var(--surface-glass); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
@@ -4724,7 +4734,7 @@ body {
   flex: 1; min-height: 0;
   overflow: hidden;
   padding-inline: var(--gutter);
-  padding-bottom: calc(18px + env(safe-area-inset-bottom));
+  padding-bottom: calc(18px + var(--safe-bottom));
 }
 
 .osheet.is-full > .osheet-body,
@@ -4736,7 +4746,7 @@ body {
 
 .osheet-foot {
   flex-shrink: 0;
-  padding: 12px var(--gutter) calc(12px + env(safe-area-inset-bottom));
+  padding: 12px var(--gutter) calc(12px + var(--safe-bottom));
   border-top: 1px solid var(--line);
   background: var(--surface);
 }

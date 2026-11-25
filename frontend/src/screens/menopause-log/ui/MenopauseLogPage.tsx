@@ -24,7 +24,7 @@ export function MenopauseLogPage() {
   const todayKey = toApiDate(today());
   const date = param && /^\d{4}-\d{2}-\d{2}$/.test(param) && param <= todayKey ? param : todayKey;
   const dayText = formatDayMonth(fromApiDate(date), locale);
-  const goHome = () => router.push('/home');
+  const goHome = () => router.back('/home');
   const voiceLocked = useVoiceLocked();
   return (
     <div className="view lday-page mlog-page">

@@ -658,6 +658,16 @@ for free. New code uses the semantic names.
 for UI), spacing `--gutter` 16 / `--gutter-form` 20, touch sizes `--h-btn` 54,
 `--size-icon-btn` 44, `--size-fab` 56, `--h-nav` 70.
 
+**Screen edges.** The installed app runs `display: fullscreen` (no status or
+navigation bar), so `env(safe-area-inset-*)` is 0 on most Android phones and a
+screen would start at the glass. Use `--safe-top` / `--safe-bottom` — the real
+inset, or at least `--edge-top` 12px / `--edge-bottom` 8px — never a bare
+`env(safe-area-inset-*)`. `.app-shell` already pads `--safe-top` and `.view`
+pads `--safe-bottom`, so a header or footer inside a screen adds only its own
+spacing; overlays positioned against the shell (sheets, toasts) add the token
+themselves. Result to keep: first header row ≈ 18px, last action ≥ 16px from
+the edge (measured on every route, 393×852).
+
 #### Menstruation (period) — the one sanctioned red
 
 **Bleeding days must read as red on every calendar surface** — a purple or pink
