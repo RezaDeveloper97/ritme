@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/stretchr/testify/assert"
@@ -45,7 +46,8 @@ func newEnv(t *testing.T) *admintest.Env {
 
 func publicGet(t *testing.T, e *admintest.Env, path string) map[string]any {
 	t.Helper()
-	res, err := e.App.Test(httptest.NewRequest(fiber.MethodGet, path, nil))
+	// Fiber's default 1 s budget is too tight for the full message bundle under -race on a CI runner.
+	res, err := e.App.Test(httptest.NewRequest(fiber.MethodGet, path, nil), fiber.TestConfig{Timeout: 30 * time.Second})
 	require.NoError(t, err)
 	defer func() { _ = res.Body.Close() }()
 	require.Equal(t, 200, res.StatusCode)

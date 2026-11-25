@@ -187,7 +187,8 @@ func TestSafety_QueueAggregatesEverySource(t *testing.T) {
 	require.NotNil(t, th)
 	assert.Equal(t, "partially_approved", th["status"])
 	assert.EqualValues(t, 1, th["approvals"])
-	assert.EqualValues(t, 2, th["required_approvals"])
+	// D-215 (one approval model): a clinical threshold needs one approval, not two.
+	assert.EqualValues(t, 1, th["required_approvals"])
 	assert.Equal(t, "glucose.post_meal", th["ref"])
 	assert.Nil(t, find(list, "threshold", 22))
 
