@@ -25,6 +25,7 @@ export default defineConfig([
       './src/widgets/pregnancy-care-checklist/**',
       './src/widgets/pregnancy-dating/**', // sign-up pregnancy form: screens/onboarding-flow + screens/pregnancy-onboarding
       './src/features/skip-period/**', // T-M9-47: consumed by screens/home
+      './src/widgets/plus-required-sheet/**', // consumed by screens/companion-invite (Plus-only invite code)
     ],
     rules: { 'fsd/insignificant-slice': 'off' },
   },
