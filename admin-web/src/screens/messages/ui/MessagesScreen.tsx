@@ -209,7 +209,7 @@ function GroupCell({ group }: { group: string }) {
       {where ? <span className="text-xs text-muted">{where}</span> : null}
       {labels.shown(group) ? null : (
         <span>
-          <Badge tone="neutral">{t('notShown')}</Badge>
+          <Badge tone="neutral">{t('androidOnly')}</Badge>
         </span>
       )}
     </span>
@@ -261,7 +261,7 @@ function WhereGuide({ groups, onGroup }: { groups: string[]; onGroup: (group: st
           <details key={bucket.area ?? 'other'} className="where-area">
             <summary className="where-area-summary">
               <span>{t(`areas.${bucket.area ?? 'other'}` as 'areas.other')}</span>
-              <Badge tone={bucket.area === 'notShown' ? 'neutral' : 'brand'}>{n(bucket.groups.length)}</Badge>
+              <Badge tone={bucket.area === 'androidOnly' ? 'neutral' : 'brand'}>{n(bucket.groups.length)}</Badge>
             </summary>
             <ul className="m-0 flex list-none flex-col gap-1 p-0 pt-2">
               {bucket.groups.map((g) => (

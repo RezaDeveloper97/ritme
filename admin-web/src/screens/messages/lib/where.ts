@@ -4,8 +4,9 @@
  * menomessages, conditionnudges → the frontend screens). The words live in `smartMessages.where.<group>` /
  * `smartMessages.areas.<area>`; this file only orders and classifies them.
  *
- * `shown: false` marks groups the app currently does not render anywhere (the old pregnancy-mode manager bundle and
- * the BMI line): they stay editable, the list just says so instead of leaving the editor guessing.
+ * `androidOnly` groups are rendered by the Android app only: the old `/messages/daily` bundle of pregnancy mode (the
+ * Android «امروز» tab reads it in every mode; the web pregnancy home does not) and the BMI line of the Android
+ * profile. The list says so, so an editor knows a change will not show on the web.
  */
 export type MessageArea =
   | 'cycleHome'
@@ -14,7 +15,7 @@ export type MessageArea =
   | 'postpartum'
   | 'menopause'
   | 'companion'
-  | 'notShown';
+  | 'androidOnly';
 
 export const AREAS: readonly MessageArea[] = [
   'cycleHome',
@@ -23,7 +24,7 @@ export const AREAS: readonly MessageArea[] = [
   'postpartum',
   'menopause',
   'companion',
-  'notShown',
+  'androidOnly',
 ];
 
 const GROUP_AREA: Record<string, MessageArea> = {
@@ -50,15 +51,15 @@ const GROUP_AREA: Record<string, MessageArea> = {
   postpartum_safety: 'postpartum',
   menopause_message: 'menopause',
   companion_tip: 'companion',
-  pregnancy_base: 'notShown',
-  pregnancy_trimester: 'notShown',
-  pregnancy_week: 'notShown',
-  pregnancy_override: 'notShown',
-  nutrition_trimester: 'notShown',
-  sleep_trimester: 'notShown',
-  exercise_trimester: 'notShown',
-  correlation_pregnancy: 'notShown',
-  bmi_message: 'notShown',
+  pregnancy_base: 'androidOnly',
+  pregnancy_trimester: 'androidOnly',
+  pregnancy_week: 'androidOnly',
+  pregnancy_override: 'androidOnly',
+  nutrition_trimester: 'androidOnly',
+  sleep_trimester: 'androidOnly',
+  exercise_trimester: 'androidOnly',
+  correlation_pregnancy: 'androidOnly',
+  bmi_message: 'androidOnly',
 };
 
 /** The area of a group; unknown (newly registered) groups land in `null` and are listed last. */

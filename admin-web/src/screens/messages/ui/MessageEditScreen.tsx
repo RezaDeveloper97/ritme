@@ -125,7 +125,7 @@ function MessageForm({ message, typedFields }: { message: Message; typedFields: 
       {labels.where(message.group) ? (
         <p className="where-note">
           <strong>{t('whereLabel')}:</strong> {labels.where(message.group)}
-          {labels.shown(message.group) ? null : <> ({t('notShown')})</>}
+          {labels.shown(message.group) ? null : <> ({t('androidOnly')})</>}
         </p>
       ) : null}
       {canWrite ? null : <p className="field-hint m-0 font-semibold">{t('superOnlyNotice')}</p>}

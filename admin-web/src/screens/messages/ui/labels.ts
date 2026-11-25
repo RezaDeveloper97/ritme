@@ -22,8 +22,8 @@ export function useMessageLabels() {
     group: (group: string) => (t.has(`groups.${group}` as 'groups.pattern') ? t(`groups.${group}` as 'groups.pattern') : group),
     /** Where the group appears in the user app (`null` for a group this panel does not know yet). */
     where: (group: string) => (t.has(`where.${group}` as 'where.pattern') ? t(`where.${group}` as 'where.pattern') : null),
-    /** False for groups the app does not render anywhere right now. */
-    shown: (group: string) => areaOf(group) !== 'notShown',
+    /** False for groups only the Android app renders (the web app does not show them). */
+    shown: (group: string) => areaOf(group) !== 'androidOnly',
     area: (group: string) => t(`areas.${areaOf(group) ?? 'other'}` as 'areas.other'),
     /** A readable name of the item key, or `null` when there is none (show the raw key alone). */
     item: (group: string, key: string): string | null => {

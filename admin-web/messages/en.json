@@ -1533,26 +1533,25 @@
       "condition_nudge": "Cycle home › “this cycle's suggestion” card and the care-programs hub — after several days of heavy pain or bleeding",
       "pregnancy_week_tip": "Pregnancy home › “smart tip · this week” card (one tip per week 1–42)",
       "pregnancy_alert": "Fetal-movement screen › alert card, and the bell › alerts & messages (each alert's text and the level legend)",
-      "pregnancy_setup": "Pregnancy setup (history step) and the pregnancy calendar › dating note; the other steps use the app's built-in copy for now",
+      "pregnancy_setup": "Web pregnancy setup › history step (title, body, disclaimer) and the pregnancy calendar › dating note; the other items (welcome, dating, sources, result, due-date note, calm exit) are not read by any screen yet — the app shows its built-in copy",
       "postpartum_week_tip": "Postpartum home › “this week's tip” card (weeks 1–12 and after)",
       "postpartum_alert": "Postpartum home › alert list and “when to call right away” card, and the recovery log › warning signs",
       "postpartum_safety": "Mood screen › EPDS result and the urgent “please talk to someone now” screen",
       "menopause_message": "Menopause home › message cards (checkup reminders, worsening score, HRT review)",
       "companion_tip": "Companion home › note under the cycle card and the “what can you do today?” list (up to 3 tips per phase)",
-      "pregnancy_base": "Old pregnancy message engine; the web app's pregnancy screens do not show it for now",
-      "pregnancy_trimester": "Old pregnancy message engine; the web app's pregnancy screens do not show it for now",
-      "pregnancy_week": "Old pregnancy message engine; the pregnancy home's weekly tip comes from “pregnancy week tips”",
-      "pregnancy_override": "Old pregnancy message engine; the web app's pregnancy screens do not show it for now",
-      "nutrition_trimester": "Old pregnancy message engine; the web app's pregnancy screens do not show it for now",
-      "sleep_trimester": "Old pregnancy message engine; the web app's pregnancy screens do not show it for now",
-      "exercise_trimester": "Old pregnancy message engine; the web app's pregnancy screens do not show it for now",
-      "correlation_pregnancy": "Old pregnancy message engine; the web app's pregnancy screens do not show it for now",
-      "bmi_message": "Sent with the profile, but no screen shows it for now"
+      "pregnancy_base": "Android app › “Today” tab (pregnancy mode) › smart-tip card and today's tips; the web app does not show it",
+      "pregnancy_trimester": "Android app › “Today” tab (pregnancy mode) › smart-tip card and today's tips; the web app does not show it",
+      "pregnancy_week": "Android app › “Today” tab (pregnancy mode) › smart-tip card and today's tips; the web app does not show it (the web pregnancy home's weekly tip comes from “pregnancy week tips”)",
+      "pregnancy_override": "Android app › “Today” tab (pregnancy mode) › smart-tip card and today's tips; the web app does not show it",
+      "nutrition_trimester": "Android app › “Today” tab (pregnancy mode) › smart-tip card and today's tips; the web app does not show it",
+      "sleep_trimester": "Android app › “Today” tab (pregnancy mode) › smart-tip card and today's tips; the web app does not show it",
+      "exercise_trimester": "Android app › “Today” tab (pregnancy mode) › smart-tip card and today's tips; the web app does not show it",
+      "correlation_pregnancy": "Android app › “Today” tab (pregnancy mode) › smart-tip card and today's tips; the web app does not show it",
+      "bmi_message": "Android app › profile › the line under the BMI; the web app does not show it"
     },
     "whereTitle": "Where do these messages show?",
     "guideTitle": "Where each message shows",
     "guideHint": "Every message group appears in one place of the app. Pick a group to list only its messages.",
-    "notShown": "Not shown for now",
     "rulesNote": "Home cards (status banner, smart tip, today's tips, today's challenge) come first from the message display rules; the copy on this page is for the places named under each group.",
     "itemWeek": "Week {n}",
     "itemTrimester": "Trimester {n}",
@@ -1566,7 +1565,7 @@
       "postpartum": "Postpartum",
       "menopause": "Menopause",
       "companion": "Companion",
-      "notShown": "Not shown in the app for now",
+      "androidOnly": "Android app only",
       "other": "Other"
     },
     "itemKeys": {
@@ -1660,7 +1659,8 @@
       "checkup_due": "Checkup due",
       "heavy_pain": "Heavy pain"
     },
-    "whereLabel": "Where it shows"
+    "whereLabel": "Where it shows",
+    "androidOnly": "Android app only"
   },
   "languages": {
     "title": "Languages",
