@@ -65,6 +65,8 @@ type bleedingChange struct {
 	before, after string
 }
 
+func isTrue(p *bool) bool { return p != nil && *p }
+
 func strVal(p *string) string {
 	if p == nil {
 		return ""
@@ -401,6 +403,35 @@ func (s *Service) raisePregnancyFlowAlert(ctx context.Context, userID uint64, da
 			BleedingSeverity: sql.NullString{String: sev, Valid: true}, Now: sql.NullTime{Time: now, Valid: true}}); err != nil {
 			return fmt.Errorf("healthlog: pregnancy bleeding symptom: %w", err)
 		}
+	}
+	if s.pregAlerts != nil {
+		s.pregAlerts.pending, s.pregAlerts.locale, s.pregAlerts.now = true, locale, now
+	}
+	return nil
+}
+
+// pregnancySpotting turns spotting newly logged in pregnancy (the log sheet's «لکه‌بینی», bleeding.spotting) into the
+// day's spotting symptom and has the pregnancy alert rules evaluated after the commit, as raisePregnancyFlowAlert does
+// for a flow: spotting is a critical symptom up to week 12 (preg.critical_symptom), so the urgent alert opens with
+// the save instead of at the next Today read. Clearing the flag changes nothing (a symptom once logged stays logged,
+// like a lighter flow).
+func (s *Service) pregnancySpotting(ctx context.Context, userID uint64, date civildate.Date, before, after bool, locale string,
+	now time.Time,
+) error {
+	if before || !after {
+		return nil
+	}
+	mode, err := s.LifeMode(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if mode != taxonomy.ModePregnancy {
+		return nil
+	}
+	if err := pregstore.New(s.raw).RecordSpottingSymptom(ctx, pregstore.RecordSpottingSymptomParams{UserID: userID,
+		LogDate: date, SpottingSeverity: sql.NullString{String: "mild", Valid: true},
+		Now: sql.NullTime{Time: now, Valid: true}}); err != nil {
+		return fmt.Errorf("healthlog: pregnancy spotting symptom: %w", err)
 	}
 	if s.pregAlerts != nil {
 		s.pregAlerts.pending, s.pregAlerts.locale, s.pregAlerts.now = true, locale, now

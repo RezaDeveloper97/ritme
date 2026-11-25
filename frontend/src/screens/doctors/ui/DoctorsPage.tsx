@@ -17,6 +17,7 @@ import {
   type DoctorCard,
   type VisitMode,
 } from '@/entities/doctor';
+import { useServicesHubHref } from '@/entities/app-module';
 import { Link, useRouter, type Locale } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
 import { formatNumber, formatWeekdayDayMonth, fromApiDate } from '@/shared/lib/date';
@@ -35,6 +36,8 @@ export function DoctorsPage() {
   const t = useTranslations('doctors');
   const locale = useLocale() as Locale;
   const router = useRouter();
+  // «من» while an admin switched the services hub off.
+  const servicesHref = useServicesHubHref();
   const title = useDoctorTitle();
   const [tab, setTab] = useState<ModeTab>('all');
   const [today, setToday] = useState(false);
@@ -137,7 +140,7 @@ export function DoctorsPage() {
         <ScreenHeader
           title={t('list.title')}
           subtitle={q.data ? t('list.count', { count: formatNumber(q.data.meta.total, locale) }) : undefined}
-          onBack={() => router.back('/services')}
+          onBack={() => router.back(servicesHref)}
           backLabel={t('common.back')}
           action={<HeaderButton label={t('bookings.title')} icon="calendar" onClick={() => router.push('/services/bookings')} pilot={pilot('doctors.bookings')} />}
         />

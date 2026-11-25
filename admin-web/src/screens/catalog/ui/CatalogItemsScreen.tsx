@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useState, type DragEvent } from 'react';
 
+import { useCan } from '@/features/auth';
 import { useLocalized } from '@/shared/i18n';
 import { cn, excerpt, useListParams, useNumber } from '@/shared/lib';
 import {
@@ -26,6 +27,7 @@ import {
 } from '@/shared/ui';
 
 import {
+  useApproveItem,
   useCatalogGroups,
   useCatalogItems,
   usePatchItem,
@@ -134,6 +136,9 @@ function ItemsTable({
   const reorder = useReorderItems(group);
   const patch = usePatchItem(group);
   const remove = useRemoveItem(group);
+  // D-215: «تأیید» is one click of the clinical capability (manage), the author included.
+  const approve = useApproveItem(group);
+  const canApprove = useCan('clinical', 'manage');
   const [order, setOrder] = useState<number[] | null>(null);
   const [pending, setPending] = useState<number | null>(null);
   const [dragFrom, setDragFrom] = useState<number | null>(null);
@@ -250,7 +255,26 @@ function ItemsTable({
                   <span className="text-muted">{t('everyone')}</span>
                 )}
               </td>
-              <td>{r.needs_review ? <Badge tone="amber">{t('needsReview')}</Badge> : <Badge tone="green">{t('reviewed')}</Badge>}</td>
+              <td onClick={(e) => e.stopPropagation()}>
+                {r.needs_review ? (
+                  <span className="flex flex-wrap items-center gap-1.5">
+                    <Badge tone="amber">{t('needsReview')}</Badge>
+                    {canApprove ? (
+                      <Button
+                        size="sm"
+                        loading={approve.isPending && approve.variables === r.id}
+                        onClick={() =>
+                          approve.mutate(r.id, { onSuccess: () => toast.success(t('approvedToast')), onError: notifyError })
+                        }
+                      >
+                        {t('approve')}
+                      </Button>
+                    ) : null}
+                  </span>
+                ) : (
+                  <Badge tone="green">{t('reviewed')}</Badge>
+                )}
+              </td>
               <td onClick={(e) => e.stopPropagation()}>
                 <Switch
                   label={r.is_active ? tc('active') : tc('inactive')}

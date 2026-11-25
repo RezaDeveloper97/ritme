@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 import { useInsurancePolicies, useInsurancePolicy, useInsurancePolicyById } from '@/entities/insurance'; // CB-INS-03 (+ policy history)
 
+import { useServicesHubHref } from '@/entities/app-module';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { formatLongDate, formatNumber, fromApiDate } from '@/shared/lib/date';
 import { pilot } from '@/shared/pilot';
@@ -133,6 +134,8 @@ export function InsurancePage() {
   const t = useTranslations('me.insurance');
   const ti = useTranslations('insurance');
   const router = useRouter();
+  // «من» while an admin switched the services hub off.
+  const servicesHref = useServicesHubHref();
   const policy = useInsurancePolicy();
   const [view, setView] = useState<View | null>(null);
   // Policy history: null = the current policy (GET /policy); another id = that policy of her history.
@@ -150,13 +153,13 @@ export function InsurancePage() {
   const showNav = trackerReady && current === 'home';
 
   let title = t('title');
-  let onBack = () => router.push('/services');
+  let onBack = () => router.back(servicesHref);
   let backLabel = t('back');
   if (trackerReady && current === 'home') {
     title = ti('title');
   } else if (trackerReady && current === 'edit') {
     title = hasPolicy ? ti('setup.editTitle') : ti('setup.title');
-    onBack = hasPolicy ? () => setView('home') : () => router.push('/services');
+    onBack = hasPolicy ? () => setView('home') : () => router.back(servicesHref);
   } else if (trackerReady && current === 'info') {
     title = ti('home.howTitle');
     onBack = () => setView(hasPolicy ? 'home' : 'edit');

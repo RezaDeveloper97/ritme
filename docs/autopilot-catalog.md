@@ -213,11 +213,9 @@
 | `cycle-settings.auto` | bool | محاسبه‌ی خودکار طول دوره | route `/cycle/settings` | — | — |
 | `cycle-settings.cycle-length` | integer | طول دوره | route `/cycle/settings` | — | — |
 | `cycle-settings.period-length` | integer | طول پریود | route `/cycle/settings` | — | — |
-| `cycle-settings.days-before` | integer | چند روز قبل از پریود یادآوری شود | route `/cycle/settings` | yes | — |
-| `cycle-settings.reminder:*` | bool | — | route `/cycle/settings` | — | — |
-| `cycle-settings.reminder-edit:*` | section | — | route `/cycle/settings` | — | — |
-| `cycle-settings.reminder-time:*` | time | — | route `/cycle/settings` | yes | — |
-| `cycle-settings.mode:*` | action | — | route `/cycle/settings` | — | — |
+| `cycle-settings.edit:lastPeriod` | action | ویرایش شروع آخرین پریود | route `/cycle/settings` | — | — |
+| `cycle-settings.edit:weight` | action | ویرایش وزن | route `/cycle/settings` | — | — |
+| `cycle-settings.edit:height` | action | ویرایش قد | route `/cycle/settings` | — | — |
 | `cycle.group:*` | action | — | route `/cycle/symptoms` | — | — |
 | `cycle.add-previous` | action | افزودن دوره‌ی قبلی | route `/cycle` | — | — |
 | `cycle.symptoms` | action | الگوی علائم | route `/cycle` | — | — |
@@ -1014,14 +1012,9 @@
 | `me.header:theme` | action | تغییر حالت روز / شب (بالای صفحه) | route `/profile` | — | — |
 | `account.edit:name` | action | ویرایش نام | route `/profile/account` | — | — |
 | `account.edit:birthday` | action | ویرایش تاریخ تولد | route `/profile/account` | — | — |
-| `account.edit:cycleDuration` | action | ویرایش طول چرخه | route `/profile/account` | — | — |
-| `account.edit:periodDuration` | action | ویرایش طول پریود | route `/profile/account` | — | — |
-| `account.edit:lastPeriod` | action | ویرایش شروع آخرین پریود | route `/profile/account` | — | — |
-| `account.edit:weight` | action | ویرایش وزن | route `/profile/account` | — | — |
-| `account.edit:height` | action | ویرایش قد | route `/profile/account` | — | — |
 | `quick.name` | text | نام | — | yes | — |
-| `quick.cycle-length` | integer | طول چرخه | — | yes | — |
-| `quick.period-length` | integer | طول پریود | — | yes | — |
+| `quick.cycle-length` | integer | طول چرخه | — | — | — |
+| `quick.period-length` | integer | طول پریود | — | — | — |
 | `quick.birthday:day` | integer | روز تولد | — | yes | — |
 | `quick.birthday:month` | integer | ماه تولد | — | yes | — |
 | `quick.birthday:year` | integer | سال تولد | — | yes | — |
@@ -1057,6 +1050,10 @@
 | `notifications.history` | action | سابقه‌ی هشدارها | sheet `notifications` | — | — |
 | `notifications.mark-all` | action | همه خوانده شد | sheet `notifications` | — | — |
 | `notif.category:*` | bool | — | route `/profile/notifications` | — | — |
+| `notif.reminder:pill` | bool | یادآور قرص پیشگیری | route `/profile/notifications` | — | — |
+| `notif.reminder-edit:*` | section | — | route `/profile/notifications` | — | — |
+| `notif.reminder-time:*` | time | — | route `/profile/notifications` | yes | — |
+| `notif.days-before` | integer | چند روز قبل از پریود یادآوری شود | route `/profile/notifications` | yes | — |
 | `notif.quiet` | bool | ساعت سکوت | route `/profile/notifications` | — | — |
 | `notif.quiet-edit` | action | ویرایش بازه‌ی سکوت | route `/profile/notifications` | — | — |
 | `notif.quiet-start` | time | شروع ساعت سکوت | route `/profile/notifications` | yes | — |

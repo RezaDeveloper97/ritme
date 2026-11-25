@@ -12,6 +12,7 @@ import {
   useConditionNudges,
   useConditions,
 } from '@/entities/condition';
+import { useServicesHubHref } from '@/entities/app-module';
 import { PELVIC_PATH } from '@/entities/pelvic';
 import { Link, useDirection, useRouter } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
@@ -43,6 +44,8 @@ export function ConditionsHubPage() {
   const t = useTranslations('conditions.hub');
   const locale = useLocale();
   const router = useRouter();
+  // «من» while an admin switched the services hub off.
+  const servicesHref = useServicesHubHref();
   const overview = useConditions();
   const programsCopy = useConditionCatalog('condition_programs', locale);
   const alerts = useConditionCatalog('condition_alerts', locale);
@@ -92,7 +95,7 @@ export function ConditionsHubPage() {
     <div className="view cnd-page">
       <SkyLayer />
       <div className="scroll cnd-scroll">
-        <ScreenHeader title={t('title')} onBack={() => router.back('/services')} backLabel={t('back')} />
+        <ScreenHeader title={t('title')} onBack={() => router.back(servicesHref)} backLabel={t('back')} />
         <div className="cnd-body">
           <div className="cnd-intro">
             <h2 className="cnd-heading">{t('heading')}</h2>

@@ -166,6 +166,10 @@ type Querier interface {
 	// day's row is created or gets has_bleeding + the severity (its other symptoms are kept). The caller never lowers a
 	// severity the user logged herself.
 	RecordFlowBleedingSymptom(ctx context.Context, arg RecordFlowBleedingSymptomParams) error
+	// Spotting logged in pregnancy on the general day log (healthlog bridge) is the day's spotting symptom: the day's row
+	// is created or gets has_spotting (its other symptoms are kept). A severity the user logged herself is kept; a new
+	// flag starts at the given severity.
+	RecordSpottingSymptom(ctx context.Context, arg RecordSpottingSymptomParams) error
 	SetCareItemActive(ctx context.Context, arg SetCareItemActiveParams) (int64, error)
 	SetCareItemSortOrder(ctx context.Context, arg SetCareItemSortOrderParams) (int64, error)
 	SetContractionAlertAt(ctx context.Context, arg SetContractionAlertAtParams) error

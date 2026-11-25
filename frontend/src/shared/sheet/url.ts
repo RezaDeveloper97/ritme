@@ -38,3 +38,15 @@ export function hrefWithSheet(href: string, target: SheetTarget | null): string 
 
   return `${url.pathname}${url.search}${url.hash}`;
 }
+
+/**
+ * Only the sheet part of `search` as a query string (`?sheet=…[&sheetArg=…]`, or `''`), so a screen that hands off
+ * to another route (the mode-aware `/home`) keeps the sheet a link asked for — navigating away otherwise closes it.
+ */
+export function sheetQuery(search: string): string {
+  const target = readSheetTarget(search);
+  if (!target) return '';
+  const out = new URLSearchParams({ [SHEET_PARAM]: target.id });
+  if (target.arg) out.set(SHEET_ARG_PARAM, target.arg);
+  return `?${out.toString()}`;
+}

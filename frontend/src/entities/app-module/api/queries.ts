@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 import { type ApiEnvelope, apiClient } from '@/shared/api';
 
-import { ALL_MODULES_ON, APP_MODULES, type AppModule, type AppModules } from '../model/modules';
+import { ALL_MODULES_ON, APP_MODULES, type AppModule, type AppModules, servicesHubHref } from '../model/modules';
 
 export const appModuleKeys = {
   all: ['app-modules'] as const,
@@ -39,6 +39,11 @@ export function useAppModules(): AppModules {
 /** Whether one module is on. */
 export function useModuleEnabled(module: AppModule): boolean {
   return useAppModules()[module];
+}
+
+/** The «back» target of a services sub-screen: the hub, or «من» while the hub is switched off. */
+export function useServicesHubHref(): '/services' | '/profile' {
+  return servicesHubHref(useAppModules());
 }
 
 /** The raw query, for screens that must wait for the real answer before deciding (route guard, onboarding skip). */

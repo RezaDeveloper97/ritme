@@ -32,7 +32,7 @@ describe('app modules', () => {
   });
 
   it('leaves every other route alone', () => {
-    for (const path of ['/', '/home', '/pregnancy', '/analysis', '/analysis/cycle', '/companionship', '/childrens', '/onboarding/gender', '/record/emergency', '/profile', '/profile/mode', '/services', '/services/home-lab', '/reminders/appointment/new', '/reminders/medication/3', '/assistant/chat/7/summary']) {
+    for (const path of ['/', '/home', '/pregnancy', '/analysis', '/analysis/cycle', '/companionship', '/childrens', '/onboarding/gender', '/record/emergency', '/profile', '/profile/mode', '/services/home-lab', '/reminders/appointment/new', '/reminders/medication/3', '/assistant/chat/7/summary']) {
       expect(moduleOfRoute(path)).toBeNull();
     }
   });

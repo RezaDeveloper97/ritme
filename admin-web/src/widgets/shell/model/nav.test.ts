@@ -57,3 +57,45 @@ describe('NAV ↔ routes', () => {
     }
   });
 });
+
+describe('NAV categories', () => {
+  it('every category and item has a label in every UI language', async () => {
+    const { NAV } = await import('./nav');
+    const fa = (await import('../../../../messages/fa.json')).default.nav as Record<string, string>;
+    const en = (await import('../../../../messages/en.json')).default.nav as Record<string, string>;
+    for (const key of NAV.flatMap((g) => [g.key, ...g.items.map((i) => i.key)])) {
+      expect(fa[key], key).toBeTruthy();
+      expect(en[key], key).toBeTruthy();
+    }
+  });
+
+  it('no list screen hides inside another one: each is a menu item', async () => {
+    const { readdirSync, existsSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const { fileURLToPath } = await import('node:url');
+    const { NAV } = await import('./nav');
+    const panel = fileURLToPath(new URL('../../../app/(panel)/', import.meta.url));
+    const hrefs = new Set(NAV.flatMap((g) => g.items.map((i) => i.href)));
+    // Redirect-only routes (/children-content → vaccines, /pregnancy-alert-rules → message rules).
+    const redirects = new Set(['/children-content', '/pregnancy-alert-rules']);
+    const walk = (dir: string, route: string): string[] =>
+      readdirSync(dir, { withFileTypes: true })
+        .filter((e) => e.isDirectory() && !e.name.startsWith('[') && e.name !== 'new')
+        .flatMap((e) => {
+          const r = `${route}/${e.name}`;
+          const here = existsSync(join(dir, e.name, 'page.tsx')) ? [r] : [];
+          return [...here, ...walk(join(dir, e.name), r)];
+        });
+    for (const route of walk(panel, '')) {
+      if (redirects.has(route)) continue;
+      expect(hrefs.has(route), route).toBe(true);
+    }
+  });
+
+  it('a detail page outside its item still lights the item', () => {
+    expect(activeItem('/shop/orders/9')?.key).toBe('shopOrders');
+    expect(activeItem('/messages/rules/engine')?.key).toBe('messageEngine');
+    expect(activeItem('/messages/rules/4')?.key).toBe('messageRules');
+    expect(activeItem('/messages/12')?.key).toBe('messages');
+  });
+});

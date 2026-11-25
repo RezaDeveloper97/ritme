@@ -333,7 +333,7 @@ function Editor({
                       }));
                     }}
                   />
-                  <MatrixSelect label={t('placement')} value={form.placement} options={slotOpts} onChange={(v) => set('placement', v)} error={err('placement')} />
+                  <MatrixSelect label={t('placement')} value={form.placement} options={slotOpts} onChange={(v) => set('placement', v)} error={err('placement')} hint={t.has(`placementWhere.${form.placement}` as 'placementWhere.push') ? t(`placementWhere.${form.placement}` as 'placementWhere.push') : undefined} />
                   <TextInput label={t('priority')} value={form.priority} onChange={(e) => set('priority', e.target.value)} error={err('priority')} hint={band ? t('priorityBand', { min: band.min, max: band.max }) : undefined} type="number" />
                 </div>
                 {medical ? <p className="m-0 mt-3 text-[13px]">{t('levelMedicalNote')}</p> : null}

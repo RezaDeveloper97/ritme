@@ -10,7 +10,7 @@ import { QuickEditSheet, type QuickEditField } from '@/features/edit-profile';
 import { DeleteAccountConfirm } from '@/features/manage-account';
 import { pilot } from '@/shared/pilot';
 import { localizeHref, useRouter, type Locale } from '@/shared/i18n';
-import { formatLongDate, formatNumber } from '@/shared/lib/date';
+import { formatLongDate } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
 import { leaveSignedOut } from '@/shared/session';
 import {
@@ -57,12 +57,11 @@ function FieldRow({
  * Account screen (B-N1-10, `nbl_Me_Profile` / `nbd_Me_Profile`) at
  * `/profile/account`. Name and birth date are editable today (POST /profile);
  * family name, email, phone change, photo and the device list have no API yet
- * and show «به‌زودی» (bloom/QUESTIONS.md). The cycle & health numbers that the
- * old profile tab edited inline live here until `/cycle/settings` (B-N1-09).
+ * and show «به‌زودی» (bloom/QUESTIONS.md). The cycle & health numbers (lengths,
+ * last period, weight, height) are edited only on `/cycle/settings`.
  */
 export function AccountPage() {
   const t = useTranslations('me');
-  const th = useTranslations('profile');
   const router = useRouter();
   const loc = useLocale() as Locale;
   const mounted = useMounted();
@@ -88,13 +87,6 @@ export function AccountPage() {
       {t('account.edit')}
     </button>
   );
-
-  const dateOrEmpty = (iso: string | null | undefined) =>
-    iso ? formatLongDate(new Date(iso), loc) : th('health.empty');
-  const daysOrEmpty = (v: number | null | undefined) =>
-    v != null ? th('health.days', { days: formatNumber(v, loc) }) : th('health.empty');
-  const measureOrEmpty = (key: 'kg' | 'cm', v: number | null | undefined) =>
-    v != null ? th(`health.${key}`, { value: formatNumber(v, loc) }) : th('health.empty');
 
   const handleLogout = () => {
     if (logout.isPending) return;
@@ -165,43 +157,6 @@ export function AccountPage() {
               />
             </ListGroup>
 
-            {health ? (
-              <ListGroup title={t('account.health')}>
-                <ListRow
-                  icon="refresh"
-                  title={th('health.cycleDuration')}
-                  value={daysOrEmpty(health.cycleDuration)}
-                  onClick={() => setEditing('cycleDuration')} pilot={pilot('account.edit:cycleDuration')}
-                />
-                <ListRow
-                  icon="drop"
-                  iconTone="period"
-                  title={th('health.periodDuration')}
-                  value={daysOrEmpty(health.periodDuration)}
-                  onClick={() => setEditing('periodDuration')} pilot={pilot('account.edit:periodDuration')}
-                />
-                <ListRow
-                  icon="calendar"
-                  title={th('health.lastPeriod')}
-                  value={dateOrEmpty(health.lastPeriodStart)}
-                  onClick={() => setEditing('lastPeriod')} pilot={pilot('account.edit:lastPeriod')}
-                />
-                <ListRow
-                  icon="scale"
-                  iconTone="data"
-                  title={th('health.weight')}
-                  value={measureOrEmpty('kg', health.weight)}
-                  onClick={() => setEditing('weight')} pilot={pilot('account.edit:weight')}
-                />
-                <ListRow
-                  icon="walk"
-                  iconTone="data"
-                  title={th('health.height')}
-                  value={measureOrEmpty('cm', health.height)}
-                  onClick={() => setEditing('height')} pilot={pilot('account.edit:height')}
-                />
-              </ListGroup>
-            ) : null}
           </>
         )}
 
@@ -216,15 +171,7 @@ export function AccountPage() {
 
       <QuickEditSheet
         field={editing}
-        values={{
-          name: profile?.name,
-          cycleDuration: health?.cycleDuration,
-          periodDuration: health?.periodDuration,
-          birthday: health?.birthday,
-          lastPeriodStart: health?.lastPeriodStart,
-          weight: health?.weight,
-          height: health?.height,
-        }}
+        values={{ name: profile?.name, birthday: health?.birthday }}
         onClose={() => setEditing(null)}
       />
       {/* Deleting ends the session and lands on /signup (§11). */}

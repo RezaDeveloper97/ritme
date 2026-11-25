@@ -2,17 +2,11 @@ package manager
 
 import (
 	"context"
-	"errors"
 
 	"github.com/ritme/backend-go/internal/enums"
 	"github.com/ritme/backend-go/internal/messages/content"
 	"github.com/ritme/backend-go/internal/platform/jsonx"
 )
-
-// ErrUndefinedOverrideCase reproduces CycleMessageEngine::determineOverrideType reaching
-// OverrideType::LOW_ENERGY / BLOATING / ACNE — cases the PHP enum does not declare, so PHP
-// throws "Undefined constant" and the request is a 500 (D-11, locked by the premium goldens).
-var ErrUndefinedOverrideCase = errors.New("messages: undefined constant App\\Enums\\OverrideType (CycleMessageEngine.php:102)")
 
 // cycleEngine is CycleMessageEngine (backend/app/Services/MessageSystem/Engines/CycleMessageEngine.php).
 type cycleEngine struct {
@@ -40,33 +34,42 @@ func (e cycleEngine) override(ctx context.Context, mc *Context) (*jsonx.OrderedM
 	if len(mc.Symptoms) == 0 {
 		return nil, nil
 	}
-	t, err := determineOverrideType(mc)
-	if err != nil || t == "" {
-		return nil, err
+	oc, ok := determineOverride(mc)
+	if !ok {
+		return nil, nil
 	}
-	return e.overrideFor(ctx, t)
+	return e.overrideFor(ctx, oc)
 }
 
-// determineOverrideType keeps the PHP priority order; the last three arms name enum cases
-// that do not exist (see ErrUndefinedOverrideCase).
-func determineOverrideType(mc *Context) (enums.OverrideType, error) {
+// overrideCase is one layer-2 symptom: its cycle_override item key and the label shown when the admin's row has none.
+type overrideCase struct {
+	key   string
+	label func(locale string) string
+}
+
+func enumCase(t enums.OverrideType) overrideCase { return overrideCase{string(t), t.Label} }
+
+// determineOverride keeps the PHP priority order. Laravel's last three arms named OverrideType cases that do not
+// exist, so a low-energy, bloating or acne day was a 500 (D-11); Go serves their cycle_override copy instead
+// (deviation D-214). Their labels reuse the symptom names the app already has.
+func determineOverride(mc *Context) (overrideCase, bool) {
 	switch {
 	case mc.HasSymptom("heavy_flow"):
-		return enums.OverrideTypeHeavyFlow, nil
+		return enumCase(enums.OverrideTypeHeavyFlow), true
 	case mc.HasSymptom("cramps", "headache", "backache"):
-		return enums.OverrideTypePain, nil
+		return enumCase(enums.OverrideTypePain), true
 	case mc.HasSymptom("mood_sad", "mood_anxious"):
-		return enums.OverrideTypeMoodSad, nil
+		return enumCase(enums.OverrideTypeMoodSad), true
 	case mc.HasSymptom("mood_angry"):
-		return enums.OverrideTypeMoodAngry, nil
-	case mc.HasSymptom("low_energy", "fatigue"): // OverrideType::LOW_ENERGY
-		return "", ErrUndefinedOverrideCase
-	case mc.HasSymptom("bloating"): // OverrideType::BLOATING
-		return "", ErrUndefinedOverrideCase
-	case mc.HasSymptom("acne"): // OverrideType::ACNE
-		return "", ErrUndefinedOverrideCase
+		return enumCase(enums.OverrideTypeMoodAngry), true
+	case mc.HasSymptom("low_energy", "fatigue"):
+		return overrideCase{"low_energy", enums.RecommendationTriggerFatigue.Label}, true
+	case mc.HasSymptom("bloating"):
+		return overrideCase{"bloating", enums.RecommendationTriggerBloating.Label}, true
+	case mc.HasSymptom("acne"):
+		return overrideCase{"acne", enums.OverrideTypeSkinAcne.Label}, true
 	}
-	return "", nil
+	return overrideCase{}, false
 }
 
 // itemOr is `array_key_exists($key, <source>) ? $key : $fallbackKey`.
@@ -124,19 +127,26 @@ func (e cycleEngine) ttcBase(ctx context.Context, phase enums.CyclePhase, mc *Co
 	), nil
 }
 
-// overrideFor is getOverrideMessageForType; nil (PHP []) for a type without copy.
-func (e cycleEngine) overrideFor(ctx context.Context, t enums.OverrideType) (*jsonx.OrderedMap, error) {
+// overrideFor is getOverrideMessageForType; nil (PHP []) for a type without copy. A `label` written in the admin's
+// row wins over the built-in symptom name.
+func (e cycleEngine) overrideFor(ctx context.Context, oc overrideCase) (*jsonx.OrderedMap, error) {
 	const group = "cycle_override"
-	if !content.HasItem(group, string(t)) {
+	if !content.HasItem(group, oc.key) {
 		return nil, nil
 	}
-	p, err := e.content.Resolve(ctx, group, string(t), e.locale)
+	p, err := e.content.Resolve(ctx, group, oc.key, e.locale)
 	if err != nil {
 		return nil, err
 	}
+	label := oc.label(e.locale)
+	if l, _ := p.Field("label"); l != nil {
+		if s, _ := l.(string); s != "" {
+			label = s
+		}
+	}
 	return jsonx.Obj(
-		"override_type", string(t),
-		"override_label", t.Label(e.locale),
+		"override_type", oc.key,
+		"override_label", label,
 		"override_message", p.Or("message", ""),
 		"override_action", p.Or("action", ""),
 		"override_dos", p.Or("dos", emptyList()),

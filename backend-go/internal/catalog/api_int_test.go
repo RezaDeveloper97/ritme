@@ -449,3 +449,24 @@ func TestAdmin_CodeAttributeLabel(t *testing.T) {
 	require.Len(t, msgs, 1)
 	assert.Contains(t, msgs[0], "کد آیتم")
 }
+
+// D-215: «تأیید» is one action of the clinical capability — needs_review off, nothing else changes.
+func TestAdmin_Approve(t *testing.T) {
+	e := newEnv(t)
+	a := e.As(admintest.EditorID)
+	g := "/catalog/" + testGroup(t)
+	r := a.JSON(fiber.MethodPost, g, validBody())
+	require.Equal(t, 201, r.Status, string(r.Raw))
+	it := r.Obj("catalog_item")
+	path := g + "/" + strconv.Itoa(int(it["id"].(float64)))
+	require.Equal(t, true, it["needs_review"])
+
+	ok := a.JSON(fiber.MethodPost, path+"/approve", nil)
+	require.Equal(t, 200, ok.Status, string(ok.Raw))
+	got := ok.Obj("catalog_item")
+	assert.Equal(t, false, got["needs_review"])
+	assert.Equal(t, it["title"], got["title"], "only the review flag changes")
+	assert.Equal(t, it["is_active"], got["is_active"])
+	assert.Equal(t, 200, a.JSON(fiber.MethodPost, path+"/approve", nil).Status, "approving twice is a no-op")
+	assert.Equal(t, 404, a.JSON(fiber.MethodPost, g+"/999999/approve", nil).Status)
+}

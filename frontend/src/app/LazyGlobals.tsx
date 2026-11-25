@@ -25,3 +25,7 @@ export const LazyAiGateSheet = dynamic(() => import('@/features/ai-gate').then((
 export const LazyInstallPrompt = dynamic(() => import('@/shared/pwa').then((m) => m.InstallPrompt), {
   ssr: false,
 });
+/** The urgent health alert over every screen (widgets/urgent-alert); nothing while no alert is open. */
+export const LazyUrgentAlertHost = dynamic(() => import('@/widgets/urgent-alert').then((m) => m.UrgentAlertHost), {
+  ssr: false,
+});

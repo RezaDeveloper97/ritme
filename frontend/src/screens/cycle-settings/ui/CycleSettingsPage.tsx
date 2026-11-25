@@ -4,15 +4,13 @@ import { clsx } from 'clsx';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
-import { useUserMode } from '@/entities/message';
-import { useLifeStage } from '@/entities/user';
+import { useUserProfile } from '@/entities/user';
+import { QuickEditSheet, type QuickEditField } from '@/features/edit-profile';
 import { type Locale, useRouter } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
-import { formatNumber } from '@/shared/lib/date';
+import { formatLongDate, formatNumber } from '@/shared/lib/date';
 import {
   EmptyState,
-  Icon,
-  type IconName,
   ListGroup,
   ListRow,
   NumberStepper,
@@ -22,7 +20,6 @@ import {
   SkeletonGroup,
   SkyLayer,
   Switch,
-  type Tone,
 } from '@/shared/ui';
 
 import { useCycleSettings, useUpdateCycleSettings } from '../api/settings';
@@ -32,24 +29,11 @@ import {
   type CycleLengths,
   type CycleSettings,
   type CycleSettingsPatch,
-  DAYS_BEFORE_RANGE,
-  displayClock,
-  isClock,
   PERIOD_RANGE,
-  type Reminder,
-  type ReminderCode,
 } from '../model/settings';
 import './cys.css';
 
 type Save = (patch: CycleSettingsPatch) => void;
-
-const REMINDER_LOOK: Record<ReminderCode, { icon: IconName; tone: Tone }> = {
-  before_period: { icon: 'drop', tone: 'period' },
-  pms: { icon: 'sparkle', tone: 'brand' },
-  fertile_window: { icon: 'heart', tone: 'warm' },
-  daily_log: { icon: 'pencil', tone: 'data' },
-  pill: { icon: 'pill', tone: 'bloom' },
-};
 
 /** Manual lengths are saved after the steppers settle, not on every tap. */
 const LENGTH_SAVE_DELAY = 600;
@@ -64,7 +48,7 @@ function LoadingState({ label }: { label: string }) {
           <Skeleton shape="block" className="cys-skel-tile" />
         </div>
       </div>
-      {[5, 3].map((rows, g) => (
+      {[3].map((rows, g) => (
         <div key={g} className="nb-card cys-skel-card">
           <Skeleton width="short" />
           {Array.from({ length: rows }, (_, i) => (
@@ -186,191 +170,64 @@ function LengthsCard({ lengths, save }: { lengths: CycleLengths; save: Save }) {
   );
 }
 
-// ── «یادآورها» ──────────────────────────────────────────────────────────────
+// ── «اطلاعات سلامت» ─────────────────────────────────────────────────────────
 
-function reminderSub(r: Reminder, t: ReturnType<typeof useTranslations>, loc: Locale): string {
-  const time = formatNumber(displayClock(r.time), loc);
-  switch (r.code) {
-    case 'before_period':
-      return t('reminders.items.before_period.sub', { days: formatNumber(r.daysBefore ?? 2, loc), time });
-    case 'pms':
-      return r.cycleDay
-        ? t('reminders.items.pms.sub', { day: formatNumber(r.cycleDay, loc) })
-        : t('reminders.items.pms.subUnknown');
-    case 'fertile_window':
-      return t('reminders.items.fertile_window.sub');
-    default:
-      return t(`reminders.items.${r.code}.sub`, { time });
-  }
-}
-
-function ReminderEditor({ reminder, save, onDone }: { reminder: Reminder; save: Save; onDone: () => void }) {
-  const t = useTranslations('me.cycleSettings');
-  const loc = useLocale() as Locale;
-  const onTime = (value: string) => {
-    if (isClock(value) && value !== reminder.time) save({ reminders: { [reminder.code]: { time: value } } });
-  };
-  return (
-    <div id={`cys-edit-${reminder.code}`} className="cys-edit">
-      {reminder.code === 'before_period' ? (
-        <NumberStepper
-          className="cys-edit-days"
-          label={t('reminders.daysBefore')}
-          unit={t('days')}
-          value={clamp(reminder.daysBefore ?? 2, DAYS_BEFORE_RANGE)}
-          min={DAYS_BEFORE_RANGE.min}
-          max={DAYS_BEFORE_RANGE.max}
-          onChange={(v) => save({ reminders: { before_period: { days_before: v } } })}
-          pilot={pilot('cycle-settings.days-before', 'stepper')}
-          decrementLabel={t('decrease', { what: t('reminders.daysBefore') })}
-          incrementLabel={t('increase', { what: t('reminders.daysBefore') })}
-          locale={loc}
-        />
-      ) : null}
-      <div className="cys-edit-row">
-        <label className="cys-time">
-          <span className="cys-time-label">{t('reminders.time')}</span>
-          <input
-            type="time"
-            {...pilot(`cycle-settings.reminder-time:${reminder.code}`, 'text')}
-            className="cys-time-input"
-            defaultValue={reminder.time}
-            onBlur={(e) => onTime(e.target.value)}
-            onChange={(e) => onTime(e.target.value)}
-          />
-        </label>
-        <button type="button" className="cys-done" onClick={onDone}>
-          {t('reminders.done')}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function RemindersCard({ reminders, save }: { reminders: Reminder[]; save: Save }) {
-  const t = useTranslations('me.cycleSettings');
-  const loc = useLocale() as Locale;
-  const [editing, setEditing] = useState<ReminderCode | null>(null);
-
-  if (reminders.length === 0) {
-    return (
-      <ListGroup title={t('reminders.title')} className="cys-card">
-        <p className="cys-empty">{t('reminders.empty')}</p>
-      </ListGroup>
-    );
-  }
-
-  return (
-    <ListGroup title={t('reminders.title')} className="cys-card">
-      {reminders.map((r) => {
-        const look = REMINDER_LOOK[r.code];
-        const open = editing === r.code;
-        const sub = reminderSub(r, t, loc);
-        return (
-          <div key={r.code} className="cys-rem">
-            <ListRow
-              id={`cys-${r.code}`}
-              icon={look.icon}
-              iconTone={look.tone}
-              iconOutlined
-              title={t(`reminders.items.${r.code}.title`)}
-              description={
-                <button
-                  type="button"
-                  className="cys-sub"
-                  aria-expanded={open}
-                  aria-controls={`cys-edit-${r.code}`}
-                  {...pilot(`cycle-settings.reminder-edit:${r.code}`)}
-                  aria-label={`${t('reminders.edit')} — ${sub}`}
-                  onClick={() => setEditing(open ? null : r.code)}
-                >
-                  {sub}
-                  <Icon name="pencil" size={12} className="cys-sub-icon" />
-                </button>
-              }
-              trailing={
-                <Switch
-                  checked={r.enabled}
-                  labelledBy={`cys-${r.code}-title`}
-                  pilot={pilot(`cycle-settings.reminder:${r.code}`)}
-                  onCheckedChange={(next) => save({ reminders: { [r.code]: { enabled: next } } })}
-                />
-              }
-            />
-            {open ? <ReminderEditor reminder={r} save={save} onDone={() => setEditing(null)} /> : null}
-          </div>
-        );
-      })}
-    </ListGroup>
-  );
-}
-
-// ── «حالت ریتمی» ────────────────────────────────────────────────────────────
-
-type ModeKey = 'cycle' | 'ttc' | 'pregnancy';
-
-const MODES: readonly { key: ModeKey; icon: IconName; tone: Tone }[] = [
-  { key: 'cycle', icon: 'drop', tone: 'period' },
-  { key: 'ttc', icon: 'target', tone: 'warm' },
-  { key: 'pregnancy', icon: 'user', tone: 'bloom' },
-];
+type HealthField = Extract<QuickEditField, 'lastPeriod' | 'weight' | 'height'>;
 
 /**
- * The life-stage modes. Picking another one opens the switcher (B-N2-03,
- * `/profile/mode`), which coordinates pregnancy with its setup / deactivate
- * and offers the three other modes (postpartum, menopause, teen) too.
+ * Last period start, weight and height — the rest of the «چرخه و سلامت» block
+ * that used to sit on `/profile/account`; the cycle / period length rows there
+ * are the lengths card above. Each row opens the shared quick-edit sheet
+ * (POST /profile). Hidden until the profile has loaded.
  */
-function ModesCard() {
+function HealthCard() {
   const t = useTranslations('me.cycleSettings');
-  const router = useRouter();
-  const lifeStage = useLifeStage();
-  const { data } = useUserMode();
-  const life = lifeStage.data?.mode;
-  const current: ModeKey | null = life
-    ? life === 'cycle' || life === 'ttc' || life === 'pregnancy'
-      ? life
-      : null
-    : data?.mode === 'pregnancy'
-      ? 'pregnancy'
-      : data?.isTtc
-        ? 'ttc'
-        : 'cycle';
+  const th = useTranslations('profile');
+  const loc = useLocale() as Locale;
+  const health = useUserProfile().data?.health;
+  const [editing, setEditing] = useState<HealthField | null>(null);
+  if (!health) return null;
+
+  const measure = (key: 'kg' | 'cm', v: number | null | undefined) =>
+    v != null ? th(`health.${key}`, { value: formatNumber(v, loc) }) : th('health.empty');
+
   return (
-    <ListGroup title={t('modes.title')} className="cys-card">
-      {MODES.map((m) => {
-        const active = m.key === current;
-        const title = t(`modes.${m.key}`);
-        if (active) {
-          return (
-            <ListRow
-              key={m.key}
-              icon={m.icon}
-              iconTone={m.tone}
-              iconOutlined
-              title={title}
-              description={t('modes.active')}
-              trailing={
-                <span className="cys-check" role="img" aria-label={t('modes.active')}>
-                  <Icon name="check" size={14} strokeWidth={2.6} />
-                </span>
-              }
-            />
-          );
-        }
-        return (
-          <ListRow
-            key={m.key}
-            icon={m.icon}
-            iconTone={m.tone}
-            iconOutlined
-            title={title}
-            description={t('modes.switch')}
-            onClick={() => router.push('/profile/mode')}
-            pilot={pilot(`cycle-settings.mode:${m.key}`)}
-          />
-        );
-      })}
-    </ListGroup>
+    <>
+      <ListGroup title={t('health.title')} className="cys-card">
+        <ListRow
+          icon="calendar"
+          iconTone="period"
+          iconOutlined
+          title={th('health.lastPeriod')}
+          value={health.lastPeriodStart ? formatLongDate(new Date(health.lastPeriodStart), loc) : th('health.empty')}
+          onClick={() => setEditing('lastPeriod')}
+          pilot={pilot('cycle-settings.edit:lastPeriod')}
+        />
+        <ListRow
+          icon="scale"
+          iconTone="data"
+          iconOutlined
+          title={th('health.weight')}
+          value={measure('kg', health.weight)}
+          onClick={() => setEditing('weight')}
+          pilot={pilot('cycle-settings.edit:weight')}
+        />
+        <ListRow
+          icon="walk"
+          iconTone="data"
+          iconOutlined
+          title={th('health.height')}
+          value={measure('cm', health.height)}
+          onClick={() => setEditing('height')}
+          pilot={pilot('cycle-settings.edit:height')}
+        />
+      </ListGroup>
+      <QuickEditSheet
+        field={editing}
+        values={{ lastPeriodStart: health.lastPeriodStart, weight: health.weight, height: health.height }}
+        onClose={() => setEditing(null)}
+      />
+    </>
   );
 }
 
@@ -378,17 +235,18 @@ function SettingsBody({ settings, save }: { settings: CycleSettings; save: Save 
   return (
     <>
       <LengthsCard lengths={settings.lengths} save={save} />
-      <RemindersCard reminders={settings.reminders} save={save} />
-      <ModesCard />
+      <HealthCard />
     </>
   );
 }
 
 /**
  * Cycle settings (B-N1-09, `nbl_Cycle_Settings` / `nbd_Cycle_Settings`) at
- * `/cycle/settings`: cycle / period length with «خودکار از داده‌ها», the cycle
- * reminders (switch + time; stored as notification preferences, which every
- * push sender honours) and the life-stage mode. Changes save at once.
+ * `/cycle/settings` — the one place for the cycle & health basics: cycle /
+ * period length with «خودکار از داده‌ها», plus last period start, weight and
+ * height (moved here from `/profile/account`). The cycle reminders live on
+ * `/profile/notifications`, the life-stage mode on `/profile/mode`. Changes
+ * save at once.
  */
 export function CycleSettingsPage() {
   const t = useTranslations('me.cycleSettings');

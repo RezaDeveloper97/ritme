@@ -8,7 +8,10 @@ import { Button, toast, useNotifyError } from '@/shared/ui';
 import { useRuleAction, type Rule } from '../api/rules';
 import { contentDiff, type TextContent } from '../lib/diff';
 
-/** «live: approved v{n} · draft v{m} awaiting approval» with a text diff; approve / reject for the clinical capability. */
+/**
+ * «live: approved v{n} · draft v{m} awaiting approval» with a text diff; approve / reject for the clinical capability.
+ * One approval is enough and the author may give it (D-215): a clinical admin approves a draft directly.
+ */
 export function ApprovalBanner({ rule, approved }: { rule: Rule; approved?: { content?: TextContent } | null }) {
   const t = useTranslations('messageRules');
   const notifyError = useNotifyError();
@@ -16,6 +19,7 @@ export function ApprovalBanner({ rule, approved }: { rule: Rule; approved?: { co
   const canApprove = useCan('clinical', 'manage');
   if (!rule.needs_medical_approval) return null;
   const pending = rule.status === 'pending_approval';
+  const draft = rule.status === 'draft';
   const live = rule.approved_version;
   const diffs = pending && approved?.content ? contentDiff(approved.content, rule.content) : [];
   const run = (action: 'approve' | 'reject', done: string) =>
@@ -53,14 +57,16 @@ export function ApprovalBanner({ rule, approved }: { rule: Rule; approved?: { co
           <p className="m-0 text-ink-3">{approved?.content ? t('diffNone') : t('diffUnavailable')}</p>
         )
       ) : null}
-      {pending && canApprove ? (
+      {(pending || draft) && canApprove ? (
         <div className="flex gap-2">
           <Button variant="primary" loading={act.isPending} onClick={() => run('approve', t('approved'))}>
             {t('approve')}
           </Button>
-          <Button loading={act.isPending} onClick={() => run('reject', t('rejected'))}>
-            {t('reject')}
-          </Button>
+          {pending ? (
+            <Button loading={act.isPending} onClick={() => run('reject', t('rejected'))}>
+              {t('reject')}
+            </Button>
+          ) : null}
         </div>
       ) : null}
       {pending && !canApprove ? <p className="m-0 text-ink-3">{t('waitingForAdvisor')}</p> : null}

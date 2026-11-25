@@ -36,9 +36,10 @@ cases:
     status: 200
   - name: daily_dates_premium
     doc: >-
-      Laravel bug preserved as the spec: for the premium persona on 2026-09-14/20 the
-      cycle engine hits the undefined constant OverrideType::LOW_ENERGY
-      (CycleMessageEngine.php:102) → 500 {"message":"Server Error"}. Other dates are 200.
+      Laravel's golden: for the premium persona on 2026-09-14/20 the cycle engine hits the
+      undefined constant OverrideType::LOW_ENERGY (CycleMessageEngine.php:102) → 500
+      {"message":"Server Error"}. Go serves the low_energy override instead (D-214, allow-listed).
+      Other dates are 200.
     persona: premium
     steps:
       - {method: GET, path: /api/v1/messages/daily, query: {date: "2026-09-14"}, status: 500, strict_bytes: true}

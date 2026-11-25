@@ -14,6 +14,7 @@ import {
   Icon,
   ListGroup,
   ListRow,
+  NumberStepper,
   PrimaryButton,
   ScreenHeader,
   Skeleton,
@@ -23,7 +24,13 @@ import {
 } from '@/shared/ui';
 import { PlusBadge } from '@/shared/ui/plus-gate';
 
-import { useNotificationSettings, usePmsReminderDay, useUpdateNotificationSettings } from '../api/settings';
+import {
+  useCycleReminders,
+  useNotificationSettings,
+  useUpdateCycleReminders,
+  useUpdateNotificationSettings,
+} from '../api/settings';
+import { clamp, DAYS_BEFORE_RANGE, type Reminder, type RemindersPatch, TIMED_REMINDERS } from '../model/reminders';
 import { type CategoryCode, displayClock, isClock, type NotificationSettings, type SettingsPatch } from '../model/settings';
 import '@/shared/ui/styles/ntf.css';
 
@@ -50,24 +57,148 @@ function LoadingState({ label }: { label: string }) {
   );
 }
 
+type SaveReminders = (patch: RemindersPatch) => void;
+type Translate = ReturnType<typeof useTranslations>;
+
+const isTimed = (code: string): boolean => (TIMED_REMINDERS as readonly string[]).includes(code);
+
+/** A cycle reminder's subtitle from its real schedule (the old `/cycle/settings` copy). */
+function reminderSub(r: Reminder, t: Translate, loc: Locale): string {
+  const time = formatNumber(displayClock(r.time), loc);
+  switch (r.code) {
+    case 'before_period':
+      return t('items.before_period.subAt', { days: formatNumber(r.daysBefore ?? 2, loc), time });
+    case 'pms':
+      return r.cycleDay ? t('items.pms.subAt', { day: formatNumber(r.cycleDay, loc) }) : t('items.pms.subUnknown');
+    case 'fertile_window':
+      return t('items.fertile_window.sub');
+    default:
+      return t(`items.${r.code}.subAt`, { time });
+  }
+}
+
+/** Time (and, before a period, how many days ahead) of one timed cycle reminder. */
+function ReminderEditor({
+  reminder,
+  id,
+  save,
+  onDone,
+}: {
+  reminder: Reminder;
+  id: string;
+  save: SaveReminders;
+  onDone: () => void;
+}) {
+  const t = useTranslations('me.notifSettings');
+  const loc = useLocale() as Locale;
+  const onTime = (value: string) => {
+    if (isClock(value) && value !== reminder.time) save({ [reminder.code]: { time: value } });
+  };
+  return (
+    <div id={id} className="ntf-rem-edit">
+      {reminder.code === 'before_period' ? (
+        <NumberStepper
+          label={t('reminders.daysBefore')}
+          unit={t('reminders.days')}
+          value={clamp(reminder.daysBefore ?? 2, DAYS_BEFORE_RANGE)}
+          min={DAYS_BEFORE_RANGE.min}
+          max={DAYS_BEFORE_RANGE.max}
+          onChange={(v) => save({ before_period: { days_before: v } })}
+          pilot={pilot('notif.days-before', 'stepper')}
+          decrementLabel={t('reminders.decrease')}
+          incrementLabel={t('reminders.increase')}
+          locale={loc}
+        />
+      ) : null}
+      <div className="ntf-quiet-edit">
+        <label className="ntf-time">
+          <span className="ntf-time-label">{t('reminders.time')}</span>
+          <input
+            type="time"
+            className="ntf-time-input"
+            {...pilot(`notif.reminder-time:${reminder.code}`, 'text')}
+            defaultValue={reminder.time}
+            onBlur={(e) => onTime(e.target.value)}
+            onChange={(e) => onTime(e.target.value)}
+          />
+        </label>
+        <button type="button" className="ntf-time-done" onClick={onDone}>
+          {t('quiet.done')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** The subtitle of a timed reminder: a button that opens its editor. */
+function ReminderSubButton({
+  sub,
+  open,
+  controls,
+  code,
+  onToggle,
+}: {
+  sub: string;
+  open: boolean;
+  controls: string;
+  code: string;
+  onToggle: () => void;
+}) {
+  const t = useTranslations('me.notifSettings');
+  return (
+    <button
+      type="button"
+      className="ntf-range"
+      aria-expanded={open}
+      aria-controls={controls}
+      aria-label={`${t('reminders.edit')} — ${sub}`}
+      onClick={onToggle}
+      {...pilot(`notif.reminder-edit:${code}`)}
+    >
+      {sub}
+      <Icon name="pencil" size={13} className="ntf-range-icon" />
+    </button>
+  );
+}
+
 interface BodyProps {
   settings: NotificationSettings;
   save: (patch: SettingsPatch) => void;
+  reminders: Reminder[] | undefined;
+  saveReminders: SaveReminders;
 }
 
-function SettingsBody({ settings, save }: BodyProps) {
+function SettingsBody({ settings, save, reminders, saveReminders }: BodyProps) {
   const t = useTranslations('me.notifSettings');
-  const tc = useTranslations('me.cycleSettings');
   const loc = useLocale() as Locale;
   const [editing, setEditing] = useState(false);
-  // PMS row: the real reminder day from cycle settings, as `/cycle/settings` shows it (n1-stage B-1).
-  const pmsDay = usePmsReminderDay().data ?? null;
-  const subOf = (code: CategoryCode) =>
-    code === 'pms'
-      ? pmsDay
-        ? tc('reminders.items.pms.sub', { day: formatNumber(pmsDay, loc) })
-        : tc('reminders.items.pms.subUnknown')
-      : t(`items.${code}.sub`);
+  const [editingReminder, setEditingReminder] = useState<string | null>(null);
+  const reminderOf = (code: string) => reminders?.find((r) => r.code === code);
+  const pill = reminderOf('pill');
+  const subOf = (code: CategoryCode) => {
+    const r = reminderOf(code);
+    return r ? reminderSub(r, t, loc) : t(`items.${code}.sub`);
+  };
+  /** Subtitle of a category row: the editable schedule for a timed cycle reminder. */
+  const description = (code: string, fallback: string) => {
+    const r = reminderOf(code);
+    if (!r || !isTimed(code)) return fallback;
+    return (
+      <ReminderSubButton
+        sub={reminderSub(r, t, loc)}
+        open={editingReminder === code}
+        controls={`ntf-edit-${code}`}
+        code={code}
+        onToggle={() => setEditingReminder(editingReminder === code ? null : code)}
+      />
+    );
+  };
+  const editor = (code: string) => {
+    const r = reminderOf(code);
+    return r && editingReminder === code ? (
+      <ReminderEditor reminder={r} id={`ntf-edit-${code}`} save={saveReminders} onDone={() => setEditingReminder(null)} />
+    ) : null;
+  };
   // §2.40: while fertility is suppressed (hormonal contraception, postpartum) there is no fertile window to remind about.
   // The server-side sender still needs to skip it too (follow-up); here the switch just isn't offered.
   const suppressed = isFertilitySuppressed(useCycleToday().data?.cycleView ?? null);
@@ -93,21 +224,42 @@ function SettingsBody({ settings, save }: BodyProps) {
             {group.items
               .filter((item) => !(suppressed && item.code === 'fertile_window'))
               .map((item) => (
-              <ListRow
-                key={item.code}
-                id={`ntf-${item.code}`}
-                title={t(`items.${item.code}.title`)}
-                description={subOf(item.code)}
-                trailing={
-                  <Switch
-                    checked={item.enabled}
-                    labelledBy={`ntf-${item.code}-title`}
-                    pilot={pilot(`notif.category:${item.code}`)}
-                    onCheckedChange={(next) => save({ categories: { [item.code]: next } })}
+                <div key={item.code} className="ntf-rem">
+                  <ListRow
+                    id={`ntf-${item.code}`}
+                    title={t(`items.${item.code}.title`)}
+                    description={description(item.code, subOf(item.code))}
+                    trailing={
+                      <Switch
+                        checked={item.enabled}
+                        labelledBy={`ntf-${item.code}-title`}
+                        pilot={pilot(`notif.category:${item.code}`)}
+                        onCheckedChange={(next) => save({ categories: { [item.code]: next } })}
+                      />
+                    }
                   />
-                }
-              />
-            ))}
+                  {editor(item.code)}
+                </div>
+              ))}
+            {/* «قرص پیشگیری» has no category row of its own; it is switched and timed through the cycle reminders. */}
+            {group.code === 'cycle' && pill ? (
+              <div className="ntf-rem">
+                <ListRow
+                  id="ntf-pill"
+                  title={t('items.pill.title')}
+                  description={description('pill', reminderSub(pill, t, loc))}
+                  trailing={
+                    <Switch
+                      checked={pill.enabled}
+                      labelledBy="ntf-pill-title"
+                      pilot={pilot('notif.reminder:pill')}
+                      onCheckedChange={(next) => saveReminders({ pill: { enabled: next } })}
+                    />
+                  }
+                />
+                {editor('pill')}
+              </div>
+            ) : null}
           </ListGroup>
         </section>
       ))}
@@ -239,7 +391,8 @@ function SettingsBody({ settings, save }: BodyProps) {
 /**
  * Notifications & reminders (B-N1-11, `nbl_Me_Notifications` /
  * `nbd_Me_Notifications`) at `/profile/notifications`: per-category switches
- * (cycle · health · other), a quiet-hours window and «متن خنثی» — neutral
+ * (cycle · health · other) — the cycle reminders with their time / days before
+ * and the pill reminder, merged in from `/cycle/settings` — a quiet-hours window and «متن خنثی» — neutral
  * lock-screen copy. Every push the server sends goes through these settings
  * (backend-go internal/notifications). Switches save at once.
  */
@@ -248,6 +401,9 @@ export function NotificationSettingsPage() {
   const router = useRouter();
   const query = useNotificationSettings();
   const update = useUpdateNotificationSettings();
+  // Optional: the rows still work (switch only) if the cycle reminders fail to load.
+  const reminders = useCycleReminders();
+  const updateReminders = useUpdateCycleReminders();
 
   let body;
   if (query.isPending) {
@@ -268,7 +424,14 @@ export function NotificationSettingsPage() {
   } else if (query.data.groups.length === 0) {
     body = <EmptyState icon="bell" title={t('empty.title')} body={t('empty.body')} />;
   } else {
-    body = <SettingsBody settings={query.data} save={(patch) => update.mutate(patch)} />;
+    body = (
+      <SettingsBody
+        settings={query.data}
+        save={(patch) => update.mutate(patch)}
+        reminders={reminders.data}
+        saveReminders={(patch) => updateReminders.mutate(patch)}
+      />
+    );
   }
 
   return (
@@ -276,7 +439,7 @@ export function NotificationSettingsPage() {
       <SkyLayer />
       <div className="scroll ntf-scroll">
         <ScreenHeader title={t('title')} onBack={() => router.back('/profile')} backLabel={t('back')} />
-        {update.isError ? (
+        {update.isError || updateReminders.isError ? (
           <p className="ntf-error" role="alert">
             {t('saveError')}
           </p>

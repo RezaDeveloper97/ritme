@@ -78,6 +78,7 @@ func (h *Admin) Routes(route Route, kit *httpadmin.Kit) {
 	route(fiber.MethodGet, "/catalog/:group/:id", a(h.Show))
 	route(fiber.MethodPut, "/catalog/:group/:id", a(h.Update))
 	route(fiber.MethodDelete, "/catalog/:group/:id", a(h.Destroy))
+	route(fiber.MethodPost, "/catalog/:group/:id/approve", a(h.Approve))
 }
 
 // ---------------------------------------------------------------------------
@@ -284,6 +285,34 @@ func (h *Admin) Update(c fiber.Ctx) error {
 	h.flush(c, cur.Group)
 	httpadmin.Audit(c, h.logger, "catalog_item.update", "catalog_item", cur.ID, slog.String("group", cur.Group))
 	return h.respond(c, cur.Group, cur.ID, false, "Catalog item updated.")
+}
+
+// Approve is POST /catalog/:group/:id/approve: the item's «تأیید» — needs_review off, nothing else changes. Like every
+// clinical approval in the admin it is one action of the clinical capability (manage), the author included (D-215);
+// a super-only group still needs a super admin. Approving an approved item is a no-op 200.
+func (h *Admin) Approve(c fiber.Ctx) error {
+	if !httpadmin.Can(c, httpadmin.CapClinical, httpadmin.LevelManage) {
+		return httpadmin.ForbiddenPermission(httpadmin.CapClinical)
+	}
+	cur, err := h.find(c)
+	if err != nil {
+		return err
+	}
+	if err := h.canWrite(c, cur.Group); err != nil {
+		return err
+	}
+	if cur.NeedsReview {
+		if err := h.q.UpdateCatalogItem(c.Context(), store.UpdateCatalogItemParams{
+			SortOrder: cur.SortOrder, IsActive: cur.IsActive, Audiences: cur.Audiences, Title: cur.Title, Body: cur.Body,
+			Meta: cur.Meta, NeedsReview: false, Now: httpadmin.DBTime(httpadmin.Now(c)),
+			ID: cur.ID, CatalogGroup: cur.Group,
+		}); err != nil {
+			return err
+		}
+		h.flush(c, cur.Group)
+		httpadmin.Audit(c, h.logger, "catalog_item.approve", "catalog_item", cur.ID, slog.String("group", cur.Group))
+	}
+	return h.respond(c, cur.Group, cur.ID, false, "Catalog item approved.")
 }
 
 // Destroy is DELETE /catalog/:group/:id.
