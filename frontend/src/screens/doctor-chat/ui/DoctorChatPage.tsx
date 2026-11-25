@@ -54,7 +54,7 @@ export function DoctorChatPage({ bookingId }: { bookingId: number }) {
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: 'end' });
   }, [count]);
-  const back = () => router.push(`/services/bookings/${bookingId}`);
+  const back = () => router.back(`/services/bookings/${bookingId}`);
 
   if (booking.isPending || (thread.isPending && !thread.isError)) {
     return (

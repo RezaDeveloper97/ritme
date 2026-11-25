@@ -143,7 +143,7 @@ export function ShopHomePage() {
         <ScreenHeader
           title={t('title')}
           subtitle={t('tag')}
-          onBack={() => router.push('/services')}
+          onBack={() => router.back('/services')}
           backLabel={t('back')}
           action={<CartButton />}
         />

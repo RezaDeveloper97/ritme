@@ -99,7 +99,7 @@ export function LabResultPage({ id }: { id: number }) {
           ? t('result.subtitle', { title: lab.data.title, date: formatLongDate(fromApiDate(lab.data.date), locale) })
           : undefined
       }
-      onBack={() => router.push('/labs')}
+      onBack={() => router.back('/labs')}
       backLabel={t('common.back')}
       action={
         lab.data?.status === 'ready' && recordOn ? (

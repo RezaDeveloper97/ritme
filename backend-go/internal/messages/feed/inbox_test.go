@@ -134,3 +134,16 @@ func TestRenderOpen_StoredEvidence(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, "Week 20", out.Title)
 }
+
+func TestInLifeMode_ScopedPrefix(t *testing.T) {
+	InstallModeScope("preg.", "pregnancy")
+	t.Cleanup(func() { InstallModeScope("preg.", "") })
+	preg := &rules.Rule{RuleKey: "preg.critical_symptom"}
+	other := &rules.Rule{RuleKey: "bp_crisis"}
+
+	assert.True(t, inLifeMode(preg, rules.Facts{FactLifeMode: "pregnancy"}))
+	assert.False(t, inLifeMode(preg, rules.Facts{FactLifeMode: "cycle"}), "a pregnancy alert never pops up in cycle mode")
+	assert.True(t, inLifeMode(preg, rules.Facts{}), "unknown mode fails open")
+	assert.True(t, inLifeMode(other, rules.Facts{FactLifeMode: "cycle"}), "unscoped rules are untouched")
+	assert.Equal(t, []string{FactLifeMode}, ModeScopeFacts())
+}

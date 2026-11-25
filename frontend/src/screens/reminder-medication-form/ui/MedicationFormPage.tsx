@@ -199,7 +199,7 @@ function Shell({ from, edit, children }: { from?: string; edit: boolean; childre
         <SkyLayer />
         <ScreenHeader
           title={edit ? t('medicationForm.editTitle') : t('medicationForm.title')}
-          onBack={() => router.push(returnHref(from))}
+          onBack={() => router.back(returnHref(from))}
           backLabel={t('back')}
         />
         <div className="rmd-body">{children}</div>
@@ -275,7 +275,7 @@ function MedicationForm({
     setSheet(next);
   };
   const close = () => setSheet(null);
-  const back = () => router.push(returnHref(from));
+  const back = () => router.back(returnHref(from));
 
   const onSave = (confirmed = false) => {
     setFormError(null);

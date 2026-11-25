@@ -152,7 +152,7 @@ export function LegalPage({ initialTab }: { initialTab?: string }) {
       <div className="scroll lgl-scroll">
         <ScreenHeader
           title={t('title')}
-          onBack={() => router.push('/profile/about')}
+          onBack={() => router.back('/profile/about')}
           backLabel={t('back')}
           action={<HeaderButton label={t('share')} icon="export" onClick={() => void share()} />}
         />

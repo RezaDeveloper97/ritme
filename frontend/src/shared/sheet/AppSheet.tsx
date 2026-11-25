@@ -13,6 +13,7 @@ import {
   type ReactNode,
 } from 'react';
 
+import { useBackLayer } from '@/shared/back-stack';
 import { pilot } from '@/shared/pilot';
 import { Icon } from '@/shared/ui';
 
@@ -35,6 +36,12 @@ interface AppSheetProps {
   footer?: ReactNode;
   /** Extra class on the panel, for per-sheet padding or a tinted backdrop. */
   className?: string;
+  /**
+   * Whether the sheet owns a history entry, so the system Back closes it (and
+   * only it). On for every inline sheet; `SheetHost` turns it off because the
+   * URL-backed sheet router already keeps one entry per sheet.
+   */
+  backEntry?: boolean;
   children: ReactNode;
 }
 
@@ -65,6 +72,7 @@ export function AppSheet({
   title,
   footer,
   className,
+  backEntry = true,
   children,
 }: AppSheetProps) {
   const t = useTranslations('common');
@@ -99,6 +107,25 @@ export function AppSheet({
     const timer = window.setTimeout(() => setMounted(false), EXIT_MS);
     return () => window.clearTimeout(timer);
   }, [open, mounted]);
+
+  // Back closes this sheet first; ×, swipe, backdrop and Escape pop the same
+  // entry through `onClose` → `open` false, so no close leaves one behind.
+  useBackLayer(open && backEntry, onClose);
+
+  // The soft keyboard shrinks the shell (`ViewportHeight`), and with it the
+  // panel; keep the field being typed into above the keyboard and the footer.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!open || !vv) return;
+    const reveal = () => {
+      const field = document.activeElement;
+      if (field instanceof HTMLElement && bodyRef.current?.contains(field)) {
+        field.scrollIntoView({ block: 'nearest' });
+      }
+    };
+    vv.addEventListener('resize', reveal);
+    return () => vv.removeEventListener('resize', reveal);
+  }, [open]);
 
   // Escape closes, like every other dialog in the app.
   useEffect(() => {

@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 
+import { useServicesHubHref } from '@/entities/app-module';
 import { useShopCategories } from '@/entities/shop';
 import { Link, useRouter } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
@@ -16,6 +17,8 @@ import '@/shared/ui/styles/shp.css';
 export function ShopPage() {
   const t = useTranslations('shop');
   const router = useRouter();
+  // «من» while an admin switched the services hub off.
+  const servicesHref = useServicesHubHref();
   const q = useShopCategories();
 
   let body;
@@ -67,7 +70,7 @@ export function ShopPage() {
     <div className="view shp-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={t('title')} subtitle={t('tag')} onBack={() => router.push('/services')} backLabel={t('back')} />
+        <ScreenHeader title={t('title')} subtitle={t('tag')} onBack={() => router.back(servicesHref)} backLabel={t('back')} />
         <div className="shp-body">
           {body}
           <p className="shp-note">{t('note')}</p>

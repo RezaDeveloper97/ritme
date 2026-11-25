@@ -24,6 +24,7 @@ import { useOutboxReplay } from '@/shared/lib/outbox';
 import { isOfflineError, queueLogDay, sendQueuedEntry, type QueuedLogDay } from '../api/outbox';
 import { useSaveLogDay } from '../api/save';
 import { dayEntries, diffDay, hasChanges, setValue, type LabelContext, type LogEntry } from './draft';
+import { draftKey, useLogDraftStore } from './drafts';
 
 const EMPTY: LogDayValues = {};
 
@@ -66,9 +67,11 @@ export function useLogDayController(date: string, modeOverride?: string): LogDay
   const day = useLogDay(date);
   const meds = useMedications();
   const save = useSaveLogDay();
-  const [drafts, setDrafts] = useState<Record<string, LogDayValues>>({});
+  // Drafts live in a store, not in this component: Back closes the sheet, and the edits must survive it.
+  const key = draftKey(date, modeOverride);
+  const draftValues = useLogDraftStore((s) => s.values[key]);
+  const draftVoice = useLogDraftStore((s) => s.voice[key]);
   const [savedAt, setSavedAt] = useState<string | null>(null);
-  const [voiceKeys, setVoiceKeys] = useState<Record<string, string[]>>({});
   const [queuedAt, setQueuedAt] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
@@ -81,7 +84,7 @@ export function useLogDayController(date: string, modeOverride?: string): LogDay
   });
 
   const saved = day.data?.categories ?? EMPTY;
-  const values = drafts[date] ?? saved;
+  const values = draftValues ?? saved;
 
   const mode = taxonomy.data?.mode ?? prefs.data?.mode ?? modeOverride ?? null;
 
@@ -154,15 +157,14 @@ export function useLogDayController(date: string, modeOverride?: string): LogDay
   const setParam = useCallback(
     (category: string, param: string, value: LogParamValue | null) => {
       setSavedAt(null);
-      setDrafts((all) => ({ ...all, [date]: setValue(all[date] ?? saved, category, param, value) }));
+      useLogDraftStore.getState().setValues(key, (current) => setValue(current ?? saved, category, param, value));
     },
-    [date, saved],
+    [key, saved],
   );
 
   const markVoice = useCallback(
-    (keys: readonly string[]) =>
-      setVoiceKeys((all) => ({ ...all, [date]: [...new Set([...(all[date] ?? []), ...keys])] })),
-    [date],
+    (keys: readonly string[]) => useLogDraftStore.getState().addVoice(key, keys),
+    [key],
   );
 
   const changes = useMemo(() => diffDay(saved, values), [saved, values]);
@@ -173,23 +175,12 @@ export function useLogDayController(date: string, modeOverride?: string): LogDay
     if (!dirty || save.isPending) return;
     const draft = values;
     // Only voice params that this save actually sets (a cleared one is a manual edit).
-    const voiceParams = (voiceKeys[date] ?? []).filter((key) => {
-      const [cat, param] = key.split('.');
+    const voiceParams = (draftVoice ?? []).filter((voiceKey) => {
+      const [cat, param] = voiceKey.split('.');
       const v = changes[cat]?.[param];
       return v !== undefined && v !== null;
     });
-    const clearDraft = () => {
-      setDrafts((all) => {
-        const next = { ...all };
-        delete next[date];
-        return next;
-      });
-      setVoiceKeys((all) => {
-        const next = { ...all };
-        delete next[date];
-        return next;
-      });
-    };
+    const clearDraft = () => useLogDraftStore.getState().clear(key);
     // No network: the day waits in bloom's outbox and the sheet shows it as saved-offline.
     const queue = async () => {
       const body: QueuedLogDay = voiceParams.length ? { categories: changes, voice_params: voiceParams } : { categories: changes };
@@ -221,7 +212,7 @@ export function useLogDayController(date: string, modeOverride?: string): LogDay
         },
       },
     );
-  }, [dirty, save, values, date, changes, voiceKeys, queryClient]);
+  }, [dirty, save, values, date, key, changes, draftVoice, queryClient]);
 
   return {
     mode,

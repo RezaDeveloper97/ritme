@@ -1,10 +1,12 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { getApiErrorMessage, getApiErrorStatus, isStepUpRequired } from '@/shared/api';
-import { useRouter } from '@/shared/i18n';
+import { useBackLayer } from '@/shared/back-stack';
+import { localizeHref, type Locale } from '@/shared/i18n';
+import { leaveSignedOut } from '@/shared/session';
 import { Icon } from '@/shared/ui';
 
 import { useDeleteAccount } from '../api/mutations';
@@ -25,16 +27,18 @@ interface DeleteAccountConfirmProps {
 export function DeleteAccountConfirm({ open, onClose }: DeleteAccountConfirmProps) {
   const t = useTranslations('account');
   const ts = useTranslations('profile.stepUp');
-  const router = useRouter();
+  const locale = useLocale() as Locale;
   const deleteAccount = useDeleteAccount();
   const [step, setStep] = useState<'confirm' | 'code'>('confirm');
+  useBackLayer(open, onClose); // Back closes the dialog, not the screen behind it
 
   if (!open) return null;
 
   const handleVerified = (token: string) => {
     if (deleteAccount.isPending) return;
     deleteAccount.mutate(token, {
-      onSuccess: () => router.replace('/signup'),
+      // A sign-out like any other: a full document replace, nothing of the account left behind Back.
+      onSuccess: () => leaveSignedOut(localizeHref('/signup', locale)),
     });
   };
 

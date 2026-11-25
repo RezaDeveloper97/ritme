@@ -132,6 +132,8 @@
     "nextVisit": "ویزیت بعدی، {days, plural, =0 {امروز} =1 {فردا} other {# روز دیگر}}",
     "visitMeta": "{weekday}، {time}، هفتهٔ {week, number}",
     "tipEyebrow": "نکتهٔ هوشمند · این هفته",
+    "tipEyebrowToday": "نکتهٔ هوشمند · امروز",
+    "tipTitle": "نکتهٔ هوشمند",
     "readMinutes": "{minutes, plural, other {# دقیقه}}",
     "readMore": "دربارهٔ هفتهٔ {week, number} بیشتر بخوان",
     "careTitle": "مراقبت‌های این هفته",

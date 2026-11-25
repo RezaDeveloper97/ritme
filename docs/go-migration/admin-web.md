@@ -156,7 +156,10 @@ Example: articles.
 4. **Routes** — `src/app/(panel)/articles/page.tsx` (list), `articles/new/page.tsx`, `articles/[id]/page.tsx`:
    each is a server component that exports `generateMetadata` (title via `getTranslations`) and renders the
    screen. Screens reading `useSearchParams` are already inside the panel layout's `<Suspense>`.
-5. **Nav** — set `ready: true` on the item in `src/widgets/shell/model/nav.ts` (role gating is already there).
+5. **Nav** — add the item to the right category in `src/widgets/shell/model/nav.ts` (with its `cap` / `role`) and its
+   label under `nav` in every `messages/*.json`. Every list route must be a menu item — `nav.test.ts` fails when a
+   screen is reachable only from another page's button; a new business area gets its own category (`group*` key +
+   icon), never a slot inside an unrelated one. Detail pages outside the item's href go in `also`.
 6. **Strings** — add a namespace (`articles`) to **every** `messages/*.json` (the parity test fails otherwise).
    New error codes go under `errors`.
 7. **Tests** — pure logic (mappers, validators) as `*.test.ts`; components that matter can be rendered with

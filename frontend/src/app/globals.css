@@ -70,11 +70,12 @@
   --warm-deep: #B45309;  /* amber as text */
   --warm-soft: #FFF3DF;  /* amber surface */
 
-  /* Fertility (cycle ring + calendar): one green, graded by conception chance —
-     the lightest step opens the window, the full green is ovulation. */
-  --fertile:      #1E9E57;  /* ovulation / peak chance fill */
-  --fertile-deep: #11683A;  /* green as text on the light steps */
-  --on-fertile:   #FFFFFF;  /* label on the two strong steps */
+  /* Fertility (cycle ring + calendar): one turquoise (data, §10.2), graded by
+     pregnancy chance — the lightest step opens the window, the full turquoise is
+     ovulation. No green: the window and ovulation are engine output. */
+  --fertile:      var(--data);       /* ovulation / peak chance fill */
+  --fertile-deep: var(--data-deep);  /* turquoise as text */
+  --on-fertile:   var(--text-1);     /* label on the two strong steps (3, 4) */
 
   --period:      #E8436F;  /* period marker / fill — red means menstruation */
   --period-deep: #B82A52;  /* period text, hero numbers */
@@ -253,7 +254,7 @@
   --data-soft-strong:   color-mix(in srgb, var(--data) 30%, var(--data-soft));
   --period-soft-faint:  color-mix(in srgb, var(--period-soft) 45%, var(--surface));
   --period-soft-strong: color-mix(in srgb, var(--period) 30%, var(--period-soft));
-  /* Fertile-window chance steps 1 (low) → 4 (ovulation). Derived from --fertile. */
+  /* Fertile-window chance steps 1 (low) → 4 (ovulation). Derived from --fertile (turquoise). */
   --fertile-1:    color-mix(in srgb, var(--fertile) 28%, var(--surface));
   --fertile-2:    color-mix(in srgb, var(--fertile) 52%, var(--surface));
   --fertile-3:    color-mix(in srgb, var(--fertile) 78%, var(--surface));
@@ -302,9 +303,7 @@
   --warm-deep: #FFC98A;
   --warm-soft: #3A2F1E;
 
-  --fertile:      #6EDC9E;
-  --fertile-deep: #BFF3D5;
-  --on-fertile:   #17112B;
+  --on-fertile:   #17112B;  /* the night turquoise is bright: dark label */
 
   --period:      #FF6B8B;
   --period-deep: #FF6B8B;
@@ -362,6 +361,9 @@
 
 html,
 body { margin: 0; }
+
+/* A signed-out document on its way to /signup (shared/session/leave): if Back restores it from the bfcache, it shows nothing. */
+html[data-signed-out] body { visibility: hidden; }
 
 /* ── Native-app feel: no text selection, no pinch/double-tap zoom, no tap flash ──
    Inputs stay selectable so typing/editing still works normally. */
@@ -4596,7 +4598,7 @@ body {
 
 .cal-grid-card { padding: 14px 14px 16px; position: relative; }
 
-.cal-legend-wrap { margin-bottom: 6px; }
+.cal-legend-wrap { margin-bottom: 4px; }
 
 .cal-legend-hint { font-size: 11px; color: var(--muted); font-weight: 700; text-align: start; }
 
@@ -4607,6 +4609,8 @@ body {
 .cal-page .page-scroll { overflow-anchor: none; }
 
 .cal-weeks {
+  /* Room inside the clip for the selected ring + shadow (WEEKS_PAD_PX in CalendarPage). */
+  box-sizing: border-box; padding-block: 6px; margin-inline: -6px; padding-inline: 6px;
   overflow: hidden;
   transition: height .42s cubic-bezier(.32, .72, 0, 1);
 }
@@ -4693,6 +4697,7 @@ body {
 @keyframes osheetFade    { from { opacity: 0; } }
 
 .osheet-backdrop {
+  overscroll-behavior: contain; /* a drag on the scrim must not scroll the screen under the sheet */
   position: absolute; inset: 0; z-index: var(--z-sheet);
   display: flex; align-items: flex-end;
   background: var(--scrim);

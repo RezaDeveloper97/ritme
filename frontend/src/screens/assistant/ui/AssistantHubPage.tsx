@@ -15,6 +15,7 @@ import {
   useHub,
   useStartConversation,
 } from '@/entities/assistant';
+import { useServicesHubHref } from '@/entities/app-module';
 import { CreditMeter, useAiCredits } from '@/entities/ai-credit';
 import { pilot } from '@/shared/pilot';
 import { Link, useRouter, type Locale } from '@/shared/i18n';
@@ -31,6 +32,8 @@ export function AssistantHubPage() {
   const t = useTranslations('assistant');
   const locale = useLocale() as Locale;
   const router = useRouter();
+  // «من» while an admin switched the services hub off.
+  const servicesHref = useServicesHubHref();
   const errText = useAssistantError();
   const hub = useHub();
   const credits = useAiCredits();
@@ -128,7 +131,7 @@ export function AssistantHubPage() {
     <div className="view as-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={t('hub.title')} subtitle={t('hub.subtitle')} onBack={() => router.push('/services')} backLabel={t('common.back')} />
+        <ScreenHeader title={t('hub.title')} subtitle={t('hub.subtitle')} onBack={() => router.back(servicesHref)} backLabel={t('common.back')} />
         {body}
       </div>
       <BottomNav />

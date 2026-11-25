@@ -240,7 +240,7 @@ export function DirectoryMapPage() {
     <div className="view csv-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={t('map.title')} subtitle={t('map.unavailable')} onBack={() => router.push('/city-services')} backLabel={t('back')} />
+        <ScreenHeader title={t('map.title')} subtitle={t('map.unavailable')} onBack={() => router.back('/city-services')} backLabel={t('back')} />
         <div className="csv-body">
           {top}
           {body}

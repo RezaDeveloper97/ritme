@@ -60,7 +60,7 @@ export function DoctorBookPage({ doctorId }: { doctorId: number }) {
   const [note, setNote] = useState('');
   const [share, setShare] = useState<Record<ConsentScope, boolean>>({ cycle_summary: false, bbt_lh: false, assistant_summaries: false });
 
-  const back = () => router.push(`/services/doctors/${doctorId}`);
+  const back = () => router.back(`/services/doctors/${doctorId}`);
   const shell = (body: React.ReactNode, footer?: React.ReactNode) => (
     <div className="view dr-view">
       <SkyLayer />

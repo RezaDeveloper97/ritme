@@ -143,7 +143,7 @@ export function AnalysisCorrelationsPage() {
       title={t('correlations.title')}
       subtitle={days != null ? t('correlations.sub', { range: rangeLabel, n: num(days) }) : t('recent', { range: rangeLabel })}
       backLabel={t('back')}
-      onBack={() => router.push('/analysis')}
+      onBack={() => router.back('/analysis')}
       tabs={{
         label: t('rangeLabel'),
         value: range,

@@ -41,7 +41,7 @@ export function LanguagePage() {
     <div className="view app-page">
       <SkyLayer />
       <div className="scroll app-scroll">
-        <ScreenHeader title={t('language.title')} onBack={() => router.push('/profile')} backLabel={t('language.back')} />
+        <ScreenHeader title={t('language.title')} onBack={() => router.back('/profile')} backLabel={t('language.back')} />
 
         <section className="me-sec" aria-labelledby="lang-list">
           <SectionTitle id="lang-list" title={t('language.languages')} />

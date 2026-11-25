@@ -28,7 +28,7 @@ const (
 	SignalReducedKicks  = "reduced_kicks"
 	SignalContractions  = "contractions_511"
 	SignalHeavyBleeding = "postpartum_heavy_bleeding"
-	thresholdApprovals  = 2  // D-88: two distinct medical advisors approve a clinical config version
+	thresholdApprovals  = 1  // D-215 (was D-88's two advisors): one clinical approval publishes a clinical config version
 	SLAHours            = 72 // review SLA of every source (D-90)
 	claimLookbackDays   = 30
 	claimTargetPrefix   = "safety."

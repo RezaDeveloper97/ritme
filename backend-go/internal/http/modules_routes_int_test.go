@@ -25,6 +25,8 @@ import (
 // is a bug.
 var uiOnlyModules = map[string]bool{
 	modules.MyCourses: true, modules.Devices: true, modules.Reminders: true, modules.HomeArticles: true,
+	// «من» rows (user request 2026-11-25): their APIs serve other screens too, so the switch only hides the UI.
+	modules.Services: true, modules.Vitals: true, modules.Backup: true, modules.Support: true,
 }
 
 // notModuleRoutes are first path segments that merely contain a module word but belong to no switchable module

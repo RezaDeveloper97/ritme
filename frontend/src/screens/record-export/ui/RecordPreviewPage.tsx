@@ -78,7 +78,7 @@ export function RecordPreviewPage() {
       <div className="scroll rx-scroll">
         <ScreenHeader
           title={t('preview.title')}
-          onBack={() => router.push('/record/export')}
+          onBack={() => router.back('/record/export')}
           backLabel={t('preview.close')}
           backIcon="close"
           action={<HeaderButton icon="share" label={t('preview.shareAction')} onClick={() => setSharing(true)} />}

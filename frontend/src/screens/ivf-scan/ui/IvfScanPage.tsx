@@ -52,7 +52,7 @@ function Shell({ date, stimDay, children }: { date: string; stimDay: number | nu
         <ScreenHeader
           title={t('scan.title')}
           subtitle={stimDay !== null ? t('scan.subtitle', { day: formatNumber(stimDay, locale), date: when }) : when}
-          onBack={() => router.push('/ivf')}
+          onBack={() => router.back('/ivf')}
           backLabel={t('scan.back')}
         />
         {children}

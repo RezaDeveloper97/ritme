@@ -98,7 +98,6 @@
     "subscription": "Subscription",
     "sessions": "Signed-in devices",
     "sessionsSub": "This device",
-    "health": "Cycle & health",
     "delete": "Delete account"
   },
   "themeToggle": {
@@ -127,11 +126,14 @@
     "items": {
       "before_period": {
         "title": "Before your period",
-        "sub": "2 days before · 9:00"
+        "sub": "2 days before · 9:00",
+        "subAt": "{days} days before · {time}"
       },
       "pms": {
         "title": "PMS starts",
-        "sub": "Cycle day 24"
+        "sub": "Cycle day 24",
+        "subAt": "Cycle day {day}",
+        "subUnknown": "3 days before your period"
       },
       "fertile_window": {
         "title": "Fertile window",
@@ -139,7 +141,8 @@
       },
       "daily_log": {
         "title": "Daily log reminder",
-        "sub": "Every night at 22:00"
+        "sub": "Every night at 22:00",
+        "subAt": "Every night at {time}"
       },
       "medications": {
         "title": "Medications & supplements",
@@ -168,6 +171,10 @@
       "articles": {
         "title": "Tips & articles",
         "sub": "At most once a week"
+      },
+      "pill": {
+        "title": "Birth control pill",
+        "subAt": "Every day at {time}"
       }
     },
     "quiet": {
@@ -198,6 +205,14 @@
       "title": "SMS reminders",
       "body": "We also text you about medications and doctor visits.",
       "plus": "Plus"
+    },
+    "reminders": {
+      "edit": "Change time",
+      "time": "Time",
+      "daysBefore": "Days before",
+      "days": "days",
+      "decrease": "Fewer days",
+      "increase": "More days"
     }
   },
   "privacy": {
@@ -350,52 +365,15 @@
     },
     "decrease": "Decrease {what}",
     "increase": "Increase {what}",
-    "reminders": {
-      "title": "Reminders",
-      "edit": "Change time",
-      "time": "Time",
-      "daysBefore": "Days before",
-      "done": "Done",
-      "empty": "There are no reminders to set.",
-      "items": {
-        "before_period": {
-          "title": "Before your period",
-          "sub": "{days} days before · {time}"
-        },
-        "pms": {
-          "title": "PMS starts",
-          "sub": "Cycle day {day}",
-          "subUnknown": "3 days before your period"
-        },
-        "fertile_window": {
-          "title": "Fertile window",
-          "sub": "First day of the window"
-        },
-        "daily_log": {
-          "title": "Daily log reminder",
-          "sub": "Every night at {time}"
-        },
-        "pill": {
-          "title": "Birth control pill",
-          "sub": "Every day at {time}"
-        }
-      }
-    },
-    "modes": {
-      "title": "Ritme mode",
-      "cycle": "Cycle tracking",
-      "ttc": "Trying to conceive",
-      "pregnancy": "Pregnancy",
-      "active": "Active",
-      "switch": "Switch mode",
-      "soon": "Soon"
-    },
     "disclaimer": "Predictions are estimates and are not a method of birth control.",
     "saveError": "Couldn't save — check your connection and try again.",
     "error": {
       "title": "Couldn't load cycle settings",
       "body": "Check your connection and try again.",
       "retry": "Try again"
+    },
+    "health": {
+      "title": "Health details"
     }
   },
   "mode": {

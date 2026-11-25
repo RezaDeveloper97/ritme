@@ -68,7 +68,7 @@ export function ChildGrowthPage({ id }: { id: number }) {
   const series = useGrowthSeries(valid ? id : 0, indicator);
   const list = useMeasurements(valid ? id : 0);
 
-  const back = () => router.push(valid ? `/children/${id}` : '/children');
+  const back = () => router.back(valid ? `/children/${id}` : '/children');
   const name = child.data?.name ?? '';
   const canEdit = child.data?.canEdit ?? false;
   const header = (

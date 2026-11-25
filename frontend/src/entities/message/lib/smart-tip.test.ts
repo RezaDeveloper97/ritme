@@ -10,7 +10,7 @@ const message = (over: Partial<DailyMessage> = {}): DailyMessage => ({
   phase: 'luteal',
   phaseLabel: 'لوتیال',
   cycleDay: 21,
-  primary: { shortMessage: '', longMessage: '', actionSuggestion: '', dos: [], donts: [] },
+  primary: { shortMessage: '', longMessage: '', actionSuggestion: '', dos: [], donts: [], override: null },
   correlations: [],
   patterns: [],
   supplements: {
@@ -39,6 +39,7 @@ describe('selectSmartTip', () => {
           actionSuggestion: 'آب بنوش',
           dos: [],
           donts: [],
+          override: null,
         },
       }),
     );
@@ -73,7 +74,7 @@ describe('selectSmartTip', () => {
   it('never repeats the body or the action in the extras', () => {
     const tip = selectSmartTip(
       message({
-        primary: { shortMessage: '', longMessage: 'بلند', actionSuggestion: 'اقدام', dos: [], donts: [] },
+        primary: { shortMessage: '', longMessage: 'بلند', actionSuggestion: 'اقدام', dos: [], donts: [], override: null },
         correlations: [{ type: 'x', insightMessage: 'بلند', action: '', isPremiumOnly: false }],
         tips: ['اقدام', 'نکته تازه'],
       }),

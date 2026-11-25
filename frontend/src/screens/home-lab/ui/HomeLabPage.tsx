@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 
+import { useServicesHubHref } from '@/entities/app-module';
 import { useLabRequests, useLabServices } from '@/entities/partner-lab';
 import { Link, useDirection, useRouter } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
@@ -18,6 +19,8 @@ import '@/shared/ui/styles/hlb.css';
 export function HomeLabPage() {
   const t = useTranslations('homeLab');
   const router = useRouter();
+  // «من» while an admin switched the services hub off.
+  const servicesHref = useServicesHubHref();
   const dir = useDirection();
   const services = useLabServices();
   const requests = useLabRequests();
@@ -107,7 +110,7 @@ export function HomeLabPage() {
     <div className="view hlb-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={t('title')} subtitle={t('tag')} onBack={() => router.push('/services')} backLabel={t('back')} />
+        <ScreenHeader title={t('title')} subtitle={t('tag')} onBack={() => router.back(servicesHref)} backLabel={t('back')} />
         <div className="hlb-body">{body}</div>
         <div className="page-tail" />
       </div>

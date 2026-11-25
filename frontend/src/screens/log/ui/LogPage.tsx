@@ -21,7 +21,7 @@ export function LogPage() {
     <div className="view lday-page">
       <SkyLayer />
       <div className="scroll lday-page-scroll">
-        <LogDay variant="page" initialDate={date} BodyMap={BodyMap} VoiceLog={VoiceLogGated} voiceLocked={voiceLocked} onClose={() => router.push('/home')} />
+        <LogDay variant="page" initialDate={date} BodyMap={BodyMap} VoiceLog={VoiceLogGated} voiceLocked={voiceLocked} onClose={() => router.back('/home')} />
       </div>
     </div>
   );

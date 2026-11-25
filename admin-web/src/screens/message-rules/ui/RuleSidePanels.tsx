@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
+import { useCan } from '@/features/auth';
 import { formatNumber } from '@/shared/lib';
 import { Badge, Button, Panel, TextInput, toast, useNotifyError, confirm } from '@/shared/ui';
 
@@ -23,6 +24,8 @@ export function ApprovalPanel({ rule, canToggle = true }: { rule: Rule; canToggl
   const t = useTranslations('messageRules');
   const notifyError = useNotifyError();
   const act = useRuleAction();
+  // A clinical admin approves directly (the banner's «تأیید», D-215); «ارسال برای تأیید» is for the other authors.
+  const canApprove = useCan('clinical', 'manage');
   const run = (action: 'submit' | 'toggle', done: string) =>
     act.mutate({ id: rule.id, action }, { onSuccess: () => toast.success(done), onError: notifyError });
 
@@ -39,7 +42,7 @@ export function ApprovalPanel({ rule, canToggle = true }: { rule: Rule; canToggl
         </div>
         <p className="m-0 text-[13px] text-ink-3">{rule.needs_medical_approval ? t('approvalHint') : t('approvalNotNeeded')}</p>
         <div className="flex flex-wrap gap-2">
-          {rule.needs_medical_approval && rule.status === 'draft' ? (
+          {rule.needs_medical_approval && rule.status === 'draft' && !canApprove ? (
             <Button loading={act.isPending} onClick={() => run('submit', t('submitted'))}>
               {t('submit')}
             </Button>

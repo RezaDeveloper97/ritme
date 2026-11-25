@@ -102,7 +102,7 @@ export function ChildFormPage({ childId }: { childId?: number }) {
   const list = useChildren();
   const child = useChild(editing ? childId : null);
 
-  const back = () => router.push(editing ? `/children/${childId}` : '/children');
+  const back = () => router.back(editing ? `/children/${childId}` : '/children');
   const title = editing ? t('form.titleEdit', { name: child.data?.name ?? '' }) : t('form.title');
 
   if ((editing && child.isPending) || (!editing && list.isPending) || life.isPending) {

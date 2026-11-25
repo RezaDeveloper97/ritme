@@ -43,7 +43,7 @@ export function DoctorBookedPage({ bookingId }: { bookingId: number }) {
   const title = useDoctorTitle();
   const modeLabel = useModeLabel();
   const q = useBooking(bookingId);
-  const back = () => router.push('/services/bookings');
+  const back = () => router.back('/services/bookings');
 
   const shell = (body: React.ReactNode) => (
     <div className="view dr-view">

@@ -79,7 +79,7 @@ export function RecordEmergencyPage() {
     <div className="view rem-page">
       <SkyLayer />
       <div className="scroll rem-scroll">
-        <ScreenHeader title={t('title')} onBack={() => router.push('/record')} backLabel={t('back')} />
+        <ScreenHeader title={t('title')} onBack={() => router.back('/record')} backLabel={t('back')} />
         {body}
       </div>
       {query.data ? (

@@ -43,13 +43,19 @@ const (
 	Todo          = "todo"          // لیست کارها
 	Reminders     = "reminders"     // «یادآورها» hub + «یادآورهای امروز» card (UI-only: other modules book through /care)
 	HomeArticles  = "home_articles" // «بر اساس سیکل فعلی‌ات» articles strip of home (UI-only)
+	// «من» hub rows an admin may hide (user request 2026-11-25). UI-only: their APIs serve other screens too
+	// (vitals readings feed the log sheet, pregnancy and alerts; support reports; export), so nothing is gated.
+	Services = "services" // «خدمات» hub (/services): its «من» row; the sub-hubs keep their own switches
+	Vitals   = "vitals"   // «علائم حیاتی» (/vitals): «من» row, the hub tile, the log sheet's add links
+	Backup   = "backup"   // «پشتیبان و خروجی داده» (/profile/backup) row of «من»
+	Support  = "support"  // «راهنما» / «گفتگو با پشتیبانی» rows of «من» (/profile/support)
 )
 
 // Keys lists every module in display order.
 var Keys = []string{
 	Companion, TTC, IVF, Menopause, Teen, Postpartum, Children, Contraception,
 	Programs, MotherChild, Learning, MyCourses, Shop, Insurance, Record, Devices,
-	Doctors, Todo, Reminders, HomeArticles,
+	Doctors, Todo, Reminders, HomeArticles, Services, Vitals, Backup, Support,
 }
 
 // CodeDisabled is the error_code of the 403 a disabled module's routes answer.

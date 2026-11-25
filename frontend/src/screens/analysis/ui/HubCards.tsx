@@ -46,7 +46,6 @@ export function CycleCard({ section }: { section: AnalysisSection<HubCycle> }) {
   const c = section.data;
   const bars = c?.bars ?? [];
   const shares = barShares(bars.map((b) => b.length));
-  const abbr = Number(t('cycle.monthAbbrLength')) || 3;
   const pill =
     c?.regularity === 'regular'
       ? { tone: 'data' as Tone, icon: 'check' as const, label: t('cycle.regular') }
@@ -54,7 +53,7 @@ export function CycleCard({ section }: { section: AnalysisSection<HubCycle> }) {
         ? { tone: 'warm' as Tone, icon: undefined, label: t('cycle.irregular') }
         : null;
   return (
-    <HubCard title={t('cycle.title')} href="/analysis/cycle">
+    <HubCard title={t('cycle.title')} icon="chart" tone="brand" href="/analysis/cycle">
       {section.ready && c?.medianCycle != null ? (
         <span className="an-stat">
           <span className="an-num">{num(c.medianCycle)}</span>
@@ -78,16 +77,15 @@ export function CycleCard({ section }: { section: AnalysisSection<HubCycle> }) {
         >
           <span className="an-bars-row" aria-hidden>
             {bars.map((b, i) => (
-              <span
-                key={b.start}
-                className={clsx('an-bar', i === bars.length - 1 && 'is-last', !b.inFigoRange && 'is-out')}
-                style={{ blockSize: `${Math.round(shares[i] * 100)}%` }}
-              />
+              <span key={b.start} className={clsx('an-bar-col', i === bars.length - 1 && 'is-last', !b.inFigoRange && 'is-out')}>
+                <span className="an-bar-value">{num(b.length)}</span>
+                <span className="an-bar" style={{ blockSize: `${Math.round(shares[i] * 100)}%` }} />
+              </span>
             ))}
           </span>
           <span className="an-bars-labels" aria-hidden>
             {bars.map((b) => (
-              <span key={b.start}>{startMonth(b.start, loc).slice(0, abbr)}</span>
+              <span key={b.start}>{startMonth(b.start, loc)}</span>
             ))}
           </span>
         </span>
@@ -108,7 +106,7 @@ export function RecentCyclesCard({
   const { t, loc, num } = useHub();
   const cycles = section.data ?? [];
   return (
-    <HubCard title={t('period.title')} href="/analysis/period">
+    <HubCard title={t('period.title')} icon="drop" tone="period" href="/analysis/period">
       <ul className="an-strips">
         {cycles.map((c) => {
           const month = startMonth(c.start, loc);
@@ -131,11 +129,22 @@ export function RecentCyclesCard({
                   return <span key={cell.day} className={clsx('an-dot', `is-${kind}`, cell.future && 'is-future')} />;
                 })}
               </span>
+              <span className="an-strip-len" aria-hidden>
+                {t('period.days', { n: num(c.length) })}
+              </span>
               <span className="sr-only">{text}</span>
             </li>
           );
         })}
       </ul>
+      <span className="an-legend" aria-hidden>
+        {(hideFertility ? (['period'] as const) : (['period', 'fertile', 'ovulation'] as const)).map((k) => (
+          <span key={k} className="an-legend-item">
+            <span className={clsx('an-dot', `is-${k}`)} />
+            {t(`period.legend.${k}`)}
+          </span>
+        ))}
+      </span>
     </HubCard>
   );
 }
@@ -160,6 +169,8 @@ export function SymptomsCard({ section, cycleNudge = true }: { section: Analysis
   return (
     <HubCard
       title={t('symptoms.title')}
+      icon="symptom"
+      tone="bloom"
       sub={s && s.cyclesCounted > 0 ? t('symptoms.sub', { n: num(s.cyclesCounted) }) : undefined}
       href="/analysis/symptoms"
     >
@@ -184,10 +195,7 @@ export function SymptomsCard({ section, cycleNudge = true }: { section: Analysis
               <span className="an-hbar-track" aria-hidden>
                 <span className="an-hbar-fill" style={{ inlineSize: `${shares[i]}%` }} />
               </span>
-              <span className="an-hbar-value">
-                <span aria-hidden>{num(x.days)}</span>
-                <span className="sr-only">{t('symptoms.count', { n: num(x.days) })}</span>
-              </span>
+              <span className="an-hbar-value">{t('symptoms.count', { n: num(x.days) })}</span>
             </li>
           ))}
         </ul>
@@ -196,22 +204,6 @@ export function SymptomsCard({ section, cycleNudge = true }: { section: Analysis
       ) : null}
     </HubCard>
   );
-}
-
-/** Decorative teaser for a locked card (blurred, hidden from assistive tech; no user data). */
-function TeaserBars() {
-  return (
-    <BarChart
-      label=""
-      height={110}
-      max={100}
-      bars={[60, 85, 70, 45].map((value, i) => ({ label: '', value, tone: i === 3 ? 'bloom' : 'data' }))}
-    />
-  );
-}
-
-function TeaserLine({ tone }: { tone: Tone }) {
-  return <LineChart label="" height={100} series={[{ values: [62, 70, 55, 44, 74, 66, 58], tone }]} highlightIndex={6} />;
 }
 
 /**
@@ -227,10 +219,17 @@ export function MoodPhaseCard({ section }: { section: AnalysisSection<MoodByPhas
   const low = lowestIndex(phases.map((p) => p.goodPct));
   const label = (p: (typeof phases)[number]) => t(`mood.phases.${p.phase}`);
   return (
-    <HubCard title={t('mood.title')} pilotKey="mood" plus locked={section.locked} href="/analysis/correlations">
-      {section.locked ? (
-        <TeaserBars />
-      ) : section.ready && phases.length ? (
+    <HubCard
+      title={t('mood.title')}
+      icon="smile"
+      tone="data"
+      pilotKey="mood"
+      plus
+      locked={section.locked}
+      lockedBody={t('mood.locked')}
+      href="/analysis/correlations"
+    >
+      {section.locked ? null : section.ready && phases.length ? (
         <>
           <BarChart
             label={t('mood.chart', {
@@ -268,10 +267,17 @@ export function SleepMoodCard({ section }: { section: AnalysisSection<Correlatio
   const { t, num } = useHub();
   const c = section.data;
   return (
-    <HubCard title={t('sleep.title')} pilotKey="sleep" plus locked={section.locked} href="/analysis/correlations">
-      {section.locked ? (
-        <TeaserLine tone="brand" />
-      ) : section.ready && c ? (
+    <HubCard
+      title={t('sleep.title')}
+      icon="sleep"
+      tone="brand"
+      pilotKey="sleep"
+      plus
+      locked={section.locked}
+      lockedBody={t('sleep.locked')}
+      href="/analysis/correlations"
+    >
+      {section.locked ? null : section.ready && c ? (
         <>
           <ul className="an-hbars">
             {c.groups.map((g) => (
@@ -304,7 +310,7 @@ export function WeightCard({ section }: { section: AnalysisSection<HubWeight> })
   const points = w?.points ?? [];
   const delta = w?.delta30d != null ? signedDecimal(w.delta30d) : null;
   return (
-    <HubCard title={t('weight.title')} href="/analysis/body">
+    <HubCard title={t('weight.title')} icon="scale" tone="data" href="/analysis/body">
       {section.ready && w?.current != null ? (
         <>
           <span className="an-stat">
@@ -321,7 +327,7 @@ export function WeightCard({ section }: { section: AnalysisSection<HubWeight> })
           {points.length > 1 ? (
             <LineChart
               label={t('weight.chart')}
-              height={90}
+              height={80}
               series={[{ values: points.map((p) => p.avg7 ?? p.value), tone: 'data' }]}
               highlightIndex={points.length - 1}
             />
@@ -349,7 +355,7 @@ export function VitalsCard({ section }: { section: AnalysisSection<HubVitals> })
   // LTR-isolated «۱۲۰/۸۰» inside the RTL sentence (U+2066 … U+2069).
   const pair = (p: { systolic: number; diastolic: number }) => `\u2066${num(p.systolic)}/${num(p.diastolic)}\u2069`;
   return (
-    <HubCard title={t('vitals.title')} href="/vitals">
+    <HubCard title={t('vitals.title')} icon="heartLine" tone="warm" href="/vitals">
       {section.ready && v ? (
         <dl className="an-vitals">
           <div>
@@ -393,8 +399,16 @@ export function VitalsCard({ section }: { section: AnalysisSection<HubVitals> })
 export function LabsCard({ section }: { section: AnalysisSection<unknown> }) {
   const { t } = useHub();
   return (
-    <HubCard title={t('labs.title')} plus locked={section.locked} href="/analysis/labs">
-      {section.locked ? <TeaserLine tone="warm" /> : <NotReady>{t('labs.empty')}</NotReady>}
+    <HubCard
+      title={t('labs.title')}
+      icon="flask"
+      tone="warm"
+      plus
+      locked={section.locked}
+      lockedBody={t('labs.locked')}
+      href="/analysis/labs"
+    >
+      {section.locked ? null : <NotReady>{t('labs.empty')}</NotReady>}
     </HubCard>
   );
 }

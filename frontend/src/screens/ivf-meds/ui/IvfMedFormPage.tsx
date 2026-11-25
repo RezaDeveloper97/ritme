@@ -75,7 +75,7 @@ function Shell({ edit, children }: { edit: boolean; children: React.ReactNode })
       <div className="scroll is-form">
         <ScreenHeader
           title={edit ? t('editTitle') : t('addTitle')}
-          onBack={() => router.push('/ivf/meds')}
+          onBack={() => router.back('/ivf/meds')}
           backLabel={t('back')}
         />
         {children}

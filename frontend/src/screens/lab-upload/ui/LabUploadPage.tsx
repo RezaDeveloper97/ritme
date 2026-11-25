@@ -35,7 +35,7 @@ export function LabUploadPage() {
   }, [consent.data, gate.canUse]);
 
   const header = (
-    <ScreenHeader title={t('upload.title')} onBack={() => router.push('/labs')} backLabel={t('common.back')} />
+    <ScreenHeader title={t('upload.title')} onBack={() => router.back('/labs')} backLabel={t('common.back')} />
   );
   return (
     <div className="view lab-screen">

@@ -111,7 +111,7 @@ function Trainer({ level }: { level: PelvicLevel }) {
         <ScreenHeader
           title={t('title')}
           subtitle={t('subtitle', { level: n(level.number), set: n(phase.set), sets: n(level.sets) })}
-          onBack={() => router.push(PELVIC_PATH)}
+          onBack={() => router.back(PELVIC_PATH)}
           backLabel={t('back')}
         />
         <div className="pkg-body">

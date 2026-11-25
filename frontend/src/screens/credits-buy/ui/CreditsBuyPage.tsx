@@ -114,7 +114,7 @@ export function CreditsBuyPage() {
     <div className="view cr-page">
       <SkyLayer />
       <div className="scroll cr-scroll">
-        <ScreenHeader title={t('buy.title')} onBack={() => router.push('/profile/credits')} backLabel={t('back')} />
+        <ScreenHeader title={t('buy.title')} onBack={() => router.back('/profile/credits')} backLabel={t('back')} />
         {body}
       </div>
       {pack && channel === 'web' ? (

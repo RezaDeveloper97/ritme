@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { REPORT_DEFAULT_RANGE, REPORT_RANGES, useBodyReport } from '@/entities/analysis';
+import { useUserProfile } from '@/entities/user';
 import { useRouter, type Locale } from '@/shared/i18n';
 import {
   formatDayMonth,
@@ -37,6 +38,7 @@ export function AnalysisBodyPage() {
   const [range, setRange] = useState<Range>(REPORT_DEFAULT_RANGE.body);
   const query = useBodyReport(range);
   const r = query.data;
+  const bmi = useUserProfile().data?.bmi ?? null;
   const num = (n: number) => formatNumber(n, loc);
   const dec = (n: number) => formatDecimal(String(Math.round(n * 10) / 10), loc);
   const delta = (v: number) => {
@@ -116,6 +118,10 @@ export function AnalysisBodyPage() {
               <dd>{w.bmi != null ? dec(w.bmi) : t('none')}</dd>
             </div>
           </dl>
+          {/* The admin's `bmi_message` for the profile's BMI band (GET /profile → bmi), under the BMI figure. */}
+          {bmi?.message.trim() ? (
+            <InfoNote className="anr-bmi-note">{t('body.weight.bmiNote', { label: bmi.categoryLabel, message: bmi.message })}</InfoNote>
+          ) : null}
         </ChartCard>
 
         <ChartCard className="anr-body-card">
@@ -209,7 +215,7 @@ export function AnalysisBodyPage() {
       title={t('body.title')}
       subtitle={t(`body.ranges.${range}`)}
       backLabel={t('back')}
-      onBack={() => router.push('/analysis')}
+      onBack={() => router.back('/analysis')}
       tabs={{
         label: t('rangeLabel'),
         value: range,

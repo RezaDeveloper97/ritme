@@ -4,6 +4,7 @@ import { clsx } from 'clsx';
 import { useTranslations } from 'next-intl';
 import { useId, useState } from 'react';
 
+import { moduleOfRoute, useAppModules } from '@/entities/app-module';
 import type { LogCategory, LogDayValues, LogParamValue } from '@/entities/health-log';
 import { pilot } from '@/shared/pilot';
 import { Link, useDirection } from '@/shared/i18n';
@@ -161,18 +162,27 @@ function RowHead({
 function ActionRow({ kind, spec, categories, values, labels, onPanel, onSection }: RowProps & { spec: Extract<PresetRowSpec, { kind: 'panel' | 'section' }> }) {
   const t = useTranslations('logSheet.presets');
   const tSheet = useTranslations('logSheet');
+  const modules = useAppModules();
   const category = categories.find((c) => c.code === spec.category);
   if (!category) return null;
+  // An add link into a module an admin switched off (vitals) goes; with none left the row opens its panel instead.
+  const links =
+    spec.kind === 'panel'
+      ? (spec.links ?? []).filter((l) => {
+          const owner = moduleOfRoute(l.href);
+          return !owner || modules[owner];
+        })
+      : [];
   const params = spec.kind === 'panel' && spec.params ? category.params.filter((p) => spec.params!.includes(p.code)) : category.params;
   const entries = params.flatMap((p) => paramEntries(category.code, p, values[category.code]?.[p.code], labels));
   const desc = entries.length ? entries.map((e) => e.summary).join(tSheet('separator')) : (rowDesc(t, kind, spec.code) ?? tSheet('notLogged'));
-  if (spec.kind === 'panel' && spec.links?.length) {
+  if (links.length) {
     // B-N6-02: «فشار خون و قند» opens the Vitals add screens (timed readings with classes and the urgent check).
     return (
       <div className={clsx('mpre-row', 'has-links', entries.length > 0 && 'is-active')}>
         <RowHead icon={spec.icon} tone={spec.tone} title={rowTitle(t, kind, spec.code)} desc={desc} active={entries.length > 0} />
         <span className="mpre-links">
-          {spec.links.map((l) => (
+          {links.map((l) => (
             <Link
               key={l.key}
               href={l.href}

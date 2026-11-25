@@ -63,7 +63,7 @@ func resolve(t *testing.T, e *admintest.Env, key string, d civildate.Date) map[s
 	return r.Data()
 }
 
-func TestTwoDistinctAdvisorApprovals(t *testing.T) {
+func TestOneClinicalApprovalPublishes(t *testing.T) {
 	e := newEnv(t)
 	day := today()
 	body := map[string]any{"value": map[string]any{"systolic": 170, "diastolic": 110}, "effective_from": day.String(),
@@ -98,23 +98,17 @@ func TestTwoDistinctAdvisorApprovals(t *testing.T) {
 	assert.Equal(t, clinicalcfg.CodePendingExists,
 		e.As(advisor1).JSON(fiber.MethodPost, "/clinical-config/bp.crisis/proposals", body).Code())
 
-	// … but cannot approve (not an advisor); engineering cannot either (thresholds: view).
-	r := e.As(admintest.SuperID).JSON(fiber.MethodPost, path(id, "approve"), nil)
+	// Engineering cannot approve (thresholds: view, no clinical capability) — D-215: the clinical capability approves.
+	r := e.As(engineering).JSON(fiber.MethodPost, path(id, "approve"), nil)
 	assert.Equal(t, 403, r.Status)
-	assert.Equal(t, clinicalcfg.CodeAdvisorRequired, r.Code())
-	assert.Equal(t, 403, e.As(engineering).JSON(fiber.MethodPost, path(id, "approve"), nil).Status)
+	assert.Equal(t, 403, e.As(marketing).JSON(fiber.MethodPost, path(id, "approve"), nil).Status)
 
+	// One approval publishes the version (D-215, was two distinct advisors).
 	r = e.As(advisor1).JSON(fiber.MethodPost, path(id, "approve"), nil)
 	require.Equal(t, 200, r.Status, r.Body)
-	assert.Equal(t, clinicalcfg.StatusPending, r.Obj("proposal")["status"])
-	assert.Equal(t, clinicalcfg.CodeAlreadyApproved, e.As(advisor1).JSON(fiber.MethodPost, path(id, "approve"), nil).Code())
-	assert.EqualValues(t, 1, resolve(t, e, clinicalconfig.KeyBPCrisis, day)["version"], "one approval is not enough")
-
-	r = e.As(advisor2).JSON(fiber.MethodPost, path(id, "approve"), nil)
-	require.Equal(t, 200, r.Status, r.Body)
 	assert.Equal(t, clinicalcfg.StatusApproved, r.Obj("proposal")["status"])
-	assert.Len(t, r.Obj("proposal")["approvals"], 2)
-	assert.Equal(t, clinicalcfg.CodeNotPending, e.As(advisor3).JSON(fiber.MethodPost, path(id, "approve"), nil).Code())
+	assert.Len(t, r.Obj("proposal")["approvals"], 1)
+	assert.Equal(t, clinicalcfg.CodeNotPending, e.As(advisor2).JSON(fiber.MethodPost, path(id, "approve"), nil).Code())
 
 	// Effective from today: today reads v2, yesterday still v1 — and the engines follow.
 	assert.EqualValues(t, 2, resolve(t, e, clinicalconfig.KeyBPCrisis, day)["version"])
@@ -124,22 +118,22 @@ func TestTwoDistinctAdvisorApprovals(t *testing.T) {
 	reading.Date = day.AddDays(-1)
 	assert.Equal(t, vitals.ClassStage2, reading.Class(), "a historic reading keeps its old class")
 
-	// Audit trail.
-	assert.Equal(t, 3, e.Int(`SELECT COUNT(*) FROM admin_audit_logs WHERE action LIKE 'clinical_config.%'`))
+	// Audit trail: the proposal and its approval.
+	assert.Equal(t, 2, e.Int(`SELECT COUNT(*) FROM admin_audit_logs WHERE action LIKE 'clinical_config.%'`))
 
-	// Proposer self-approval.
-	p2 := e.As(advisor3).JSON(fiber.MethodPost, "/clinical-config/epds.cutoff.likely/proposals",
+	// The proposer may approve their own proposal (D-215).
+	own := e.As(advisor3).JSON(fiber.MethodPost, "/clinical-config/epds.cutoff.likely/proposals",
 		map[string]any{"value": map[string]any{"score": 12}, "effective_from": day.AddDays(30).String()})
-	require.Equal(t, 201, p2.Status, p2.Body)
-	r = e.As(advisor3).JSON(fiber.MethodPost, path(proposalID(t, p2), "approve"), nil)
-	assert.Equal(t, 403, r.Status)
-	assert.Equal(t, clinicalcfg.CodeSelfApproval, r.Code())
+	require.Equal(t, 201, own.Status, own.Body)
+	r = e.As(advisor3).JSON(fiber.MethodPost, path(proposalID(t, own), "approve"), nil)
+	require.Equal(t, 200, r.Status, r.Body)
+	assert.Equal(t, clinicalcfg.StatusApproved, r.Obj("proposal")["status"])
 
-	// Reject: marketing cannot (no capability), the editor (thresholds manage, not proposer, not advisor) cannot, the
-	// proposer withdraws.
+	// Reject: marketing cannot (no capability); the proposer withdraws.
+	p2 := e.As(advisor3).JSON(fiber.MethodPost, "/clinical-config/epds.cutoff.possible/proposals",
+		map[string]any{"value": map[string]any{"score": 9}, "effective_from": day.AddDays(30).String()})
+	require.Equal(t, 201, p2.Status, p2.Body)
 	assert.Equal(t, 403, e.As(marketing).JSON(fiber.MethodPost, path(proposalID(t, p2), "reject"), nil).Status)
-	assert.Equal(t, clinicalcfg.CodeAdvisorRequired,
-		e.As(admintest.EditorID).JSON(fiber.MethodPost, path(proposalID(t, p2), "reject"), nil).Code())
 	r = e.As(advisor3).JSON(fiber.MethodPost, path(proposalID(t, p2), "reject"), nil)
 	require.Equal(t, 200, r.Status, r.Body)
 	assert.Equal(t, clinicalcfg.StatusRejected, r.Obj("proposal")["status"])
@@ -258,7 +252,7 @@ func TestRowsKeys_ProposeApproveResolve(t *testing.T) {
 	assert.Equal(t, 422, r.Status, r.Body)
 	assert.Equal(t, 0, e.Int(`SELECT COUNT(*) FROM clinical_config_versions`))
 
-	// A valid proposal (a missing nullable column reads null), approved by two advisors, effective tomorrow.
+	// A valid proposal (a missing nullable column reads null), approved once (D-215), effective tomorrow.
 	eff := day.AddDays(1)
 	value := redatingRows(62, 6)
 	value["rows"].([]any)[2] = map[string]any{"max_diff_days": 21}
@@ -271,10 +265,7 @@ func TestRowsKeys_ProposeApproveResolve(t *testing.T) {
 	pend := keyOf(t, e.As(advisor1).Get("/clinical-config"), clinicalconfig.KeyPregnancyRedating)["pending"].(map[string]any)
 	assert.Equal(t, "ACOG CO 700 (advisor review)", pend["source"])
 	assert.Len(t, pend["value"].(map[string]any)["rows"], 3)
-	assert.Equal(t, clinicalcfg.CodeAdvisorRequired, e.As(admintest.EditorID).JSON(fiber.MethodPost, path(id, "approve"), nil).Code(),
-		"the two-advisor flow is unchanged")
-	require.Equal(t, 200, e.As(advisor1).JSON(fiber.MethodPost, path(id, "approve"), nil).Status)
-	r = e.As(advisor2).JSON(fiber.MethodPost, path(id, "approve"), nil)
+	r = e.As(advisor1).JSON(fiber.MethodPost, path(id, "approve"), nil)
 	require.Equal(t, 200, r.Status, r.Body)
 	assert.Equal(t, clinicalcfg.StatusApproved, r.Obj("proposal")["status"])
 

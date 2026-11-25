@@ -7,4 +7,4 @@ export {
 } from './controller';
 export { topOf, useSheetStore } from './store';
 export type { SheetContentProps, SheetSize, SheetTarget } from './types';
-export { hrefWithSheet, readSheetTarget, SHEET_ARG_PARAM, SHEET_PARAM } from './url';
+export { hrefWithSheet, readSheetTarget, SHEET_ARG_PARAM, SHEET_PARAM, sheetQuery } from './url';

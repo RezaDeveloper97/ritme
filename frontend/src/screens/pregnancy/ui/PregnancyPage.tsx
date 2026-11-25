@@ -13,6 +13,7 @@ import {
   type WeekTip,
 } from '@/entities/pregnancy';
 import { isLossCareOpen, LossCareReturn, useLossState } from '@/entities/loss';
+import { useDailyMessage } from '@/entities/message';
 import { Link, type Locale, useDirection } from '@/shared/i18n';
 import { pilot } from '@/shared/pilot';
 import { openSheet } from '@/shared/sheet';
@@ -45,6 +46,7 @@ import { HeaderActions } from '@/widgets/notification-bell';
 import { PregnancyCareChecklist } from '@/widgets/pregnancy-care-checklist';
 import { TodayRemindersCard } from '@/widgets/today-reminders';
 
+import { selectPregnancySmartTip } from '../model/smart-tip';
 import { WeekRing } from './WeekRing';
 import '@/shared/ui/styles/preg.css';
 import '@/shared/ui/styles/pgn.css';
@@ -264,10 +266,17 @@ function DeliveredCard({ t }: { t: T }) {
   );
 }
 
-function TipCard({ tip, week, t }: { tip: WeekTip; week: number; t: T }) {
+/**
+ * «نکتهٔ هوشمند» of the pregnancy home (the cycle home's smart tip, for pregnancy): the week's tip, replaced for
+ * the day by a logged symptom, plus the engine's general lines. See `model/smart-tip.ts`.
+ */
+function SmartTipCard({ week: weekTip, weekNumber, t }: { week: WeekTip | null; weekNumber: number; t: T }) {
   const isRtl = useDirection() === 'rtl';
-  const tipWeek = tip.week ?? week;
-  const href = tip.link ?? `/pregnancy/weeks/${tipWeek}`;
+  const { data: daily } = useDailyMessage();
+  const tip = selectPregnancySmartTip(weekTip, daily);
+  if (!tip) return null;
+  const tipWeek = weekTip?.week ?? weekNumber;
+  const href = weekTip?.link ?? `/pregnancy/weeks/${tipWeek}`;
   const more = (
     <>
       {t('today.readMore', { week: tipWeek })}
@@ -275,17 +284,30 @@ function TipCard({ tip, week, t }: { tip: WeekTip; week: number; t: T }) {
     </>
   );
   return (
-    <Card as="section" className="pgn-sect pgn-tip" aria-labelledby="pgn-tip">
+    <Card as="section" className="pgn-sect pgn-tip" aria-labelledby="pgn-tip" data-tip-kind={tip.kind}>
       <div className="pgn-sect-head">
-        <span className="pgn-eyebrow">{t('today.tipEyebrow')}</span>
-        {tip.readMinutes != null && (
-          <span className="pgn-meta">{t('today.readMinutes', { minutes: tip.readMinutes })}</span>
+        <span className="pgn-eyebrow">{tip.kind === 'symptom' ? t('today.tipEyebrowToday') : t('today.tipEyebrow')}</span>
+        {tip.kind === 'week' && weekTip?.readMinutes != null && (
+          <span className="pgn-meta">{t('today.readMinutes', { minutes: weekTip.readMinutes })}</span>
         )}
       </div>
-      <h2 id="pgn-tip" className="pgn-sect-title">
-        {tip.title}
+      <h2 id="pgn-tip" className={tip.title ? 'pgn-sect-title' : 'sr-only'}>
+        {tip.title || t('today.tipTitle')}
       </h2>
       <p className="pgn-body-text">{tip.body}</p>
+      {tip.action && (
+        <p className="pgn-tip-action">
+          <Icon name="sparkle" size={16} fill="currentColor" strokeWidth={0} aria-hidden />
+          <span>{tip.action}</span>
+        </p>
+      )}
+      {tip.extras.length > 0 && (
+        <ul className="pgn-tip-extras">
+          {tip.extras.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+      )}
       {/^https?:\/\//.test(href) ? (
         <a href={href} target="_blank" rel="noopener noreferrer" className="pgn-link">
           {more}
@@ -386,7 +408,7 @@ export function PregnancyPage() {
       {/* CB-NAV-03b: «برای امروز» = reminders + to-do row, like the other homes. */}
       <ForToday reminders={<TodayRemindersCard hideAppointmentId={data.nextVisit?.appointmentId ?? null} />} />
       {data.nextVisit && <NextVisitCard visit={data.nextVisit} t={t} />}
-      {data.tip && <TipCard tip={data.tip} week={data.progress.week} t={t} />}
+      <SmartTipCard week={data.tip} weekNumber={data.progress.week} t={t} />
       <PregnancyCareChecklist week={data.progress.week} tasks={data.tasks} />
       {postpartumOn && data.progress.week >= DELIVERED_FROM_WEEK && <DeliveredCard t={t} />}
     </Shell>

@@ -119,7 +119,7 @@ export function JoinPage() {
 
   const id = picked?.id ?? open.data?.id ?? null;
   const app = useJoinApplication(id);
-  const leave = () => router.push('/city-services');
+  const leave = () => router.back('/city-services');
 
   if (list.isError || open.isError || app.isError) {
     return (

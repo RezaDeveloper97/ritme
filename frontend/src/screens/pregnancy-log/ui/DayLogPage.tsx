@@ -125,7 +125,7 @@ export function DayLogPage({ date: rawDate }: { date?: string }) {
     <ScreenHeader
       title={isToday ? t("log.title") : t("log.titleOtherDay")}
       subtitle={subtitle}
-      onBack={() => router.push("/pregnancy")}
+      onBack={() => router.back("/pregnancy")}
       backLabel={t("common.back")}
       action={<HeaderButton icon="calendar" label={t("log.pickDay")} onClick={() => setPicking(true)} pilot={pilot("preg.day-picker")} />}
     />

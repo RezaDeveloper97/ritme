@@ -6,7 +6,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 
 import { AuthGate, useCurrentAdmin, useCurrentPermissions } from '@/features/auth';
 
-import { activeItem, navFor } from '../model/nav';
+import { activeItem, groupOf, navFor } from '../model/nav';
 import { CommandPalette } from './CommandPalette';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
@@ -52,6 +52,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
   if (!admin) return null;
   const groups = navFor(admin.role, { dev: IS_DEV, permissions });
   const active = activeItem(pathname, groups);
+  const group = groupOf(active, groups);
 
   return (
     <div className="shell">
@@ -60,6 +61,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
       <div className="flex min-w-0 flex-col">
         <Header
           title={active ? t(active.key as 'dashboard') : ''}
+          section={group ? t(group.key as 'dashboard') : ''}
           admin={admin}
           menuOpen={open}
           onMenu={() => setOpen((v) => !v)}

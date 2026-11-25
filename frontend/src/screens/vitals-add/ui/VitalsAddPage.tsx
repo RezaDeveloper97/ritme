@@ -21,7 +21,7 @@ export function VitalsAddPage({ type }: { type: VitalType }) {
   const header = (
     <ScreenHeader
       title={t(`add.titles.${type}`)}
-      onBack={() => router.push('/vitals')}
+      onBack={() => router.back('/vitals')}
       backLabel={t('common.close')}
       backIcon="close"
     />

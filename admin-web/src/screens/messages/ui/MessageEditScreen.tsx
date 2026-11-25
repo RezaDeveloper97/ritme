@@ -74,6 +74,7 @@ function MessageForm({ message, typedFields }: { message: Message; typedFields: 
       backLabel={t('backToList')}
       meta={
         <>
+          {labels.item(message.group, message.item_key) ? <Badge tone="brand">{labels.item(message.group, message.item_key)}</Badge> : null}
           <Badge>
             {t('key')}: <span dir="ltr">{message.item_key}</span>
           </Badge>
@@ -121,6 +122,12 @@ function MessageForm({ message, typedFields }: { message: Message; typedFields: 
       saving={save.isPending}
       readOnly={!canWrite}
     >
+      {labels.where(message.group) ? (
+        <p className="where-note">
+          <strong>{t('whereLabel')}:</strong> {labels.where(message.group)}
+          {labels.shown(message.group) ? null : <> ({t('notShown')})</>}
+        </p>
+      ) : null}
       {canWrite ? null : <p className="field-hint m-0 font-semibold">{t('superOnlyNotice')}</p>}
       <p className="field-hint m-0">{t('editHint')}</p>
       {typedFields ? <SchemaForm fields={typedFields} value={typedDraft} onChange={setTypedDraft} error={save.error} dir={dir} /> : null}

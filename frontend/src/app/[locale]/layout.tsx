@@ -7,7 +7,7 @@ import type { ReactNode } from 'react';
 
 import { OnboardingCalendarSync } from '@/entities/user';
 import { AppLockGate, appLockInitScript } from '@/features/app-lock';
-import { BackGuard } from '@/shared/back-guard';
+import { BackStackRoot } from '@/shared/back-stack';
 import {
   BUNDLED_LOCALES,
   DirectionProvider,
@@ -27,6 +27,7 @@ import {
   LazyNotificationSync,
   LazySessionRefresher,
   LazyStoreBillingSync,
+  LazyUrgentAlertHost,
 } from '../LazyGlobals';
 import { ModuleRouteGate } from '../ModuleRouteGate';
 import { SHELL_NAMESPACES } from '../message-scopes';
@@ -174,7 +175,7 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
           <DirectionProvider direction={direction}>
             <AppProviders>
             <ThemeApplier />
-            <BackGuard />
+            <BackStackRoot />
             <SessionGuard />
             <LazySessionRefresher />
             <LazyNotificationSync />
@@ -196,6 +197,8 @@ export default async function LocaleLayout({ children, params }: LocaleLayoutPro
                   <SheetHost />
                   {/* AI gate: the one sheet that explains a missing subscription / spent credits (features/ai-gate). */}
                   <LazyAiGateSheet />
+                  {/* SPEC §5.4.1: an urgent health alert shows over any screen the moment the feed carries it. */}
+                  <LazyUrgentAlertHost />
                   {/* UI autopilot: the pointer + stop bar of a running script (shared/autopilot); nothing while idle. */}
                   <AutopilotMount />
                 </AppLockGate>

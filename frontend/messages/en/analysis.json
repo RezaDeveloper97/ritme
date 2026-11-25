@@ -144,7 +144,8 @@
         "period": "Period",
         "fertile": "Fertile window",
         "ovulation": "Ovulation"
-      }
+      },
+      "days": "{n} days"
     },
     "symptoms": {
       "title": "Symptom pattern",
@@ -173,7 +174,8 @@
       "chart": "Share of good-mood days per phase: {list}",
       "notReady": "Log your mood for a few weeks to fill this chart.",
       "notReadyDays": "Log your mood {n} more days to see this chart.",
-      "topMood": "{phase}: mostly “{mood}” ({pct}% of days)"
+      "topMood": "{phase}: mostly “{mood}” ({pct}% of days)",
+      "locked": "See how your mood differs across your period, fertile window and luteal phase."
     },
     "sleep": {
       "title": "Sleep & mood",
@@ -182,7 +184,8 @@
         "sleep_under_6": "Under 6 hours"
       },
       "pct": "{n}% of days",
-      "notReady": "At least {n} days with both sleep and mood logged are needed."
+      "notReady": "At least {n} days with both sleep and mood logged are needed.",
+      "locked": "See how short nights affect your mood the next day."
     },
     "weight": {
       "title": "Weight",
@@ -203,12 +206,18 @@
     },
     "labs": {
       "title": "Lab trends",
-      "empty": "No lab results yet — once you add a test, its markers’ trends show up here."
+      "empty": "No lab results yet — once you add a test, its markers’ trends show up here.",
+      "locked": "See your lab markers side by side and over time."
     },
     "pregnancy": {
       "title": "Pregnancy analysis is coming",
       "body": "Weight, blood pressure and baby movement trends during pregnancy will appear here soon.",
       "cta": "Go to pregnancy"
+    },
+    "unlock": "Unlock with Plus",
+    "trends": {
+      "title": "Patterns & trends",
+      "sub": "Built from your daily logs over the range you pick."
     }
   },
   "tabs": {
@@ -415,6 +424,7 @@
         "d7": "7 days",
         "d30": "30 days",
         "bmi": "BMI",
+        "bmiNote": "{label}: {message}",
         "statsLabel": "Weight change and BMI",
         "chart": "Weight trend as a {n}-day moving average, from {from} to {to} kg",
         "colDate": "Date",

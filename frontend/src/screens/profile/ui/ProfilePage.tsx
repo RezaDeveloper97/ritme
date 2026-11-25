@@ -17,6 +17,7 @@ import { APP_VERSION } from '@/shared/config';
 import { localizeHref, useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { calendarSystem } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { leaveSignedOut } from '@/shared/session';
 import { useThemeStore } from '@/shared/theme';
 import {
   HeaderButton,
@@ -99,6 +100,10 @@ export function ProfilePage() {
   const languageName = languages.find((l) => l.code === locale)?.name ?? locale;
   const calendarName = t(`calendars.${calendarSystem(loc)}`);
   const soon = <StatusPill tone="neutral">{t('soon')}</StatusPill>;
+  const owner = navMode !== 'companion';
+  // «داده‌ها و ابزارها»: any row left after the admin's module switches.
+  const dataRows =
+    (owner && (modules.services || modules.vitals || modules.record)) || modules.devices || modules.backup;
 
   // Loading is decided only after mount: the profile query is gated on a
   // localStorage token, so the server always renders the skeleton and the first
@@ -110,7 +115,7 @@ export function ProfilePage() {
   const handleLogout = () => {
     if (logout.isPending) return;
     logout.mutate(undefined, {
-      onSettled: () => window.location.replace(localizeHref('/signup', loc)),
+      onSettled: () => leaveSignedOut(localizeHref('/signup', loc)),
     });
   };
 
@@ -238,7 +243,7 @@ export function ProfilePage() {
             {/* CB-NAV-03 (nbd_Nav_Me «فرزندان»): /children shipped with B-N5-05 — the row is live for an owner
                 (a teen has no children row; a companion keeps the «به‌زودی» row). */}
             {navMode === 'companion'
-              ? FAMILY_SOON.map((row) => (
+              ? (modules.children ? FAMILY_SOON : []).map((row) => (
                   <ListRow key={row.key} icon={row.icon} iconTone={row.tone} title={t(`rows.${row.key}`)} trailing={soon} />
                 ))
               : teen || !modules.children
@@ -287,11 +292,13 @@ export function ProfilePage() {
           </section>
         )}
 
+        {/* Admin switches can empty this group; then the title goes too. */}
+        {dataRows ? (
         <section className="me-sec" aria-labelledby="me-g-data">
           <SectionTitle id="me-g-data" title={t('groups.data')} />
           <ListGroup>
             {/* The services hub left the bottom nav for «تحلیل»; «من» is its entry now. */}
-            {navMode !== 'companion' ? (
+            {navMode !== 'companion' && modules.services ? (
               <ListRow
                 icon="grid"
                 iconTone="data"
@@ -301,7 +308,7 @@ export function ProfilePage() {
               />
             ) : null}
             {/* B-N6-02: Me entry into the vitals hub (also on «خدمات»). */}
-            {navMode !== 'companion' ? (
+            {navMode !== 'companion' && modules.vitals ? (
               <ListRow
                 icon="heartLine"
                 iconTone="bloom"
@@ -331,14 +338,17 @@ export function ProfilePage() {
               />
             ) : null}
             {/* B-N10-07: last server sync + manual export (JSON/PDF/doctor report). */}
-            <ListRow
-              icon="download"
-              title={t('rows.backup')}
-              description={t('rows.backupSub')}
-              onClick={() => router.push('/profile/backup')} pilot={pilot('me.open:profile-backup')}
-            />
+            {modules.backup ? (
+              <ListRow
+                icon="download"
+                title={t('rows.backup')}
+                description={t('rows.backupSub')}
+                onClick={() => router.push('/profile/backup')} pilot={pilot('me.open:profile-backup')}
+              />
+            ) : null}
           </ListGroup>
         </section>
+        ) : null}
 
         <section className="me-sec" aria-labelledby="me-g-settings">
           <SectionTitle id="me-g-settings" title={t('groups.settings')} />
@@ -377,8 +387,12 @@ export function ProfilePage() {
         <section className="me-sec" aria-labelledby="me-g-support">
           <SectionTitle id="me-g-support" title={t('groups.support')} />
           <ListGroup>
-            <ListRow icon="help" title={t('rows.help')} onClick={() => router.push('/profile/support')} pilot={pilot('me.open:profile-support')} />
-            <ListRow icon="chat" title={t('rows.chat')} onClick={() => router.push('/profile/support')} pilot={pilot('me.open:profile-support-chat')} />
+            {modules.support ? (
+              <>
+                <ListRow icon="help" title={t('rows.help')} onClick={() => router.push('/profile/support')} pilot={pilot('me.open:profile-support')} />
+                <ListRow icon="chat" title={t('rows.chat')} onClick={() => router.push('/profile/support')} pilot={pilot('me.open:profile-support-chat')} />
+              </>
+            ) : null}
             <ListRow icon="info" iconTone="neutral" title={t('rows.about')} onClick={() => router.push('/profile/about')} pilot={pilot('me.open:profile-about')} />
           </ListGroup>
         </section>

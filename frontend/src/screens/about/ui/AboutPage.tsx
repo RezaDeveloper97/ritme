@@ -52,7 +52,7 @@ export function AboutPage() {
     <div className="view abt-page">
       <SkyLayer />
       <div className="scroll abt-scroll">
-        <ScreenHeader title={t('title')} onBack={() => router.push('/profile')} backLabel={t('back')} />
+        <ScreenHeader title={t('title')} onBack={() => router.back('/profile')} backLabel={t('back')} />
 
         <div className="abt-logo" aria-hidden>
           <span className="abt-logo-word">{appName}</span>

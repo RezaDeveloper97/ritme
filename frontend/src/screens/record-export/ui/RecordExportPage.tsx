@@ -76,7 +76,7 @@ export function RecordExportPage() {
     <div className="view rx-page">
       <SkyLayer />
       <div className="scroll rx-scroll">
-        <ScreenHeader title={t('title')} onBack={() => router.push('/record')} backLabel={t('back')} />
+        <ScreenHeader title={t('title')} onBack={() => router.back('/record')} backLabel={t('back')} />
 
         <Card className="rx-preview-card">
           <button

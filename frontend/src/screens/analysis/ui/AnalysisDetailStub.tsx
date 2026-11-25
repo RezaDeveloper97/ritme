@@ -20,7 +20,7 @@ export function AnalysisDetailStub({ detail }: { detail: AnalysisDetail }) {
     <div className="view an-page">
       <SkyLayer />
       <div className="scroll an-scroll">
-        <ScreenHeader title={t(`titles.${detail}`)} onBack={() => router.push('/analysis')} backLabel={t('back')} />
+        <ScreenHeader title={t(`titles.${detail}`)} onBack={() => router.back('/analysis')} backLabel={t('back')} />
         <EmptyState
           icon="chart"
           title={t('soonTitle')}

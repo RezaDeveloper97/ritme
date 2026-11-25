@@ -10,9 +10,10 @@
 //	res, err := m.Generate(ctx, date, "")   // "" = detect the mode
 //	res.JSON()                               // MessageResult::toArray()
 //
-// Laravel quirks kept (D-05, D-11): the symptom and pattern detectors read columns that do not
-// exist, so only low_energy / insufficient_data / ttc_tracking / chronic_fatigue can fire, and a
-// low-energy day in cycle mode fails with ErrUndefinedOverrideCase (HTTP 500).
+// Laravel quirk kept (D-05): the symptom and pattern detectors read columns that do not exist, so
+// only low_energy / insufficient_data / ttc_tracking / chronic_fatigue can fire. D-11 (a low-energy,
+// bloating or acne day in cycle mode was a 500) is fixed: their cycle_override copy is served
+// (deviation D-214).
 package manager
 
 import (

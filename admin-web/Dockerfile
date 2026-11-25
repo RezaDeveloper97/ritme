@@ -28,7 +28,14 @@ ENV NEXT_PUBLIC_ADMIN_API_BASE_URL=$NEXT_PUBLIC_ADMIN_API_BASE_URL \
     NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL \
     NEXT_PUBLIC_ADMIN_BASE_PATH=$NEXT_PUBLIC_ADMIN_BASE_PATH \
     NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
+# Same two build-speed measures as frontend/Dockerfile: lint + type-check are /verify-all's job, not the image's
+# (next.config.ts reads NEXT_SKIP_BUILD_CHECKS), and `.next/cache` is kept in a BuildKit cache mount — the whole
+# folder, because webpack's cache is keyed on `.next/cache/.rscinfo`; `fetch-cache` is wiped so no build reuses data.
+# A build with a basePath (stage: /panel) gets its own cache: basePath is part of webpack's cache version, so one
+# shared folder would be thrown away and rewritten on every switch between stage and beta/prod.
+ENV NEXT_SKIP_BUILD_CHECKS=1
+RUN --mount=type=cache,id=ritme-admin-web-next-cache${NEXT_PUBLIC_ADMIN_BASE_PATH:+-basepath},target=/app/.next/cache,sharing=locked \
+    rm -rf .next/cache/fetch-cache && npm run build
 
 FROM base AS runner
 # Same value as the build stage; only the healthcheck URL needs it at runtime.

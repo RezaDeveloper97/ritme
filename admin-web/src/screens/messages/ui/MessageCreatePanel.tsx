@@ -61,11 +61,11 @@ function CreateForm({ item, target, onClose }: { item: RegistryItem; target: Cre
         locale: target.locale,
         payload: normalizeDraft(item.fields, draft),
         is_active: active,
-        is_approved: true,
+        // D-215: a new row waits for «تأیید» like every approval in the admin.
       },
       {
         onSuccess: () => {
-          toast.success(tc('created'));
+          toast.success(t('createdPending'));
           onClose();
         },
         onError: notifyError,

@@ -2,6 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 
+import { useBackLayer } from '@/shared/back-stack';
+
 import { type StepUpController } from '../model/useStepUp';
 import { StepUpPanel } from './StepUpPanel';
 import '@/shared/ui/styles/del.css';
@@ -12,6 +14,7 @@ import '@/shared/ui/styles/del.css';
  */
 export function StepUpSheet({ open, onClose, onVerified }: StepUpController) {
   const t = useTranslations('profile.stepUp');
+  useBackLayer(open, onClose); // Back closes the dialog, not the screen behind it
   if (!open) return null;
   return (
     <div role="dialog" aria-modal="true" aria-label={t('title')} className="del-backdrop" onClick={onClose}>

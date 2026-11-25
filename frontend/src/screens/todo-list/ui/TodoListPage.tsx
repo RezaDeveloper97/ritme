@@ -48,7 +48,7 @@ export function TodoListPage({ id }: { id: number }) {
   const router = useRouter();
   const query = useTodoTask(id);
   const [menuOpen, setMenuOpen] = useState(false);
-  const back = () => router.push('/todo');
+  const back = () => router.back('/todo');
 
   const task = query.data?.task;
   const header = (

@@ -87,7 +87,7 @@ export function ChildLearnPage({ id }: { id: number }) {
             })
           : undefined
       }
-      onBack={() => router.push(valid ? `/children/${id}` : '/children')}
+      onBack={() => router.back(valid ? `/children/${id}` : '/children')}
       backLabel={t('common.back')}
     />
   );

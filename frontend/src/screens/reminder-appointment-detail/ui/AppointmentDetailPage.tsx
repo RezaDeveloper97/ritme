@@ -86,7 +86,7 @@ function DetailHeader({ id, sub, editable = false }: { id: number; sub?: string;
     <ScreenHeader
       title={t('appointmentDetail.title')}
       subtitle={sub}
-      onBack={() => router.push('/reminders?tab=appointments')}
+      onBack={() => router.back('/reminders?tab=appointments')}
       backLabel={t('back')}
       action={
         editable ? (

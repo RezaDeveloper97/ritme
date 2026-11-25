@@ -60,6 +60,7 @@ it, it is not a catalog item.
 | `POST /catalog/{group}/reorder` | `{ids: […]}` — every item id of the group (inactive included) exactly once, in the new order; `sort_order` becomes 1…n in one transaction (all or nothing; only `sort_order`/`updated_at` are written). Partial lists, duplicates and ids of another group → 422 on `ids` / `ids.N`. `{items: [{id, sort_order}]}` (CB-CORE-03b) |
 | `GET /catalog/{group}/{id}` | `{catalog_item}`; an id of another group is 404 |
 | `PUT /catalog/{group}/{id}` | update; `code` ignored; absent optional fields keep their value, `null` clears |
+| `POST /catalog/{group}/{id}/approve` | «تأیید»: `needs_review` → false, nothing else changes (`{catalog_item}`; already approved = no-op 200). Clinical capability at manage, super-only groups still need a super admin; audit `catalog_item.approve` (D-215) |
 | `DELETE /catalog/{group}/{id}` | hard delete (`{id}`) — prefer `is_active: false` for items clients may have referenced |
 
 `catalog_item` = `id, group, code, sort_order, is_active, audiences, title, body, meta, needs_review, created_at,

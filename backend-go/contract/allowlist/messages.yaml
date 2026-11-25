@@ -71,3 +71,26 @@ entries:
     where: data.messages[*].data.checkup.label
     deviation: D-172
     reason: new checkup item key (additive)
+
+  # D-214 (user request 2026-11-25): a low-energy cycle day is no longer Laravel's 500 (D-11); Go serves the
+  # cycle_override/low_energy copy. The premium persona's 2026-09-14 and 2026-09-20 steps hit it.
+  - case: "daily_dates_premium.*"
+    step: 1
+    where: status
+    deviation: D-214
+    reason: 200 with the low_energy override instead of Laravel's 500
+  - case: "daily_dates_premium.*"
+    step: 1
+    where: body
+    deviation: D-214
+    reason: the daily message envelope instead of {"message":"Server Error"}
+  - case: "daily_dates_premium.*"
+    step: 2
+    where: status
+    deviation: D-214
+    reason: 200 with the low_energy override instead of Laravel's 500
+  - case: "daily_dates_premium.*"
+    step: 2
+    where: body
+    deviation: D-214
+    reason: the daily message envelope instead of {"message":"Server Error"}

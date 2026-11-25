@@ -7,6 +7,7 @@ export type {
   MessageCorrelation,
   MessagePattern,
   SupplementTips,
+  SymptomOverride,
 } from './model/types';
 export type { SmartTip, SmartTipSource } from './lib/smart-tip';
 export { selectSmartTip } from './lib/smart-tip';

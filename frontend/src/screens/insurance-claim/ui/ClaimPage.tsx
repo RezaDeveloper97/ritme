@@ -360,7 +360,7 @@ export function InsuranceClaimPage({ id }: { id: number }) {
     <div className="view ins-page">
       <SkyLayer />
       <div className="scroll ins-scroll">
-        <ScreenHeader title={t('claim.title')} subtitle={subtitle} onBack={() => router.push('/insurance/claims')} backLabel={t('back')} />
+        <ScreenHeader title={t('claim.title')} subtitle={subtitle} onBack={() => router.back('/insurance/claims')} backLabel={t('back')} />
         {body}
       </div>
     </div>

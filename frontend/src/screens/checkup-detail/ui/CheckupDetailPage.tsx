@@ -42,7 +42,7 @@ function Header({ detail }: { detail?: CheckupDetail }) {
     <ScreenHeader
       title={detail?.title ?? t('title')}
       subtitle={detail?.intervalLabel || undefined}
-      onBack={() => router.push(LIST_HREF)}
+      onBack={() => router.back(LIST_HREF)}
       backLabel={t('back')}
       action={
         detail ? (

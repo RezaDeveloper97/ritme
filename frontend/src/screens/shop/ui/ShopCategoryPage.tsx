@@ -133,7 +133,7 @@ export function ShopCategoryPage({ category }: { category: string }) {
     <div className="view shp-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={q.data?.category?.title ?? t('title')} onBack={() => router.push('/shop')} backLabel={t('back')} />
+        <ScreenHeader title={q.data?.category?.title ?? t('title')} onBack={() => router.back('/shop')} backLabel={t('back')} />
         <div className="shp-body">
           {body}
           <p className="shp-note">{t('note')}</p>
