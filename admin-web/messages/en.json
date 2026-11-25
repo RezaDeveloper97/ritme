@@ -1533,21 +1533,21 @@
       "condition_nudge": "Cycle home › “this cycle's suggestion” card and the care-programs hub — after several days of heavy pain or bleeding",
       "pregnancy_week_tip": "Pregnancy home › “smart tip · this week” card (one tip per week 1–42)",
       "pregnancy_alert": "Fetal-movement screen › alert card, and the bell › alerts & messages (each alert's text and the level legend)",
-      "pregnancy_setup": "Web pregnancy setup › history step (title, body, disclaimer) and the pregnancy calendar › dating note; the other items (welcome, dating, sources, result, due-date note, calm exit) are not read by any screen yet — the app shows its built-in copy",
+      "pregnancy_setup": "Pregnancy setup › history step (title, body, disclaimer) and the pregnancy calendar › dating note. The server sends the other items too (welcome, dating, sources, result, due-date note, calm exit), but the screens show their built-in copy, so editing them changes nothing yet",
       "postpartum_week_tip": "Postpartum home › “this week's tip” card (weeks 1–12 and after)",
       "postpartum_alert": "Postpartum home › alert list and “when to call right away” card, and the recovery log › warning signs",
       "postpartum_safety": "Mood screen › EPDS result and the urgent “please talk to someone now” screen",
       "menopause_message": "Menopause home › message cards (checkup reminders, worsening score, HRT review)",
       "companion_tip": "Companion home › note under the cycle card and the “what can you do today?” list (up to 3 tips per phase)",
-      "pregnancy_base": "Android app › “Today” tab (pregnancy mode) › smart-tip card and today's tips; the web app does not show it",
-      "pregnancy_trimester": "Android app › “Today” tab (pregnancy mode) › smart-tip card and today's tips; the web app does not show it",
-      "pregnancy_week": "Android app › “Today” tab (pregnancy mode) › smart-tip card and today's tips; the web app does not show it (the web pregnancy home's weekly tip comes from “pregnancy week tips”)",
-      "pregnancy_override": "Android app › “Today” tab (pregnancy mode) › smart-tip card and today's tips; the web app does not show it",
-      "nutrition_trimester": "Android app › “Today” tab (pregnancy mode) › smart-tip card and today's tips; the web app does not show it",
-      "sleep_trimester": "Android app › “Today” tab (pregnancy mode) › smart-tip card and today's tips; the web app does not show it",
-      "exercise_trimester": "Android app › “Today” tab (pregnancy mode) › smart-tip card and today's tips; the web app does not show it",
-      "correlation_pregnancy": "Android app › “Today” tab (pregnancy mode) › smart-tip card and today's tips; the web app does not show it",
-      "bmi_message": "Android app › profile › the line under the BMI; the web app does not show it"
+      "pregnancy_base": "The server sends it in the daily message for pregnant users, but the only card that shows the daily message (the cycle home's smart tip) never opens for them; they land on the pregnancy home, which does not read it. Nobody sees it for now",
+      "pregnancy_trimester": "The server sends it in the daily message for pregnant users, but the only card that shows the daily message (the cycle home's smart tip) never opens for them; they land on the pregnancy home, which does not read it. Nobody sees it for now",
+      "pregnancy_week": "The server sends it in the daily message for pregnant users, but the only card that shows the daily message (the cycle home's smart tip) never opens for them; they land on the pregnancy home, which does not read it. Nobody sees it for now. The pregnancy home's weekly tip comes from “pregnancy week tips”",
+      "pregnancy_override": "The server sends it in the daily message for pregnant users, but the only card that shows the daily message (the cycle home's smart tip) never opens for them; they land on the pregnancy home, which does not read it. Nobody sees it for now",
+      "nutrition_trimester": "The server sends it in the daily message for pregnant users, but the only card that shows the daily message (the cycle home's smart tip) never opens for them; they land on the pregnancy home, which does not read it. Nobody sees it for now",
+      "sleep_trimester": "The server sends it in the daily message for pregnant users, but the only card that shows the daily message (the cycle home's smart tip) never opens for them; they land on the pregnancy home, which does not read it. Nobody sees it for now",
+      "exercise_trimester": "The server sends it in the daily message for pregnant users, but the only card that shows the daily message (the cycle home's smart tip) never opens for them; they land on the pregnancy home, which does not read it. Nobody sees it for now",
+      "correlation_pregnancy": "The server sends it in the daily message for pregnant users, but the only card that shows the daily message (the cycle home's smart tip) never opens for them; they land on the pregnancy home, which does not read it. Nobody sees it for now",
+      "bmi_message": "The server sends this line with the profile, but no screen shows it (no card was built for it)"
     },
     "whereTitle": "Where do these messages show?",
     "guideTitle": "Where each message shows",
@@ -1565,7 +1565,7 @@
       "postpartum": "Postpartum",
       "menopause": "Menopause",
       "companion": "Companion",
-      "androidOnly": "Android app only",
+      "notShown": "Not shown in the app for now",
       "other": "Other"
     },
     "itemKeys": {
@@ -1660,7 +1660,7 @@
       "heavy_pain": "Heavy pain"
     },
     "whereLabel": "Where it shows",
-    "androidOnly": "Android app only"
+    "notShown": "Not shown for now"
   },
   "languages": {
     "title": "Languages",

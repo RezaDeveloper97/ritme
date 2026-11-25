@@ -4,9 +4,11 @@
  * menomessages, conditionnudges → the frontend screens). The words live in `smartMessages.where.<group>` /
  * `smartMessages.areas.<area>`; this file only orders and classifies them.
  *
- * `androidOnly` groups are rendered by the Android app only: the old `/messages/daily` bundle of pregnancy mode (the
- * Android «امروز» tab reads it in every mode; the web pregnancy home does not) and the BMI line of the Android
- * profile. The list says so, so an editor knows a change will not show on the web.
+ * `notShown` groups reach the API but no screen renders them. The Android app is a TWA of the web app
+ * (package web.ritme.app, frontend/public/.well-known/assetlinks.json), so web = Android here. Those groups are the
+ * old `/messages/daily` bundle of pregnancy mode (only the cycle home reads that endpoint, and a pregnant user is
+ * redirected to /pregnancy) and the BMI line (`GET /profile` → `bmi.message`, parsed but never rendered). They stay
+ * editable; the list says so instead of leaving the editor guessing.
  */
 export type MessageArea =
   | 'cycleHome'
@@ -15,7 +17,7 @@ export type MessageArea =
   | 'postpartum'
   | 'menopause'
   | 'companion'
-  | 'androidOnly';
+  | 'notShown';
 
 export const AREAS: readonly MessageArea[] = [
   'cycleHome',
@@ -24,7 +26,7 @@ export const AREAS: readonly MessageArea[] = [
   'postpartum',
   'menopause',
   'companion',
-  'androidOnly',
+  'notShown',
 ];
 
 const GROUP_AREA: Record<string, MessageArea> = {
@@ -51,15 +53,15 @@ const GROUP_AREA: Record<string, MessageArea> = {
   postpartum_safety: 'postpartum',
   menopause_message: 'menopause',
   companion_tip: 'companion',
-  pregnancy_base: 'androidOnly',
-  pregnancy_trimester: 'androidOnly',
-  pregnancy_week: 'androidOnly',
-  pregnancy_override: 'androidOnly',
-  nutrition_trimester: 'androidOnly',
-  sleep_trimester: 'androidOnly',
-  exercise_trimester: 'androidOnly',
-  correlation_pregnancy: 'androidOnly',
-  bmi_message: 'androidOnly',
+  pregnancy_base: 'notShown',
+  pregnancy_trimester: 'notShown',
+  pregnancy_week: 'notShown',
+  pregnancy_override: 'notShown',
+  nutrition_trimester: 'notShown',
+  sleep_trimester: 'notShown',
+  exercise_trimester: 'notShown',
+  correlation_pregnancy: 'notShown',
+  bmi_message: 'notShown',
 };
 
 /** The area of a group; unknown (newly registered) groups land in `null` and are listed last. */
