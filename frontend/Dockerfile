@@ -42,11 +42,14 @@ ARG BUILD_REV=
 # Build speed on the small build server (2 slow cores, 4 GB):
 #  - Lint and type-check are skipped HERE only (next.config.ts reads NEXT_SKIP_BUILD_CHECKS). They are the job of
 #    /verify-all before a deploy; repeating them in the image cost ~4 min per build.
-#  - webpack's persistent cache survives between builds in a BuildKit cache mount, so only changed modules are
-#    recompiled. ONLY `.next/cache/webpack` is mounted: `.next/cache/fetch-cache` must stay empty, or prerendering
-#    would reuse the previous deploy's UI messages (the bug BUILD_REV exists for).
+#  - `.next/cache` survives between builds in a BuildKit cache mount, so webpack only recompiles changed modules.
+#    The WHOLE folder is mounted, not just `webpack/`: Next keys that cache on a per-project key it keeps in
+#    `.next/cache/.rscinfo`, and without that file every build starts cold (measured 2026-11-25).
+#    `fetch-cache` is wiped first: prerendering must read the UI messages from the live API again, not reuse the
+#    previous deploy's copy (the bug BUILD_REV exists for).
 ENV NEXT_SKIP_BUILD_CHECKS=1
-RUN --mount=type=cache,id=ritme-frontend-next-webpack,target=/app/.next/cache/webpack,sharing=locked \
+RUN --mount=type=cache,id=ritme-frontend-next-cache,target=/app/.next/cache,sharing=locked \
+    rm -rf .next/cache/fetch-cache && \
     echo "frontend build rev: ${BUILD_REV:-none}" && npm run build
 
 # ---- Runner -----------------------------------------------------------------

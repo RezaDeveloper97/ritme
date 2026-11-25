@@ -17,8 +17,8 @@ production (`root@89.251.8.115`), gated by HTTP Basic auth.
 The frontend and admin-web images no longer lint or type-check (`NEXT_SKIP_BUILD_CHECKS=1` in their Dockerfiles —
 that step cost ~4 min per build on the 2-core server). A type error therefore does NOT fail the image build any more:
 run `/verify-all` (at minimum `npm run typecheck` + `npm run lint` in `frontend/` and `admin-web/`) first.
-webpack's cache is kept between builds in BuildKit cache mounts (`ritme-frontend-next-webpack`,
-`ritme-admin-web-next-webpack`); if a build ever looks stale, `docker builder prune --filter type=exec.cachemount`.
+`.next/cache` is kept between builds in BuildKit cache mounts (`ritme-frontend-next-cache`,
+`ritme-admin-web-next-cache`); if a build ever looks stale, `docker builder prune --filter type=exec.cachemount`.
 
 ## Automatic deploys (no manual merge)
 
