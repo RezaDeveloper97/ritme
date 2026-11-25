@@ -25,19 +25,10 @@
 .acct-photo { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 6px 0; }
 
 .acct-avatar {
-  position: relative; width: 96px; height: 96px; border-radius: 50%;
-  display: inline-flex; align-items: center; justify-content: center;
+  width: 96px; height: 96px; border-radius: 50%; overflow: hidden;
+  display: inline-flex; align-items: flex-end; justify-content: center;
   background: color-mix(in srgb, var(--bloom) 13%, transparent); border: 2px solid var(--bloom);
-  font-family: var(--font-display); font-size: 42px; line-height: 1; color: var(--bloom-deep);
 }
-
-.acct-avatar-cam {
-  position: absolute; bottom: 0; inset-inline-end: 0; width: 32px; height: 32px; border-radius: 50%;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: var(--brand-fill); color: var(--on-brand);
-}
-
-.acct-photo-hint { font-size: 11.5px; font-weight: 600; color: var(--text-2); }
 
 .acct-fields { padding: 0 16px; }
 

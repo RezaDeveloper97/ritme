@@ -5,8 +5,6 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
 import {
-  type OnboardingDating,
-  type OnboardingResult,
   useActivatePregnancy,
   useCompleteOnboarding,
   usePregnancyProfile,
@@ -14,7 +12,6 @@ import {
 } from '@/entities/pregnancy';
 import { useUpdateLifeStage, writeLifeModeHint } from '@/entities/user';
 import { OnbFrame } from '@/features/auth';
-import { DatingResultLine, datingResultKey } from '@/features/track-pregnancy';
 import { useRouter } from '@/shared/i18n';
 import { today } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
@@ -47,7 +44,6 @@ const TOTAL = 2;
  */
 export function PregnancyOnboardingPage() {
   const t = useTranslations('pregnancyV2.setup');
-  const tv = useTranslations('pregnancyV2');
   const tf = useTranslations('onboarding.flow');
   const router = useRouter();
 
@@ -55,8 +51,6 @@ export function PregnancyOnboardingPage() {
   const [answers, setAnswers] = useState<PregnancyAnswers>(EMPTY_PREGNANCY_ANSWERS);
   const [history, setHistory] = useState<SetupHistory>(EMPTY_HISTORY);
   const [failed, setFailed] = useState(false);
-  // The ACOG re-dating outcome of the saved scan (D-169): shown before `/pregnancy`.
-  const [saved, setSaved] = useState<OnboardingDating | null>(null);
 
   const copy = useSetupCopy().data;
   const activate = useActivatePregnancy();
@@ -88,39 +82,22 @@ export function PregnancyOnboardingPage() {
     if (!body || submitting) return;
     setFailed(false);
     try {
-      let result: OnboardingResult | null = null;
       await finishPregnancySetup({
         activate: () => activate.mutateAsync(),
-        onboard: async () => {
-          result = await onboard.mutateAsync(withHistory(body, withHistoryAnswers ? history : null));
-        },
+        onboard: () => onboard.mutateAsync(withHistory(body, withHistoryAnswers ? history : null)),
         storeMode: () => storeMode.mutateAsync({ mode: 'pregnancy' }),
       });
       // A mode reshapes the whole app (nav, home, messages): refetch everything.
       writeLifeModeHint('pregnancy');
       void queryClient.invalidateQueries();
-      // A scan saved next to an LMP was compared by the server: say what it decided before leaving.
-      const dating = (result as OnboardingResult | null)?.dating ?? null;
-      if (datingResultKey(dating)) setSaved(dating);
-      else router.replace('/pregnancy');
+      // Straight into pregnancy mode — no in-between «setup» screen.
+      router.replace('/pregnancy');
     } catch {
       setFailed(true);
     }
   };
 
   if (guard.current === 'pending' || leaving) return <OnbFrame privacyNote={false} />;
-
-  if (saved) {
-    return (
-      <OnbFrame
-        title={tv('today.setupCta')}
-        privacyNote={false}
-        primary={{ label: t('continue'), onClick: () => router.replace('/pregnancy'), pilot: pilot('preg.setup-continue') }}
-      >
-        <DatingResultLine dating={saved} />
-      </OnbFrame>
-    );
-  }
 
   const error = failed ? (
     <p className="onb2-error" role="alert">

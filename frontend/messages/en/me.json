@@ -84,7 +84,6 @@
   "account": {
     "title": "Account",
     "back": "Back",
-    "photoHint": "A photo is optional",
     "photoSoon": "Adding a photo is coming soon",
     "name": "First name",
     "familyName": "Last name",

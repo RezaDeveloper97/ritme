@@ -23,9 +23,10 @@ import {
   SkyLayer,
   StatusPill,
 } from '@/shared/ui';
+import { WomanAvatar } from '@/shared/ui/illustrations';
 
 import { MeErrorCard } from './MeErrorCard';
-import { firstLetter, groupMobile } from './me-format';
+import { groupMobile } from './me-format';
 import './acct.css';
 
 /** One labelled value with an action at the end (`nbl_Me_Profile` field card). */
@@ -56,8 +57,9 @@ function FieldRow({
 /**
  * Account screen (B-N1-10, `nbl_Me_Profile` / `nbd_Me_Profile`) at
  * `/profile/account`. Name and birth date are editable today (POST /profile);
- * family name, email, phone change, photo and the device list have no API yet
- * and show «به‌زودی» (bloom/QUESTIONS.md). The cycle & health numbers (lengths,
+ * family name, email, phone change and the device list have no API yet
+ * and show «به‌زودی» (bloom/QUESTIONS.md); photo upload is off for now, so the
+ * avatar is the default `WomanAvatar`. The cycle & health numbers (lengths,
  * last period, weight, height) are edited only on `/cycle/settings`.
  */
 export function AccountPage() {
@@ -111,14 +113,11 @@ export function AccountPage() {
           <MeErrorCard onRetry={() => profileQuery.refetch()} />
         ) : (
           <>
+            {/* Photo upload is off for now — everyone gets the default avatar. */}
             <div className="acct-photo">
               <span className="acct-avatar" aria-hidden>
-                {profile?.name ? firstLetter(profile.name) : <Icon name="user" size={40} />}
-                <span className="acct-avatar-cam">
-                  <Icon name="camera" size={16} />
-                </span>
+                <WomanAvatar size={92} />
               </span>
-              <span className="acct-photo-hint">{t('account.photoHint')}</span>
             </div>
 
             <section className="nb-card acct-fields">
