@@ -14,6 +14,7 @@ import (
 	"github.com/ritme/backend-go/internal/cycle/engineparams"
 	"github.com/ritme/backend-go/internal/messages/facts"
 	"github.com/ritme/backend-go/internal/platform/civildate"
+	"github.com/ritme/backend-go/internal/platform/racedet"
 )
 
 var today = civildate.MustParse("2026-10-21")
@@ -291,6 +292,9 @@ func TestRegistry_Definitions(t *testing.T) {
 
 // Budget: every engine fact from a warm state (the state already loaded) in ≤ 50 µs.
 func TestBudget_EngineFactsWarm(t *testing.T) {
+	if racedet.Enabled {
+		t.Skip("latency budget is meaningless under -race (5–10× slower)")
+	}
 	f := newFake()
 	f.in = &engine.Input{Periods: closed(today.AddDays(-12), 6, 28)}
 	_, _ = f.EngineState(context.Background()) // warm: Prepare done

@@ -176,7 +176,7 @@ func (q *Queries) AcctExportCompanionInvites(ctx context.Context, uid int64) ([]
 }
 
 const acctExportCompanions = `-- name: AcctExportCompanions :many
-SELECT ` + "`" + `id` + "`" + `, ` + "`" + `owner_id` + "`" + `, ` + "`" + `companion_user_id` + "`" + `, ` + "`" + `type` + "`" + `, ` + "`" + `status` + "`" + `, ` + "`" + `display_name` + "`" + `, ` + "`" + `invited_at` + "`" + `, ` + "`" + `accepted_at` + "`" + `, ` + "`" + `revoked_at` + "`" + `, ` + "`" + `revoked_by` + "`" + `, ` + "`" + `created_at` + "`" + `, ` + "`" + `updated_at` + "`" + `, ` + "`" + `role` + "`" + `, ` + "`" + `template` + "`" + `, ` + "`" + `expires_at` + "`" + `, ` + "`" + `urgent_sms` + "`" + `, ` + "`" + `owner_confirmed_at` + "`" + `, ` + "`" + `goal` + "`" + `, ` + "`" + `share_pain` + "`" + `, ` + "`" + `share_mood` + "`" + `, ` + "`" + `share_energy` + "`" + `, ` + "`" + `share_sleep` + "`" + `, ` + "`" + `action_prefs` + "`" + `
+SELECT ` + "`" + `id` + "`" + `, ` + "`" + `owner_id` + "`" + `, ` + "`" + `companion_user_id` + "`" + `, ` + "`" + `type` + "`" + `, ` + "`" + `status` + "`" + `, ` + "`" + `display_name` + "`" + `, ` + "`" + `invited_at` + "`" + `, ` + "`" + `accepted_at` + "`" + `, ` + "`" + `revoked_at` + "`" + `, ` + "`" + `revoked_by` + "`" + `, ` + "`" + `created_at` + "`" + `, ` + "`" + `updated_at` + "`" + `, ` + "`" + `role` + "`" + `, ` + "`" + `template` + "`" + `, ` + "`" + `expires_at` + "`" + `, ` + "`" + `urgent_sms` + "`" + `, ` + "`" + `owner_confirmed_at` + "`" + `, ` + "`" + `goal` + "`" + `, ` + "`" + `share_pain` + "`" + `, ` + "`" + `share_mood` + "`" + `, ` + "`" + `share_energy` + "`" + `, ` + "`" + `share_sleep` + "`" + `, ` + "`" + `share_period_days` + "`" + `, ` + "`" + `action_prefs` + "`" + `
 FROM ` + "`" + `companions` + "`" + `
 WHERE owner_id = CAST(? AS UNSIGNED) OR companion_user_id = CAST(? AS UNSIGNED)
 ORDER BY id
@@ -209,6 +209,7 @@ type AcctExportCompanionsRow struct {
 	ShareMood        bool
 	ShareEnergy      bool
 	ShareSleep       bool
+	SharePeriodDays  bool
 	ActionPrefs      sql.NullString
 }
 
@@ -244,6 +245,7 @@ func (q *Queries) AcctExportCompanions(ctx context.Context, arg AcctExportCompan
 			&i.ShareMood,
 			&i.ShareEnergy,
 			&i.ShareSleep,
+			&i.SharePeriodDays,
 			&i.ActionPrefs,
 		); err != nil {
 			return nil, err

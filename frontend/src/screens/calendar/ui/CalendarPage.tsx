@@ -264,7 +264,7 @@ interface DayCellProps {
   onSelect: (date: Date) => void;
   dayNumber: string;
   marker: CycleDayMarker | null;
-  /** Chance step of a fertile-window day — the turquoise-green deepens toward ovulation. */
+  /** Chance step of a fertile-window day — the turquoise deepens toward ovulation. */
   level: FertileLevel | null;
   /** Whether the day is inside a real logged period (vs an engine prediction). */
   isLogged: boolean;
@@ -496,7 +496,7 @@ export function CalendarPage() {
     return c ? cycleDayMarker(c) : null;
   };
 
-  // Fertile-window green step per day, from its distance to ovulation — the
+  // Fertile-window turquoise step per day, from its distance to ovulation — the
   // same grading the home ring uses.
   const levelFor = (date: Date): FertileLevel | null =>
     fertileLevelAt((offset) => markerFor(addDays(date, offset)));

@@ -15,6 +15,14 @@ SERVICES="frontend" ./deploy-beta.sh  # one service
 NO_BUILD=1 ./deploy-beta.sh           # restart only
 ```
 
+## Before every deploy: run `/verify-all`
+
+The frontend and admin-web images no longer lint or type-check (`NEXT_SKIP_BUILD_CHECKS=1` in their Dockerfiles —
+that step cost ~4 min per build on the 2-core server). A type error therefore does NOT fail the image build any more:
+run `/verify-all` (at minimum `npm run typecheck` + `npm run lint` in `frontend/` and `admin-web/`) first.
+`.next/cache` is kept between builds in BuildKit cache mounts (`ritme-frontend-next-cache`,
+`ritme-admin-web-next-cache`); if a build ever looks stale, `docker builder prune --filter type=exec.cachemount`.
+
 ## How it is separated
 
 | | production | staging | beta |
