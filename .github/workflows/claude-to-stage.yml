@@ -1,6 +1,6 @@
 # Claude Code (web) → stage, without a manual merge.
 #
-# Every push to a `claude/**` branch (what Claude Code on the web creates) runs the checks below — the backend job is
+# Every push to a branch other than `stage` / `main` (e.g. the `claude/**` branches Claude Code on the web creates) runs the checks below — the backend job is
 # ci.yml (go vet + `go test -race ./...` with integration tests on real MariaDB/Redis); when they pass,
 # the branch is merged into `stage` and pushed. The server then notices the new stage commit within ~2 minutes and
 # rebuilds stage.ritmeapp.ir (deploy/stage-autodeploy.sh + systemd timer) — nothing here has to reach the server.
@@ -22,8 +22,11 @@ name: claude-to-stage
 
 on:
   push:
-    branches:
-      - "claude/**"
+    # Every branch except the two long-lived ones (2026-11-25: was `claude/**` only). A new branch pushed from anywhere
+    # — Claude Code on the web, the Mac, another machine — is checked and merged into stage the same way.
+    branches-ignore:
+      - stage
+      - main
   workflow_dispatch: {}
 
 permissions:

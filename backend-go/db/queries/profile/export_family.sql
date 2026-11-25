@@ -15,7 +15,7 @@ WHERE child_id IN (SELECT id FROM `children` WHERE owner_id = CAST(sqlc.arg(uid)
 ORDER BY id;
 
 -- name: AcctExportCompanions :many
-SELECT `id`, `owner_id`, `companion_user_id`, `type`, `status`, `display_name`, `invited_at`, `accepted_at`, `revoked_at`, `revoked_by`, `created_at`, `updated_at`, `role`, `template`, `expires_at`, `urgent_sms`, `owner_confirmed_at`, `goal`, `share_pain`, `share_mood`, `share_energy`, `share_sleep`, `action_prefs`
+SELECT `id`, `owner_id`, `companion_user_id`, `type`, `status`, `display_name`, `invited_at`, `accepted_at`, `revoked_at`, `revoked_by`, `created_at`, `updated_at`, `role`, `template`, `expires_at`, `urgent_sms`, `owner_confirmed_at`, `goal`, `share_pain`, `share_mood`, `share_energy`, `share_sleep`, `share_period_days`, `action_prefs`
 FROM `companions`
 WHERE owner_id = CAST(sqlc.arg(uid) AS UNSIGNED) OR companion_user_id = CAST(sqlc.arg(uid) AS UNSIGNED)
 ORDER BY id;
