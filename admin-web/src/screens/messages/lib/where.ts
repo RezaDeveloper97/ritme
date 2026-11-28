@@ -4,7 +4,8 @@
  * menomessages, conditionnudges → the frontend screens). The words live in `smartMessages.where.<group>` /
  * `smartMessages.areas.<area>`; this file only orders and classifies them.
  *
- * `notShown` is for a group that reaches the API but no screen renders (none today). The Android app is a TWA of
+ * `notShown` is for a group no screen renders: since D-216 the cycle groups of the old `/messages/daily` bundle,
+ * whose messages are engine rules now (`tip.*`, edited under «قواعد نمایش پیام»). The Android app is a TWA of
  * the web app (package web.ritme.app, frontend/public/.well-known/assetlinks.json), so web = Android here.
  * The pregnancy groups of the old `/messages/daily` bundle feed the pregnancy home's «نکتهٔ هوشمند» card
  * (frontend screens/pregnancy/model/smart-tip.ts) together with `pregnancy_week_tip`.
@@ -31,20 +32,6 @@ export const AREAS: readonly MessageArea[] = [
 ];
 
 const GROUP_AREA: Record<string, MessageArea> = {
-  cycle_base_non_ttc: 'cycleHome',
-  cycle_base_ttc: 'cycleHome',
-  cycle_override: 'cycleHome',
-  correlation_cycle: 'cycleHome',
-  correlation_common: 'cycleHome',
-  pattern: 'cycleHome',
-  nutrition_cycle: 'cycleHome',
-  nutrition_ttc: 'cycleHome',
-  nutrition_symptom: 'cycleHome',
-  sleep_cycle: 'cycleHome',
-  sleep_symptom: 'cycleHome',
-  exercise_cycle: 'cycleHome',
-  exercise_symptom: 'cycleHome',
-  exercise_ttc: 'cycleHome',
   condition_nudge: 'conditions',
   pregnancy_week_tip: 'pregnancy',
   pregnancy_alert: 'pregnancy',
@@ -57,6 +44,20 @@ const GROUP_AREA: Record<string, MessageArea> = {
   pregnancy_trimester: 'pregnancy',
   pregnancy_week: 'pregnancy',
   pregnancy_base: 'pregnancy',
+  correlation_common: 'pregnancy',
+  cycle_base_non_ttc: 'notShown',
+  cycle_base_ttc: 'notShown',
+  cycle_override: 'notShown',
+  correlation_cycle: 'notShown',
+  pattern: 'notShown',
+  nutrition_cycle: 'notShown',
+  nutrition_ttc: 'notShown',
+  nutrition_symptom: 'notShown',
+  sleep_cycle: 'notShown',
+  sleep_symptom: 'notShown',
+  exercise_cycle: 'notShown',
+  exercise_symptom: 'notShown',
+  exercise_ttc: 'notShown',
   postpartum_week_tip: 'postpartum',
   postpartum_alert: 'postpartum',
   postpartum_safety: 'postpartum',

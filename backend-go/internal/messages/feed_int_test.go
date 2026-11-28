@@ -31,6 +31,7 @@ import (
 	"github.com/ritme/backend-go/internal/auth/passport"
 	authstore "github.com/ritme/backend-go/internal/auth/store"
 	apihttp "github.com/ritme/backend-go/internal/http"
+	"github.com/ritme/backend-go/internal/messages/cycletips"
 	"github.com/ritme/backend-go/internal/messages/facts"
 	"github.com/ritme/backend-go/internal/messages/feed"
 	"github.com/ritme/backend-go/internal/messages/rules"
@@ -392,7 +393,8 @@ func TestFeedInt_BannerSeed(t *testing.T) {
 	}
 }
 
-// Budget (T-M10-06): the feed with a warm engine state and 200 active rules, ≤ 20 ms p95 and ≤ 3 queries plus auth.
+// Budget (T-M10-06): the feed with a warm engine state and 200 active rules, ≤ 20 ms p95 and ≤ 4 queries plus auth
+// (3 until D-216 added the day entries of symptoms_today).
 func TestFeedInt_Budget(t *testing.T) {
 	if racedet.Enabled {
 		t.Skip("latency budget is meaningless under -race")
@@ -403,7 +405,7 @@ func TestFeedInt_Budget(t *testing.T) {
 	slotKind := [][3]string{{"urgent_modal", rules.KindSafety, rules.LevelFollowSoon}, {"smart_tip", rules.KindClinical, rules.LevelInfo},
 		{"daily_advice", rules.KindContent, rules.LevelInfo}, {"daily_challenge", rules.KindProduct, rules.LevelSuggestion},
 		{"modal", rules.KindMarketing, rules.LevelInfo}}
-	for i := range 197 { // + the 3 seeded banner rules = 200
+	for i := range 197 - len(cycletips.Defs) { // + the 3 seeded banner rules + the tip.* smart tips (D-216) = 200
 		sk := slotKind[i%len(slotKind)]
 		lo, hi := rules.Band(sk[1])
 		prio := lo + i%(hi-lo+1)
@@ -432,5 +434,46 @@ func TestFeedInt_Budget(t *testing.T) {
 	p50, p95 := durs[n/2], durs[n*95/100]
 	t.Logf("feed warm, 200 rules: p50 %s, p95 %s, queries %d (auth included)", p50, p95, slices.Max(queries))
 	assert.LessOrEqual(t, p95, 20*time.Millisecond, "p95 over budget")
-	assert.LessOrEqual(t, slices.Max(queries), 3+1, "≤ 3 queries plus auth")
+	// D-216: + 1 since the smart-tip rules read today's log (symptoms_today, one indexed (user, day) read).
+	assert.LessOrEqual(t, slices.Max(queries), 4+1, "≤ 4 queries plus auth")
+}
+
+// D-216: the cycle home's smart tip is the engine's. A quiet day shows the phase message; a symptom logged today
+// takes the card; a combination of today's symptoms beats a single one — all from the seeded tip.* rules.
+func TestFeedInt_CycleSmartTipFromRules(t *testing.T) {
+	e := newFeedEnv(t, "09120006177", civildate.MustParse("2026-10-05"))
+	idOf := func(key string) int {
+		return e.count(`SELECT id FROM message_rules WHERE rule_key = ?`, key)
+	}
+	tipNow := func() map[string]any {
+		st, body, _ := e.call(fiber.MethodGet, "/api/v1/messages/feed", feedDay1, nil)
+		require.Equal(t, 200, st, body)
+		items := slotItems(body, "smart_tip")
+		require.Len(t, items, 1, body)
+		return items[0]
+	}
+	log := func(category, param, item, code string) {
+		_, err := e.db.Exec(`INSERT INTO health_log_entries (user_id, log_date, category, param, item, value_code, created_at, updated_at)
+			VALUES (?, '2026-10-21', ?, ?, ?, ?, NOW(), NOW())`, e.uid, category, param, item, code)
+		require.NoError(t, err)
+	}
+
+	// Day 17 of a cycle that started on 2026-10-05, nothing logged: the phase message of the cycle mode.
+	quiet := tipNow()
+	var key string
+	require.NoError(t, e.db.QueryRow(`SELECT rule_key FROM message_rules WHERE id = ?`, quiet["id"]).Scan(&key))
+	assert.Regexp(t, `^tip\.cycle\.(follicular|fertile|luteal|period_expected|menstrual)$`, key)
+	assert.NotEmpty(t, quiet["title"])
+	assert.NotEmpty(t, quiet["body"])
+
+	// Fatigue logged today: the low-energy message.
+	log("symptoms", "general", "fatigue", "yes")
+	got := tipNow()
+	assert.EqualValues(t, idOf("tip.symptom.low_energy"), got["id"])
+
+	// Poor sleep and low energy together: the correlation wins over the single symptom.
+	log("sleep", "quality", "", "poor")
+	log("appetite_energy", "energy", "", "low")
+	got = tipNow()
+	assert.EqualValues(t, idOf("tip.corr.sleep_deprivation"), got["id"])
 }

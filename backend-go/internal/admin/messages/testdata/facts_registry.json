@@ -1077,6 +1077,33 @@
     },
     {
       "description": {
+        "en": "What she logged today (heavy flow, pain, mood, fatigue, low energy, bloating, nausea, acne, poor sleep).",
+        "fa": "علائمی که امروز ثبت شده (خونریزی زیاد، درد، خلق، خستگی، کم‌انرژی، نفخ، تهوع، جوش، خواب بد)"
+      },
+      "enum": [
+        "acne",
+        "backache",
+        "bloating",
+        "cramps",
+        "fatigue",
+        "headache",
+        "heavy_flow",
+        "low_energy",
+        "mood_angry",
+        "mood_anxious",
+        "mood_sad",
+        "nausea",
+        "poor_sleep"
+      ],
+      "group": "today_log",
+      "member_safe": false,
+      "name": "symptoms_today",
+      "pending": null,
+      "type": "set",
+      "unit": null
+    },
+    {
+      "description": {
         "en": "The Today status banner the engine chose (M-14).",
         "fa": "بنر وضعیت امروز که موتور انتخاب کرده (M-14)"
       },
@@ -1169,6 +1196,7 @@
     "pregnancy_alerts",
     "segment",
     "symptoms",
+    "today_log",
     "vitals"
   ]
 }

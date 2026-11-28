@@ -196,6 +196,63 @@ func (q *Queries) GetMessageFactProfile(ctx context.Context, arg GetMessageFactP
 	return i, err
 }
 
+const listMessageFactDayEntries = `-- name: ListMessageFactDayEntries :many
+SELECT category, param, item, value_code, value_num
+FROM ` + "`" + `health_log_entries` + "`" + `
+WHERE user_id = ? AND log_date = ?
+  AND ((category = 'bleeding' AND param = 'flow')
+    OR (category = 'pain' AND param = 'location')
+    OR (category = 'mood' AND param = 'moods')
+    OR (category = 'symptoms' AND param IN ('digestive', 'general'))
+    OR (category = 'appetite_energy' AND param = 'energy')
+    OR (category = 'sleep' AND param = 'quality')
+    OR (category = 'skin_hair' AND param = 'symptoms'))
+`
+
+type ListMessageFactDayEntriesParams struct {
+	UserID  uint64
+	LogDate civildate.Date
+}
+
+type ListMessageFactDayEntriesRow struct {
+	Category  string
+	Param     string
+	Item      string
+	ValueCode sql.NullString
+	ValueNum  sql.NullString
+}
+
+// symptoms_today: the entries of one day that a message rule may react to — flow, pain locations, moods, digestive /
+// general symptoms, energy, sleep quality and skin symptoms (facts.DayCodes maps them onto symptom codes).
+func (q *Queries) ListMessageFactDayEntries(ctx context.Context, arg ListMessageFactDayEntriesParams) ([]ListMessageFactDayEntriesRow, error) {
+	rows, err := q.db.QueryContext(ctx, listMessageFactDayEntries, arg.UserID, arg.LogDate)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListMessageFactDayEntriesRow{}
+	for rows.Next() {
+		var i ListMessageFactDayEntriesRow
+		if err := rows.Scan(
+			&i.Category,
+			&i.Param,
+			&i.Item,
+			&i.ValueCode,
+			&i.ValueNum,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listMessageFactLogMeasurements = `-- name: ListMessageFactLogMeasurements :many
 SELECT log_date, param, value_num FROM ` + "`" + `health_log_entries` + "`" + `
 WHERE user_id = ? AND category = 'measurements'

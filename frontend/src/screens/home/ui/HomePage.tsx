@@ -1067,7 +1067,6 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
   };
   const feedBannerAll = slotItems(feed, 'status_banner')[0] ?? null;
   const feedBanner = firstVisible(feedBannerAll ? [feedBannerAll] : [], closedFeed);
-  const feedTipServed = slotItems(feed, 'smart_tip').length > 0;
   const feedTip = firstVisible(slotItems(feed, 'smart_tip').slice(0, 1), closedFeed);
   // The urgent alert is the shell's (widgets/urgent-alert, over every screen); the in-app modal waits behind it.
   const urgentOpen = slotItems(feed, 'urgent_modal').length > 0;
@@ -1309,11 +1308,9 @@ function CycleHome({ lifeMode }: { lifeMode: LifeMode | null }) {
             {!teen && modules.learning && <LearnHomeCard />}
             {/* «چکاپ‌های دوره‌ای» (M4, /checkups/home). The «پیش‌بینی‌ها» card lives on /analysis. */}
             <CheckupsCard />
-            {/* «نکتهٔ هوشمند»: the engine's `smart_tip` when it has one, else the older daily-message tip.
-                No fallback while the feed loads, or after she closed the engine's tip. */}
+            {/* «نکتهٔ هوشمند»: the engine's `smart_tip` (phase, today's symptom or a combination — rules tip.*, D-216). */}
             <SmartTipCard
               item={feedTip}
-              fallback={feedStatus !== 'loading' && !feedTipServed}
               onCta={feedTip ? feedCta(feedTip) : null}
               onDismiss={feedTip ? () => dismissFeedItem(feedTip) : undefined}
             />

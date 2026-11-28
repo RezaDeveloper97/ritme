@@ -1517,20 +1517,20 @@
     "superOnlyNotice": "This is clinical content: only a super admin can change it. You can view it.",
     "rulesLink": "Message display rules",
     "where": {
-      "cycle_base_non_ttc": "Cycle home (not TTC) › smart-tip card and phase-card subtitle — only when no message rule fills the smart-tip slot",
-      "cycle_base_ttc": "Cycle home (TTC) › smart-tip card and phase-card subtitle — only when no message rule fills the smart-tip slot",
-      "cycle_override": "Cycle home › smart-tip card — replaces the base message when the user logged this symptom",
-      "correlation_cycle": "Cycle home › smart-tip card (links between logged symptoms) — only when no message rule fills the smart-tip slot",
-      "correlation_common": "Cycle and pregnancy homes › smart-tip card (general links between logged symptoms)",
-      "pattern": "Cycle home › smart-tip card (multi-cycle patterns, Plus users only) — only when no message rule fills the smart-tip slot",
-      "nutrition_cycle": "Cycle home › smart-tip card, nutrition part — only when no message rule fills the smart-tip slot",
-      "nutrition_ttc": "Cycle home (TTC) › smart-tip card, nutrition part — only when no message rule fills the smart-tip slot",
-      "nutrition_symptom": "Cycle home › smart-tip card, nutrition part (by logged symptom) — only when no message rule fills the smart-tip slot",
-      "sleep_cycle": "Cycle home › smart-tip card, sleep part — only when no message rule fills the smart-tip slot",
-      "sleep_symptom": "Cycle home › smart-tip card, sleep part (when poor sleep was logged) — only when no message rule fills the smart-tip slot",
-      "exercise_cycle": "Cycle home › smart-tip card, exercise part — only when no message rule fills the smart-tip slot",
-      "exercise_symptom": "Cycle home › smart-tip card, exercise part (by logged symptom) — only when no message rule fills the smart-tip slot",
-      "exercise_ttc": "Cycle home (TTC) › smart-tip card, exercise part — only when no message rule fills the smart-tip slot",
+      "cycle_base_non_ttc": "Moved to the message engine: this copy now lives in the tip.* rules under “Message display rules” (cycle home smart tip); editing this group no longer shows in the app",
+      "cycle_base_ttc": "Moved to the message engine: this copy now lives in the tip.* rules under “Message display rules” (cycle home smart tip); editing this group no longer shows in the app",
+      "cycle_override": "Moved to the message engine: this copy now lives in the tip.* rules under “Message display rules” (cycle home smart tip); editing this group no longer shows in the app",
+      "correlation_cycle": "Moved to the message engine: this copy now lives in the tip.* rules under “Message display rules” (cycle home smart tip); editing this group no longer shows in the app",
+      "correlation_common": "Pregnancy home › smart-tip card (general symptom links). On the cycle home the engine's tip.corr.* rules replaced it",
+      "pattern": "Retired: this group only showed when the phase message was empty (which never happened); not moved to the engine and not shown in the app",
+      "nutrition_cycle": "Retired: this group only showed when the phase message was empty (which never happened); not moved to the engine and not shown in the app",
+      "nutrition_ttc": "Retired: this group only showed when the phase message was empty (which never happened); not moved to the engine and not shown in the app",
+      "nutrition_symptom": "Retired: this group only showed when the phase message was empty (which never happened); not moved to the engine and not shown in the app",
+      "sleep_cycle": "Retired: this group only showed when the phase message was empty (which never happened); not moved to the engine and not shown in the app",
+      "sleep_symptom": "Retired: this group only showed when the phase message was empty (which never happened); not moved to the engine and not shown in the app",
+      "exercise_cycle": "Retired: this group only showed when the phase message was empty (which never happened); not moved to the engine and not shown in the app",
+      "exercise_symptom": "Retired: this group only showed when the phase message was empty (which never happened); not moved to the engine and not shown in the app",
+      "exercise_ttc": "Retired: this group only showed when the phase message was empty (which never happened); not moved to the engine and not shown in the app",
       "condition_nudge": "Cycle home › “this cycle's suggestion” card and the care-programs hub — after several days of heavy pain or bleeding",
       "pregnancy_week_tip": "Pregnancy home › smart-tip card — the card's main text each week (1–42); on a day the user logs a symptom, that symptom's message replaces it",
       "pregnancy_alert": "Fetal-movement screen › alert card, and the bell › alerts & messages (each alert's text and the level legend)",
@@ -1567,7 +1567,7 @@
       "menopause": "Menopause",
       "companion": "Companion",
       "analysis": "Analysis",
-      "notShown": "Not shown in the app for now",
+      "notShown": "Moved to the engine or retired",
       "other": "Other"
     },
     "itemKeys": {
@@ -1662,7 +1662,7 @@
       "heavy_pain": "Heavy pain"
     },
     "whereLabel": "Where it shows",
-    "notShown": "Not shown for now",
+    "notShown": "Not shown in the app",
     "createdPending": "Created; it shows in the app once approved."
   },
   "languages": {
@@ -4586,7 +4586,7 @@
   "messageAtlas": {
     "title": "Message map",
     "intro": "Every message or call to action the app shows: for whom (mode), where (surface) and when (condition). Read-only; each item is edited on its own screen.",
-    "scopeNote": "Step 1: message-engine rules and the message copy groups. Catalog messages and cards whose copy and trigger live in the app code (PMS card, LH card, analysis texts) join in later steps.",
+    "scopeNote": "Engine rules and message copy groups. The cycle home smart tip has moved into the engine. Catalog messages and cards whose copy and trigger live in the app code join in later steps.",
     "modeLabel": "User mode",
     "modes": {
       "all": "All",
@@ -4640,7 +4640,7 @@
       },
       "smartTip": {
         "title": "Home smart tip",
-        "where": "Cycle home › smart-tip card. An engine rule wins; the copy groups show only when no rule fills it"
+        "where": "Cycle home › smart-tip card: engine rules only (phase message, today's symptom, symptom combinations)"
       },
       "dailyAdvice": {
         "title": "Today's tips",
@@ -4701,24 +4701,28 @@
       "other": {
         "title": "Other surfaces",
         "where": "A surface this map does not know yet"
+      },
+      "retired": {
+        "title": "Moved to the engine / retired",
+        "where": "These copy groups no longer show in the app; their messages are the engine's tip.* rules or were dropped"
       }
     },
     "whenLabel": "When:",
     "when": {
-      "cycle_base_non_ttc": "See the Persian description (trigger lives in backend code).",
-      "cycle_base_ttc": "See the Persian description (trigger lives in backend code).",
-      "cycle_override": "See the Persian description (trigger lives in backend code).",
-      "correlation_cycle": "See the Persian description (trigger lives in backend code).",
+      "cycle_base_non_ttc": "Moved to the message engine: this copy now lives in the tip.* rules under “Message display rules” (cycle home smart tip); editing this group no longer shows in the app",
+      "cycle_base_ttc": "Moved to the message engine: this copy now lives in the tip.* rules under “Message display rules” (cycle home smart tip); editing this group no longer shows in the app",
+      "cycle_override": "Moved to the message engine: this copy now lives in the tip.* rules under “Message display rules” (cycle home smart tip); editing this group no longer shows in the app",
+      "correlation_cycle": "Moved to the message engine: this copy now lives in the tip.* rules under “Message display rules” (cycle home smart tip); editing this group no longer shows in the app",
       "correlation_common": "See the Persian description (trigger lives in backend code).",
-      "pattern": "See the Persian description (trigger lives in backend code).",
-      "nutrition_cycle": "See the Persian description (trigger lives in backend code).",
-      "nutrition_ttc": "See the Persian description (trigger lives in backend code).",
-      "nutrition_symptom": "See the Persian description (trigger lives in backend code).",
-      "sleep_cycle": "See the Persian description (trigger lives in backend code).",
-      "sleep_symptom": "See the Persian description (trigger lives in backend code).",
-      "exercise_cycle": "See the Persian description (trigger lives in backend code).",
-      "exercise_symptom": "See the Persian description (trigger lives in backend code).",
-      "exercise_ttc": "See the Persian description (trigger lives in backend code).",
+      "pattern": "Retired: this group only showed when the phase message was empty (which never happened); not moved to the engine and not shown in the app",
+      "nutrition_cycle": "Retired: this group only showed when the phase message was empty (which never happened); not moved to the engine and not shown in the app",
+      "nutrition_ttc": "Retired: this group only showed when the phase message was empty (which never happened); not moved to the engine and not shown in the app",
+      "nutrition_symptom": "Retired: this group only showed when the phase message was empty (which never happened); not moved to the engine and not shown in the app",
+      "sleep_cycle": "Retired: this group only showed when the phase message was empty (which never happened); not moved to the engine and not shown in the app",
+      "sleep_symptom": "Retired: this group only showed when the phase message was empty (which never happened); not moved to the engine and not shown in the app",
+      "exercise_cycle": "Retired: this group only showed when the phase message was empty (which never happened); not moved to the engine and not shown in the app",
+      "exercise_symptom": "Retired: this group only showed when the phase message was empty (which never happened); not moved to the engine and not shown in the app",
+      "exercise_ttc": "Retired: this group only showed when the phase message was empty (which never happened); not moved to the engine and not shown in the app",
       "condition_nudge": "See the Persian description (trigger lives in backend code).",
       "pregnancy_week_tip": "See the Persian description (trigger lives in backend code).",
       "pregnancy_override": "See the Persian description (trigger lives in backend code).",

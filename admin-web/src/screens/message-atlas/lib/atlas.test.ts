@@ -89,8 +89,9 @@ describe('message atlas', () => {
       ...groupEntries(),
     ];
     const tip = bySurface(entries).find((b) => b.surface === 'smartTip');
-    expect(tip?.entries.slice(0, 2).map((e) => e.id)).toEqual(['rule:2', 'rule:1']);
-    expect(tip?.entries.at(-1)?.source).toBe('group');
+    // D-216: the cycle smart tip is rules only; its old copy groups sit under «retired».
+    expect(tip?.entries.map((e) => e.id)).toEqual(['rule:2', 'rule:1']);
+    expect(bySurface(entries).find((b) => b.surface === 'retired')?.entries.map((e) => e.name)).toContain('cycle_override');
     const meno = filterEntries(entries, { mode: 'menopause', source: 'all', q: '' }, (e) => e.name);
     // everyone-rules + the menopause group + bmi (every mode)
     expect(meno.map((e) => e.id)).toEqual(['rule:1', 'rule:2', 'group:menopause_message', 'group:bmi_message']);

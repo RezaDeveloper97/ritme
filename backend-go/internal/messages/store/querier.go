@@ -87,6 +87,9 @@ type Querier interface {
 	ListLiveMessageContents(ctx context.Context, locale string) ([]ListLiveMessageContentsRow, error)
 	// HealthDataEngine::getCycleHistories() (the engine sorts itself).
 	ListMessageCycleHistories(ctx context.Context, userID uint64) ([]ListMessageCycleHistoriesRow, error)
+	// symptoms_today: the entries of one day that a message rule may react to — flow, pain locations, moods, digestive /
+	// general symptoms, energy, sleep quality and skin symptoms (facts.DayCodes maps them onto symptom codes).
+	ListMessageFactDayEntries(ctx context.Context, arg ListMessageFactDayEntriesParams) ([]ListMessageFactDayEntriesRow, error)
 	// vitals: the log-sheet day values of [date_from, date_to], merged into the timed readings exactly as the vitals
 	// views merge them (vitals ListLogMeasurements, internal/vitals/merge.go).
 	ListMessageFactLogMeasurements(ctx context.Context, arg ListMessageFactLogMeasurementsParams) ([]ListMessageFactLogMeasurementsRow, error)

@@ -33,13 +33,76 @@ type SymptomEntry struct {
 type LogSource interface {
 	LogStats(ctx context.Context, since, today civildate.Date) (LogStats, error)
 	SymptomEntries(ctx context.Context, from, to civildate.Date) ([]SymptomEntry, error)
+	// DayEntries are the entries of one day the symptoms_today fact reads (flow, pain, moods, symptoms, energy,
+	// sleep quality, skin); Date is left zero.
+	DayEntries(ctx context.Context, day civildate.Date) ([]SymptomEntry, error)
 }
 
 // Groups of this file.
 const (
 	GroupLogs     = "logs"
 	GroupSymptoms = "symptoms"
+	GroupToday    = "today_log"
 )
+
+// SymptomsToday is the set fact of what she logged today, in the symptom codes of DayCodes (D-216: the smart-tip
+// rules react to today's log; the legacy manager's detectors read columns that no longer exist, D-05).
+const SymptomsToday = "symptoms_today"
+
+// dayItemCodes map a day's «items» / multi entries (category.param.item) onto symptoms_today codes.
+var dayItemCodes = map[string]string{
+	"pain.location.abdomen":       "cramps",
+	"pain.location.pelvis":        "cramps",
+	"pain.location.head":          "headache",
+	"pain.location.back":          "backache",
+	"mood.moods.sad":              "mood_sad",
+	"mood.moods.anxious":          "mood_anxious",
+	"mood.moods.angry":            "mood_angry",
+	"mood.moods.irritable":        "mood_angry",
+	"symptoms.digestive.bloating": "bloating",
+	"symptoms.digestive.nausea":   "nausea",
+	"symptoms.general.fatigue":    "fatigue",
+	"skin_hair.symptoms.acne":     "acne",
+}
+
+// dayValueCodes map a day's single-value entries (category.param=value_code) onto symptoms_today codes.
+var dayValueCodes = map[string]string{
+	"bleeding.flow=heavy":             "heavy_flow",
+	"bleeding.flow=very_heavy":        "heavy_flow",
+	"appetite_energy.energy=low":      "low_energy",
+	"appetite_energy.energy=very_low": "low_energy",
+	"sleep.quality=poor":              "poor_sleep",
+}
+
+// DayCodeList are every code symptoms_today can hold, sorted.
+func DayCodeList() []string {
+	m := map[string]bool{}
+	for _, c := range dayItemCodes {
+		m[c] = true
+	}
+	for _, c := range dayValueCodes {
+		m[c] = true
+	}
+	return setOf(m)
+}
+
+// DayCodes are the symptoms_today codes of one day's entries (sorted, each once). A multi option (moods) is stored
+// as its item with level «yes»; an item with level «no» was looked at and declined, so it does not count.
+func DayCodes(entries []SymptomEntry) []string {
+	m := map[string]bool{}
+	for _, e := range entries {
+		if e.Item == "" {
+			if c, ok := dayValueCodes[e.Category+"."+e.Param+"="+e.Level]; ok {
+				m[c] = true
+			}
+			continue
+		}
+		if c, ok := dayItemCodes[e.Category+"."+e.Param+"."+e.Item]; ok && (e.present() || e.Level == "") {
+			m[c] = true
+		}
+	}
+	return setOf(m)
+}
 
 // SymptomHistoryDays is the look-back of symptom_history (about six cycles).
 const SymptomHistoryDays = 180
@@ -98,8 +161,25 @@ func init() {
 		Register(Def{Name: SymptomPrefix + c, Type: TypeInt, Unit: "cycle", Group: GroupSymptoms,
 			Description: desc("تعداد سیکل\u200cهایی که «"+c+"» در همان فاز امروز ثبت شده", "Cycles in which «"+c+"» was logged in today's phase.")})
 	}
+	Register(Def{Name: SymptomsToday, Type: TypeSet, Enum: DayCodeList(), Group: GroupToday,
+		Description: desc("علائمی که امروز ثبت شده (خونریزی زیاد، درد، خلق، خستگی، کم\u200cانرژی، نفخ، تهوع، جوش، خواب بد)",
+			"What she logged today (heavy flow, pain, mood, fatigue, low energy, bloating, nausea, acne, poor sleep).")})
 	RegisterGroup(GroupLogs, logFacts)
 	RegisterGroup(GroupSymptoms, symptomFacts)
+	RegisterGroup(GroupToday, todayFacts)
+}
+
+// todayFacts is symptoms_today: always present with a log source (an empty set on a day without those entries), so
+// a «nin» condition holds on a quiet day.
+func todayFacts(ctx context.Context, f *Facts) (Values, error) {
+	if f.src.Logs == nil {
+		return nil, nil
+	}
+	entries, err := f.src.Logs.DayEntries(ctx, f.today)
+	if err != nil {
+		return nil, err
+	}
+	return Values{SymptomsToday: DayCodes(entries)}, nil
 }
 
 func logFacts(ctx context.Context, f *Facts) (Values, error) {

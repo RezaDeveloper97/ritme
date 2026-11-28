@@ -40,6 +40,7 @@ type fake struct {
 	vitals    facts.LastVitals
 	stats     facts.LogStats
 	symptoms  []facts.SymptomEntry
+	day       []facts.SymptomEntry
 	calls     map[string]int
 	stateMemo *engine.State
 }
@@ -90,6 +91,11 @@ func (f *fake) LogStats(context.Context, civildate.Date, civildate.Date) (facts.
 func (f *fake) SymptomEntries(context.Context, civildate.Date, civildate.Date) ([]facts.SymptomEntry, error) {
 	f.calls["symptoms"]++
 	return f.symptoms, nil
+}
+
+func (f *fake) DayEntries(context.Context, civildate.Date) ([]facts.SymptomEntry, error) {
+	f.calls["day"]++
+	return f.day, nil
 }
 
 func (f *fake) sources() facts.Sources {
@@ -349,4 +355,27 @@ func TestFacts_SegmentFromSource(t *testing.T) {
 	assert.Equal(t, []string{"3", "7"}, v)
 	_, _, _ = f.Get(context.Background(), "segment")
 	assert.Equal(t, 1, src.calls["segments"])
+}
+
+func TestDayCodes(t *testing.T) {
+	e := func(cat, param, item, level string) facts.SymptomEntry {
+		return facts.SymptomEntry{Category: cat, Param: param, Item: item, Level: level}
+	}
+	got := facts.DayCodes([]facts.SymptomEntry{
+		e("bleeding", "flow", "", "very_heavy"),
+		e("bleeding", "flow", "", "light"), // not heavy
+		e("pain", "location", "abdomen", "moderate"),
+		e("pain", "location", "pelvis", "mild"), // the same code once
+		e("pain", "location", "back", "no"),     // looked at, declined
+		e("mood", "moods", "anxious", ""),       // a multi option has no level
+		e("mood", "moods", "irritable", "yes"),
+		e("symptoms", "general", "fatigue", "yes"),
+		e("symptoms", "general", "dizziness", "yes"), // not a smart-tip symptom
+		e("appetite_energy", "energy", "", "low"),
+		e("sleep", "quality", "", "poor"),
+		e("skin_hair", "symptoms", "acne", "mild"),
+	})
+	assert.Equal(t, []string{"acne", "cramps", "fatigue", "heavy_flow", "low_energy", "mood_angry", "mood_anxious", "poor_sleep"}, got)
+	assert.Empty(t, facts.DayCodes(nil))
+	assert.Subset(t, facts.DayCodeList(), got)
 }

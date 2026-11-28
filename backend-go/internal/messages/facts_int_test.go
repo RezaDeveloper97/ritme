@@ -122,7 +122,7 @@ func TestFactsInt_AccountLogsVitalsAndBudget(t *testing.T) {
 	assert.NotContains(t, v, "glucose_last_category")
 	assert.Equal(t, false, v["hormonal_contraception"])
 	assert.Equal(t, "menstrual", v["main_phase"])
-	assert.LessOrEqual(t, n, int64(4), "cold full build: ≤ 4 queries beyond the engine state")
+	assert.LessOrEqual(t, n, int64(5), "cold full build: ≤ 5 queries beyond the engine state (D-216: + the day entries of symptoms_today)")
 
 	// Engine-only rules read no message-store query at all.
 	_, n = registryFacts(t, db, uid, "main_phase", "days_late", "warnings")

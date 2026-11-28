@@ -564,6 +564,20 @@ func (s *StoreSource) SymptomEntries(ctx context.Context, from, to civildate.Dat
 	return out, nil
 }
 
+// DayEntries implements facts.LogSource.
+func (s *StoreSource) DayEntries(ctx context.Context, day civildate.Date) ([]facts.SymptomEntry, error) {
+	rows, err := s.q.ListMessageFactDayEntries(ctx, store.ListMessageFactDayEntriesParams{UserID: s.userID, LogDate: day})
+	if err != nil {
+		return nil, fmt.Errorf("messages: day entries: %w", err)
+	}
+	out := make([]facts.SymptomEntry, len(rows))
+	for i, r := range rows {
+		out[i] = facts.SymptomEntry{Category: r.Category, Param: r.Param, Item: r.Item,
+			Level: r.ValueCode.String, Score: r.ValueNum.String}
+	}
+	return out, nil
+}
+
 // LastVitals implements facts.VitalsSource: the newest blood pressure and glucose reading of [from, to] (timed and
 // log-sheet values merged by vitals.Merge), classified by vitals.Reading.Class with the user's context — the pregnancy
 // table for a reading inside the active pregnancy, the diabetic targets for a diabetic user — as the vitals screens.

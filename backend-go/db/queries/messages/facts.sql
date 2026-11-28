@@ -94,6 +94,20 @@ WHERE user_id = sqlc.arg(user_id)
   AND log_date >= sqlc.arg(date_from) AND log_date <= sqlc.arg(date_to)
 ORDER BY log_date;
 
+-- name: ListMessageFactDayEntries :many
+-- symptoms_today: the entries of one day that a message rule may react to — flow, pain locations, moods, digestive /
+-- general symptoms, energy, sleep quality and skin symptoms (facts.DayCodes maps them onto symptom codes).
+SELECT category, param, item, value_code, value_num
+FROM `health_log_entries`
+WHERE user_id = sqlc.arg(user_id) AND log_date = sqlc.arg(log_date)
+  AND ((category = 'bleeding' AND param = 'flow')
+    OR (category = 'pain' AND param = 'location')
+    OR (category = 'mood' AND param = 'moods')
+    OR (category = 'symptoms' AND param IN ('digestive', 'general'))
+    OR (category = 'appetite_energy' AND param = 'energy')
+    OR (category = 'sleep' AND param = 'quality')
+    OR (category = 'skin_hair' AND param = 'symptoms'));
+
 -- name: ListMessageFactVitalReadings :many
 -- vitals: the timed blood pressure and glucose readings of [date_from, date_to), newest first (vitals ListReadings).
 SELECT * FROM `vital_readings`

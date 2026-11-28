@@ -14,9 +14,10 @@ describe('message where-map', () => {
   });
 
   it('buckets groups by area in a stable order, unknown last', () => {
-    expect(groupByArea(['companion_tip', 'new_thing', 'cycle_base_ttc', 'pattern'])).toEqual([
-      { area: 'cycleHome', groups: ['cycle_base_ttc', 'pattern'] },
+    expect(groupByArea(['companion_tip', 'new_thing', 'cycle_base_ttc', 'pregnancy_week_tip', 'pattern'])).toEqual([
+      { area: 'pregnancy', groups: ['pregnancy_week_tip'] },
       { area: 'companion', groups: ['companion_tip'] },
+      { area: 'notShown', groups: ['cycle_base_ttc', 'pattern'] }, // D-216: moved to the engine / retired
       { area: null, groups: ['new_thing'] },
     ]);
   });

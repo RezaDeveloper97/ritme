@@ -148,6 +148,8 @@ func TestActiveRows_SnapshotAndLocalInvalidation(t *testing.T) {
 	ctx := context.Background()
 	counter := &countingDB{DB: db}
 	q := store.New(counter)
+	_, err := db.ExecContext(ctx, "DELETE FROM message_rules WHERE rule_key LIKE 'tip.%'") // the seeded smart tips (D-216)
+	require.NoError(t, err)
 	insertRule(t, db, 50, 0, "", 0)
 
 	got, err := rules.ActiveRows(ctx, q, "smart_tip")

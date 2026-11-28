@@ -30,6 +30,8 @@ export const SURFACES = [
   'companionHome',
   'analysis',
   'other',
+  // Copy groups whose messages moved into the engine (rules tip.*, D-216): kept editable, shown nowhere.
+  'retired',
 ] as const;
 export type Surface = (typeof SURFACES)[number];
 
@@ -168,20 +170,20 @@ const CT: Mode[] = ['cycle', 'ttc'];
 const P: Mode[] = ['pregnancy'];
 
 export const GROUP_ENTRIES: Record<string, { modes: Mode[]; surface: Surface }> = {
-  cycle_base_non_ttc: { modes: C, surface: 'smartTip' },
-  cycle_base_ttc: { modes: T, surface: 'smartTip' },
-  cycle_override: { modes: CT, surface: 'smartTip' },
-  correlation_cycle: { modes: CT, surface: 'smartTip' },
-  correlation_common: { modes: ['cycle', 'ttc', 'pregnancy'], surface: 'smartTip' },
-  pattern: { modes: CT, surface: 'smartTip' },
-  nutrition_cycle: { modes: CT, surface: 'smartTip' },
-  nutrition_ttc: { modes: T, surface: 'smartTip' },
-  nutrition_symptom: { modes: CT, surface: 'smartTip' },
-  sleep_cycle: { modes: CT, surface: 'smartTip' },
-  sleep_symptom: { modes: CT, surface: 'smartTip' },
-  exercise_cycle: { modes: CT, surface: 'smartTip' },
-  exercise_symptom: { modes: CT, surface: 'smartTip' },
-  exercise_ttc: { modes: T, surface: 'smartTip' },
+  cycle_base_non_ttc: { modes: C, surface: 'retired' },
+  cycle_base_ttc: { modes: T, surface: 'retired' },
+  cycle_override: { modes: CT, surface: 'retired' },
+  correlation_cycle: { modes: CT, surface: 'retired' },
+  correlation_common: { modes: P, surface: 'pregnancyHome' },
+  pattern: { modes: CT, surface: 'retired' },
+  nutrition_cycle: { modes: CT, surface: 'retired' },
+  nutrition_ttc: { modes: T, surface: 'retired' },
+  nutrition_symptom: { modes: CT, surface: 'retired' },
+  sleep_cycle: { modes: CT, surface: 'retired' },
+  sleep_symptom: { modes: CT, surface: 'retired' },
+  exercise_cycle: { modes: CT, surface: 'retired' },
+  exercise_symptom: { modes: CT, surface: 'retired' },
+  exercise_ttc: { modes: T, surface: 'retired' },
   condition_nudge: { modes: CT, surface: 'homeCard' },
   pregnancy_week_tip: { modes: P, surface: 'pregnancyHome' },
   pregnancy_override: { modes: P, surface: 'pregnancyHome' },
