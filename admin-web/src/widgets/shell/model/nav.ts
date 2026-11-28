@@ -50,6 +50,8 @@ export const NAV: readonly NavGroup[] = [
     key: 'groupMessages',
     icon: 'message',
     items: [
+      // «نقشهٔ پیام‌ها»: who sees what, where and when — the read-only overview of every message source.
+      { key: 'messageAtlas', href: '/messages/atlas', icon: 'globe', cap: 'messages', ready: true },
       { key: 'messages', href: '/messages', icon: 'message', cap: 'messages', ready: true },
       { key: 'messageRules', href: '/messages/rules', icon: 'listOrdered', cap: 'messages', ready: true },
       { key: 'messageEngine', href: '/messages/rules/engine', icon: 'gear', cap: 'messages', ready: true },

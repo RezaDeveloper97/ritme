@@ -127,6 +127,7 @@
     "cityServiceBookings": "City service requests",
     "infoSections": "Help & text pages",
     "insuranceCenters": "Insurance centres",
+    "messageAtlas": "Message map",
     "messages": "App message copy",
     "languages": "Languages",
     "password": "Change password",
@@ -4581,5 +4582,161 @@
     "confirmDeduct": "Take up to {n} credits from this user's extra credits (now {extra})?",
     "grantedToast": "{n} credits gifted.",
     "takenToast": "{n} credits taken."
+  },
+  "messageAtlas": {
+    "title": "Message map",
+    "intro": "Every message or call to action the app shows: for whom (mode), where (surface) and when (condition). Read-only; each item is edited on its own screen.",
+    "scopeNote": "Step 1: message-engine rules and the message copy groups. Catalog messages and cards whose copy and trigger live in the app code (PMS card, LH card, analysis texts) join in later steps.",
+    "modeLabel": "User mode",
+    "modes": {
+      "all": "All",
+      "cycle": "Cycle",
+      "ttc": "Trying to conceive",
+      "pregnancy": "Pregnancy",
+      "postpartum": "Postpartum",
+      "menopause": "Menopause",
+      "teen": "Teen",
+      "companion": "Companion",
+      "everyone": "Every mode"
+    },
+    "search": "Search titles, copy or conditions…",
+    "source": "Source",
+    "sources": {
+      "all": "All sources",
+      "rule": "Engine rule",
+      "group": "Message copy"
+    },
+    "shows": "Shows:",
+    "place": "Where:",
+    "always": "Always (no condition)",
+    "except": "unless",
+    "whenInCode": "This group's trigger lives in server code.",
+    "openRule": "Edit rule",
+    "openGroup": "Copy",
+    "empty": "No message matches these filters.",
+    "listJoin": ", ",
+    "and": " and ",
+    "or": " or ",
+    "between": "between {a} and {b}",
+    "ops": {
+      "eq": "is",
+      "ne": "is not",
+      "gt": "more than",
+      "gte": "at least",
+      "lt": "less than",
+      "lte": "at most",
+      "in": "one of",
+      "nin": "none of",
+      "contains": "contains"
+    },
+    "surfaces": {
+      "urgentModal": {
+        "title": "Urgent modal",
+        "where": "Home › modal that stays until acknowledged, with a call button"
+      },
+      "homeBanner": {
+        "title": "Home status banner",
+        "where": "Home › banner at the top, under “today's log”"
+      },
+      "smartTip": {
+        "title": "Home smart tip",
+        "where": "Cycle home › smart-tip card. An engine rule wins; the copy groups show only when no rule fills it"
+      },
+      "dailyAdvice": {
+        "title": "Today's tips",
+        "where": "Home › today's tips (up to 3)"
+      },
+      "dailyChallenge": {
+        "title": "Today's challenge",
+        "where": "Home › today's challenge card"
+      },
+      "homeCard": {
+        "title": "Home cards",
+        "where": "Home › suggestion cards"
+      },
+      "modal": {
+        "title": "In-app modal",
+        "where": "Home › in-app modal (when no urgent modal is open)"
+      },
+      "inbox": {
+        "title": "Alerts & messages",
+        "where": "Bell › alerts & messages; open items also show as banner or urgent modal"
+      },
+      "push": {
+        "title": "Notification (push)",
+        "where": "In-app notifications inbox, once a day"
+      },
+      "sms": {
+        "title": "SMS",
+        "where": "SMS (no sender is active yet)"
+      },
+      "pregnancyHome": {
+        "title": "Pregnancy home",
+        "where": "Pregnancy home › smart-tip card"
+      },
+      "pregnancySetup": {
+        "title": "Pregnancy setup",
+        "where": "Pregnancy setup and the pregnancy calendar"
+      },
+      "postpartumHome": {
+        "title": "Postpartum home",
+        "where": "Postpartum home › week tip, alert list and the “when to call” card"
+      },
+      "postpartumMood": {
+        "title": "Postpartum mood",
+        "where": "Mood screen › test result and the urgent screen"
+      },
+      "menopauseHome": {
+        "title": "Menopause home",
+        "where": "Menopause home › message cards"
+      },
+      "companionHome": {
+        "title": "Companion home",
+        "where": "Companion home › note under the cycle card and “what can you do today?”"
+      },
+      "analysis": {
+        "title": "Analysis",
+        "where": "Analysis screens"
+      },
+      "other": {
+        "title": "Other surfaces",
+        "where": "A surface this map does not know yet"
+      }
+    },
+    "whenLabel": "When:",
+    "when": {
+      "cycle_base_non_ttc": "See the Persian description (trigger lives in backend code).",
+      "cycle_base_ttc": "See the Persian description (trigger lives in backend code).",
+      "cycle_override": "See the Persian description (trigger lives in backend code).",
+      "correlation_cycle": "See the Persian description (trigger lives in backend code).",
+      "correlation_common": "See the Persian description (trigger lives in backend code).",
+      "pattern": "See the Persian description (trigger lives in backend code).",
+      "nutrition_cycle": "See the Persian description (trigger lives in backend code).",
+      "nutrition_ttc": "See the Persian description (trigger lives in backend code).",
+      "nutrition_symptom": "See the Persian description (trigger lives in backend code).",
+      "sleep_cycle": "See the Persian description (trigger lives in backend code).",
+      "sleep_symptom": "See the Persian description (trigger lives in backend code).",
+      "exercise_cycle": "See the Persian description (trigger lives in backend code).",
+      "exercise_symptom": "See the Persian description (trigger lives in backend code).",
+      "exercise_ttc": "See the Persian description (trigger lives in backend code).",
+      "condition_nudge": "See the Persian description (trigger lives in backend code).",
+      "pregnancy_week_tip": "See the Persian description (trigger lives in backend code).",
+      "pregnancy_override": "See the Persian description (trigger lives in backend code).",
+      "correlation_pregnancy": "See the Persian description (trigger lives in backend code).",
+      "nutrition_trimester": "See the Persian description (trigger lives in backend code).",
+      "sleep_trimester": "See the Persian description (trigger lives in backend code).",
+      "exercise_trimester": "See the Persian description (trigger lives in backend code).",
+      "pregnancy_trimester": "See the Persian description (trigger lives in backend code).",
+      "pregnancy_week": "See the Persian description (trigger lives in backend code).",
+      "pregnancy_base": "See the Persian description (trigger lives in backend code).",
+      "pregnancy_alert": "See the Persian description (trigger lives in backend code).",
+      "pregnancy_setup": "See the Persian description (trigger lives in backend code).",
+      "postpartum_week_tip": "See the Persian description (trigger lives in backend code).",
+      "postpartum_alert": "See the Persian description (trigger lives in backend code).",
+      "postpartum_safety": "See the Persian description (trigger lives in backend code).",
+      "menopause_message": "See the Persian description (trigger lives in backend code).",
+      "companion_tip": "See the Persian description (trigger lives in backend code).",
+      "bmi_message": "See the Persian description (trigger lives in backend code)."
+    }
   }
 }

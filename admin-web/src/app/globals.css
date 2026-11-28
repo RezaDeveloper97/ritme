@@ -691,6 +691,27 @@ body {
     padding: .75rem 1rem;
     border-block-end: 1px solid var(--line);
   }
+  /* Message atlas */
+  .atlas-tabs { display: flex; flex-wrap: wrap; gap: .4rem; margin-block: .75rem; }
+  .atlas-tab {
+    display: inline-flex; align-items: center; gap: .4rem; min-block-size: 2.25rem; padding-inline: .8rem;
+    border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink-3);
+    font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .atlas-tab:hover { color: var(--ink); background: var(--surface-2); }
+  .atlas-tab[aria-selected="true"] { background: var(--pink-bg); border-color: var(--brand-line-soft); color: var(--brand); }
+  .atlas-tab-count { font-size: 11px; font-weight: 700; color: var(--muted); }
+  .atlas-where { margin: 0; padding: .6rem 1rem; background: var(--surface-2); color: var(--ink-3); font-size: 12.5px; }
+  .atlas-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: .9rem 1rem; }
+  .atlas-main { display: flex; flex-direction: column; gap: .35rem; min-inline-size: 0; }
+  .atlas-when, .atlas-sample { margin: 0; font-size: 13px; line-height: 1.9; }
+  .atlas-sample { color: var(--ink-3); }
+  .atlas-label { margin-inline-end: .4rem; font-weight: 700; color: var(--ink); }
+  .atlas-cta {
+    display: inline-block; margin-inline-start: .5rem; padding: .05rem .55rem; border-radius: 999px;
+    border: 1px solid var(--brand-line-soft); color: var(--brand); font-size: 12px; font-weight: 700;
+  }
+
   /* Messages: where each group shows in the app */
   .where-note { margin: 0; padding: .6rem .85rem; border-radius: 10px; background: var(--pink-bg); color: var(--ink); font-size: 13px; }
   .where-area { border: 1px solid var(--line); border-radius: 12px; padding: .5rem .75rem; }
