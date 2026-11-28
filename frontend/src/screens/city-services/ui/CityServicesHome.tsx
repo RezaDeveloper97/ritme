@@ -144,7 +144,7 @@ export function CityServicesHome({ onBrowse }: Props) {
       <div className="view csv-view">
         <SkyLayer />
         <div className="scroll">
-          <ScreenHeader title={t('title')} onBack={() => router.push(servicesHref)} backLabel={t('back')} />
+          <ScreenHeader title={t('title')} onBack={() => router.back(servicesHref)} backLabel={t('back')} />
           <div className="csv-body">
             <SkeletonGroup label={t('loading')} className="csv-list">
               <Skeleton shape="block" />
@@ -162,7 +162,7 @@ export function CityServicesHome({ onBrowse }: Props) {
     <div className="view csv-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={t('title')} subtitle={t('tag')} onBack={() => router.push(servicesHref)} backLabel={t('back')} />
+        <ScreenHeader title={t('title')} subtitle={t('tag')} onBack={() => router.back(servicesHref)} backLabel={t('back')} />
         <div className="csv-body">
           {options.isError ? (
             <CsError title={t('loadError')} retry={t('retry')} busy={options.isFetching} onRetry={() => void options.refetch()} />

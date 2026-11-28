@@ -278,7 +278,7 @@ export function ShopCartPage() {
     <div className="view shp-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={t('cart.title')} onBack={() => router.push('/shop')} backLabel={t('cart.back')} />
+        <ScreenHeader title={t('cart.title')} onBack={() => router.back('/shop')} backLabel={t('cart.back')} />
         <div className="shp-body shcart-body">
           {body}
           {footer}

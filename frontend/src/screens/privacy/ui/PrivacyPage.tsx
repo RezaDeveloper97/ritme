@@ -407,7 +407,7 @@ export function PrivacyPage() {
     <div className="view prv-page">
       <SkyLayer />
       <div className="scroll prv-scroll">
-        <ScreenHeader title={t('title')} onBack={() => router.push('/profile')} backLabel={t('back')} />
+        <ScreenHeader title={t('title')} onBack={() => router.back('/profile')} backLabel={t('back')} />
 
         <LockSection />
         <HideSection />

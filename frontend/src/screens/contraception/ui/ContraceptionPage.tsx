@@ -111,7 +111,7 @@ export function ContraceptionPage() {
               ? t('pill.subtitle', { pack: formatNumber(pill.packNumber, locale), day: formatNumber(pill.packDay, locale) })
               : undefined
           }
-          onBack={() => router.push('/profile/mode')}
+          onBack={() => router.back('/profile/mode')}
           backLabel={t('pill.back')}
           action={
             data?.method ? (

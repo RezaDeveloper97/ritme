@@ -310,7 +310,7 @@ export function InsuranceClaimNewPage() {
     <div className="view ins-page ins-has-cta">
       <SkyLayer />
       <div className="scroll ins-scroll">
-        <ScreenHeader title={t('claimNew.title')} onBack={() => router.push('/insurance/claims')} backLabel={t('back')} />
+        <ScreenHeader title={t('claimNew.title')} onBack={() => router.back('/insurance/claims')} backLabel={t('back')} />
         {body}
       </div>
     </div>

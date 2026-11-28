@@ -221,7 +221,7 @@ export function FertilityBbtPage({ range: rawRange }: { range?: string }) {
           subtitle={
             data ? t("bbt.subtitle", { day: formatNumber(day, locale) }) : undefined
           }
-          onBack={() => router.push(BACK_HREF)}
+          onBack={() => router.back(BACK_HREF)}
           backLabel={t("back")}
           action={
             <HeaderButton

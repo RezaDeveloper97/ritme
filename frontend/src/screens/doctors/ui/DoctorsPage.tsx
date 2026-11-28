@@ -140,7 +140,7 @@ export function DoctorsPage() {
         <ScreenHeader
           title={t('list.title')}
           subtitle={q.data ? t('list.count', { count: formatNumber(q.data.meta.total, locale) }) : undefined}
-          onBack={() => router.push(servicesHref)}
+          onBack={() => router.back(servicesHref)}
           backLabel={t('common.back')}
           action={<HeaderButton label={t('bookings.title')} icon="calendar" onClick={() => router.push('/services/bookings')} pilot={pilot('doctors.bookings')} />}
         />

@@ -125,7 +125,7 @@ export function AssistantHandoffPage({ id }: { id: number }) {
     <div className="view as-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={t('handoff.title')} subtitle={t('handoff.subtitle')} onBack={() => router.push(`/assistant/chat/${id}/summary`)} backLabel={t('common.back')} />
+        <ScreenHeader title={t('handoff.title')} subtitle={t('handoff.subtitle')} onBack={() => router.back(`/assistant/chat/${id}/summary`)} backLabel={t('common.back')} />
         {body}
       </div>
     </div>

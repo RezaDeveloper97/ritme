@@ -75,7 +75,7 @@ export function RecordSharePage() {
     <div className="view rsh-page">
       <SkyLayer />
       <div className="scroll rsh-scroll">
-        <ScreenHeader title={t('title')} onBack={() => router.push('/record')} backLabel={t('back')} />
+        <ScreenHeader title={t('title')} onBack={() => router.back('/record')} backLabel={t('back')} />
         {body}
       </div>
       <ShareCodeSheet open={sheetOpen} onClose={() => setSheetOpen(false)} maxActive={query.data?.doctor.maxActive ?? 5} />

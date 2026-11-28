@@ -66,7 +66,7 @@ function Shell({ subtitle, children }: { subtitle?: string; children: React.Reac
         <ScreenHeader
           title={t('tww.title')}
           subtitle={subtitle}
-          onBack={() => router.push('/ivf')}
+          onBack={() => router.back('/ivf')}
           backLabel={t('tww.back')}
         />
         {children}

@@ -86,7 +86,7 @@ export function PainDiaryPage() {
         <ScreenHeader
           title={t('title')}
           subtitle={t('subtitle')}
-          onBack={() => router.push(PROGRAMS_HUB_PATH)}
+          onBack={() => router.back(PROGRAMS_HUB_PATH)}
           backLabel={t('back')}
         />
         {body}

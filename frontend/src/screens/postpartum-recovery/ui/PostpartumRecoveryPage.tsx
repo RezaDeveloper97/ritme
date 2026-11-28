@@ -113,7 +113,7 @@ export function PostpartumRecoveryPage() {
         <ScreenHeader
           title={t('title')}
           subtitle={day != null ? t('subtitle', { day: formatNumber(day, locale) }) : undefined}
-          onBack={() => router.push('/postpartum')}
+          onBack={() => router.back('/postpartum')}
           backLabel={tc('back')}
         />
         {body}

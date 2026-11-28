@@ -87,7 +87,7 @@ export function AssistantProfilePage() {
     <div className="view as-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={t('profile.title')} subtitle={t('profile.subtitle')} onBack={() => router.push('/assistant')} backLabel={t('common.back')} />
+        <ScreenHeader title={t('profile.title')} subtitle={t('profile.subtitle')} onBack={() => router.back('/assistant')} backLabel={t('common.back')} />
         {body}
       </div>
     </div>

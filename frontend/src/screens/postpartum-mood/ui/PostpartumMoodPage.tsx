@@ -105,7 +105,7 @@ export function PostpartumMoodPage({ kind: kindParam }: Props) {
         <ScreenHeader
           title={t('mood.title')}
           subtitle={subtitle}
-          onBack={() => router.push('/postpartum')}
+          onBack={() => router.back('/postpartum')}
           backLabel={t('common.back')}
         />
         {body}

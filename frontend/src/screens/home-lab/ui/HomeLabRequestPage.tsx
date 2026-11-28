@@ -51,7 +51,7 @@ export function HomeLabRequestPage({ id }: { id: number }) {
   const [error, setError] = useState<string | null>(null);
 
   const header = (
-    <ScreenHeader title={t('detail.title')} subtitle={t('tag')} onBack={() => router.push('/services/home-lab')} backLabel={t('back')} />
+    <ScreenHeader title={t('detail.title')} subtitle={t('tag')} onBack={() => router.back('/services/home-lab')} backLabel={t('back')} />
   );
   const shell = (children: React.ReactNode) => (
     <div className="view hlb-view">

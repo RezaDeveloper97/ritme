@@ -420,7 +420,7 @@ export function ShopProductPage({ id }: { id: number }) {
       <div className="scroll">
         <ScreenHeader
           title={t('product.title')}
-          onBack={() => router.push(q.data ? `/shop/${q.data.category}` : '/shop')}
+          onBack={() => router.back(q.data ? `/shop/${q.data.category}` : '/shop')}
           backLabel={t('back')}
           action={<CartButton />}
         />

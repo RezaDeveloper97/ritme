@@ -70,7 +70,7 @@ export function ShopPage() {
     <div className="view shp-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={t('title')} subtitle={t('tag')} onBack={() => router.push(servicesHref)} backLabel={t('back')} />
+        <ScreenHeader title={t('title')} subtitle={t('tag')} onBack={() => router.back(servicesHref)} backLabel={t('back')} />
         <div className="shp-body">
           {body}
           <p className="shp-note">{t('note')}</p>

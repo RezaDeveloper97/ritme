@@ -101,7 +101,7 @@ export function BleedingChartPage() {
         <ScreenHeader
           title={t('title')}
           subtitle={day?.period ? t('periodDay', { day: formatNumber(day.period.day, locale) }) : t('today')}
-          onBack={() => router.push(PROGRAMS_HUB_PATH)}
+          onBack={() => router.back(PROGRAMS_HUB_PATH)}
           backLabel={t('back')}
         />
         {body}

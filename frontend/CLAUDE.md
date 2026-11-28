@@ -175,9 +175,9 @@ the screen, so the screen's `.scroll` gets a clearing tail automatically.
 - **The registry is the one place allowed to import `screens` from `app`.**
   `shared/sheet` only ever deals in string ids, so the FSD direction holds.
 
-Sheets are addressed by `?sheet=<id>` and stack, so the hardware/browser back
-button dismisses the top one and deep links work. Navigating to another route
-closes them.
+Sheets are addressed by `?sheet=<id>` and stack, so the system Back dismisses
+the top one and deep links work (§4.2). Navigating to another route closes
+them.
 
 **The two sizes are different layouts, not two numbers** (see `AppSheet`):
 
@@ -193,31 +193,56 @@ a bug: it re-introduces the inner scrollbar the size exists to avoid.
 `AppSheet` is also the primitive for **inline** sheets that aren't routed at all
 (`QuickEditSheet`, the calendar month picker, the log `CategorySheet`) — pass
 `open`/`onClose` yourself. There is no second sheet implementation; don't add
-one.
+one. Wherever it is declared, an inline sheet renders into
+`.app-shell` (a portal), so it always covers the whole screen; one opened from
+inside another sheet stays in its parent's panel.
 
-### 4.2 Back never navigates
+### 4.2 Back goes back one layer
 
-The browser/hardware back button does **not** walk the app's screen stack — in
-the browser, the installed PWA and the Android WebView shell alike.
-`shared/back-guard` traps it by keeping a duplicate history entry above every
-screen, so a back press lands on the same URL and nothing moves. The Android
-shell asks the page first (`window.__ritmeBack`) and otherwise treats back as
-"leave the app", instead of `WebView.goBack()`.
+The system Back (gesture or three-button bar — browser, installed PWA and the
+TWA alike) steps back **exactly one layer**:
 
-This exists because Ritme's screens are a tab bar, not a document trail. The
-visible bug was signing out: one back press resurrected the signed-in screens
-from the bfcache, rendering the previous user's data against a dead session.
+1. the soft keyboard, if it is up — Android's IME takes that press itself;
+2. otherwise the top sheet / modal — only that, the screen stays;
+3. otherwise the previous screen — and out of the app, the normal Android way,
+   when there is no previous screen in the app.
+
+Reference: home → `/cycle` → log sheet. Back closes the sheet (still on
+`/cycle`); Back again → home; Back on home with nothing behind it → Android.
+
+In a TWA there is no reliable JavaScript "back button" event, so every layer is
+a **history entry** (`shared/back-stack`, doc header of `stack.ts`):
+
+- **Inline sheets** (`AppSheet` with your own `open`/`onClose`) push one entry
+  while open — automatically, via `useBackLayer`. Back pops it and calls
+  `onClose`; ×, swipe, backdrop, Escape and a save flip `open` off and the hook
+  pops the entry itself. The handler of a Back-close **never** calls `back()`
+  again — that is what used to take the user off the screen too.
+- **URL sheets** (`?sheet=`) keep their own entry (`shared/sheet/controller`);
+  `SheetHost` passes `backEntry={false}` so `AppSheet` doesn't add a second one.
+- A new kind of overlay (a custom dialog) calls `useBackLayer(open, close)`.
+  Never listen for `popstate` or a hardware-key bridge yourself.
 
 Consequences for new code:
 
-- **Never call `router.back()`** — `useRouter()` from `@/shared/i18n` no longer
-  exposes `back`/`forward`. An on-screen back arrow navigates *forwards* to an
-  explicit route (`previousOnboardingRoute(...)`, `/signup`), so the destination
-  is known rather than whatever happens to be in history.
-- **Sheets are the one exception**: they live in the query string, the guard
-  lets that pop through, and back still dismisses the top one.
-- **Sign-out is a full document replace** (`window.location.replace`), not a
-  client-side one, so no React tree or query cache survives it.
+- **The on-screen back arrow** is `router.back('/parent')` from `@/shared/i18n`,
+  never `router.push('/parent')`: it walks history when the parent is right
+  behind (so the system Back afterwards doesn't bounce here) and replaces the
+  screen with the parent otherwise — a deep link from a notification still has
+  a visible way home, and the system Back still leaves the app from there.
+  Next's own `router.back()` is not exposed: its destination isn't known.
+- **Unsaved input must survive a Back.** Back closes a sheet like × does, so a
+  form either keeps its draft outside the component (the log sheet:
+  `features/log-day/model/drafts.ts`, memory only, wiped at session end) or
+  asks before discarding.
+- **Navigating from inside an inline sheet**: use `router.push` / `<Link>` from
+  `@/shared/i18n`; they mark the navigation so the closing sheet doesn't pop
+  its entry under the router's feet (it is skipped on the way back instead).
+- **Sign-out is a full document replace** (`window.location.replace`), and
+  `SessionGuard` re-checks a screen restored by Back or the bfcache, so no
+  signed-in screen survives a session.
+- **Test on the installed TWA**, with gesture *and* three-button navigation —
+  not just a Chrome tab. Checklist: `docs/back-navigation.md`.
 
 ---
 
@@ -635,6 +660,18 @@ for free. New code uses the semantic names.
 for UI), spacing `--gutter` 16 / `--gutter-form` 20, touch sizes `--h-btn` 54,
 `--size-icon-btn` 44, `--size-fab` 56, `--h-nav` 70.
 
+**Screen edges.** The installed app runs `display: fullscreen` (no status or
+navigation bar), so `env(safe-area-inset-*)` is 0 on most Android phones and a
+screen would start at the glass. Use `--safe-top` / `--safe-bottom` — the real
+inset, or at least `--edge-top` 12px / `--edge-bottom` 8px — never a bare
+`env(safe-area-inset-*)`. `.view` pads both (top and bottom), so a header or
+footer inside a screen adds only its own spacing, while the screen's own
+background and absolutely placed decor (sky, glows) still run to the very edge —
+never pad the shell, that paints a strip of a different colour above the screen.
+Overlays positioned against the shell (sheets, toasts) add the token
+themselves. Result to keep: first header row ≈ 18px, last action ≥ 16px from
+the edge (measured on every route, 393×852).
+
 #### Menstruation (period) — the one sanctioned red
 
 **Bleeding days must read as red on every calendar surface** — a purple or pink
@@ -902,8 +939,9 @@ Hard rules:
   transparent. This shipped to production once already.
 - ❌ Calling the date library or `Date` formatting directly outside
   `shared/lib/date`; showing Gregorian dates to users.
-- ❌ `router.back()` / `history.back()` for screen navigation — back is trapped
-  app-wide (§4.2). Navigate forwards to an explicit route.
+- ❌ `router.push('/parent')` for a back arrow, a bare `history.back()`, or a
+  `popstate` / hardware-back listener of your own — the arrow is
+  `router.back('/parent')`, overlays use `useBackLayer` / `AppSheet` (§4.2).
 - ❌ Putting server data into Zustand/`useState` instead of TanStack Query.
 - ❌ Logging or transmitting health data anywhere it isn't strictly required.
 - ❌ Handling a 402 / 403 of an AI endpoint by hand (`plusDenialOf`, a bespoke paywall / quota card), or showing token counts — every AI surface uses `useAiGate` / `<AiGate>` (§11.5); call `handleError` in every catch and `refresh` after success.

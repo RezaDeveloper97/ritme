@@ -44,7 +44,7 @@ export function DoctorProfilePage({ doctorId }: { doctorId: number }) {
   const [slot, setSlot] = useState<PickedSlot | null>(null);
   const [allReviews, setAllReviews] = useState(false);
   const reviews = useDoctorReviews(doctorId, allReviews);
-  const back = () => router.push('/services/doctors');
+  const back = () => router.back('/services/doctors');
 
   const shell = (children: React.ReactNode, cta?: React.ReactNode) => (
     <div className="view dr-view">

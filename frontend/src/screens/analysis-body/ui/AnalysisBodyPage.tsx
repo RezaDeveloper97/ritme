@@ -215,7 +215,7 @@ export function AnalysisBodyPage() {
       title={t('body.title')}
       subtitle={t(`body.ranges.${range}`)}
       backLabel={t('back')}
-      onBack={() => router.push('/analysis')}
+      onBack={() => router.back('/analysis')}
       tabs={{
         label: t('rangeLabel'),
         value: range,

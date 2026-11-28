@@ -110,7 +110,7 @@ export function HomeLabPage() {
     <div className="view hlb-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={t('title')} subtitle={t('tag')} onBack={() => router.push(servicesHref)} backLabel={t('back')} />
+        <ScreenHeader title={t('title')} subtitle={t('tag')} onBack={() => router.back(servicesHref)} backLabel={t('back')} />
         <div className="hlb-body">{body}</div>
         <div className="page-tail" />
       </div>

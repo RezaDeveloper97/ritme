@@ -41,7 +41,7 @@ export function DevicesPage() {
     <div className="view dvc-page">
       <SkyLayer />
       <div className="scroll dvc-scroll">
-        <ScreenHeader title={t('devices.title')} onBack={() => router.push('/profile')} backLabel={t('devices.back')} />
+        <ScreenHeader title={t('devices.title')} onBack={() => router.back('/profile')} backLabel={t('devices.back')} />
 
         <section className="nb-card dvc-hero" aria-labelledby="dvc-soon">
           <span className="dvc-hero-ic" aria-hidden>

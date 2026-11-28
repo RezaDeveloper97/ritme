@@ -84,7 +84,7 @@ export function ManagePage() {
     <div className="view plus-page">
       <SkyLayer />
       <div className="scroll plus-scroll">
-        <ScreenHeader title={t('manage.title')} onBack={() => router.push('/profile')} backLabel={t('back')} />
+        <ScreenHeader title={t('manage.title')} onBack={() => router.back('/profile')} backLabel={t('back')} />
         {body}
       </div>
     </div>

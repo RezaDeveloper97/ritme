@@ -58,7 +58,7 @@ function Shell({ children }: { children: React.ReactNode }) {
     <div className="view ivfm-form-page ivfc-page">
       <SkyLayer />
       <div className="scroll is-form">
-        <ScreenHeader title={t('editor.title')} onBack={() => router.push('/ivf')} backLabel={t('back')} />
+        <ScreenHeader title={t('editor.title')} onBack={() => router.back('/ivf')} backLabel={t('back')} />
         {children}
       </div>
     </div>

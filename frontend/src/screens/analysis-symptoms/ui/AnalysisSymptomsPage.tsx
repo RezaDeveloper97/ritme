@@ -168,7 +168,7 @@ export function AnalysisSymptomsPage() {
       title={t('symptoms.title')}
       subtitle={t('recent', { range: rangeLabel })}
       backLabel={t('back')}
-      onBack={() => router.push('/analysis')}
+      onBack={() => router.back('/analysis')}
       tabs={{
         label: t('rangeLabel'),
         value: range,

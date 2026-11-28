@@ -63,6 +63,8 @@ export function SheetHost() {
     <AppSheet
       open={definition !== null}
       onClose={closeSheet}
+      // The sheet router keeps the history entry (`?sheet=`); a second one here would double it.
+      backEntry={false}
       size={definition?.size ?? 'full'}
       title={Title ? <Title arg={target?.arg} /> : undefined}
     >

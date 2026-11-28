@@ -1,0 +1,15 @@
+/* `wav-` — the default woman avatar (shared/ui/illustrations/WomanAvatar). */
+
+.wav { display: block; }
+
+.wav-hair { fill: var(--avatar-hair); }
+
+.wav-skin { fill: var(--avatar-skin); }
+
+.wav-top { fill: var(--avatar-top); }
+
+.wav-cheek { fill: var(--avatar-cheek); opacity: .55; }
+
+.wav-eye { fill: var(--avatar-hair); }
+
+.wav-smile { fill: none; stroke: var(--avatar-hair); stroke-width: 1.6; stroke-linecap: round; }

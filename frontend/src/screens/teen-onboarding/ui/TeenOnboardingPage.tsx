@@ -65,7 +65,7 @@ export function TeenOnboardingPage() {
         <ScreenHeader
           title={null}
           center={<span className="nb-hdr-titles" aria-hidden />}
-          onBack={() => router.push('/profile/mode')}
+          onBack={() => router.back('/profile/mode')}
           backLabel={t('back')}
         />
         {query.isPending ? (

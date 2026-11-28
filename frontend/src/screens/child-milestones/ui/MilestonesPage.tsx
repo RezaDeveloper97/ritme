@@ -67,7 +67,7 @@ export function ChildMilestonesPage({ id }: { id: number }) {
     <ScreenHeader
       title={t('section.milestones')}
       subtitle={view.data?.band.label}
-      onBack={() => router.push(valid ? `/children/${id}` : '/children')}
+      onBack={() => router.back(valid ? `/children/${id}` : '/children')}
       backLabel={t('common.back')}
     />
   );

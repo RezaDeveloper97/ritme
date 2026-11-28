@@ -304,7 +304,7 @@ export function ShopCheckoutPage() {
     <div className="view shp-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={t('checkout.title')} onBack={() => router.push('/shop/cart')} backLabel={t('checkout.back')} />
+        <ScreenHeader title={t('checkout.title')} onBack={() => router.back('/shop/cart')} backLabel={t('checkout.back')} />
         <div className="shp-body shco-body">{body}</div>
         <div className="page-tail" />
       </div>

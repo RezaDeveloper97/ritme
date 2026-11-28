@@ -197,7 +197,7 @@ export function BookedPage({ id }: { id: number }) {
     <div className="view csv-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={t('booked.header')} onBack={() => router.push('/profile/bookings')} backLabel={t('back')} />
+        <ScreenHeader title={t('booked.header')} onBack={() => router.back('/profile/bookings')} backLabel={t('back')} />
         <div className="csv-body">{body}</div>
         <div className="page-tail" />
       </div>

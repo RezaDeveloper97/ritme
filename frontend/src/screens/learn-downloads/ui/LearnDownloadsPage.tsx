@@ -142,7 +142,7 @@ export function LearnDownloadsPage() {
         <ScreenHeader
           title={t('downloads.title')}
           subtitle={t('downloads.subtitle')}
-          onBack={() => router.push('/learn')}
+          onBack={() => router.back('/learn')}
           backLabel={t('common.back')}
           action={
             items.length ? (

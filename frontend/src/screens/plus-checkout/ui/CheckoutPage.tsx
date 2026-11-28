@@ -362,7 +362,7 @@ function PlanCheckout() {
       <div className="scroll plus-scroll">
         <ScreenHeader
           title={t('checkout.title')}
-          onBack={() => router.push(plan ? `/plus/plans?plan=${plan.id}` : '/plus/plans')}
+          onBack={() => router.back(plan ? `/plus/plans?plan=${plan.id}` : '/plus/plans')}
           backLabel={t('back')}
           center={<ProgressSteps total={3} current={2} label={t('steps', { current: formatNumber(2, loc), total: formatNumber(3, loc) })} className="plus-steps" />}
         />

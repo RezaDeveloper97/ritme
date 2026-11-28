@@ -1,5 +1,7 @@
 'use client';
 
+import { getBackStack } from '@/shared/back-stack';
+
 import { hrefWithSheet, readSheetTarget } from './url';
 import { topOf, useSheetStore } from './store';
 import type { SheetTarget } from './types';
@@ -52,8 +54,10 @@ export function closeSheet(): void {
 
   if (pushedEntries > 0) {
     // The popstate listener does the rest, which keeps "user pressed back" and
-    // "user tapped close" on one code path.
-    window.history.back();
+    // "user tapped close" on one code path. An inline sheet open inside this
+    // one sits on its own entry above ours, so step past it too — otherwise
+    // the back would only close that and leave this sheet standing.
+    window.history.go(-(1 + getBackStack().layersOnTop()));
     return;
   }
 

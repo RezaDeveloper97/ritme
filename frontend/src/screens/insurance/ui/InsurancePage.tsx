@@ -153,13 +153,13 @@ export function InsurancePage() {
   const showNav = trackerReady && current === 'home';
 
   let title = t('title');
-  let onBack = () => router.push(servicesHref);
+  let onBack = () => router.back(servicesHref);
   let backLabel = t('back');
   if (trackerReady && current === 'home') {
     title = ti('title');
   } else if (trackerReady && current === 'edit') {
     title = hasPolicy ? ti('setup.editTitle') : ti('setup.title');
-    onBack = hasPolicy ? () => setView('home') : () => router.push(servicesHref);
+    onBack = hasPolicy ? () => setView('home') : () => router.back(servicesHref);
   } else if (trackerReady && current === 'info') {
     title = ti('home.howTitle');
     onBack = () => setView(hasPolicy ? 'home' : 'edit');

@@ -37,7 +37,7 @@ export function LearnCoursePage({ courseId }: { courseId: number }) {
   const q = useCourseOutline(courseId);
   const access = useAccessLabel();
   const [tab, setTab] = useState<Tab>('lessons');
-  const back = () => router.push('/learn');
+  const back = () => router.back('/learn');
 
   if (q.isPending) {
     return (

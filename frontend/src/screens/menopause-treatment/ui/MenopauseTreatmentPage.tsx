@@ -113,7 +113,7 @@ export function MenopauseTreatmentPage() {
     <div className="view mtr-page">
       <SkyLayer />
       <div className="scroll mtr-scroll">
-        <ScreenHeader title={t('title')} onBack={() => router.push('/home')} backLabel={t('back')} />
+        <ScreenHeader title={t('title')} onBack={() => router.back('/home')} backLabel={t('back')} />
         {body}
       </div>
       {sheet ? (

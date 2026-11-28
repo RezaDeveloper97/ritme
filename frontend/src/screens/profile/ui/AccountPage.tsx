@@ -12,6 +12,7 @@ import { pilot } from '@/shared/pilot';
 import { localizeHref, useRouter, type Locale } from '@/shared/i18n';
 import { formatLongDate } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { leaveSignedOut } from '@/shared/session';
 import {
   Icon,
   ListGroup,
@@ -22,9 +23,10 @@ import {
   SkyLayer,
   StatusPill,
 } from '@/shared/ui';
+import { WomanAvatar } from '@/shared/ui/illustrations';
 
 import { MeErrorCard } from './MeErrorCard';
-import { firstLetter, groupMobile } from './me-format';
+import { groupMobile } from './me-format';
 import './acct.css';
 
 /** One labelled value with an action at the end (`nbl_Me_Profile` field card). */
@@ -55,8 +57,9 @@ function FieldRow({
 /**
  * Account screen (B-N1-10, `nbl_Me_Profile` / `nbd_Me_Profile`) at
  * `/profile/account`. Name and birth date are editable today (POST /profile);
- * family name, email, phone change, photo and the device list have no API yet
- * and show «به‌زودی» (bloom/QUESTIONS.md). The cycle & health numbers (lengths,
+ * family name, email, phone change and the device list have no API yet
+ * and show «به‌زودی» (bloom/QUESTIONS.md); photo upload is off for now, so the
+ * avatar is the default `WomanAvatar`. The cycle & health numbers (lengths,
  * last period, weight, height) are edited only on `/cycle/settings`.
  */
 export function AccountPage() {
@@ -90,7 +93,7 @@ export function AccountPage() {
   const handleLogout = () => {
     if (logout.isPending) return;
     logout.mutate(undefined, {
-      onSettled: () => window.location.replace(localizeHref('/signup', loc)),
+      onSettled: () => leaveSignedOut(localizeHref('/signup', loc)),
     });
   };
 
@@ -98,7 +101,7 @@ export function AccountPage() {
     <div className="view acct-page">
       <SkyLayer />
       <div className="scroll acct-scroll">
-        <ScreenHeader title={t('account.title')} onBack={() => router.push('/profile')} backLabel={t('account.back')} />
+        <ScreenHeader title={t('account.title')} onBack={() => router.back('/profile')} backLabel={t('account.back')} />
 
         {loading ? (
           <SkeletonGroup label={t('loading')} className="acct-skel">
@@ -110,14 +113,11 @@ export function AccountPage() {
           <MeErrorCard onRetry={() => profileQuery.refetch()} />
         ) : (
           <>
+            {/* Photo upload is off for now — everyone gets the default avatar. */}
             <div className="acct-photo">
               <span className="acct-avatar" aria-hidden>
-                {profile?.name ? firstLetter(profile.name) : <Icon name="user" size={40} />}
-                <span className="acct-avatar-cam">
-                  <Icon name="camera" size={16} />
-                </span>
+                <WomanAvatar size={92} />
               </span>
-              <span className="acct-photo-hint">{t('account.photoHint')}</span>
             </div>
 
             <section className="nb-card acct-fields">

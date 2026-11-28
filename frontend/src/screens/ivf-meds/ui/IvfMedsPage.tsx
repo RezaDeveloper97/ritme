@@ -87,7 +87,7 @@ function Shell({ cycle, t, children }: { cycle: IvfCycle | null; t: T; children:
                 })
               : undefined
           }
-          onBack={() => router.push('/ivf')}
+          onBack={() => router.back('/ivf')}
           backLabel={t('meds.back')}
         />
         {children}

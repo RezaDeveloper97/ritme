@@ -165,7 +165,7 @@ export function InsuranceClaimsPage() {
         <ScreenHeader
           title={t('claims.title')}
           subtitle={formatYear(todayParts(locale).year, locale)}
-          onBack={() => router.push('/insurance')}
+          onBack={() => router.back('/insurance')}
           backLabel={t('back')}
           action={hasPolicy ? <HeaderButton label={t('claims.add')} icon="plus" onClick={() => router.push('/insurance/claims/new')} pilot={pilot('ins-claims.add')} /> : undefined}
         />

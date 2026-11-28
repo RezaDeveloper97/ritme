@@ -104,7 +104,7 @@ export function MyOrdersPage() {
     <div className="view shp-view">
       <SkyLayer />
       <div className="scroll">
-        <ScreenHeader title={t('orders.title')} onBack={() => router.push('/profile')} backLabel={t('orders.back')} />
+        <ScreenHeader title={t('orders.title')} onBack={() => router.back('/profile')} backLabel={t('orders.back')} />
         <div className="shp-body">{body}</div>
         <div className="page-tail" />
       </div>

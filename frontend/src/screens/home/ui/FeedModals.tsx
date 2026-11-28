@@ -3,6 +3,7 @@
 import { useLocale, useTranslations } from 'next-intl';
 
 import { localizeFeedText, type FeedItem } from '@/entities/message';
+import { useBackLayer } from '@/shared/back-stack';
 import type { Locale } from '@/shared/i18n';
 import { PrimaryButton, SecondaryButton } from '@/shared/ui';
 import '@/shared/ui/styles/del.css';
@@ -18,6 +19,7 @@ interface InAppModalProps {
 export function InAppModal({ item, onCta, onClose }: InAppModalProps) {
   const t = useTranslations('common.actions');
   const loc = useLocale() as Locale;
+  useBackLayer(true, onClose); // mounted only while shown; Back dismisses it like «بستن»
   return (
     <div
       role="dialog"

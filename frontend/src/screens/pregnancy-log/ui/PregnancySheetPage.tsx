@@ -14,7 +14,7 @@ import '@/shared/ui/styles/lday.css';
  */
 export function PregnancySheetPage({ date }: { date?: string }) {
   const router = useRouter();
-  const close = () => router.push('/pregnancy');
+  const close = () => router.back('/pregnancy');
   const voiceLocked = useVoiceLocked();
   return (
     <div className="view lday-page">

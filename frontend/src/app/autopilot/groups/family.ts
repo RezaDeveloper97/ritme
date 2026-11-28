@@ -108,7 +108,6 @@ export const FAMILY_TARGETS: readonly CatalogTarget[] = [
   { id: 'preg.setup-blood', value: 'single', titleKey: 'targets.preg_setup_blood', surface: { route: '/pregnancy/setup' }, reveal: () => [{ do: 'expand', target: `preg.setup-next` }], options: [{ value: 'A', titleKey: 'options.preg_setup_blood.A' }, { value: 'B', titleKey: 'options.preg_setup_blood.B' }, { value: 'AB', titleKey: 'options.preg_setup_blood.AB' }, { value: 'O', titleKey: 'options.preg_setup_blood.O' }] },
   { id: 'preg.setup-rh', value: 'single', titleKey: 'targets.preg_setup_rh', surface: { route: '/pregnancy/setup' }, reveal: () => [{ do: 'expand', target: `preg.setup-next` }], options: [{ value: 'positive', titleKey: 'options.preg_setup_rh.positive' }, { value: 'negative', titleKey: 'options.preg_setup_rh.negative' }] },
   { id: 'preg.setup-finish', value: 'action', titleKey: 'targets.preg_setup_finish', surface: { route: '/pregnancy/setup' }, reveal: () => [{ do: 'expand', target: `preg.setup-next` }] },
-  { id: 'preg.setup-continue', value: 'action', titleKey: 'targets.preg_setup_continue', surface: { route: '/pregnancy/setup' } },
   { id: 'baby.feed-child', value: 'single', titleKey: 'targets.baby_feed_child' },
   { id: 'baby.feed-type:*', value: 'action' },
   { id: 'baby.feed-side:*', value: 'action' },

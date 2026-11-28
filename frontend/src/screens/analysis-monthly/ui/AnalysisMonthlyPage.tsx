@@ -155,7 +155,7 @@ export function AnalysisMonthlyPage({ ym, calendar }: Props) {
         <ScreenHeader
           title={title}
           subtitle={subtitle}
-          onBack={() => router.push('/analysis')}
+          onBack={() => router.back('/analysis')}
           backLabel={t('back')}
           className="axc-hdr"
         />

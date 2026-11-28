@@ -106,7 +106,7 @@ export function LossCarePage() {
     <div className="view lsc-page">
       <SkyLayer />
       <div className="scroll lsc-scroll">
-        <ScreenHeader title={tc('title')} onBack={() => router.push(back)} backLabel={t('back')} />
+        <ScreenHeader title={tc('title')} onBack={() => router.back(back)} backLabel={t('back')} />
         {body}
       </div>
       {/* Sheets sit outside the scroller: AppSheet is positioned against the screen, not the scrolled content. */}

@@ -27,7 +27,7 @@ export function ChildSectionSoon({ id, section }: { id: number; section: ChildSe
         : section === 'milestones'
           ? t('section.milestones')
           : t('section.learn');
-  const back = () => router.push(`/children/${id}`);
+  const back = () => router.back(`/children/${id}`);
   return (
     <div className="view chd-screen">
       <SkyLayer />

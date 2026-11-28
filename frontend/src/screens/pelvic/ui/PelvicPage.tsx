@@ -90,7 +90,7 @@ export function PelvicPage() {
     <div className="view pv-page">
       <SkyLayer />
       <div className="scroll pv-scroll">
-        <ScreenHeader title={t('plan.title')} onBack={() => router.push('/programs')} backLabel={t('plan.back')} />
+        <ScreenHeader title={t('plan.title')} onBack={() => router.back('/programs')} backLabel={t('plan.back')} />
         <div className="pv-body">
           {body}
           <InfoNote className="pv-note">{alerts.data?.suitability ?? t('suitability')}</InfoNote>

@@ -207,7 +207,7 @@ export function AnalysisCyclePage() {
       title={t('cycle.title')}
       subtitle={r && r.basedOnCycles > 0 ? t('cycle.sub', { n: num(r.basedOnCycles) }) : t('recent', { range: t(`ranges.${range}`) })}
       backLabel={t('back')}
-      onBack={() => router.push('/analysis')}
+      onBack={() => router.back('/analysis')}
       tabs={{
         label: t('rangeLabel'),
         value: range,

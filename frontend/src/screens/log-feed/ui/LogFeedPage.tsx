@@ -66,7 +66,7 @@ function ResolveChild({ section }: { section: string | null }) {
   if (list.isError) {
     return (
       <Shell>
-        <ScreenHeader title={t('titleNoName')} backIcon="close" backLabel={t('close')} onBack={() => router.push('/postpartum')} />
+        <ScreenHeader title={t('titleNoName')} backIcon="close" backLabel={t('close')} onBack={() => router.back('/postpartum')} />
         <div className="bfl-body">
           <EmptyState
             icon="warning"
@@ -85,7 +85,7 @@ function ResolveChild({ section }: { section: string | null }) {
   if (list.data && !id) {
     return (
       <Shell>
-        <ScreenHeader title={t('titleNoName')} backIcon="close" backLabel={t('close')} onBack={() => router.push('/postpartum')} />
+        <ScreenHeader title={t('titleNoName')} backIcon="close" backLabel={t('close')} onBack={() => router.back('/postpartum')} />
         <div className="bfl-body">
           <EmptyState
             icon="sprout"
@@ -105,7 +105,7 @@ function ResolveChild({ section }: { section: string | null }) {
   }
   return (
     <Shell>
-      <ScreenHeader title={t('titleNoName')} backIcon="close" backLabel={t('close')} onBack={() => router.push('/postpartum')} />
+      <ScreenHeader title={t('titleNoName')} backIcon="close" backLabel={t('close')} onBack={() => router.back('/postpartum')} />
       <Loading t={t} />
     </Shell>
   );
@@ -135,7 +135,7 @@ function FeedScreen({ id, section }: { id: number; section: string | null }) {
       title={name ? t('title', { name }) : t('titleNoName')}
       backIcon="close"
       backLabel={t('close')}
-      onBack={() => router.push(`/children/${id}`)}
+      onBack={() => router.back(`/children/${id}`)}
       action={<HeaderButton icon="info" label={t('info')} onClick={() => setInfo((v) => !v)} />}
     />
   );

@@ -17,6 +17,7 @@ import { APP_VERSION } from '@/shared/config';
 import { localizeHref, useDirection, useRouter, type Locale } from '@/shared/i18n';
 import { calendarSystem } from '@/shared/lib/date';
 import { useMounted } from '@/shared/lib/use-mounted';
+import { leaveSignedOut } from '@/shared/session';
 import { useThemeStore } from '@/shared/theme';
 import {
   HeaderButton,
@@ -33,10 +34,11 @@ import {
   type Tone,
   Art3d,
 } from '@/shared/ui';
+import { WomanAvatar } from '@/shared/ui/illustrations';
 import { BottomNav, useNavMode } from '@/widgets/bottom-nav';
 
 import { MeErrorCard } from './MeErrorCard';
-import { firstLetter, localizeDigits, maskMobile, MODE_TONE } from './me-format';
+import { localizeDigits, maskMobile, MODE_TONE } from './me-format';
 import '@/shared/ui/styles/me.css';
 import '@/shared/ui/styles/tone.css';
 
@@ -113,7 +115,7 @@ export function ProfilePage() {
   const handleLogout = () => {
     if (logout.isPending) return;
     logout.mutate(undefined, {
-      onSettled: () => window.location.replace(localizeHref('/signup', loc)),
+      onSettled: () => leaveSignedOut(localizeHref('/signup', loc)),
     });
   };
 
@@ -148,7 +150,7 @@ export function ProfilePage() {
           <div className="me-id">
             <button type="button" className="me-id-main" onClick={() => router.push('/profile/account')} {...pilot('me.open:profile-account')}>
               <span className="me-avatar" aria-hidden>
-                {profile?.name ? firstLetter(profile.name) : <Icon name="user" size={26} />}
+                <WomanAvatar size={54} />
               </span>
               <span className="me-id-body">
                 <span className="me-id-name">{profile?.name || t('guest')}</span>

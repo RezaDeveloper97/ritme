@@ -97,7 +97,7 @@ export function ContraceptionMissedPage() {
         <ScreenHeader
           title={t('missed.title')}
           subtitle={method && isPillMethod(method.method) ? t(`setup.methods.${method.method}`) : undefined}
-          onBack={() => router.push('/contraception')}
+          onBack={() => router.back('/contraception')}
           backLabel={t('missed.back')}
         />
         {body}

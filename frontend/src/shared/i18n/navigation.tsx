@@ -8,6 +8,8 @@ import {
 import { useLocale } from 'next-intl';
 import type { ComponentProps } from 'react';
 
+import { getBackStack } from '@/shared/back-stack';
+
 import type { Locale } from './registry';
 
 /**
@@ -58,14 +60,32 @@ export function useRouter() {
   const resolve = (href: string, options?: NavigateOptions) =>
     localizeHref(href, options?.locale ?? active);
 
-  // No `back`/`forward`: history navigation is trapped app-wide
-  // (`shared/back-guard`), so calling them would do nothing. On-screen back
-  // affordances navigate to an explicit route instead.
+  // `push`/`replace` tell the back stack a navigation is starting, so an inline
+  // sheet that closes because of it doesn't pop its history entry under the
+  // router's feet (shared/back-stack).
   return {
-    push: (href: string, options?: NavigateOptions) =>
-      router.push(resolve(href, options), { scroll: options?.scroll }),
-    replace: (href: string, options?: NavigateOptions) =>
-      router.replace(resolve(href, options), { scroll: options?.scroll }),
+    push: (href: string, options?: NavigateOptions) => {
+      getBackStack().noteNavigation();
+      router.push(resolve(href, options), { scroll: options?.scroll });
+    },
+    replace: (href: string, options?: NavigateOptions) => {
+      getBackStack().noteNavigation();
+      router.replace(resolve(href, options), { scroll: options?.scroll });
+    },
+    /**
+     * The on-screen back arrow. Goes back through history when `parent` is the
+     * screen right behind this one — so the system Back afterwards doesn't
+     * return here — and otherwise replaces this screen with `parent` (a deep
+     * link from a notification, another route behind). Never a bare
+     * `history.back()`: the arrow's destination is always known.
+     */
+    back: (parent: string, options?: NavigateOptions) => {
+      const href = resolve(parent, options);
+      getBackStack().back(new URL(href, window.location.origin).pathname, () => {
+        getBackStack().noteNavigation();
+        router.replace(href, { scroll: options?.scroll });
+      });
+    },
     prefetch: (href: string, options?: NavigateOptions) =>
       router.prefetch(resolve(href, options)),
     refresh: () => router.refresh(),

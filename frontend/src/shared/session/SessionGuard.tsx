@@ -4,6 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 import { SESSION_CLEARED_EVENT } from './cookie';
+import { SIGNED_OUT_ATTR } from './leave';
 import { getOnboardingPending } from './onboarding';
 import { requestPersistentStorage } from './persist';
 import {
@@ -63,7 +64,13 @@ export function SessionGuard() {
         segment: segmentOf(pathname),
       });
       if (decision.assertFlag) assertAuthFlag();
-      if (decision.signIn) window.location.replace(`/${localeOf(pathname)}${SIGN_IN_ROUTE}`);
+      if (decision.signIn) {
+        window.location.replace(`/${localeOf(pathname)}${SIGN_IN_ROUTE}`);
+        return;
+      }
+      // Restored by Back after a sign-out that was followed by a new sign-in:
+      // the session is valid again, so show the page.
+      document.documentElement.removeAttribute(SIGNED_OUT_ATTR);
     };
 
     const onPageShow = (event: PageTransitionEvent) => {

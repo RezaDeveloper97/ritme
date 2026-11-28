@@ -94,7 +94,7 @@ export function PostpartumSetupPage() {
         <ScreenHeader
           title={t('title')}
           subtitle={t('subtitle')}
-          onBack={() => router.push(fromPregnancy ? '/pregnancy' : '/postpartum')}
+          onBack={() => router.back(fromPregnancy ? '/pregnancy' : '/postpartum')}
           backLabel={tc('back')}
         />
         <div className="pp-form">

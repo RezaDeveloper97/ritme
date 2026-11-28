@@ -13,6 +13,7 @@ export {
 } from './onboarding';
 export { onBeforeLogout, onSessionEnd, runBeforeLogout } from './cleanup';
 export { hasSeenIntro, markIntroSeen } from './intro';
+export { leaveSignedOut } from './leave';
 export { tokenExpiresAt } from './jwt';
 export { requestPersistentStorage } from './persist';
 export { postSplashRoute } from './splash';

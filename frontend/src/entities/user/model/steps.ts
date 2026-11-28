@@ -95,9 +95,9 @@ export function stepPosition(
  * The route the `NavBack` arrow goes to, or `null` on the first step — the flow
  * starts at the phone number, which is not part of this sequence.
  *
- * The arrow navigates forwards to a known route instead of calling
- * `router.back()`, because browser/hardware back is trapped app-wide
- * (`shared/back-guard`) and would do nothing.
+ * The arrow's destination is always known: it goes there through history when
+ * that step is right behind (`router.back(route)`, `shared/i18n`), and replaces
+ * the screen with it otherwise — never a bare `history.back()`.
  */
 export function previousOnboardingRoute(
   key: OnboardingStepKey,

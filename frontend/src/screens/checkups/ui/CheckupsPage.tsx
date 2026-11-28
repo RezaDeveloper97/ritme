@@ -181,7 +181,7 @@ export function CheckupsPage({ initialFilter }: { initialFilter?: string }) {
         <ScreenHeader
           title={meno ? t('meno.title') : t('title')}
           subtitle={!meno && age !== null ? t('list.ageBasis', { age: formatNumber(age, locale) }) : undefined}
-          onBack={() => router.push('/home')}
+          onBack={() => router.back('/home')}
           backLabel={t('back')}
           action={
             <HeaderButton

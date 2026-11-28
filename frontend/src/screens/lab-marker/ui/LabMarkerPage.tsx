@@ -61,7 +61,7 @@ export function LabMarkerPage({ id, markerId }: { id: number; markerId: number }
   const mounted = useMounted();
   const valid = Number.isFinite(id) && id > 0 && Number.isFinite(markerId) && markerId > 0;
   const q = useLabMarker(valid ? id : 0, valid ? markerId : 0);
-  const back = () => router.push(valid ? `/labs/${id}` : '/labs');
+  const back = () => router.back(valid ? `/labs/${id}` : '/labs');
   const d = q.data;
   const header = (
     <ScreenHeader

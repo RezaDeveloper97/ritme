@@ -142,7 +142,7 @@ export function AnalysisPeriodPage() {
       title={t('period.title')}
       subtitle={r && r.basedOnPeriods > 0 ? t('period.sub', { n: num(r.basedOnPeriods) }) : t('recent', { range: t(`ranges.${range}`) })}
       backLabel={t('back')}
-      onBack={() => router.push('/analysis')}
+      onBack={() => router.back('/analysis')}
       tabs={{
         label: t('rangeLabel'),
         value: range,
