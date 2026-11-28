@@ -526,9 +526,6 @@ body {
      are the white (--surface) layer on top of it. */
   background: var(--page);
   overflow: hidden;
-  /* Fullscreen has no status bar to push content down, so the shell keeps a
-     floor above every screen (--safe-top); a real notch inset wins. */
-  padding-top: var(--safe-top);
 }
 
 /* Desktop: lift the column off the neutral backdrop */
@@ -547,12 +544,14 @@ body {
 
 .view { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
 
-/* Bottom edge: every screen's last child — onboarding CTA, sticky footer —
-   stops above the iOS home indicator, or at least --edge-bottom above the
-   glass in Android fullscreen (where the gesture area has no bar of its own).
-   Padding, not a shell inset, so the strip keeps the screen's background. */
+/* Screen edges: the first header row starts --safe-top below the glass and
+   the last child (CTA, sticky footer) ends --safe-bottom above it — the real
+   notch / home-indicator inset, or the --edge-* floor in Android fullscreen.
+   Padding on the screen, not on the shell: the screen's own background and
+   its absolutely placed decor (sky, glows) still run to the very edge, only
+   the content moves in. */
 
-.view { padding-bottom: var(--safe-bottom); }
+.view { padding-top: var(--safe-top); padding-bottom: var(--safe-bottom); }
 
 .scroll { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
 

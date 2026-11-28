@@ -3,7 +3,9 @@
 import clsx from 'clsx';
 import { useTranslations } from 'next-intl';
 import {
+  createContext,
   useCallback,
+  useContext,
   useEffect,
   useId,
   useLayoutEffect,
@@ -12,6 +14,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react';
+import { createPortal } from 'react-dom';
 
 import { useBackLayer } from '@/shared/back-stack';
 import { pilot } from '@/shared/pilot';
@@ -45,6 +48,9 @@ interface AppSheetProps {
   children: ReactNode;
 }
 
+/** True inside a sheet's panel: a sheet opened from there stays inside its parent. */
+const InsideSheet = createContext(false);
+
 /**
  * The one way a secondary screen enters this app: a panel that rises from the
  * bottom over whatever the user was already looking at.
@@ -77,6 +83,17 @@ export function AppSheet({
 }: AppSheetProps) {
   const t = useTranslations('common');
   const titleId = useId();
+
+  // A sheet covers the whole app shell, wherever in the tree it was declared.
+  // Rendered in place, its backdrop took the size of the nearest positioned
+  // ancestor — a scroll list, a card — and the sheet came out boxed in, inset
+  // from the screen's edges. A sheet opened from inside another sheet stays in
+  // its parent's panel. `undefined` until the target is known (client only).
+  const nested = useContext(InsideSheet);
+  const [host, setHost] = useState<Element | null | undefined>(undefined);
+  useLayoutEffect(() => {
+    setHost(nested ? null : document.querySelector('.app-shell'));
+  }, [nested]);
 
   // Kept mounted through the exit animation, then torn down.
   const [mounted, setMounted] = useState(open);
@@ -144,7 +161,7 @@ export function AppSheet({
     restoreFocus.current = document.activeElement as HTMLElement | null;
     panelRef.current?.focus({ preventScroll: true });
     return () => restoreFocus.current?.focus?.({ preventScroll: true });
-  }, [open]);
+  }, [open, host]);
 
   /**
    * A half sheet only scrolls as a last resort — when its content has grown
@@ -166,7 +183,7 @@ export function AppSheet({
     observer.observe(body);
     if (body.firstElementChild) observer.observe(body.firstElementChild);
     return () => observer.disconnect();
-  }, [mounted, size, children]);
+  }, [mounted, size, children, host]);
 
   const onPointerDown = (event: ReactPointerEvent<HTMLElement>) => {
     dragStartY.current = event.clientY;
@@ -189,11 +206,11 @@ export function AppSheet({
     setDragY(0);
   }, [dragY, onClose]);
 
-  if (!mounted) return null;
+  if (!mounted || host === undefined) return null;
 
   const closing = !open;
 
-  return (
+  const sheet = (
     <div
       className={clsx('osheet-backdrop', closing && 'is-closing')}
       onPointerDown={(event) => {
@@ -246,12 +263,16 @@ export function AppSheet({
           </button>
         </header>
 
-        <div ref={bodyRef} className="osheet-body">
-          {open ? children : retained.current}
-        </div>
+        <InsideSheet.Provider value>
+          <div ref={bodyRef} className="osheet-body">
+            {open ? children : retained.current}
+          </div>
 
-        {footer ? <div className="osheet-foot">{footer}</div> : null}
+          {footer ? <div className="osheet-foot">{footer}</div> : null}
+        </InsideSheet.Provider>
       </div>
     </div>
   );
+
+  return host ? createPortal(sheet, host) : sheet;
 }

@@ -193,7 +193,9 @@ a bug: it re-introduces the inner scrollbar the size exists to avoid.
 `AppSheet` is also the primitive for **inline** sheets that aren't routed at all
 (`QuickEditSheet`, the calendar month picker, the log `CategorySheet`) — pass
 `open`/`onClose` yourself. There is no second sheet implementation; don't add
-one.
+one. Wherever it is declared, an inline sheet renders into
+`.app-shell` (a portal), so it always covers the whole screen; one opened from
+inside another sheet stays in its parent's panel.
 
 ### 4.2 Back goes back one layer
 
@@ -662,9 +664,11 @@ for UI), spacing `--gutter` 16 / `--gutter-form` 20, touch sizes `--h-btn` 54,
 navigation bar), so `env(safe-area-inset-*)` is 0 on most Android phones and a
 screen would start at the glass. Use `--safe-top` / `--safe-bottom` — the real
 inset, or at least `--edge-top` 12px / `--edge-bottom` 8px — never a bare
-`env(safe-area-inset-*)`. `.app-shell` already pads `--safe-top` and `.view`
-pads `--safe-bottom`, so a header or footer inside a screen adds only its own
-spacing; overlays positioned against the shell (sheets, toasts) add the token
+`env(safe-area-inset-*)`. `.view` pads both (top and bottom), so a header or
+footer inside a screen adds only its own spacing, while the screen's own
+background and absolutely placed decor (sky, glows) still run to the very edge —
+never pad the shell, that paints a strip of a different colour above the screen.
+Overlays positioned against the shell (sheets, toasts) add the token
 themselves. Result to keep: first header row ≈ 18px, last action ≥ 16px from
 the edge (measured on every route, 393×852).
 
